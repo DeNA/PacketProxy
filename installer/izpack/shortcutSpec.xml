@@ -1,0 +1,22 @@
+
+<izpack:shortcuts version="5.0"
+                  xmlns:izpack="http://izpack.org/schema/shortcuts"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://izpack.org/schema/shortcuts http://izpack.org/schema/5.0/izpack-shortcuts-5.0.xsd">
+    <skipIfNotSupported/>
+    <programGroup defaultName="PacketProxy"
+                  location="applications"/>
+    <shortcut
+        name="PacketProxy"
+        target="$INSTALL_PATH\OpenJDK8\bin\javaw.exe"
+        commandLine="-jar &quot;$INSTALL_PATH\PacketProxy.jar&quot;"
+        description="start PacketProxy"
+        iconFile="$INSTALL_PATH\PacketProxy.ico"
+        initialState="normal"
+        programGroup="yes"
+        desktop="yes"
+        applications="yes||no"
+        startMenu="yes"
+        startup="no">
+    </shortcut>
+</izpack:shortcuts>

@@ -1,0 +1,25 @@
+# Eclipse
+/bin/
+/.project
+/.classpath
+/.settings/
+
+# Gradle
+/build/
+/.gradle
+/src/main/resources/version
+
+# IntelliJ IDEA
+/out/
+/.idea
+/***/*.iml
+
+# othres
+/logs/
+/***/*.sqlite3
+/***/*.class
+/***/.DS_Store
+
+# dena internal
+/dena/
+/denaN/

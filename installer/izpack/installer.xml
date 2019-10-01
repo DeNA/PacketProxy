@@ -1,0 +1,68 @@
+
+<izpack:installation version="5.0"
+                     xmlns:izpack="http://izpack.org/schema/installation"
+                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xsi:schemaLocation="http://izpack.org/schema/installation http://izpack.org/schema/5.0/izpack-installation-5.0.xsd">
+
+    <info>
+        <appname>PacketProxy</appname>
+        <appversion>0.0</appversion>
+        <appsubpath>packetproxy</appsubpath>
+        <javaversion>1.6</javaversion>
+        <uninstaller path="$INSTALL_PATH/PacketProxyUninstaller/" name="uninstaller.jar" write="yes" os="mac"/>
+    </info>
+
+    <locale>
+        <langpack iso3="eng"/>
+        <langpack iso3="jpn"/>
+    </locale>
+
+    <resources>
+        <res src="../../shortcutSpec.xml" id="shortcutSpec.xml">
+            <os family="windows" />
+        </res>
+        <res src="../../installer_leftside_image.png" id="Installer.image"/>
+        <res src="../../installer_icon.png" id="JFrameIcon" />
+
+    </resources>
+    <natives>
+        <native type="izpack" name="ShellLink.dll">
+            <os family="windows" />
+        </native>
+        <native type="izpack" name="ShellLink_x64.dll">
+            <os family="windows" />
+        </native>
+    </natives>
+
+    <variables>
+        <variable name="TargetPanel.dir.windows" value="C:/Program Files/PacketProxy"/>
+        <variable name="TargetPanel.dir.unix" value="/usr/local/myapp"/>
+        <variable name="TargetPanel.dir.mac" value="/Applications/"/>
+    </variables>
+
+    <guiprefs width="800" height="600" resizable="no">
+        <param name="variant" value="nebula" />
+        <modifier key="useHeadingPanel" value="yes" />
+        <modifier key="headingBackgroundColor" value="0x00ffffff"/>
+    </guiprefs>
+
+    <panels>
+        <panel classname="TargetPanel"/>
+        <panel classname="PacksPanel"/>
+        <panel classname="InstallPanel"/>
+        <panel classname="ShortcutPanel">
+             <os family="windows" />
+        </panel>
+        <panel classname="FinishPanel"/>
+    </panels>
+
+    <packs>
+        <pack name="PacketProxy" required="yes">
+            <description>Install Packet Proxy on your device.</description>
+            <fileset dir="./" targetdir="${INSTALL_PATH}" override="true"/>
+            <executable targetfile="$INSTALL_PATH/PacketProxy.app/Contents/MacOS/PacketProxyLauncher.sh" os="mac" stage="never" failure="warn" keep="true"/>
+            <executable targetfile="$INSTALL_PATH/PacketProxy.exe" os="windows" stage="never" failure="warn" keep="true"/>
+        </pack>
+    </packs>
+
+</izpack:installation>

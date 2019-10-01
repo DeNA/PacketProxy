@@ -1,0 +1,373 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+import com.bmuschko.gradle.izpack.*
+import org.gradle.plugins.ide.eclipse.model.AccessRule
+
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath 'com.bmuschko:gradle-izpack-plugin:3.0'
+  }
+}
+
+plugins {
+  id 'java'
+  id 'application'
+  id 'eclipse'
+  id 'de.set.ecj' version '1.1.0'
+  id 'me.champeau.gradle.jmh' version '0.4.5'
+  id 'com.bmuschko.izpack' version '3.0'
+  id "com.github.hierynomus.license" version"0.15.0"
+  id "de.undercouch.download" version "4.0.0"
+}
+
+repositories {
+  mavenCentral()
+  maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+  compile 'com.google.guava:guava:24.1-jre'
+  compile 'commons-codec:commons-codec:1.6'
+  compile 'commons-io:commons-io:2.4'
+  compile 'org.apache.commons:commons-lang3:3.1'
+  compile 'org.apache.commons:commons-collections4:4.0'
+  compile 'org.xerial:sqlite-jdbc:3.7.2'
+  compile 'com.j256.ormlite:ormlite-core:4.48'
+  compile 'com.j256.ormlite:ormlite-jdbc:4.48'
+  compile 'com.google.protobuf:protobuf-java:2.6.1'
+  compile 'org.slf4j:slf4j-api:1.7.14'
+  compile 'org.slf4j:slf4j-log4j12:1.7.25'
+  compile 'com.googlecode.java-diff-utils:diffutils:1.2.1'
+  compile 'com.google.re2j:re2j:1.1'
+  compile 'com.github.mobius-software-ltd:mqtt-parser:parser-1.0.3'
+  compile 'net.arnx:jsonic:1.3.0'
+  compile 'org.json:json:20180813'
+  izpack 'org.codehaus.izpack:izpack-dist:5.1.3'
+
+  // load additional dena modules if it exists
+  ['dena/', 'denaN/'].each { def dir ->
+    def libs = file(dir + 'libraries.gradle')
+    if (libs.exists()) {
+      Eval.me(libs.text).each { def lib ->
+        compile lib
+      }
+    }
+  }
+
+  testImplementation "junit:junit:4.12"
+}
+
+downloadLicenses {
+  licenses = [ 'com.github.mobius-software-ltd:mqtt-parser:parser-1.0.3' : license('GNU Lesser General Public License 2.1', 'https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt') ]
+}
+
+tasks.withType(JavaCompile) {
+  options.encoding = "UTF-8"
+}
+
+tasks.withType(Test) {
+  systemProperty "file.encoding", "UTF-8"
+}
+
+mainClassName = "packetproxy/PacketProxy"
+
+task setVersion {
+  project.ext.version = "git describe --tags --abbrev=0".execute().text.replace("\n","")
+}
+
+task createVersionFile(dependsOn: "setVersion") {
+  new File("${projectDir}/src/main/resources/version").text = project.ext.version
+}
+
+task setName(dependsOn: "setVersion") {
+  project.ext.nameInstaller    = "PacketProxy-${project.ext.version}-Installer.jar"
+  project.ext.nameMacInstallApp = "PacketProxy-${project.ext.version}-Installer-Mac.app" 
+  project.ext.nameMacRelease   = "PacketProxy-${project.ext.version}-Installer-Mac.zip" 
+  project.ext.nameWin32Release = "PacketProxy-${project.ext.version}-Installer-Win32.jar" 
+  project.ext.nameWin64Release = "PacketProxy-${project.ext.version}-Installer-Win64.jar" 
+}
+
+task setPath(dependsOn: "setName") {
+  project.ext.pathInstaller     = "${buildDir}/distributions/${project.ext.nameInstaller}"
+  project.ext.pathWorkDir       = "${buildDir}/distributions"
+  // Mac
+  project.ext.pathMacWorkDir    = "${buildDir}/distributions/mac"
+  project.ext.pathMacTarget     = "${project.ext.pathMacWorkDir}/target"
+  project.ext.pathMacInstaller  = "${project.ext.pathMacWorkDir}/${project.ext.nameInstaller}"
+  project.ext.pathMacInstallApp = "${project.ext.pathMacWorkDir}/${project.ext.nameMacInstallApp}"
+  project.ext.pathMacRelease    = "${project.ext.pathMacWorkDir}/${project.ext.nameMacRelease}"
+  // Win32
+  project.ext.pathWin32WorkDir   = "${buildDir}/distributions/win32"
+  project.ext.pathWin32Target    = "${project.ext.pathWin32WorkDir}/target"
+  project.ext.pathWin32Installer = "${project.ext.pathWin32WorkDir}/${project.ext.nameInstaller}"
+  project.ext.pathWin32Release   = "${project.ext.pathWin32WorkDir}/${project.ext.nameWin32Release}"
+  // Win64
+  project.ext.pathWin64WorkDir   = "${buildDir}/distributions/win64"
+  project.ext.pathWin64Target    = "${project.ext.pathWin64WorkDir}/target"
+  project.ext.pathWin64Installer = "${project.ext.pathWin64WorkDir}/${project.ext.nameInstaller}"
+  project.ext.pathWin64Release   = "${project.ext.pathWin64WorkDir}/${project.ext.nameWin64Release}"
+}
+
+eclipse {
+  classpath {
+    file {
+      whenMerged {
+        def jre = entries.find { it.path.contains 'org.eclipse.jdt.launching.JRE_CONTAINER' }
+        jre.accessRules.add(new AccessRule('accessible', 'com/**'))
+        jre.accessRules.add(new AccessRule('accessible', 'sun/**'))
+      }
+    }
+  }
+}
+
+sourceSets {
+  main {
+    java {
+      def list = ['src/main/java/core']
+
+      // load additional dena sources if it exists
+      ['dena/', 'denaN/'].each { def dir ->
+        def srcs = file(dir + 'sources.gradle')
+        if (srcs.exists()) {
+          Eval.me(srcs.text).each { def src ->
+            if (file(dir + src).exists()) {
+              list << dir + src
+            }
+          }
+        }
+      }
+      srcDirs = list
+    }
+    resources {
+      def list = ['src/main/resources']
+      // load additional dena resources if it exists
+      ['dena/', 'denaN/'].each { def dir ->
+        def srcs = file(dir + 'resources.gradle')
+        if (srcs.exists()) {
+          Eval.me(srcs.text).each { def src ->
+            if (file(dir + src).exists()) {
+              list << dir + src
+            }
+          }
+        }
+      }
+      srcDirs = list
+    }
+  }
+  test {
+    java {
+      def list = ['src/test/java']
+      // load additional dena tests if it exists
+      ['dena/', 'denaN/'].each { def dir ->
+        def srcs = file(dir + 'tests.gradle')
+        if (srcs.exists()) {
+          Eval.me(srcs.text).each { def src ->
+            if (file(dir + src).exists()) {
+              list << dir + src
+            }
+          }
+        }
+      }
+      srcDirs = list
+    }
+  }
+}
+
+jmh {
+  fork = 2
+}
+
+jar {
+  manifest {
+    attributes (
+      "Main-Class": project.mainClassName,
+      "Class-Path": configurations.compile.collect { it.getName() }.join(' ')
+    )
+  }
+  from {
+    configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+  }
+}
+
+task createApp(dependsOn: ['jar', 'downloadLicenses']) {
+  doFirst {
+    def targetAppDir = "${project.ext.pathMacTarget}/PacketProxy.app"
+    def workDir      = "${project.ext.pathMacWorkDir}"
+    // init
+    delete "${workDir}"
+    new File("${workDir}").mkdirs()
+    // create icon
+    copy {
+      from "${projectDir}/src/main/resources/gui/icon.png"
+      into "${workDir}/icon.iconset/"
+    }
+    exec {
+      executable "sh"
+      args "-c", "mv ${workDir}/icon.iconset/icon.png ${workDir}/icon.iconset/icon_256x256.png"
+    }
+    exec {
+      executable "sh"
+      args "-c", "iconutil -c icns --output ${workDir}/icon.icns ${workDir}/icon.iconset/"
+    }
+    //create App
+    copy {
+      from "${projectDir}/installer/izpack/templates/macos/PacketProxy.app"
+      into "${targetAppDir}"
+    }
+    copy {
+      from "${buildDir}/libs/PacketProxy.jar"
+      into "${targetAppDir}/Contents/MacOS/"
+    }
+    copy {
+      from "${workDir}/icon.icns"
+      into "${targetAppDir}/Contents/Resources/"
+    }
+    copy {
+      from "${buildDir}/reports/license/dependency-license.html"
+      from "${projectDir}/LICENSES"
+      into "${targetAppDir}/Contents/Resources/licenses"
+    }
+  }
+  onlyIf { Os.isFamily(Os.FAMILY_MAC) }
+}
+
+class CreateWinTarget extends DefaultTask {
+  String workDir = ''
+  String targetDir = ''
+  String jdkUrl = ''
+
+  @TaskAction
+  void start() {
+    project.delete {
+      delete "${workDir}"
+    }
+    new File("${workDir}").mkdirs()
+    new File("${targetDir}").mkdirs()
+    project.copy {
+      from "${project.buildDir}/reports/license/dependency-license.html"
+      from "${project.projectDir}/LICENSES"
+      into "${targetDir}/licenses"
+    }
+    project.copy {
+      from "${project.projectDir}/src/main/resources/gui/icon.ico"
+      into "${targetDir}"
+      rename('icon.ico', 'PacketProxy.ico')
+    }
+    project.copy {
+      from "${project.buildDir}/libs/PacketProxy.jar"
+      into "${targetDir}"
+    }
+    project.download {
+      src "${jdkUrl}"
+      dest "${workDir}/OpenJDK8.zip"
+    }
+    project.copy {
+      from project.zipTree("${workDir}/OpenJDK8.zip")
+      into project.file("${workDir}/OpenJDK8")
+    }
+    project.copy {
+      from project.file("${workDir}/OpenJDK8/jdk1.8.0_222")
+      into project.file("${targetDir}/OpenJDK8")
+    }
+    project.delete "${targetDir}/OpenJDK8/javafx-src.zip", "${targetDir}/OpenJDK8/src.zip", "${targetDir}/OpenJDK8/demo", "${targetDir}/OpenJDK8/sample"
+  }
+}
+
+task createWin32Target(type: CreateWinTarget, dependsOn: ['jar', 'downloadLicenses']) {
+  workDir   = project.ext.pathWin32WorkDir
+  targetDir = project.ext.pathWin32Target
+  jdkUrl    = 'https://d3pxv6yz143wms.cloudfront.net/8.222.10.1/amazon-corretto-8.222.10.3-windows-x86-jdk.zip'
+}
+
+task createWin64Target(type: CreateWinTarget, dependsOn: ['jar', 'downloadLicenses']) {
+  workDir   = project.ext.pathWin64WorkDir
+  targetDir = project.ext.pathWin64Target
+  jdkUrl    = 'https://d3pxv6yz143wms.cloudfront.net/8.222.10.1/amazon-corretto-8.222.10.3-windows-x64-jdk.zip'
+}
+
+task preIzpack {
+  doFirst {
+    copy {
+      from "${projectDir}/installer/izpack/shortcutSpec.xml"
+      into "${project.ext.pathWorkDir}"
+    }
+    copy {
+      from "${projectDir}/src/main/resources/gui/installer_leftside_image.png"
+      into "${project.ext.pathWorkDir}"
+    }
+    copy {
+      from "${projectDir}/src/main/resources/gui/installer_icon.png"
+      into "${project.ext.pathWorkDir}"
+    }
+  }
+}
+
+task izpackWin32 (type: CreateInstallerTask, dependsOn: ['createWin32Target', 'preIzpack']) {
+  baseDir = file(project.ext.pathWin32Target)
+  installFile = file("${projectDir}/installer/izpack/installer.xml")
+  outputFile = file(project.ext.pathWin32Installer)
+  compression = 'deflate'
+  compressionLevel = 9
+  appProperties = ['app.group': 'PacketProxy', 'app.name': 'PacketProxy', 'app.title': 'PacketProxy',
+                   'app.version': project.ext.version, 'app.subpath': "PacketProxy-${project.ext.version}"]
+}
+
+task izpackWin64 (type: CreateInstallerTask, dependsOn: ['createWin64Target', 'preIzpack']) {
+  baseDir = file(project.ext.pathWin64Target)
+  installFile = file("${projectDir}/installer/izpack/installer.xml")
+  outputFile = file(project.ext.pathWin64Installer)
+  compression = 'deflate'
+  compressionLevel = 9
+  appProperties = ['app.group': 'PacketProxy', 'app.name': 'PacketProxy', 'app.title': 'PacketProxy',
+                   'app.version': project.ext.version, 'app.subpath': "PacketProxy-${project.ext.version}"]
+}
+
+task izpackMac (type: CreateInstallerTask, dependsOn: ['createApp', 'preIzpack']) {
+  baseDir = file(project.ext.pathMacTarget)
+  installFile = file("${projectDir}/installer/izpack/installer.xml")
+  outputFile = file(project.ext.pathMacInstaller)
+  compression = 'deflate'
+  compressionLevel = 9
+  appProperties = ['app.group': 'PacketProxy', 'app.name': 'PacketProxy', 'app.title': 'PacketProxy',
+                   'app.version': project.ext.version, 'app.subpath': "PacketProxy-${project.ext.version}"]
+}
+
+// convert file type of installer from .jar to .app
+task createMacInstaller(dependsOn: 'izpackMac') {
+  doFirst {
+    exec {
+      executable 'sh'
+      args "-c", "python installer/thirdparty/izpack/izpack2app/izpack2app.py ${project.ext.pathMacInstaller} ${project.ext.pathMacInstallApp}"
+    }
+  }
+  onlyIf { Os.isFamily(Os.FAMILY_MAC) }
+}
+
+task createWin32Release(type: Copy, dependsOn: 'izpackWin32') {
+  from "${project.ext.pathWin32Installer}"
+  into "${project.ext.pathWin32WorkDir}"
+  rename("${project.ext.nameInstaller}", "${project.ext.nameWin32Release}")
+}
+
+task createWin64Release(type: Copy, dependsOn: 'izpackWin64') {
+  from "${project.ext.pathWin64Installer}"
+  into "${project.ext.pathWin64WorkDir}"
+  rename("${project.ext.nameInstaller}", "${project.ext.nameWin64Release}")
+}
+
+task createMacRelease(type: Zip, dependsOn: 'createMacInstaller') {
+  destinationDir = file("${project.ext.pathMacWorkDir}")
+  archiveName = project.ext.nameMacRelease
+  into("${archiveName.replace('.zip','')}/${project.ext.nameMacInstallApp}") {
+    from "${project.ext.pathMacInstallApp}"
+  }
+  onlyIf { Os.isFamily(Os.FAMILY_MAC) }
+}
+
+task createWinRelease(dependsOn: ['createWin32Release', 'createWin64Release']) {
+}
+
+task release(dependsOn: ['createMacRelease', 'createWinRelease']) {
+}
