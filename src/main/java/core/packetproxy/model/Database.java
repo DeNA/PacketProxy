@@ -91,9 +91,10 @@ public class Database extends Observable
 		Path dst = instance.databasePath.toAbsolutePath();
 		setChanged();
 		notifyObservers(DatabaseMessage.DISCONNECT_NOW);
+		DatabaseConnection conn = source.getReadWriteConnection();
+		conn.close();
 		Files.move(dst, src, StandardCopyOption.REPLACE_EXISTING);
 		clearChanged();
-		source.close();
 
 		setChanged();
 		createDB();
@@ -141,6 +142,7 @@ public class Database extends Observable
 			for (String i:query){
 				conn.executeStatement(i, DatabaseConnection.DEFAULT_RESULT_FLAGS);
 			}
+			conn.close();
 		}catch (Exception e){
 			e.getStackTrace();
 		}
