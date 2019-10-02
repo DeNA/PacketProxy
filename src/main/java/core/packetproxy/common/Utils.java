@@ -72,6 +72,16 @@ public class Utils {
 	}
 
 	/**
+	 * OS判定用
+	 */
+	public static boolean isWindows() {
+		return checkOS() == Platform.WINDOWS;
+	}
+	public static boolean isMac() {
+		return checkOS() == Platform.MAC;
+	}
+
+	/**
 	 * ExcecuteExe関数で利用される。Macの場合monoを追加する
 	 */
 	private static String[] addMonoPath(String... args) {

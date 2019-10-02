@@ -25,12 +25,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.FocusEvent;
 import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -42,6 +42,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -66,13 +67,20 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
+
 import org.apache.commons.io.FileUtils;
+
 import packetproxy.common.FilterTextParser;
+import packetproxy.common.Utils;
 import packetproxy.controller.ResendController;
 import packetproxy.http.HeaderField;
 import packetproxy.http.Http;
-import packetproxy.model.*;
+import packetproxy.model.Database;
 import packetproxy.model.Database.DatabaseMessage;
+import packetproxy.model.Filters;
+import packetproxy.model.OptionTableModel;
+import packetproxy.model.Packet;
+import packetproxy.model.Packets;
 import packetproxy.util.PacketProxyUtility;
 
 public class GUIHistory implements Observer
@@ -657,6 +665,12 @@ TODO: support --data-binary
 
 
 		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent event) {
+				if (Utils.isWindows() && event.isPopupTrigger()) {
+					menu.show(event.getComponent(), event.getX(), event.getY());
+				}
+			}
 			@Override
 			public void mousePressed(MouseEvent event) {
 				try {

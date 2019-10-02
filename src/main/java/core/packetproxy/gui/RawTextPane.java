@@ -19,23 +19,25 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import javax.swing.KeyStroke;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Base64;
+
+import javax.swing.JButton;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.JButton;
-import packetproxy.common.Utils;
+import javax.swing.KeyStroke;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import packetproxy.common.Utils;
 import packetproxy.controller.ResendController;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
@@ -314,6 +316,13 @@ public class RawTextPane extends ExtendedTextPane
 		menu.add(unicode_escaper);
 
 		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent event) {
+				if (Utils.isWindows() && event.isPopupTrigger()) {
+					menu.show(event.getComponent(), event.getX(), event.getY());
+				}
+			}
+			@Override
 			public void mousePressed(MouseEvent event) {
 				if (event.isPopupTrigger()) {
 					menu.show(event.getComponent(), event.getX(), event.getY());

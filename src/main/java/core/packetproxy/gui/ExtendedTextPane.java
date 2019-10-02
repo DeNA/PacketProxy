@@ -16,41 +16,25 @@
 package packetproxy.gui;
 
 import java.awt.Font;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import javax.swing.KeyStroke;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.EventListener;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.JTextPane;
+
 import javax.swing.JButton;
+import javax.swing.JTextPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.EventListenerList;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoManager;
+
 import packetproxy.common.BinaryBuffer;
 import packetproxy.common.SelectedArea;
 import packetproxy.common.Utils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import packetproxy.controller.ResendController;
-import packetproxy.model.Packet;
-import packetproxy.model.Packets;
 import packetproxy.util.PacketProxyUtility;
 
 abstract class ExtendedTextPane extends JTextPane

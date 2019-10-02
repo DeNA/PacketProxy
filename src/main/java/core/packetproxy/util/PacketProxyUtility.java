@@ -75,9 +75,6 @@ public class PacketProxyUtility {
 			String str = new String(data, "UTF-8");
 			Stream<String> stream = 
 				Arrays.asList(str.split("\r\n\r\n")).stream();
-			if(encoderName.equals("Sakasho")){
-				stream = stream.map(d -> d.substring(1));
-			}
 			return stream.map(this::prettyFormatJSON)
 				.filter(j -> !j.isEmpty())
 				.collect(Collectors.joining("\n"))
