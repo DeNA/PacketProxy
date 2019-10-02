@@ -125,8 +125,13 @@ public class RawTextPane extends ExtendedTextPane
 			}
 		});
 
+		menu.addSeparator();
 		JMenuItem title_decoders = new JMenuItem("デコーダ");
-		title_decoders.setFont(new Font("Arial", Font.BOLD, 12));
+		if (Utils.isWindows()) {
+			title_decoders.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13));
+		} else {
+			title_decoders.setFont(new Font("Arial", Font.BOLD, 12));
+		}
 		title_decoders.setEnabled(false);
 		menu.add(title_decoders);
 
@@ -210,7 +215,11 @@ public class RawTextPane extends ExtendedTextPane
 
 		menu.addSeparator();
 		JMenuItem title_encoders = new JMenuItem("エンコーダ");
-		title_encoders.setFont(new Font("Arial", Font.BOLD, 12));
+		if (Utils.isWindows()) {
+			title_encoders.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13));
+		} else {
+			title_encoders.setFont(new Font("Arial", Font.BOLD, 12));
+		}
 		title_encoders.setEnabled(false);
 		menu.add(title_encoders);
 

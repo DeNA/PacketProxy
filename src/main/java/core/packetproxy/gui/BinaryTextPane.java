@@ -42,12 +42,20 @@ public class BinaryTextPane extends ExtendedTextPane
 
 	public BinaryTextPane() {
 		setEditorKit(editor);
-		setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+		if (Utils.isWindows()) {
+			setFont(new Font("ＭＳ ゴシック", Font.PLAIN, 13));
+		} else {
+			setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+		}
 
 		JPopupMenu menu = new JPopupMenu();
 
 		JMenuItem title_encoders = new JMenuItem("エンコーダ");
-		title_encoders.setFont(new Font("Arial", Font.BOLD, 12));
+		if (Utils.isWindows()) {
+			title_encoders.setFont(new Font("ＭＳ ゴシック", Font.PLAIN, 13));
+		} else {
+			title_encoders.setFont(new Font("Arial", Font.BOLD, 12));
+		}
 		title_encoders.setEnabled(false);
 		menu.add(title_encoders);
 

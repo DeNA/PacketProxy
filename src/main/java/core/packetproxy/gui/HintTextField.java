@@ -25,6 +25,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import javax.swing.JTextField;
 
+import packetproxy.common.Utils;
+
 public class HintTextField extends JTextField
 {
 	private static final long serialVersionUID = 1L;
@@ -74,12 +76,16 @@ public class HintTextField extends JTextField
 		Font oldFont=g2.getFont();
 		Color oldColor=g2.getColor();
 		{
-			g2.setFont(getFont().deriveFont(Font.ITALIC));
-			g2.setColor(Color.GRAY);
-
 			Insets insets=getBorder().getBorderInsets(this);
 			int h=g2.getFontMetrics().getAscent();
-			g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+			if (Utils.isWindows()) {
+				g2.setColor(Color.LIGHT_GRAY);
+			} else {
+				g2.setFont(getFont().deriveFont(Font.ITALIC));
+				g2.setColor(Color.GRAY);
+				g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+			}
 			g2.drawString(getHint(),insets.left,insets.top+h);
 		}
 		g2.setFont(oldFont);

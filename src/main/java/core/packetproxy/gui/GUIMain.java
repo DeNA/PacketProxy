@@ -43,6 +43,9 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Keymap;
+
+import com.sun.javafx.util.Utils;
+
 import packetproxy.model.InterceptModel;
 import packetproxy.model.Packets;
 import packetproxy.util.PacketProxyUtility;
@@ -175,8 +178,11 @@ public class GUIMain extends JFrame implements Observer
 		}
 		//Windowsだと日本語フォントを指定しないと文字化けする
 		//TODO FONT指定は一か所に集める
-		UIManager.getLookAndFeelDefaults().put("defaultFont", new Font("ＭＳ ゴシック", Font.PLAIN, 12));
-		//UIManager.getLookAndFeelDefaults().put("defaultFont", new Font("Arial", Font.PLAIN, 12));
+		if (Utils.isWindows()) {
+			UIManager.getLookAndFeelDefaults().put("defaultFont", new Font("ＭＳ ゴシック", Font.PLAIN, 13));
+		} else {
+			UIManager.getLookAndFeelDefaults().put("defaultFont", new Font("Arial", Font.PLAIN, 12));
+		}
 		setIconForWindows();
 		addShortcutForMac();
 		addDockIconForMac();

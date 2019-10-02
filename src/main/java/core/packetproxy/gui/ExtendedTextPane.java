@@ -56,7 +56,11 @@ abstract class ExtendedTextPane extends JTextPane
 
 	public ExtendedTextPane() {
 		setEditorKit(editor);
-		setFont(new Font(Font.MONOSPACED, Font.PLAIN, FONT_SIZE));
+		if (Utils.isWindows()) {
+			setFont(new Font("ＭＳ ゴシック", Font.PLAIN, 13));
+		} else {
+			setFont(new Font(Font.MONOSPACED, Font.PLAIN, FONT_SIZE));
+		}
 		getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void insertUpdate(DocumentEvent e) {

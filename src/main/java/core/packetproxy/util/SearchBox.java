@@ -22,6 +22,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+
+import packetproxy.common.Utils;
+
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.BoxLayout;
@@ -45,7 +48,11 @@ public class SearchBox extends JPanel
 
 	public SearchBox() {
 		search_text = new JTextField();
-		search_text.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+		if (Utils.isWindows()) {
+			search_text.setFont(new Font("ＭＳ ゴシック", Font.PLAIN, 13));
+		} else {
+			search_text.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+		}
 		search_text.addKeyListener(new KeyListener() {
 			private String prev_word = null;
 			private int cur_pos = 0;

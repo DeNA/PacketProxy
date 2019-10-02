@@ -22,11 +22,20 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Arrays;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.JTextPane;
-import javax.swing.*;
+
+import org.apache.commons.lang3.ArrayUtils;
+
 import packetproxy.common.Binary;
 import packetproxy.common.StringUtils;
-import org.apache.commons.lang3.ArrayUtils;
+import packetproxy.common.Utils;
 
 public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.DataChangedListener
 {
@@ -52,7 +61,11 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 		hex_text.setParentHistory(this);
 		hex_text.addDataChangedListener(this);
 		//hex_text.setLineWrap(true);
-		hex_text.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+		if (Utils.isWindows()) {
+			hex_text.setFont(new Font("ＭＳ ゴシック", Font.PLAIN, 13));
+		} else {
+			hex_text.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+		}
 		hex_text.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -103,7 +116,11 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 
 		ascii_text = new JTextPane();
 		//ascii_text.setLineWrap(true);
-		ascii_text.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+		if (Utils.isWindows()) {
+			ascii_text.setFont(new Font("ＭＳ ゴシック", Font.PLAIN, 13));
+		} else {
+			ascii_text.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+		}
 		ascii_text.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -128,7 +145,11 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 		scrollpane4.getVerticalScrollBar().setModel(scrollpane3.getVerticalScrollBar().getModel());	// 縦方向のスクロールをhex側と同期させる
 
 		search_text = new JTextField();
-		search_text.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+		if (Utils.isWindows()) {
+			search_text.setFont(new Font("ＭＳ ゴシック", Font.PLAIN, 13));
+		} else {
+			search_text.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+		}
 		search_text.addKeyListener(new KeyListener() {
 			@Override
 			public void keyReleased(KeyEvent arg0) {

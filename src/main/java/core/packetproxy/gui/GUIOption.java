@@ -38,6 +38,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.commons.io.FileUtils;
 
+import packetproxy.common.Utils;
 import packetproxy.model.CAFactory;
 import packetproxy.model.CAs.CA;
 
@@ -52,7 +53,11 @@ public class GUIOption
 		JLabel label = new JLabel(title);
 		label.setForeground(Color.ORANGE);
 		label.setBackground(Color.WHITE);
-		label.setFont(new Font("Arial", Font.BOLD, 14));
+		if (Utils.isWindows()) {
+			label.setFont(new Font("Arial", Font.BOLD, 15));
+		} else {
+			label.setFont(new Font("Arial", Font.BOLD, 14));
+		}
 		int label_height = label.getMaximumSize().height;
 		label.setMaximumSize(new Dimension(Short.MAX_VALUE, label_height));
 		return label;
