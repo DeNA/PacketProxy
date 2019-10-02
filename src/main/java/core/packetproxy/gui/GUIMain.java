@@ -180,6 +180,8 @@ public class GUIMain extends JFrame implements Observer
 		//TODO FONT指定は一か所に集める
 		if (Utils.isWindows()) {
 			UIManager.getLookAndFeelDefaults().put("defaultFont", new Font("ＭＳ ゴシック", Font.PLAIN, 13));
+		} else if (Utils.isMac()) {
+			UIManager.getLookAndFeelDefaults().put("defaultFont", new Font("Hira Kaku Gothic Pro", Font.PLAIN, 12));
 		} else {
 			UIManager.getLookAndFeelDefaults().put("defaultFont", new Font("Arial", Font.PLAIN, 12));
 		}
