@@ -118,7 +118,7 @@ public class GUIOption
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("Client Certificate","クライアント証明書を設定します"));
+		panel.add(createElement("Client Certificates","クライアント証明書を設定します"));
 		GUIOptionClientCertificate clientCertificate = new GUIOptionClientCertificate(owner);
 		panel.add(clientCertificate.createPanel());
 
@@ -136,7 +136,7 @@ public class GUIOption
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("PacketProxy CA証明書","PC/Mac/Linux/Android/iOSの信頼する証明書に登録してください。(拡張子は.crtが望ましいです)"));
+		panel.add(createElement("PacketProxy CA Certificates","PC/Mac/Linux/Android/iOSの信頼する証明書に登録してください。(拡張子は.crtが望ましいです)"));
 		
 		JPanel caPanel = new JPanel();
 		caPanel.setBackground(Color.WHITE);
