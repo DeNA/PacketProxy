@@ -346,7 +346,7 @@ public class RawTextPane extends ExtendedTextPane
 		init_count = 0;
 		prev_text_panel = "";
 		raw_data.reset(data);
-		setText(new String(data));
+		setText(new String(data, "UTF-8"));
 		undo_manager.discardAllEdits();
 	}
 
