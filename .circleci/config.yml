@@ -16,7 +16,7 @@ jobs:
 
     branches:
       only:
-        - circleci
+        - master
 
     working_directory: ~/repo
 
