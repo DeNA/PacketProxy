@@ -15,42 +15,46 @@
  */
 package packetproxy.gui;
 
-import java.awt.*;
+import static javax.swing.JOptionPane.YES_NO_OPTION;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Font;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Observable;
 import java.util.Observer;
+
+import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
-import javax.swing.InputMap;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
-import javax.swing.AbstractAction;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Keymap;
 
-import com.sun.javafx.util.Utils;
-
+import packetproxy.common.Utils;
 import packetproxy.model.InterceptModel;
-import packetproxy.model.Packets;
 import packetproxy.util.PacketProxyUtility;
-
-import static javax.swing.JOptionPane.YES_NO_OPTION;
 
 public class GUIMain extends JFrame implements Observer
 {
