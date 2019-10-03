@@ -1,5 +1,7 @@
 ![PacketProxy](./assets/images/packetproxy.png)
 
+[![CircleCI](https://circleci.com/gh/DeNA/PacketProxy/tree/master.svg?style=svg)](https://circleci.com/gh/DeNA/PacketProxy/tree/master)
+
 # PacketProxyとは？
 
 PacketProxyは、HTTP/HTTPS通信だけでなく、より低レイヤーのTCP/UDPを利用したバイナリ通信にも対応した、オープンソースのローカルプロキシツールです。
