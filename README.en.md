@@ -42,7 +42,7 @@ JRE does NOT work, so please install JDK.
   
 [Download](https://github.com/DeNA/PacketProxy/releases) the version corresponding to your OS and run the installer. 
 
-# Wiki
+# Usage
 
 Please see this page: [For Users](https://github.com/DeNA/PacketProxy/wiki/%E4%BD%BF%E3%81%A3%E3%81%A6%E3%81%BF%E3%82%8B)
  
