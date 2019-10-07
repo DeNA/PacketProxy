@@ -327,16 +327,6 @@ task izpackWin64 (type: CreateInstallerTask, dependsOn: ['createWin64Target', 'p
                    'app.version': project.ext.version, 'app.subpath': "PacketProxy-${project.ext.version}"]
 }
 
-task izpackMac (type: CreateInstallerTask, dependsOn: ['createApp', 'preIzpack']) {
-  baseDir = file(project.ext.pathMacTarget)
-  installFile = file("${projectDir}/installer/izpack/installer.xml")
-  outputFile = file(project.ext.pathMacInstaller)
-  compression = 'deflate'
-  compressionLevel = 9
-  appProperties = ['app.group': 'PacketProxy', 'app.name': 'PacketProxy', 'app.title': 'PacketProxy',
-                   'app.version': project.ext.version, 'app.subpath': "PacketProxy-${project.ext.version}"]
-}
-
 task createMacInstaller(type: Exec, dependsOn: "prepareJavaPackager") {
   workingDir "${projectDir}"
   commandLine = [
