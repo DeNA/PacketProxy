@@ -100,7 +100,7 @@ task setPath(dependsOn: "setName") {
   project.ext.pathMacInstaller  = "${project.ext.pathMacWorkDir}/${project.ext.nameInstaller}"
   project.ext.pathMacInstallApp = "${project.ext.pathMacWorkDir}/${project.ext.nameMacInstallApp}"
   project.ext.pathMacRelease    = "${project.ext.pathMacWorkDir}/${project.ext.nameMacRelease}"
-  project.ext.pathMacSignedRelease = "${project.ext.pathMacWorkDir}/${project.ext.nameMacSignedRelease}"
+  project.ext.pathMacSignedRelease = "${project.ext.pathMacWorkDir}/bundles/${project.ext.nameMacSignedRelease}"
   // Win32
   project.ext.pathWin32WorkDir   = "${buildDir}/distributions/win32"
   project.ext.pathWin32Target    = "${project.ext.pathWin32WorkDir}/target"
