@@ -29,16 +29,6 @@ PacketProxyは、HTTP/HTTPS通信だけでなく、より低レイヤーのTCP/U
   - DNSサーバが内蔵されており、DNS書き換えによるパケットのフォワード機能
 
 # インストール
-
-### 前準備（Javaのインストール）
-
-PacketProxyは、現在のところ *JDK 8* で動作します。
-OpenJDK 8(例:[Amazon Corretto 8](https://docs.aws.amazon.com/ja_jp/corretto/latest/corretto-8-ug/downloads-list.html)) または [Oracle JDK 8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) をダウンロードしてインストールしてください。
-
-JREでは動作しませんので、JDKを必ずインストールしてください。
-
-  
-### PacketProxyのインストール
   
 [ダウンロードページ](https://github.com/DeNA/PacketProxy/releases)より、各OS用のイメージをダウンロードしてインストールしてください。
 

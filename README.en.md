@@ -29,16 +29,6 @@ It can be used for development assistance or for risk assessments.
   - DNSサーバが内蔵されており、DNS書き換えによるパケットのフォワード機能
 
 # Setup
-
-### Preparation（Java installation）
-
-PacketProxy requires *JDK 8* to run。
-OpenJDK 8 (Please download and install either [Amazon Corretto 8](https://docs.aws.amazon.com/ja_jp/corretto/latest/corretto-8-ug/downloads-list.html) or [Oracle JDK 8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html))
-
-JRE does NOT work, so please install JDK. 
-
-  
-### Install PacketProxy
   
 [Download](https://github.com/DeNA/PacketProxy/releases) the version corresponding to your OS and run the installer. 
 
