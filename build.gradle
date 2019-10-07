@@ -85,6 +85,8 @@ task setName(dependsOn: "setVersion") {
   project.ext.nameInstaller    = "PacketProxy-${project.ext.version}-Installer.jar"
   project.ext.nameMacInstallApp = "PacketProxy-${project.ext.version}-Installer-Mac.app" 
   project.ext.nameMacRelease   = "PacketProxy-${project.ext.version}-Installer-Mac.zip" 
+  project.ext.nameMacSignedReleaseWOExt = "PacketProxy-${project.ext.version}-Installer-Mac-Signed" 
+  project.ext.nameMacSignedRelease = "${project.ext.nameMacSignedReleaseWOExt}.dmg"
   project.ext.nameWin32Release = "PacketProxy-${project.ext.version}-Installer-Win32.jar" 
   project.ext.nameWin64Release = "PacketProxy-${project.ext.version}-Installer-Win64.jar" 
 }
@@ -98,6 +100,7 @@ task setPath(dependsOn: "setName") {
   project.ext.pathMacInstaller  = "${project.ext.pathMacWorkDir}/${project.ext.nameInstaller}"
   project.ext.pathMacInstallApp = "${project.ext.pathMacWorkDir}/${project.ext.nameMacInstallApp}"
   project.ext.pathMacRelease    = "${project.ext.pathMacWorkDir}/${project.ext.nameMacRelease}"
+  project.ext.pathMacSignedRelease = "${project.ext.pathMacWorkDir}/${project.ext.nameMacSignedRelease}"
   // Win32
   project.ext.pathWin32WorkDir   = "${buildDir}/distributions/win32"
   project.ext.pathWin32Target    = "${project.ext.pathWin32WorkDir}/target"
@@ -108,6 +111,13 @@ task setPath(dependsOn: "setName") {
   project.ext.pathWin64Target    = "${project.ext.pathWin64WorkDir}/target"
   project.ext.pathWin64Installer = "${project.ext.pathWin64WorkDir}/${project.ext.nameInstaller}"
   project.ext.pathWin64Release   = "${project.ext.pathWin64WorkDir}/${project.ext.nameWin64Release}"
+}
+
+task setAppleSignInfo {
+  project.ext.appleId      = "xxxx@gmail.com"
+  project.ext.applePasswd  = "@keychain:AC_PASSWORD" // read from keychain
+  project.ext.signedKey    = "Developer ID Application: XXXX (123456ABCD)"
+  project.ext.signedPrefix = "123456ABCD"
 }
 
 eclipse {
@@ -191,13 +201,23 @@ jar {
   }
 }
 
-task createApp(dependsOn: ['jar', 'downloadLicenses']) {
+task prepareJavaPackager(dependsOn: "jar") {
   doFirst {
-    def targetAppDir = "${project.ext.pathMacTarget}/PacketProxy.app"
-    def workDir      = "${project.ext.pathMacWorkDir}"
-    // init
+    def workDir = "${project.ext.pathMacWorkDir}"
     delete "${workDir}"
     new File("${workDir}").mkdirs()
+    download {
+      src "https://d3pxv6yz143wms.cloudfront.net/8.222.10.1/amazon-corretto-8.222.10.1-macosx-x64.tar.gz"
+      dest "${workDir}/OpenJDK8.tar.gz"
+    }
+    copy {
+      from tarTree(resources.gzip("${workDir}/OpenJDK8.tar.gz"))
+      into file("${workDir}/OpenJDK8")
+    }
+    exec {
+      workingDir "${workDir}"
+      commandLine = ["sh", "-c", "${projectDir}/installer/fix-jdk.sh ${workDir}/OpenJDK8/amazon-corretto-8.jdk/Contents/Home"]
+    }
     // create icon
     copy {
       from "${projectDir}/src/main/resources/gui/icon.png"
@@ -211,27 +231,10 @@ task createApp(dependsOn: ['jar', 'downloadLicenses']) {
       executable "sh"
       args "-c", "iconutil -c icns --output ${workDir}/icon.icns ${workDir}/icon.iconset/"
     }
-    //create App
-    copy {
-      from "${projectDir}/installer/izpack/templates/macos/PacketProxy.app"
-      into "${targetAppDir}"
-    }
-    copy {
-      from "${buildDir}/libs/PacketProxy.jar"
-      into "${targetAppDir}/Contents/MacOS/"
-    }
-    copy {
-      from "${workDir}/icon.icns"
-      into "${targetAppDir}/Contents/Resources/"
-    }
-    copy {
-      from "${buildDir}/reports/license/dependency-license.html"
-      from "${projectDir}/LICENSES"
-      into "${targetAppDir}/Contents/Resources/licenses"
-    }
   }
   onlyIf { Os.isFamily(Os.FAMILY_MAC) }
 }
+
 
 class CreateWinTarget extends DefaultTask {
   String workDir = ''
@@ -334,14 +337,41 @@ task izpackMac (type: CreateInstallerTask, dependsOn: ['createApp', 'preIzpack']
                    'app.version': project.ext.version, 'app.subpath': "PacketProxy-${project.ext.version}"]
 }
 
-// convert file type of installer from .jar to .app
-task createMacInstaller(dependsOn: 'izpackMac') {
-  doFirst {
-    exec {
-      executable 'sh'
-      args "-c", "python installer/thirdparty/izpack/izpack2app/izpack2app.py ${project.ext.pathMacInstaller} ${project.ext.pathMacInstallApp}"
-    }
-  }
+task createMacInstaller(type: Exec, dependsOn: "prepareJavaPackager") {
+  workingDir "${projectDir}"
+  commandLine = [
+    "${project.ext.pathMacWorkDir}/OpenJDK8/amazon-corretto-8.jdk/Contents/Home/bin/javapackager",
+    "-deploy",
+    "-native", "dmg",
+    "-srcfiles", "${buildDir}/libs/PacketProxy.jar",
+    "-appclass", "packetproxy/PacketProxy",
+    "-name", "PacketProxy",
+    "-outdir", "${project.ext.pathMacWorkDir}",
+    "-outfile", "${project.ext.nameMacSignedReleaseWOExt}",
+    "-Bicon=${project.ext.pathMacWorkDir}/icon.icns",
+    "-Bruntime=${project.ext.pathMacWorkDir}/OpenJDK8/amazon-corretto-8.jdk/Contents/Home",
+    "-Bmac.CFBundleIdentifier=packetproxy.PacketProxy",
+    "-Bmac.CFBundleName=PacketProxy",
+    "-Bmac.CFBundleVersion=${project.ext.version}",
+    "-Bmac.signing-key-developer-id-app=${project.ext.signedKey}",
+    "-Bmac.bundle-id-signing-prefix=${project.ext.signedPrefix}",
+    "-Bmac.installerName=${project.ext.nameMacSignedReleaseWOExt}",
+    "-v"
+  ]
+  onlyIf { Os.isFamily(Os.FAMILY_MAC) }
+}
+
+task notaryMacInstaller(type: Exec) {
+  workingDir "${projectDir}"
+  commandLine = [
+    "xcrun",
+    "altool",
+    "--notarize-app",
+    "--primary-bundle-id", "packetproxy.PacketProxy",
+    "--username", "${project.ext.appleId}",
+    "--password", "${project.ext.applePasswd}",
+    "--file", "${project.ext.pathMacSignedRelease}"
+  ]
   onlyIf { Os.isFamily(Os.FAMILY_MAC) }
 }
 
@@ -357,13 +387,8 @@ task createWin64Release(type: Copy, dependsOn: 'izpackWin64') {
   rename("${project.ext.nameInstaller}", "${project.ext.nameWin64Release}")
 }
 
-task createMacRelease(type: Zip, dependsOn: 'createMacInstaller') {
-  destinationDir = file("${project.ext.pathMacWorkDir}")
-  archiveName = project.ext.nameMacRelease
-  into("${archiveName.replace('.zip','')}/${project.ext.nameMacInstallApp}") {
-    from "${project.ext.pathMacInstallApp}"
-  }
-  onlyIf { Os.isFamily(Os.FAMILY_MAC) }
+task createMacRelease(dependsOn: 'createMacInstaller') {
+  /* do nothing */
 }
 
 task createWinRelease(dependsOn: ['createWin32Release', 'createWin64Release']) {
