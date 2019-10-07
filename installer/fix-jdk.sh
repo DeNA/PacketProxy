@@ -1,16 +1,11 @@
 #! /bin/sh
 
-# bundle JDK modification script
-#
 # The original javapackager bundles JRE in installer.
-# By this modification, the javapackager can be bundle JDK rather than JRE.
+# By this modification, javapackager can bundle JDK rather than JRE.
 
 java_home=$(cd $(dirname $1) && pwd)/$(basename $1)
 javapackager=${java_home}/lib/ant-javafx.jar
 tempdir=`mktemp -d`
-
-echo $1
-echo $java_home
 
 cd $tempdir
 jar xf $javapackager
