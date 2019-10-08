@@ -47,47 +47,28 @@ public class GUIMenu extends JMenuBar {
 		save_sqlite.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try {
-					@SuppressWarnings("serial")
-					JFileChooser filechooser = new JFileChooser() {
-						@Override
-						public void approveSelection(){
-							File f = getSelectedFile();
-							if (f.exists() && getDialogType() == SAVE_DIALOG) {
-								int result = JOptionPane.showConfirmDialog(this, "ファイルが既に存在しますが上書きしますか？" ,"Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
-								switch(result){
-									case JOptionPane.YES_OPTION:
-										super.approveSelection();
-										return;
-									case JOptionPane.NO_OPTION:
-										return;
-									case JOptionPane.CLOSED_OPTION:
-										return;
-									case JOptionPane.CANCEL_OPTION:
-										cancelSelection();
-										return;
-								}
-							}
-							super.approveSelection();
-						}
-					};
-					filechooser.setCurrentDirectory(new File(defaultDir));
-					filechooser.setFileFilter(new FileNameExtensionFilter("*.sqlite3", "sqlite3"));
-					filechooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-					int selected = filechooser.showSaveDialog(SwingUtilities.getRoot(self));
-					if (selected == JFileChooser.APPROVE_OPTION) {
-						File file = filechooser.getSelectedFile();
-						if (file.getName().matches(".+\\.sqlite3")) {
+				WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "sqlite3");
+				filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
+					@Override
+					public void onApproved(File file, String extension) {
+						try {
 							Database.getInstance().Save(file.getAbsolutePath());
-						} else {
-							Database.getInstance().Save(file.getAbsolutePath() + ".sqlite3");
+							JOptionPane.showMessageDialog(null, "データを保存しました。");
+						}catch (Exception e1) {
+							e1.printStackTrace();
+							JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
 						}
-						JOptionPane.showMessageDialog(null, "データを保存しました。");
 					}
-				} catch (Exception e1) {
-					e1.printStackTrace();
-					JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
-				}
+
+					@Override
+					public void onCanceled() {}
+
+					@Override
+					public void onError() {
+						JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+					}
+				});
+				filechooser.showSaveDialog();
 			}
 		});
 		JMenuItem save_txt = new JMenuItem("ローカル保存(txt)", KeyEvent.VK_S);
@@ -95,48 +76,29 @@ public class GUIMenu extends JMenuBar {
 		save_txt.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try {
-					@SuppressWarnings("serial")
-					JFileChooser filechooser = new JFileChooser() {
-						@Override
-						public void approveSelection(){
-							File f = getSelectedFile();
-							if (f.exists() && getDialogType() == SAVE_DIALOG) {
-								int result = JOptionPane.showConfirmDialog(this, "ファイルが既に存在しますが上書きしますか？" ,"Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
-								switch(result){
-									case JOptionPane.YES_OPTION:
-										super.approveSelection();
-										return;
-									case JOptionPane.NO_OPTION:
-										return;
-									case JOptionPane.CLOSED_OPTION:
-										return;
-									case JOptionPane.CANCEL_OPTION:
-										cancelSelection();
-										return;
-								}
-							}
-							super.approveSelection();
+
+				WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "txt");
+				filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
+					@Override
+					public void onApproved(File file, String extension) {
+						try {
+							String fn = Packets.getInstance().outputAllPackets(file.getAbsolutePath());
+							JOptionPane.showMessageDialog (null, fn + "に保存しました");
+						}catch (Exception e1) {
+							e1.printStackTrace();
+							JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
 						}
-					};
-					filechooser.setCurrentDirectory(new File(defaultDir));
-					filechooser.setFileFilter(new FileNameExtensionFilter("*.txt", "txt"));
-					filechooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-					int selected = filechooser.showSaveDialog(SwingUtilities.getRoot(self));
-					if (selected == JFileChooser.APPROVE_OPTION) {
-						File file = filechooser.getSelectedFile();
-						String fn;
-						if (file.getName().matches(".+\\.txt")) {
-							fn = Packets.getInstance().outputAllPackets(file.getAbsolutePath());
-						} else {
-							fn = Packets.getInstance().outputAllPackets(file.getAbsolutePath() + ".txt");
-						}
-						JOptionPane.showMessageDialog (null, fn + "に保存しました");
 					}
-				} catch (Exception e1) {
-					e1.printStackTrace();
-					JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
-				}
+
+					@Override
+					public void onCanceled() {}
+
+					@Override
+					public void onError() {
+						JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+					}
+				});
+				filechooser.showSaveDialog();
 			}
 		});
 		JMenuItem load_menu = new JMenuItem("ローカル読込", KeyEvent.VK_L);
