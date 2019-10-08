@@ -27,7 +27,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -41,6 +40,7 @@ import org.apache.commons.io.FileUtils;
 import packetproxy.common.Utils;
 import packetproxy.model.CAFactory;
 import packetproxy.model.CAs.CA;
+import packetproxy.model.Packets;
 
 public class GUIOption
 {
@@ -137,7 +137,7 @@ public class GUIOption
 		panel.add(createSeparator());
 
 		panel.add(createElement("PacketProxy CA Certificates","PC/Mac/Linux/Android/iOSの信頼する証明書に登録してください。(拡張子は.crtが望ましいです)"));
-		
+
 		JPanel caPanel = new JPanel();
 		caPanel.setBackground(Color.WHITE);
 		caPanel.setLayout(new BoxLayout(caPanel, BoxLayout.X_AXIS));
@@ -149,27 +149,40 @@ public class GUIOption
 		});
 		ca_combo.setMaximumRowCount(CAFactory.queryExportable().size());
 		ca_combo.setMaximumSize(new Dimension(500, 30));
-		
+
 		JButton b = new JButton("CA証明書の取得");
 		b.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
-					JFileChooser saveFile = new JFileChooser("PacketProxyCA.crt");
-					saveFile.setAcceptAllFileFilterUsed(false);
-					saveFile.addChoosableFileFilter(new FileNameExtensionFilter("証明書ファイル (.crt)", "crt"));
-					saveFile.showSaveDialog(owner);
-					File file = saveFile.getSelectedFile();
-					if (file != null) {
-						CA ca = CAFactory.findByUTF8Name((String)ca_combo.getSelectedItem()).get();
-						byte[] derData = ca.getCACertificate();
-						String derPath = file.getAbsolutePath() + ".crt";
-						try (FileOutputStream fos = new FileOutputStream(derPath)) {
-							fos.write(derData);
-							fos.close();
-							JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", derPath));
+					WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner,"crt", "PacketProxyCA.crt");
+					filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
+						@Override
+						public void onApproved(File file, String extension) {
+							try {
+								CA ca = CAFactory.findByUTF8Name((String)ca_combo.getSelectedItem()).get();
+								byte[] derData = ca.getCACertificate();
+								String derPath = file.getAbsolutePath();
+								try (FileOutputStream fos = new FileOutputStream(derPath)) {
+									fos.write(derData);
+									fos.close();
+									JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", derPath));
+								}
+							}catch (Exception e1) {
+								e1.printStackTrace();
+								JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+							}
 						}
-					}
+
+						@Override
+						public void onCanceled() {}
+
+						@Override
+						public void onError() {
+							JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+						}
+					});
+					filechooser.showSaveDialog();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
