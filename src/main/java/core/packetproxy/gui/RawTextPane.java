@@ -71,7 +71,21 @@ public class RawTextPane extends ExtendedTextPane
 		});
 		menu.add(send);
 
-		JMenuItem sendRepeater = new JMenuItem("send to repeater");
+		JMenuItem sendBulkSender = new JMenuItem("send to BulkSender");
+		sendBulkSender.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent actionEvent) {
+				try {
+					Packet packet = GUIPacket.getInstance().getPacket();
+					GUIBulkSender.getInstance().add(packet.getOneShotPacket(getData()), packet.getId());
+					GUIHistory.getInstance().updateRequestOne(GUIHistory.getInstance().getSelectedPacketId());
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		menu.add(sendBulkSender);
+
+		JMenuItem sendRepeater = new JMenuItem("send to Resender");
 		sendRepeater.setMnemonic(KeyEvent.VK_R);
 		sendRepeater.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.META_MASK));
 		sendRepeater.addActionListener(new ActionListener() {
