@@ -15,6 +15,7 @@
  */
 package packetproxy.gui;
 
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -30,7 +31,6 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.WindowConstants;
 import packetproxy.EncoderManager;
 import packetproxy.model.Server;
 
@@ -102,6 +102,21 @@ public class GUIOptionServerDialog extends JDialog
 		setVisible(true);
 		return server;
 	}
+
+	private JComponent createModuleAlert() throws  Exception {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+		JLabel label = new JLabel(
+				"<html>名前が重複したEncodeモジュールがあります。<br/>" +
+				"重複したEncodeモジュールの名前は<br/>" +
+				"{モジュール名}-{モジュールのJarファイル名}として扱われます。</html>"
+		);
+		label.setForeground(Color.red);
+		label.setPreferredSize(new Dimension(150, label.getMaximumSize().height));
+		panel.add(label);
+		return panel;
+	}
+
 	private JComponent createModuleSetting() throws Exception {
 		String[] names = EncoderManager.getInstance().getEncoderNameList();
 		for (int i = 0; i < names.length; i++) {
@@ -161,6 +176,9 @@ public class GUIOptionServerDialog extends JDialog
 	    panel.add(createIpSetting());
 	    panel.add(createPortSetting());
 	    panel.add(createUseSSLSetting());
+	    if(EncoderManager.getInstance().hasDuplicateModules()){
+	        panel.add(createModuleAlert());
+	    }
 	    panel.add(createModuleSetting());
 	    panel.add(createDNSSetting());
 	    panel.add(createHttpProxySetting());
