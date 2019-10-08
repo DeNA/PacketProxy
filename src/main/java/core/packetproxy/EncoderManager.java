@@ -42,6 +42,7 @@ import packetproxy.encode.Encoder;
 public class EncoderManager
 {
 	private static EncoderManager incetance;
+	private boolean isDuplicated = false;
 	
 	public static EncoderManager getInstance() throws Exception {
 		if (incetance == null) {
@@ -65,8 +66,8 @@ public class EncoderManager
 		}
 	}
 	private void loadModules() throws Exception {
+		isDuplicated = false;
 		module_list = new HashMap<String,Class<Encoder>>();
-		loadModulesFromJar(module_list);
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		JavaFileManager fm = compiler.getStandardFileManager(new DiagnosticCollector<JavaFileObject>(), null, null);
 
@@ -82,6 +83,7 @@ public class EncoderManager
 				module_list.put(encoder.getName(), klass);
 			}
 		}
+		loadModulesFromJar(module_list);
 	}
 
 	private void loadModulesFromJar(HashMap<String,Class<Encoder>> module_list) throws Exception
@@ -124,9 +126,18 @@ public class EncoderManager
 
 				@SuppressWarnings("unchecked")
 				Encoder encoder = createInstance((Class<Encoder>) klass);
-				module_list.put(encoder.getName(),(Class<Encoder>)klass);
+				String encoderName = encoder.getName();
+				if(module_list.containsKey(encoderName)){
+					isDuplicated = true;
+					encoderName += "-" + file.getName();
+				}
+				module_list.put(encoderName, (Class<Encoder>)klass);
 			}
 		}
+	}
+
+	public boolean hasDuplicateModules(){
+		return isDuplicated;
 	}
 
 	public String[] getEncoderNameList() {
