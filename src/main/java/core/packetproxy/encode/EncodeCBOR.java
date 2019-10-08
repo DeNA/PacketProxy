@@ -40,7 +40,7 @@ public class EncodeCBOR extends EncodeHTTPBase {
 
     @Override
     public String getName() {
-        return "CBOR2JSON";
+        return "CBOR";
     }
 
     @Override
