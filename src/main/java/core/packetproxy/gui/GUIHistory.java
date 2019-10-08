@@ -47,7 +47,6 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -446,40 +445,58 @@ public class GUIHistory implements Observer
 
 		JMenuItem saveAll = createMenuItem ("save all data to file", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
-				try {
-					JFileChooser saveFile = new JFileChooser("packet.dat");
-					saveFile.setAcceptAllFileFilterUsed(false);
-					saveFile.addChoosableFileFilter(new FileNameExtensionFilter("データファイル (.dat)", "dat"));
-					saveFile.showSaveDialog(owner);
-					File file = saveFile.getSelectedFile();
-					if (file != null) {
-						byte[] data = gui_packet.getPacket().getReceivedData();
-						FileUtils.writeByteArrayToFile(file, data);
-						JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", file.getPath()));
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "dat", "packet.dat");
+				filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
+				   @Override
+				   public void onApproved(File file, String extension) {
+					   try {
+						   byte[] data = gui_packet.getPacket().getReceivedData();
+						   FileUtils.writeByteArrayToFile(file, data);
+						   JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", file.getPath()));
+					   } catch (Exception e1) {
+						   e1.printStackTrace();
+						   JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+					   }
+					   dialogOnce = false;
+				   }
+				   @Override
+				   public void onCanceled() {}
+
+				   @Override
+				   public void onError() {
+					   JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+				   }
+			   });
+				filechooser.showSaveDialog();
 			}
 		});
 
 		JMenuItem saveHttpBody = createMenuItem ("save HTTP body to file", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
-				try {
-					JFileChooser saveFile = new JFileChooser("body.dat");
-					saveFile.setAcceptAllFileFilterUsed(false);
-					saveFile.addChoosableFileFilter(new FileNameExtensionFilter("HTTP Body データ(.dat)", "dat"));
-					saveFile.showSaveDialog(owner);
-					File file = saveFile.getSelectedFile();
-					if (file != null) {
-						Http http = new Http(gui_packet.getPacket().getDecodedData());
-						byte[] data = http.getBody();
-						FileUtils.writeByteArrayToFile(file, data);
-						JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", file.getPath()));
+				WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "dat", "body.dat");
+				filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
+					@Override
+					public void onApproved(File file, String extension) {
+						try {
+							Http http = new Http(gui_packet.getPacket().getDecodedData());
+							byte[] data = http.getBody();
+							FileUtils.writeByteArrayToFile(file, data);
+							JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", file.getPath()));
+						} catch (Exception e1) {
+							e1.printStackTrace();
+							JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+						}
+						dialogOnce = false;
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+					@Override
+					public void onCanceled() {}
+
+					@Override
+					public void onError() {
+						JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+					}
+				});
+				filechooser.showSaveDialog();
 			}
 		});
 
@@ -747,55 +764,31 @@ TODO: support --data-binary
 				"データベースのサイズが上限値(2GB)を越えそうです。Historyを保存してください。",
 				"Warning",
 				JOptionPane.WARNING_MESSAGE);
-		try {
-			@SuppressWarnings("serial")
-			JFileChooser filechooser = new JFileChooser() {
-				@Override
-				public void approveSelection(){
-					File f = getSelectedFile();
-					if (f.exists() && getDialogType() == SAVE_DIALOG) {
-						int result = JOptionPane.showConfirmDialog(this, "ファイルが既に存在しますが上書きしますか？" ,"Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
-						switch(result){
-							case JOptionPane.YES_OPTION:
-								super.approveSelection();
-								return;
-							case JOptionPane.NO_OPTION:
-								return;
-							case JOptionPane.CLOSED_OPTION:
-								return;
-							case JOptionPane.CANCEL_OPTION:
-								cancelSelection();
-								return;
-						}
-					}
-					super.approveSelection();
-				}
-			};
-			filechooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-			filechooser.setFileFilter(new FileNameExtensionFilter("*.sqlite3", "sqlite3"));
-			filechooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-			int selected = filechooser.showSaveDialog(SwingUtilities.getRoot(owner));
-			if (selected == JFileChooser.APPROVE_OPTION) {
-				File file = filechooser.getSelectedFile();
-				if (file.getName().matches(".+\\.sqlite3")) {
-					Database.getInstance().Save(file.getAbsolutePath());
-				} else {
-					Database.getInstance().Save(file.getAbsolutePath() + ".sqlite3");
-				}
-				JOptionPane.showMessageDialog(null, "データを保存しました。");
+
+		WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "sqlite3");
+		filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
+			@Override
+			public void onApproved(File file, String extension) {
 				try {
-					Database.getInstance().dropPacketTableFaster();
-				}catch (Exception e1) {
+					Database.getInstance().Save(file.getAbsolutePath());
+					JOptionPane.showMessageDialog(null, "データを保存しました。");
+					updateRequest(true);
+				} catch (Exception e1) {
 					e1.printStackTrace();
-					JOptionPane.showMessageDialog(null, "データベースの一時ファイル作成に失敗しました。");
+					JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
 				}
-				updateRequest(true);
+				dialogOnce = false;
 			}
-		} catch (Exception e1) {
-			e1.printStackTrace();
-			JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
-		}
-		dialogOnce = false;
+
+			@Override
+			public void onCanceled() {}
+
+			@Override
+			public void onError() {
+				JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+			}
+		});
+		filechooser.showSaveDialog();
 	}
 
 	@Override
