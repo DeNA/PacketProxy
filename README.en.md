@@ -26,6 +26,8 @@ It can be used for development assistance or for risk assessments.
   - Send concurrent multiple packets for a DB transaction test
   - Change server certificate to self signed certificate for a test of client side validation
   - Built-in DNS server for packet forwarding with modifying DNS responses automatically
+  - Save and load current project data as SQLite
+  - Support Windows and macOS
 
 # Setup
   
