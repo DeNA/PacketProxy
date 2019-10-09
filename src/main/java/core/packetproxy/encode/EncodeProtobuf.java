@@ -18,11 +18,11 @@ package packetproxy.encode;
 import packetproxy.common.Protobuf3;
 import packetproxy.http.Http;
 
-public class EncodeSampleProtobuf3 extends EncodeHTTPBase
+public class EncodeProtobuf extends EncodeHTTPBase
 {
 	@Override
 	public String getName() {
-		return "Sample Protocol Buffer v3";
+		return "Protocol Buffer over HTTP";
 	}
 	
 	private Http decodeProtobuf3(Http inputHttp) throws Exception {

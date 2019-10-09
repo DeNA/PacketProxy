@@ -21,7 +21,7 @@ public class EncodeSampleHTTP extends EncodeHTTPBase
 {
 	@Override
 	public String getName() {
-		return "Sample HTTP";
+		return "Sample over HTTP";
 	}
 
 	@Override

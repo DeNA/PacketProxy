@@ -40,7 +40,7 @@ public class EncodeMsgPack extends EncodeHTTPBase {
 
     @Override
     public String getName() {
-        return "MessagePack";
+        return "MessagePack over HTTP";
     }
 
     @Override
