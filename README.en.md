@@ -4,7 +4,7 @@
 
 # PacketProxy
 
-PacketProxy is an open source proxy tool that allows TCP/IP Traffic to be read. It is not limited to just HTTP/HTTPS.
+PacketProxy is an open source proxy tool that allows TCP/UDP Traffic to be read. It is not limited to just HTTP/HTTPS.
 
 It can be used for development assistance or for risk assessments.
  
@@ -14,19 +14,20 @@ It can be used for development assistance or for risk assessments.
  
 # Features
  
-- **ローカルプロキシツールとしての主要な機能が備わっています**
-  - 到着パケットの履歴の表示・フィルタ
-  - パケットデータの表示・検索・変換・Diff
-  - インターセプト
-  - 加工して再送
-- **HTTP/HTTPS通信だけでなく、より低レイヤーのTCP/UDP通信にも対応しています**
-  - メジャーなプロトコル（HTTP、HTTPS、WebSocket、FireBase、MQTT、Protocol Buffers、MessagePack、CBOR）はビルトイン済み（増やす予定あり）
-  - 新しいプロトコル（例：特定ゲームの独自通信プロトコル等）への拡張が簡単
-- **脆弱性診断で利用できる便利な機能を用意しています**
-  - パケットを連続して同時に送信する機能（同時複数送信）
-  - 内容の異なるパケットを同時に送信する機能（バルク送信）
-  - 自己署名証明書によるHTTPS通信をMITMできてしまうかチェックする機能
-  - DNSサーバが内蔵されており、DNS書き換えによるパケットのフォワード機能
+- **Major features for local proxy tool**
+  - History and filtering of packets' data
+  - Show, search, modify, and diff packets' data
+  - Interception
+  - Modify and resend
+- **Handling not only HTTP/HTTPS, but also TCP/UDP connection**
+  - Major protocols such as HTTP, HTTPS, WebSOcket, FireBase, MQTT, Protocol Buffers, MessagePack and CBOR are built-in
+  - You can Make a plugin for new protocols easily
+- **Features for a manual application penetration test**
+  - Send concurrent multiple packets for a DB transaction test
+  - Change server certificate to self signed certificate for a test of client side validation
+  - Built-in DNS server for packet forwarding with modifying DNS responses automatically
+  - Save and load current project data as SQLite
+  - Support Windows and macOS
 
 # Setup
   
