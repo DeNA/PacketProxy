@@ -306,7 +306,7 @@ public class Http
 
 		result = ArrayUtils.addAll(result, statusLine.getBytes());
 		result = ArrayUtils.addAll(result, newLine);
-		if (!flag_request && this.statusCode.equals("100")) {
+		if (!flag_request && this.statusCode != null && this.statusCode.equals("100")) {
 			// 100 Continueの場合は、Content-Lengthがいらないのですぐに返す
 			result = ArrayUtils.addAll(result, newLine);
 			return result;
