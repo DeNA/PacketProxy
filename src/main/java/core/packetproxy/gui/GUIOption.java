@@ -195,7 +195,7 @@ public class GUIOption
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("文字コードの追加/削除","受信パケットの表示に利用する文字コードを追加します。"));
+		panel.add(createElement("Charactor encodings", "受信パケットの表示に利用する文字コードを追加します。"));
 		GUIOptionCharSets charsetsGUI = new GUIOptionCharSets(owner);
 		panel.add(charsetsGUI.createPanel());
 
