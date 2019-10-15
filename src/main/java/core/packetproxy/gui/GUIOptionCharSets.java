@@ -69,18 +69,6 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet>
 				}
 			}
 		};
-		ActionListener editAction = new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					dlg = new GUIOptionCharSetDialog(owner);
-					List<CharSet> new_charsets = dlg.showDialog();
-					CharSets.getInstance().update(new_charsets);
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-			}
-		};
 		ActionListener removeAction = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -92,7 +80,7 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet>
 				}
 			}
 		};
-		jcomponent = createComponent(menu, menuWidth, tableAction, addAction, editAction, removeAction);
+		jcomponent = createComponent(menu, menuWidth, tableAction, addAction, null, removeAction);
 		updateImpl();
 	}
 

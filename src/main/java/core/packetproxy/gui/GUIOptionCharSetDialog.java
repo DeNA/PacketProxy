@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
-;
+
 import com.fasterxml.jackson.databind.ser.std.StdKeySerializers;
 import packetproxy.model.CharSet;
 import packetproxy.util.CharSetUtility;

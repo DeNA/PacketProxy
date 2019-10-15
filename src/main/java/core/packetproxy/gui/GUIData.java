@@ -304,6 +304,8 @@ public class GUIData {
 			}
 		});
 
+		charSetCombo.setSelectedItem(charSetUtility.getInstance().getCharSet());
+
 		JPanel diff_panel = new JPanel();
 		diff_panel.add(diff_orig_button);
 		diff_panel.add(diff_button);

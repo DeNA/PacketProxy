@@ -15,7 +15,9 @@ public class CharSetUtility {
     public static CharSetUtility getInstance(){
         if(null==instance){
             instance = new CharSetUtility();
-            instance.charSet = instance.getAvailableCharSetList().get(0);
+            if(!instance.getAvailableCharSetList().contains(DEFAULT_CHARSET)) {
+                instance.charSet = instance.getAvailableCharSetList().get(0);
+            }
         }
         return instance;
     }
