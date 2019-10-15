@@ -22,17 +22,12 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
+import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import io.netty.util.CharsetUtil;
 import packetproxy.controller.ResendController;
 import packetproxy.http.Http;
 import packetproxy.model.Diff;
@@ -40,6 +35,7 @@ import packetproxy.model.DiffBinary;
 import packetproxy.model.DiffJson;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
+import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
 
 public class GUIData {
@@ -56,10 +52,12 @@ public class GUIData {
 	private JButton diff_orig_button;
 	private JButton diff_button;
 	private JButton stop_diff_button;
+	private CharSetUtility charSetUtility = CharSetUtility.getInstance();
 	boolean isDiff = false;
 	boolean isOrigColorExists = false;
 	int origIndex;
 	Color origColor;
+	private JComboBox charSetCombo = new JComboBox(charSetUtility.getAvailableCharSetList().toArray());
 
 	public GUIData(JFrame owner) {
 		this.owner = owner;
@@ -287,6 +285,19 @@ public class GUIData {
 				}
 			}
 		});
+
+		charSetCombo.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				charSetUtility.setCharSet((String)charSetCombo.getSelectedItem());
+				try {
+					GUIPacket.getInstance().update();
+				}catch (Exception e2){
+					e2.printStackTrace();
+				}
+			}
+		});
+
 		JPanel diff_panel = new JPanel();
 		diff_panel.add(diff_orig_button);
 		diff_panel.add(diff_button);
@@ -295,6 +306,7 @@ public class GUIData {
 		diff_panel.setLayout(new BoxLayout(diff_panel, BoxLayout.LINE_AXIS));
 
 		JPanel button_panel = new JPanel();
+		button_panel.add(charSetCombo);
 		button_panel.add(copy_url_body_button);
 		button_panel.add(copy_body_button);
 		button_panel.add(copy_url_button);
