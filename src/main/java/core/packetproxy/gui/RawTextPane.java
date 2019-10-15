@@ -41,10 +41,14 @@ import packetproxy.common.Utils;
 import packetproxy.controller.ResendController;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
+import packetproxy.util.CharSetUtility;
 
 public class RawTextPane extends ExtendedTextPane
 {
+	private CharSetUtility charSetUtility;
+
 	public RawTextPane() {
+		charSetUtility = CharSetUtility.getInstance();
 		JPopupMenu menu = new JPopupMenu();
 
 		JMenuItem send = new JMenuItem("send");
@@ -153,11 +157,12 @@ public class RawTextPane extends ExtendedTextPane
 		url_decoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					String chasetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
-					byte[] data = new String(getData(), "UTF-8").substring(position_start, position_end).getBytes();
+					byte[] data = new String(getData(), chasetName).substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
-					dlg.setData(URLDecoder.decode(new String(data), "UTF-8").getBytes());
+					dlg.setData(URLDecoder.decode(new String(data), chasetName).getBytes());
 					dlg.showDialog();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -172,7 +177,7 @@ public class RawTextPane extends ExtendedTextPane
 				try {
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
-					byte[] data = new String(getData(), "UTF-8").substring(position_start, position_end).getBytes();
+					byte[] data = new String(getData(), charSetUtility.getCharSet()).substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
 					if (Utils.indexOf(data, 0, data.length, "_".getBytes()) >= 0 ||
 							Utils.indexOf(data, 0, data.length, "-".getBytes()) >= 0) { // base64url
@@ -192,12 +197,13 @@ public class RawTextPane extends ExtendedTextPane
 		jwt_decoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
-					byte[] data = new String(getData(), "UTF-8").substring(position_start, position_end).getBytes();
+					byte[] data = new String(getData(), charSetName).substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
 					dlg.setData(
-							Arrays.stream(new String(data, "UTF-8").split("\\."))
+							Arrays.stream(new String(data, charSetName).split("\\."))
 							.map(Base64.getUrlDecoder()::decode)
 							.reduce((a, b) -> { return ArrayUtils.addAll(ArrayUtils.addAll(a, ".".getBytes()), b);}).get());
 					dlg.showDialog();
@@ -212,10 +218,11 @@ public class RawTextPane extends ExtendedTextPane
 		unicode_unescaper.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
-					byte[] data = new String(getData(), "UTF-8").substring(position_start, position_end).getBytes();
-					String selection = new String(data, "UTF-8");
+					byte[] data = new String(getData(), charSetName).substring(position_start, position_end).getBytes();
+					String selection = new String(data, charSetName);
 					String unescaped = StringEscapeUtils.unescapeJava(selection);
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
 					dlg.setData(unescaped.getBytes());
@@ -241,11 +248,12 @@ public class RawTextPane extends ExtendedTextPane
 		url_encoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
-					byte[] data = new String(getData(), "UTF-8").substring(position_start, position_end).getBytes();
+					byte[] data = new String(getData(), charSetName).substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
-					dlg.setData(URLEncoder.encode(new String(data), "UTF-8").getBytes());
+					dlg.setData(URLEncoder.encode(new String(data), charSetName).getBytes());
 					dlg.showDialog();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -258,9 +266,10 @@ public class RawTextPane extends ExtendedTextPane
 		base64_encoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
-					byte[] data = new String(getData(), "UTF-8").substring(position_start, position_end).getBytes();
+					byte[] data = new String(getData(), charSetName).substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
 					dlg.setData(Base64.getEncoder().encode(data));
 					dlg.showDialog();
@@ -275,9 +284,10 @@ public class RawTextPane extends ExtendedTextPane
 		base64url_encoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
-					byte[] data = new String(getData(), "UTF-8").substring(position_start, position_end).getBytes();
+					byte[] data = new String(getData(), charSetName).substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
 					dlg.setData(Base64.getUrlEncoder().encode(data));
 					dlg.showDialog();
@@ -292,12 +302,13 @@ public class RawTextPane extends ExtendedTextPane
 		jwt_encoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
-					byte[] data = new String(getData(), "UTF-8").substring(position_start, position_end).getBytes();
+					byte[] data = new String(getData(), charSetName).substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
 					dlg.setData(
-							Arrays.stream(new String(data, "UTF-8").split("\\."))
+							Arrays.stream(new String(data, charSetName).split("\\."))
 							.map((a) -> {
 								String b = "";
 								if (a.charAt(0) == '{') {
@@ -320,9 +331,10 @@ public class RawTextPane extends ExtendedTextPane
 		unicode_escaper.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
-					String selection = new String(getData(), "UTF-8").substring(position_start, position_end);
+					String selection = new String(getData(), charSetName).substring(position_start, position_end);
 					StringBuilder sb = new StringBuilder();
 					for (char c: selection.toCharArray()) {
 						sb.append(String.format("\\u%04X", (int)c));
@@ -355,12 +367,13 @@ public class RawTextPane extends ExtendedTextPane
 	}
 
 	public void setData(byte[] data) throws Exception {
+		String charSetName = charSetUtility.getCharSet();
 		init_flg = true;
 		fin_flg = true;
 		init_count = 0;
 		prev_text_panel = "";
 		raw_data.reset(data);
-		setText(new String(data, "UTF-8"));
+		setText(new String(data, charSetName));
 		undo_manager.discardAllEdits();
 	}
 

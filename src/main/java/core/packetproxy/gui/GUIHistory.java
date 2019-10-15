@@ -80,6 +80,7 @@ import packetproxy.model.Filters;
 import packetproxy.model.OptionTableModel;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
+import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
 
 public class GUIHistory implements Observer
@@ -406,7 +407,7 @@ public class GUIHistory implements Observer
 					Http http = new Http(packet.getSentData());
 					String copyData = http.getMethod() + "\t" +
 						http.getURL(packet.getServerPort()) + "\t" + 
-						new String(http.getBody(),"UTF-8");
+						new String(http.getBody(), CharSetUtility.getInstance().getCharSet());
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(copyData);
 					clipboard.setContents(selection, selection);
