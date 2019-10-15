@@ -15,14 +15,6 @@
  */
 package packetproxy.model;
 
-import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.DaoManager;
-import com.j256.ormlite.jdbc.JdbcConnectionSource;
-import com.j256.ormlite.logger.LocalLog;
-import com.j256.ormlite.support.ConnectionSource;
-import com.j256.ormlite.support.DatabaseConnection;
-import com.j256.ormlite.table.TableUtils;
-
 import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -31,6 +23,14 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Observable;
 import java.util.Observer;
+
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.logger.LocalLog;
+import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.support.DatabaseConnection;
+import com.j256.ormlite.table.TableUtils;
 
 import packetproxy.util.PacketProxyUtility;
 
@@ -141,7 +141,11 @@ public class Database extends Observable
 					"INSERT OR REPLACE INTO dstDB.charsets (id, charsetname) SELECT id, charsetname FROM srcDB.charsets",
 			};
 			for (String i:query){
-				conn.executeStatement(i, DatabaseConnection.DEFAULT_RESULT_FLAGS);
+				try {
+					conn.executeStatement(i, DatabaseConnection.DEFAULT_RESULT_FLAGS);
+				} catch (Exception e) {
+					PacketProxyUtility.getInstance().packetProxyLog("Database format may have been changed. Simply ignore this type of errors.");
+				}
 			}
 			conn.close();
 		}catch (Exception e){
