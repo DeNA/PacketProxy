@@ -21,6 +21,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -30,11 +32,7 @@ import javax.swing.event.ChangeListener;
 import io.netty.util.CharsetUtil;
 import packetproxy.controller.ResendController;
 import packetproxy.http.Http;
-import packetproxy.model.Diff;
-import packetproxy.model.DiffBinary;
-import packetproxy.model.DiffJson;
-import packetproxy.model.Packet;
-import packetproxy.model.Packets;
+import packetproxy.model.*;
 import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
 
@@ -298,6 +296,14 @@ public class GUIData {
 			}
 		});
 
+		charSetCombo.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				super.mousePressed(e);
+				updateCharSetCombo();
+			}
+		});
+
 		JPanel diff_panel = new JPanel();
 		diff_panel.add(diff_orig_button);
 		diff_panel.add(diff_button);
@@ -319,6 +325,19 @@ public class GUIData {
 
 		main_panel.add(button_panel);
 		return main_panel;
+	}
+
+	public void updateCharSetCombo(){
+		charSetCombo.removeAllItems();
+		for(String charSetName:charSetUtility.getAvailableCharSetList()){
+			charSetCombo.addItem(charSetName);
+		}
+		String charSetName = CharSetUtility.getInstance().getCharSet();
+		if(charSetUtility.getAvailableCharSetList().contains(charSetName)){
+			charSetCombo.setSelectedItem(charSetName);
+		}else{
+			charSetCombo.setSelectedIndex(0);
+		}
 	}
 
 	private void update() {

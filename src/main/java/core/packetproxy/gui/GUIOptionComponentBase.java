@@ -91,6 +91,8 @@ public abstract class GUIOptionComponentBase<T> implements Observer
 		button_edit.setMaximumSize(new Dimension(100,height));
 		button_remove.setMaximumSize(new Dimension(100,height));
 
+		button_edit.setVisible(false);
+
 		panel.add(button_add);
 		panel.add(button_edit);
 		panel.add(button_remove);

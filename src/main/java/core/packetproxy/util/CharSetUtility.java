@@ -1,12 +1,16 @@
 package packetproxy.util;
 
+import packetproxy.model.CharSet;
+import packetproxy.model.CharSets;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class CharSetUtility {
     private static CharSetUtility instance=null;
-    private String charSet="";
-    private List<String> availableCharSetList = Arrays.asList(new String[]{"UTF-8", "Shift_JIS", "x-euc-jp-linux", "ISO-2022-JP", "ISO-8859-1"});
+    private static String DEFAULT_CHARSET = "UTF-8";
+    private String charSet=DEFAULT_CHARSET;
 
     public static CharSetUtility getInstance(){
         if(null==instance){
@@ -17,11 +21,11 @@ public class CharSetUtility {
     }
 
     public void setCharSet(String charSet){
-        if(availableCharSetList.contains(charSet)){
+        if(getAvailableCharSetList().contains(charSet)){
             this.charSet = charSet;
         }else{
             //TODO: Throw Exception
-            PacketProxyUtility.getInstance().packetProxyLog(String.format("%s is not support charset", charSet));
+            PacketProxyUtility.getInstance().packetProxyLog(String.format("%s is not supported charset", charSet));
         }
     }
 
@@ -30,7 +34,15 @@ public class CharSetUtility {
     }
 
     public List<String> getAvailableCharSetList(){
-        return availableCharSetList;
+        List<String> ret = new ArrayList<>();
+        try {
+            for(CharSet charset: CharSets.getInstance().queryAll()){
+                ret.add(charset.toString());
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return ret;
     }
 
 }

@@ -138,6 +138,7 @@ public class Database extends Observable
 					"INSERT OR REPLACE INTO dstDB.interceptOptions (id, enabled, direction, type, relationship, method, pattern, server_id) SELECT id, enabled, direction, type, relationship, method, pattern, server_id FROM srcDB.interceptOptions",
 					"INSERT OR REPLACE INTO dstDB.modifications (id, enabled, server_id, direction, pattern, method, replaced) SELECT id, enabled, server_id, direction, pattern, method, replaced FROM srcDB.modifications",
 					"INSERT OR REPLACE INTO dstDB.sslpassthroughs (id, enabled, server_name, listen_port) SELECT id, enabled, server_name, listen_port FROM srcDB.sslpassthroughs",
+					"INSERT OR REPLACE INTO dstDB.charsets (id, charsetname) SELECT id, charsetname FROM srcDB.charsets",
 			};
 			for (String i:query){
 				conn.executeStatement(i, DatabaseConnection.DEFAULT_RESULT_FLAGS);

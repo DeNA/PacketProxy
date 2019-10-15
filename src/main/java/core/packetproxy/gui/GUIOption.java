@@ -190,8 +190,14 @@ public class GUIOption
 		});
 		caPanel.add(ca_combo);
 		caPanel.add(b);
-		
+
 		panel.add(caPanel);
+
+		panel.add(createSeparator());
+
+		panel.add(createElement("文字コードの追加/削除","受信パケットの表示に利用する文字コードを追加します。"));
+		GUIOptionCharSets charsetsGUI = new GUIOptionCharSets(owner);
+		panel.add(charsetsGUI.createPanel());
 
 		panel.setPreferredSize(new Dimension(1000, 1600));
 		JScrollPane sc = new JScrollPane(panel);
