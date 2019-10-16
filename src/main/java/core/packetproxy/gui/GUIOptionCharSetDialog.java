@@ -83,7 +83,19 @@ public class GUIOptionCharSetDialog extends JDialog
 	private JScrollPane tableScrollPane(){
 		table_model = new CharSetsTableModel(getTableDataWithAvailableCharsets(), columns);
 		JTable table = new JTable(table_model);
-
+		TableColumn col = table.getColumnModel().getColumn(0);
+		col.setMinWidth(50);
+		col.setMaxWidth(50);
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				super.mousePressed(e);
+				if(0==table.getSelectedColumn()){
+					return;
+				}
+				table.setValueAt(!(Boolean)table.getValueAt(table.getSelectedRow(), 0), table.getSelectedRow(),0);
+			}
+		});
 		sorter = new TableRowSorter<CharSetsTableModel>(table_model);
 		table.setRowSorter(sorter);
 		JScrollPane jscrollPane = new JScrollPane(table);
