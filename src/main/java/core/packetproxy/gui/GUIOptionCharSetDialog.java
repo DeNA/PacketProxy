@@ -136,12 +136,13 @@ public class GUIOptionCharSetDialog extends JDialog
 
 		c.add(panel);
 
-		text_charset.addActionListener(new ActionListener() {
+		text_charset.addKeyListener(new KeyAdapter() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void keyReleased(KeyEvent e) {
+				super.keyReleased(e);
 				RowFilter<DefaultTableModel, Object> filter = null;
 				try{
-					filter = RowFilter.regexFilter(text_charset.getText(), 1);
+					filter = RowFilter.regexFilter(String.format("(?i)%s",text_charset.getText(), 1));
 				}catch (Exception e1){
 					e1.printStackTrace();
 				}
