@@ -20,12 +20,13 @@ import packetproxy.model.CharSet;
 import packetproxy.util.CharSetUtility;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,12 +46,15 @@ public class GUIOptionCharSetDialog extends JDialog
 	private List<CharSet> charsets = new ArrayList<CharSet>();
 
 	private Object[][] getTableDataWithAvailableCharsets(){
-		Object a[][] = new Object[Charset.availableCharsets().size()][2];
-		int i = 0;
 		List<String> availableCharSetList = CharSetUtility.getInstance().getAvailableCharSetList();
+		Object a[][] = new Object[Charset.availableCharsets().size()-availableCharSetList.size()][2];
+		int i = 0;
 		for(String k:Charset.availableCharsets().keySet()){
 			if(availableCharSetList.contains(k)){
 				continue;
+			}
+			if(i>=a.length){
+				return a;
 			}
 			a[i++] = new Object[]{new Boolean(false),k};
 		}
