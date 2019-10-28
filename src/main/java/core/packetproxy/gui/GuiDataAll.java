@@ -27,7 +27,7 @@ import javax.swing.ScrollPaneConstants;
 import packetproxy.common.I18nString;
 import packetproxy.model.Packet;
 
-public class GUIDataAll
+public class GuiDataAll
 {
 	private JComponent main_panel;
 	private RawTextPane received_text;
@@ -53,7 +53,7 @@ public class GUIDataAll
 		return text;
 	}
 
-	public GUIDataAll() throws Exception {
+	public GuiDataAll() throws Exception {
 		main_panel = new JPanel();
 		main_panel.setLayout(new GridLayout(1,4));
 		received_text = createTextPane(I18nString.get("Received"));
