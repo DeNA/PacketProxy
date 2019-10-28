@@ -23,6 +23,9 @@ public class CharSetUtility {
     }
 
     public void setCharSet(String charSet){
+    	if (charSet == null) {
+    		return;
+    	}
         if(getAvailableCharSetList().contains(charSet)){
             this.charSet = charSet;
         }else{
