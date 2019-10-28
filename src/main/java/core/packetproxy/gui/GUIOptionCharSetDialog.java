@@ -15,28 +15,44 @@
  */
 package packetproxy.gui;
 
-import com.fasterxml.jackson.databind.ser.std.StdKeySerializers;
-import packetproxy.model.CharSet;
-import packetproxy.util.CharSetUtility;
-
-import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableRowSorter;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.RowFilter;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableRowSorter;
+
+import packetproxy.common.I18nString;
+import packetproxy.model.CharSet;
+import packetproxy.util.CharSetUtility;
+
 public class GUIOptionCharSetDialog extends JDialog
 {
 	private static final long serialVersionUID = 1L;
-	private JButton button_cancel = new JButton("キャンセル");
-	private JButton button_set = new JButton("保存");
+	private JButton button_cancel = new JButton(I18nString.get("Cancel"));
+	private JButton button_set = new JButton(I18nString.get("Save"));
 	private HintTextField text_charset = new HintTextField("(ex.) Shift_JIS");
 	private String[] columns = new String[]{"","CharSetName"};
 	private CharSetsTableModel table_model;

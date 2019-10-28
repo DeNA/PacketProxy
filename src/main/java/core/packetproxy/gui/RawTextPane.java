@@ -15,7 +15,6 @@
  */
 package packetproxy.gui;
 
-import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -37,6 +36,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import packetproxy.common.FontManager;
+import packetproxy.common.I18nString;
 import packetproxy.common.Utils;
 import packetproxy.controller.ResendController;
 import packetproxy.model.Packet;
@@ -47,7 +48,7 @@ public class RawTextPane extends ExtendedTextPane
 {
 	private CharSetUtility charSetUtility;
 
-	public RawTextPane() {
+	public RawTextPane() throws Exception {
 		charSetUtility = CharSetUtility.getInstance();
 		JPopupMenu menu = new JPopupMenu();
 
@@ -144,12 +145,8 @@ public class RawTextPane extends ExtendedTextPane
 		});
 
 		menu.addSeparator();
-		JMenuItem title_decoders = new JMenuItem("デコーダ");
-		if (Utils.isWindows()) {
-			title_decoders.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13));
-		} else {
-			title_decoders.setFont(new Font("Arial", Font.BOLD, 12));
-		}
+		JMenuItem title_decoders = new JMenuItem(I18nString.get("Decoders"));
+		title_decoders.setFont(FontManager.getInstance().getUICaptionFont());
 		title_decoders.setEnabled(false);
 		menu.add(title_decoders);
 
@@ -235,12 +232,8 @@ public class RawTextPane extends ExtendedTextPane
 		menu.add(unicode_unescaper);
 
 		menu.addSeparator();
-		JMenuItem title_encoders = new JMenuItem("エンコーダ");
-		if (Utils.isWindows()) {
-			title_encoders.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13));
-		} else {
-			title_encoders.setFont(new Font("Arial", Font.BOLD, 12));
-		}
+		JMenuItem title_encoders = new JMenuItem(I18nString.get("Encoders"));
+		title_encoders.setFont(FontManager.getInstance().getUICaptionFont());
 		title_encoders.setEnabled(false);
 		menu.add(title_encoders);
 

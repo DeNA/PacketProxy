@@ -16,6 +16,7 @@
 package packetproxy.gui;
 
 import java.util.function.Consumer;
+
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -44,7 +45,7 @@ public class GUIBulkSenderData {
 		this.onChanged = onChanged;
 	}
 	
-	public JComponent createPanel() {
+	public JComponent createPanel() throws Exception {
 		main_panel = new JPanel();
 		main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
 

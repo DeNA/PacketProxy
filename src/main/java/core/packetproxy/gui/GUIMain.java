@@ -20,7 +20,6 @@ import static javax.swing.JOptionPane.YES_NO_OPTION;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
-import java.awt.Font;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.Window;
@@ -52,7 +51,7 @@ import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Keymap;
 
-import packetproxy.common.Utils;
+import packetproxy.common.FontManager;
 import packetproxy.model.InterceptModel;
 import packetproxy.util.PacketProxyUtility;
 
@@ -180,15 +179,9 @@ public class GUIMain extends JFrame implements Observer
 				break;
 			}
 		}
-		//Windowsだと日本語フォントを指定しないと文字化けする
-		//TODO FONT指定は一か所に集める
-		if (Utils.isWindows()) {
-			UIManager.getLookAndFeelDefaults().put("defaultFont", new Font("ＭＳ ゴシック", Font.PLAIN, 13));
-		} else if (Utils.isMac()) {
-			UIManager.getLookAndFeelDefaults().put("defaultFont", new Font("Hira Kaku Gothic Pro", Font.PLAIN, 12));
-		} else {
-			UIManager.getLookAndFeelDefaults().put("defaultFont", new Font("Arial", Font.PLAIN, 12));
-		}
+
+		UIManager.getLookAndFeelDefaults().put("defaultFont", FontManager.getInstance().getUIFont());
+
 		setIconForWindows();
 		addShortcutForMac();
 		addDockIconForMac();

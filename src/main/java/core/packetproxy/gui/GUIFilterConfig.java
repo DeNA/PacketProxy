@@ -19,6 +19,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
+
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -32,6 +33,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+
+import packetproxy.common.I18nString;
 import packetproxy.model.Filter;
 import packetproxy.model.Filters;
 
@@ -90,7 +93,7 @@ public class GUIFilterConfig
 		}
 	}
 	private JComponent createComponent() {
-		String[] menu = { "#", "フィルタ名", "フィルタ" };
+		String[] menu = { "#", I18nString.get("Filter name"), I18nString.get("Filter") };
 		int[] menu_width = { 40, 150, 610 };
 		boolean[] fixed_map = { true, false, false };
 		int[] align_map = { JLabel.RIGHT, JLabel.LEFT, JLabel.LEFT };
@@ -148,9 +151,9 @@ public class GUIFilterConfig
 		return vpanel;
 	}
 	private JPanel createTableButton() {
-		JButton button_add = new JButton("新規追加");
-		JButton button_update = new JButton("編集");
-		JButton button_remove = new JButton("削除");
+		JButton button_add = new JButton("Add");
+		JButton button_update = new JButton("Edit");
+		JButton button_remove = new JButton("Remove");
 
 		int height = button_add.getMaximumSize().height;
 
@@ -195,8 +198,12 @@ public class GUIFilterConfig
 			public void mouseClicked(MouseEvent e) {
 				try {
 						Filter filter = getSelectedTableContent();
-						int option = JOptionPane.showConfirmDialog(owner, String.format("本当に %s を削除してもよいですか？", filter.getName()),
-								"削除確認", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+						int option = JOptionPane.showConfirmDialog(
+								owner,
+								String.format(I18nString.get("Are you sure you want to delete %s ?"), filter.getName()),
+								I18nString.get("Delete filter"),
+								JOptionPane.OK_CANCEL_OPTION,
+								JOptionPane.WARNING_MESSAGE);
 						if (option == JOptionPane.YES_OPTION) {
 							Filters.getInstance().delete(filter);
 							updateImpl();

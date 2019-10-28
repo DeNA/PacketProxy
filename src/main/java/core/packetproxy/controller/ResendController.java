@@ -19,11 +19,14 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+
 import javax.swing.SwingWorker;
+
 import packetproxy.Duplex;
 import packetproxy.DuplexFactory;
 import packetproxy.DuplexManager;
 import packetproxy.EncoderManager;
+import packetproxy.common.I18nString;
 import packetproxy.encode.Encoder;
 import packetproxy.http.Http;
 import packetproxy.model.OneShotPacket;
@@ -158,7 +161,7 @@ public class ResendController
 				} else {
 					Duplex original_duplex = DuplexManager.getInstance().getDuplex(oneshot.getConn());
 					if (original_duplex == null) {
-						PacketProxyUtility.getInstance().packetProxyLogErr("[Error] 再送を試みましたが、コネクションが既に切断されているようです");
+						PacketProxyUtility.getInstance().packetProxyLogErr(I18nString.get("[Error] tried to resend packets, but the connection was already closed."));
 						return;
 					}
 					this.duplex = DuplexFactory.createDuplexFromOriginalDuplex(original_duplex, this.oneshot);
@@ -180,7 +183,7 @@ public class ResendController
 							oneshot.getServer(),
 							oneshot.getServerName(),
 							oneshot.getUseSSL(),
-							"既存のコネクションを利用した再送の場合、ここでの表示は未サポートです。申し訳ありませんが、履歴ウィンドウで確認してください".getBytes(),
+							I18nString.get("In case that packets were resend to already connected socket, results can't be displayed in this window. See the history window instead.").getBytes(),
 							oneshot.getEncoder(),
 							Packet.Direction.SERVER,
 							oneshot.getConn(),

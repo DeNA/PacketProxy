@@ -29,6 +29,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import packetproxy.common.I18nString;
 import packetproxy.model.Database;
 import packetproxy.model.Packets;
 
@@ -40,9 +41,9 @@ public class GUIMenu extends JMenuBar {
 	public GUIMenu(JFrame owner) {
 		self = this;
 		this.owner = owner;
-		JMenu file_menu = new JMenu("プロジェクト");
+		JMenu file_menu = new JMenu(I18nString.get("Project"));
 		this.add(file_menu);
-		JMenuItem save_sqlite = new JMenuItem("ローカル保存(sqlite3)", KeyEvent.VK_S);
+		JMenuItem save_sqlite = new JMenuItem(I18nString.get("Save packets to sqlite3 file"), KeyEvent.VK_S);
 		file_menu.add(save_sqlite);
 		save_sqlite.addActionListener(new ActionListener() {
 			@Override
@@ -53,10 +54,10 @@ public class GUIMenu extends JMenuBar {
 					public void onApproved(File file, String extension) {
 						try {
 							Database.getInstance().Save(file.getAbsolutePath());
-							JOptionPane.showMessageDialog(null, "データを保存しました。");
+							JOptionPane.showMessageDialog(null, I18nString.get("Data saved successfully"));
 						}catch (Exception e1) {
 							e1.printStackTrace();
-							JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+							JOptionPane.showMessageDialog(null, I18nString.get("Data can't be saved with error"));
 						}
 					}
 
@@ -65,13 +66,13 @@ public class GUIMenu extends JMenuBar {
 
 					@Override
 					public void onError() {
-						JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+						JOptionPane.showMessageDialog(null, I18nString.get("Data can't be saved with error"));
 					}
 				});
 				filechooser.showSaveDialog();
 			}
 		});
-		JMenuItem save_txt = new JMenuItem("ローカル保存(txt)", KeyEvent.VK_S);
+		JMenuItem save_txt = new JMenuItem(I18nString.get("Save packets to text file"), KeyEvent.VK_S);
 		file_menu.add(save_txt);
 		save_txt.addActionListener(new ActionListener() {
 			@Override
@@ -82,11 +83,11 @@ public class GUIMenu extends JMenuBar {
 					@Override
 					public void onApproved(File file, String extension) {
 						try {
-							String fn = Packets.getInstance().outputAllPackets(file.getAbsolutePath());
-							JOptionPane.showMessageDialog (null, fn + "に保存しました");
+							Packets.getInstance().outputAllPackets(file.getAbsolutePath());
+							JOptionPane.showMessageDialog(null, I18nString.get("Data saved successfully"));
 						}catch (Exception e1) {
 							e1.printStackTrace();
-							JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+							JOptionPane.showMessageDialog(null, I18nString.get("Data can't be saved with error"));
 						}
 					}
 
@@ -95,13 +96,13 @@ public class GUIMenu extends JMenuBar {
 
 					@Override
 					public void onError() {
-						JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+						JOptionPane.showMessageDialog(null, I18nString.get("Data can't be saved with error"));
 					}
 				});
 				filechooser.showSaveDialog();
 			}
 		});
-		JMenuItem load_menu = new JMenuItem("ローカル読込", KeyEvent.VK_L);
+		JMenuItem load_menu = new JMenuItem(I18nString.get("Load packets from sqlite3 file"), KeyEvent.VK_L);
 		file_menu.add(load_menu);
 		load_menu.addActionListener(new ActionListener() {
 			@Override
@@ -118,7 +119,7 @@ public class GUIMenu extends JMenuBar {
 					}
 				} catch (Exception e1) {
 					e1.printStackTrace();
-					JOptionPane.showMessageDialog(null, "データの読み込みに失敗しました。");
+					JOptionPane.showMessageDialog(null, I18nString.get("Data can't be loaded with error"));
 				}
 			}
 		});

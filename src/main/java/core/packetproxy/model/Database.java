@@ -106,6 +106,7 @@ public class Database extends Observable
 		createTable(InterceptOption.class, InterceptOptions.getInstance());
 		createTable(Modification.class, Modifications.getInstance());
 		createTable(SSLPassThrough.class, SSLPassThroughs.getInstance());
+		createTable(CharSet.class, CharSets.getInstance());
 		notifyObservers(DatabaseMessage.RECREATE);
 
 		migrateTableWithoutHistory(src, dst);
@@ -129,7 +130,9 @@ public class Database extends Observable
 			DatabaseConnection conn = source.getReadWriteConnection();
 			conn.executeStatement("attach database '" + dstDBPath.toAbsolutePath() + "' as 'dstDB'", DatabaseConnection.DEFAULT_RESULT_FLAGS);
 			conn.executeStatement("attach database '" + srcDBPath.toAbsolutePath() + "' as 'srcDB'", DatabaseConnection.DEFAULT_RESULT_FLAGS);
-			String query[] = {
+			String querys[] = {
+					"DELETE FROM dstDB.interceptOptions",
+					"DELETE FROM dstDB.charsets",
 					"INSERT OR REPLACE INTO dstDB.filters (id, name, filter) SELECT id, name, filter FROM srcDB.filters",
 					"INSERT OR REPLACE INTO dstDB.listenports (id, enabled, ca_name, port, type, server_id) SELECT id, enabled, ca_name, port, type, server_id FROM srcDB.listenports",
 					"INSERT OR REPLACE INTO dstDB.configs (key, value) SELECT key, value FROM srcDB.configs",
@@ -140,11 +143,12 @@ public class Database extends Observable
 					"INSERT OR REPLACE INTO dstDB.sslpassthroughs (id, enabled, server_name, listen_port) SELECT id, enabled, server_name, listen_port FROM srcDB.sslpassthroughs",
 					"INSERT OR REPLACE INTO dstDB.charsets (id, charsetname) SELECT id, charsetname FROM srcDB.charsets",
 			};
-			for (String i:query){
+			for (String query : querys){
 				try {
-					conn.executeStatement(i, DatabaseConnection.DEFAULT_RESULT_FLAGS);
+					conn.executeStatement(query, DatabaseConnection.DEFAULT_RESULT_FLAGS);
 				} catch (Exception e) {
 					PacketProxyUtility.getInstance().packetProxyLog("Database format may have been changed. Simply ignore this type of errors.");
+					PacketProxyUtility.getInstance().packetProxyLog(String.format("[Error] %s", query));
 				}
 			}
 			conn.close();

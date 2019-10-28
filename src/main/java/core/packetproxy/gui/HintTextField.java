@@ -23,6 +23,7 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+
 import javax.swing.JTextField;
 
 import packetproxy.common.Utils;

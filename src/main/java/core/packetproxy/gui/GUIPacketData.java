@@ -16,14 +16,12 @@
 package packetproxy.gui;
 
 import java.awt.Dimension;
+
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.JButton;
-import javax.swing.JTabbedPane;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import packetproxy.common.SelectedArea;
+
 import packetproxy.model.OneShotPacket;
 
 public class GUIPacketData
@@ -32,7 +30,7 @@ public class GUIPacketData
 	private TabSet tabs;
 	private OneShotPacket showing_packet;
 
-	public GUIPacketData() {
+	public GUIPacketData() throws Exception {
 		showing_packet = null;
 		main_panel = new JPanel();
 		tabs = new TabSet(true, false);

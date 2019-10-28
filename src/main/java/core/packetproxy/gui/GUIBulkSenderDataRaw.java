@@ -16,19 +16,12 @@
 package packetproxy.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.function.Consumer;
-import javax.swing.BoxLayout;
+
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import packetproxy.common.SelectedArea;
+
 import packetproxy.util.SearchBox;
 
 public class GUIBulkSenderDataRaw implements RawTextPane.DataChangedListener
@@ -39,8 +32,7 @@ public class GUIBulkSenderDataRaw implements RawTextPane.DataChangedListener
 	private JScrollPane text_panel;
 	private Consumer<byte[]> onChanged;
 
-	public GUIBulkSenderDataRaw(Consumer<byte[]> onChanged)
-	{
+	public GUIBulkSenderDataRaw(Consumer<byte[]> onChanged) throws Exception {
 		this.onChanged = onChanged;
 		raw_text = new RawTextPane();
 		raw_text.addDataChangedListener(this);
@@ -52,19 +44,24 @@ public class GUIBulkSenderDataRaw implements RawTextPane.DataChangedListener
 		panel.add(text_panel, BorderLayout.CENTER);
 		panel.add(searchBox, BorderLayout.SOUTH);
 	}
+
 	public JComponent createPanel() {
 		return panel;
 	}
+
 	public void appendData(byte[] data) throws Exception {
 		javax.swing.text.StyledDocument document = raw_text.getStyledDocument();
 		document.insertString(document.getLength(), new String(data), null);
 	}
+
 	public void setData(byte[] data) throws Exception {
 		setData(data, true);
 	}
+
 	private void setData(byte[] data, boolean trimming) throws Exception {
 		raw_text.setData(data, trimming);
 	}
+
 	public byte[] getData() {
 		return raw_text.getData();
 	}

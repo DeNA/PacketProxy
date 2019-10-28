@@ -15,30 +15,23 @@
  */
 package packetproxy.gui;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComponent;
+
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.JOptionPane;
+
+import packetproxy.common.I18nString;
 import packetproxy.model.InterceptOption;
+import packetproxy.model.InterceptOption.Direction;
 import packetproxy.model.InterceptOptions;
 
 public class GUIOptionIntercepts extends GUIOptionComponentBase<InterceptOption>
 {
-	private GUIOptionInterceptDialog dlg;
 	InterceptOptions intercept_options;
 	List<InterceptOption> table_ext_list;
 
@@ -48,8 +41,8 @@ public class GUIOptionIntercepts extends GUIOptionComponentBase<InterceptOption>
 		intercept_options.addObserver(this);
 		table_ext_list = new ArrayList<InterceptOption>();
 
-		String[] menu = { "Enabled", "Direction", "Match Type", "Relationship", "Method", "Pattern", "Applied Server" };
-		int[] menuWidth = { 50, 100, 100, 100, 50, 180, 150 };
+		String[] menu = { "Enabled", "Direction", "Action and Condition", "Type", "Pattern", "Target Server" };
+		int[] menuWidth = { 50, 160, 300, 50, 80, 90 };
 		MouseAdapter tableAction = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -60,7 +53,12 @@ public class GUIOptionIntercepts extends GUIOptionComponentBase<InterceptOption>
 						boolean enable_checkbox = (Boolean)table.getValueAt(rowIndex, 0);
 						InterceptOption intercept = getSelectedTableContent();
 						if (enable_checkbox == true) {
-							intercept.setDisabled();
+							if (intercept.isDirection(Direction.ALL_THE_OTHER_REQUESTS) ||
+									intercept.isDirection(Direction.ALL_THE_OTHER_RESPONSES)) {
+								JOptionPane.showMessageDialog(owner, I18nString.get("This entry can't be disabled."));
+							} else {
+								intercept.setDisabled();
+							}
 						} else {
 							intercept.setEnabled();
 						}
@@ -76,7 +74,7 @@ public class GUIOptionIntercepts extends GUIOptionComponentBase<InterceptOption>
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					dlg = new GUIOptionInterceptDialog(owner);
+					GUIOptionInterceptDialog dlg = new GUIOptionInterceptDialog(owner);
 					InterceptOption intercept = dlg.showDialog();
 					if (intercept != null) {
 						intercept_options.create(intercept);
@@ -91,11 +89,16 @@ public class GUIOptionIntercepts extends GUIOptionComponentBase<InterceptOption>
 			public void actionPerformed(ActionEvent e) {
 				try {
 					InterceptOption old_intercept = getSelectedTableContent();
-					dlg = new GUIOptionInterceptDialog(owner);
-					InterceptOption new_intercept = dlg.showDialog(old_intercept);
+					InterceptOption new_intercept = null;
+					if (old_intercept.isDirection(Direction.ALL_THE_OTHER_REQUESTS)
+							|| old_intercept.isDirection(Direction.ALL_THE_OTHER_RESPONSES)) {
+						new_intercept = new GUIOptionInterceptEditOthersDialog(owner).showDialog(old_intercept);
+					} else {
+						new_intercept = new GUIOptionInterceptDialog(owner).showDialog(old_intercept);
+					}
 					if (new_intercept != null) {
-						intercept_options.delete(old_intercept);
-						intercept_options.create(new_intercept);
+						new_intercept.setId(old_intercept.getId());
+						intercept_options.update(new_intercept);
 					}
 				} catch (Exception e1) {
 					e1.printStackTrace();
@@ -106,7 +109,13 @@ public class GUIOptionIntercepts extends GUIOptionComponentBase<InterceptOption>
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					intercept_options.delete(getSelectedTableContent());
+					InterceptOption intercept = getSelectedTableContent();
+					if (intercept.isDirection(Direction.ALL_THE_OTHER_REQUESTS)
+							|| intercept.isDirection(Direction.ALL_THE_OTHER_RESPONSES)) {
+						JOptionPane.showMessageDialog(owner, I18nString.get("This entry can't be removed."));
+					} else {
+						intercept_options.delete(intercept);
+					}
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -123,10 +132,9 @@ public class GUIOptionIntercepts extends GUIOptionComponentBase<InterceptOption>
 		try {
 			option_model.addRow(new Object[] {
 				intercept.isEnabled(),
-					intercept.getDirection(),
-					intercept.getType(),
-					intercept.getRelationship(),
-					intercept.getMethod(),
+					intercept.getDirectionAsString(),
+					intercept.getRelationshipAsString(),
+					intercept.getMethodAsString(),
 					intercept.getPattern(),
 					intercept.getServerName()
 			});

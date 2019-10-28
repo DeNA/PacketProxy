@@ -84,7 +84,7 @@ public class StringUtils {
 	public static byte[] hexToByte(byte[] hexa) throws Exception {
 		String hex = new String(hexa).trim();
 		//assert(hex.length() % 2 == 0);
-		if (hex.length() % 2 != 0) { throw new Exception("文字列の長さが2の倍数ではありません"); }
+		if (hex.length() % 2 != 0) { throw new Exception(I18nString.get("Length of string is not multiples of 2")); }
 
 		//System.out.println(hex);
 		byte[] bytes = new byte[hex.length() / 2];
@@ -198,7 +198,7 @@ public class StringUtils {
 	 */
 	public static byte[] binaryReplace(byte[] input, byte[] pattern, byte[] replace) throws Exception {
 		if (pattern.length != replace.length) {
-			throw new Exception("patternとreplaceの長さが異なります。");
+			throw new Exception(I18nString.get("Lengths of target and replacement are not same."));
 		}
 
 		byte[] result = input.clone();

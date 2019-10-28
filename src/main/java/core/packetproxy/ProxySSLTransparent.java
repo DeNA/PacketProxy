@@ -28,6 +28,7 @@ import java.util.List;
 import javax.net.ssl.SNIServerName;
 import packetproxy.common.Endpoint;
 import packetproxy.common.EndpointFactory;
+import packetproxy.common.I18nString;
 import packetproxy.common.SSLCapabilities;
 import packetproxy.common.SSLExplorer;
 import packetproxy.common.WrapEndpoint;
@@ -128,7 +129,7 @@ public class ProxySSLTransparent extends Proxy
 				serverName = matcher.group(1);
 				PacketProxyUtility.getInstance().packetProxyLog(String.format("[SSL-forward!] %s", serverName));
 			} else {
-				throw new Exception("SNIヘッダが無いので、packetproxy.comの証明書を利用して復号を試みましたが、クライアントに拒否されたようです");
+				throw new Exception(I18nString.get("[Error] SNI header was not found in SSL packets."));
 			}
 			WrapEndpoint wep_e = new WrapEndpoint(client_e, ArrayUtils.subarray(buff, 0, length));
 			Server server = Servers.getInstance().queryByAddress(new InetSocketAddress(serverName, 443));

@@ -16,15 +16,18 @@
 package packetproxy.gui;
 
 import java.awt.GridLayout;
+
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+
+import packetproxy.common.I18nString;
 import packetproxy.model.Packet;
 
-public class GuiDataAll
+public class GUIDataAll
 {
 	private JComponent main_panel;
 	private RawTextPane received_text;
@@ -32,7 +35,7 @@ public class GuiDataAll
 	private RawTextPane modified_text;
 	private RawTextPane sent_text;
 
-	private RawTextPane createTextPane(String label_name) {
+	private RawTextPane createTextPane(String label_name) throws Exception {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
@@ -50,13 +53,13 @@ public class GuiDataAll
 		return text;
 	}
 
-	public GuiDataAll() {
+	public GUIDataAll() throws Exception {
 		main_panel = new JPanel();
 		main_panel.setLayout(new GridLayout(1,4));
-		received_text = createTextPane("受信パケット");
-		decoded_text = createTextPane("デコード後");
-		modified_text = createTextPane("修正後");
-		sent_text = createTextPane("エンコード後 (送信パケット)");
+		received_text = createTextPane(I18nString.get("Received"));
+		decoded_text = createTextPane(I18nString.get("Decoded"));
+		modified_text = createTextPane(I18nString.get("Modified"));
+		sent_text = createTextPane(I18nString.get("Encoded"));
 	}
 
 	public JComponent createPanel() {

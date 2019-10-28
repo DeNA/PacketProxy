@@ -86,32 +86,6 @@ public class Https {
 		return (SSLSocketFactory) sslContext.getSocketFactory();
 	}
 
-	/**
-	 * Overwrite client key managers
-	 * @throws Exception
-	 */
-    @SuppressWarnings("unused")
-	private void putKeyManagersForClientCertificateAuthentication() throws Exception {
-		// Change a path and a pass correctly below:
-		final String KS_PATH = "/certificates/nissan.jks";
-		final char[] KS_PASS = "S3N1uxwH".toCharArray();
-		KeyStore keyStore;
-
-		try (InputStream input = this.getClass().getResourceAsStream(KS_PATH)) {
-			// Load KeyStore
-			keyStore = KeyStore.getInstance("JKS");
-			keyStore.load(input, KS_PASS);
-		}
-
-
-		// Initialize KeyManager
-		KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-		kmf.init(keyStore, KS_PASS);
-
-		// Override KeyManagers
-		clientKeyManagers = kmf.getKeyManagers();
-	}
-
 	private static KeyManager[] clientKeyManagers = { new X509KeyManager() {
 		@Override
 		public String[] getClientAliases(String s, Principal[] principals) {

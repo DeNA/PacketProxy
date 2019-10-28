@@ -34,6 +34,16 @@ public class CharSets extends Observable implements Observer {
 		}
 		return instance;
 	}
+	
+	private void setDefaultCharSetIfNotFound() throws Exception {
+		if (dao.queryBuilder().query().size() == 0) {
+			for(String charSetName : defaultCharSetList){
+				if(null == queryByCharSetName(charSetName)){
+					create(new CharSet(charSetName));
+				}
+			}
+		}
+	}
 
 	private Database database;
 	private Dao<CharSet,Integer> dao;
@@ -41,11 +51,6 @@ public class CharSets extends Observable implements Observer {
 	private CharSets() throws Exception {
 		database = Database.getInstance();
 		dao = database.createTable(CharSet.class, this);
-		for(String charSetName:defaultCharSetList){
-			if(null==queryByCharSetName(charSetName)){
-				create(new CharSet(charSetName));
-			}
-		}
 	}
 	public void create(CharSet charset) throws Exception {
 		dao.createIfNotExists(charset);
@@ -71,6 +76,7 @@ public class CharSets extends Observable implements Observer {
 		return dao.queryForId(id);
 	}
 	public List<CharSet> queryAll() throws Exception {
+		setDefaultCharSetIfNotFound();
 		return dao.queryBuilder().orderBy("charsetname", true).query();
 	}
 	public void update(List<CharSet> charsets) throws Exception {

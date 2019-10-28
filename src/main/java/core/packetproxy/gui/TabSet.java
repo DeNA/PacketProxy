@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 package packetproxy.gui;
-import java.util.Observable;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
+import java.util.Observable;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.JComponent;
-import javax.swing.JButton;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
 import packetproxy.util.PacketProxyUtility;
 import packetproxy.util.SearchBox;
 
@@ -43,7 +44,7 @@ public class TabSet extends Observable {
 	//Options
 	private SearchBox searchBox = null;
 
-	public TabSet(boolean search, boolean copy) {
+	public TabSet(boolean search, boolean copy) throws Exception {
 		raw_panel = new GUIHistoryRaw();
 		raw_panel.setParentTabs(this);
 		raw_text = raw_panel.createPanel();
@@ -149,7 +150,7 @@ public class TabSet extends Observable {
 		try {
 			raw_panel.setData(data);
 			binary_panel.setData(data);
-			json_panel.setData(PacketProxyUtility.getInstance().prettyFormatJSONInRawData(data, GUIPacket.getInstance().getPacket().getEncoder()));
+			json_panel.setData(PacketProxyUtility.getInstance().prettyFormatJSONInRawData(data));
 			if (searchBox == null) {
 				return;
 			}

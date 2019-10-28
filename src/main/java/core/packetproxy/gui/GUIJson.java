@@ -16,20 +16,12 @@
 package packetproxy.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import javax.swing.BoxLayout;
+
+import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.JButton;
 import javax.swing.JTextPane;
-import packetproxy.common.SelectedArea;
 
 public class GUIJson extends GUIHistoryPanel implements RawTextPane.DataChangedListener
 {
@@ -42,8 +34,7 @@ public class GUIJson extends GUIHistoryPanel implements RawTextPane.DataChangedL
 	private JComponent panel;
 	private JScrollPane text_panel;
 
-	public GUIJson()
-	{
+	public GUIJson() throws Exception {
 		raw_text = new RawTextPane();
 		raw_text.setEditable(false);
 		raw_text.addDataChangedListener(this);
@@ -52,6 +43,7 @@ public class GUIJson extends GUIHistoryPanel implements RawTextPane.DataChangedL
 		panel = new JPanel(new BorderLayout());
 		panel.add(text_panel, BorderLayout.CENTER);
 	}
+
 	public JComponent createPanel() {
 		return panel;
 	}

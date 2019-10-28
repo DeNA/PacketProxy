@@ -18,12 +18,17 @@ package packetproxy;
 import java.io.File;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 import javax.swing.JOptionPane;
 
 import org.apache.commons.io.IOUtils;
 
+import com.sun.org.apache.xml.internal.security.utils.I18n;
+
 import packetproxy.common.ClientKeyManager;
+import packetproxy.common.I18nString;
 import packetproxy.common.Utils;
 import packetproxy.gui.GUIMain;
 import packetproxy.gui.Splash;
@@ -36,12 +41,12 @@ public class PacketProxy
 		if (Utils.supportedJava() == false) {
 			JOptionPane.showMessageDialog(
 					null,
-					"PacketProxyはJDK 8のみで実行可能です",
-					"エラー",
+					I18nString.get("PacketProxy can be executed with JDK8 only"),
+					I18nString.get("Error"),
 					JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-
+		
 		Splash splash = new Splash();
 		splash.show();
 		
@@ -51,8 +56,8 @@ public class PacketProxy
 				proxy.start();
 			} catch (SQLException e) {
 				int option = JOptionPane.showConfirmDialog(null,
-						"データベースの形式が更新されているため起動できません。\n現在のデータベースを削除して再起動しても良いですか？",
-						"データベースの更新",
+						I18nString.get("Database read error.\nDelete the database and reboot?"),
+						I18nString.get("Database error"),
 						JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 				if (option == JOptionPane.YES_OPTION) {
 					try {

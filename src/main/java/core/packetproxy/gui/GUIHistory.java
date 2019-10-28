@@ -62,7 +62,6 @@ import javax.swing.SwingWorker;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
@@ -70,6 +69,7 @@ import javax.swing.table.TableRowSorter;
 import org.apache.commons.io.FileUtils;
 
 import packetproxy.common.FilterTextParser;
+import packetproxy.common.I18nString;
 import packetproxy.common.Utils;
 import packetproxy.controller.ResendController;
 import packetproxy.http.HeaderField;
@@ -163,7 +163,7 @@ public class GUIHistory implements Observer
 	}
 
 	private JComponent createFilterPanel() throws Exception {
-		gui_filter = new HintTextField("フィルタ文字列　(ex: request == example.com && type == image)");
+		gui_filter = new HintTextField(I18nString.get("filter string... (ex: request == example.com && type == image)"));
 		gui_filter.setMaximumSize(new Dimension(Short.MAX_VALUE, 27));
 		gui_filter.setMinimumSize(new Dimension(100, 27));
 
@@ -725,12 +725,14 @@ TODO: support --data-binary
 		split_panel = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		split_panel.add(scrollpane);
 		split_panel.add(gui_packet.createPanel());
+		split_panel.setDividerLocation(200);
 		split_panel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
 		main_panel = new JPanel();
 		main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
 		main_panel.add(createFilterPanel());
 		main_panel.add(split_panel);
+
 
 		return main_panel;
 	}

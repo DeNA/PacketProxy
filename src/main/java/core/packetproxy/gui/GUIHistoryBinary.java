@@ -16,7 +16,6 @@
 package packetproxy.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -34,8 +33,8 @@ import javax.swing.JTextPane;
 import org.apache.commons.lang3.ArrayUtils;
 
 import packetproxy.common.Binary;
+import packetproxy.common.FontManager;
 import packetproxy.common.StringUtils;
-import packetproxy.common.Utils;
 
 public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.DataChangedListener
 {
@@ -55,17 +54,12 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 
 	private byte[] data;
 
-	public GUIHistoryBinary()
-	{
+	public GUIHistoryBinary() throws Exception {
 		hex_text = new BinaryTextPane();
 		hex_text.setParentHistory(this);
 		hex_text.addDataChangedListener(this);
 		//hex_text.setLineWrap(true);
-		if (Utils.isWindows()) {
-			hex_text.setFont(new Font("ＭＳ ゴシック", Font.PLAIN, 13));
-		} else {
-			hex_text.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-		}
+		hex_text.setFont(FontManager.getInstance().getFont());
 		hex_text.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -116,11 +110,7 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 
 		ascii_text = new JTextPane();
 		//ascii_text.setLineWrap(true);
-		if (Utils.isWindows()) {
-			ascii_text.setFont(new Font("ＭＳ ゴシック", Font.PLAIN, 13));
-		} else {
-			ascii_text.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-		}
+		ascii_text.setFont(FontManager.getInstance().getFont());
 		ascii_text.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -145,11 +135,7 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 		scrollpane4.getVerticalScrollBar().setModel(scrollpane3.getVerticalScrollBar().getModel());	// 縦方向のスクロールをhex側と同期させる
 
 		search_text = new JTextField();
-		if (Utils.isWindows()) {
-			search_text.setFont(new Font("ＭＳ ゴシック", Font.PLAIN, 13));
-		} else {
-			search_text.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-		}
+		search_text.setFont(FontManager.getInstance().getFont());
 		search_text.addKeyListener(new KeyListener() {
 			@Override
 			public void keyReleased(KeyEvent arg0) {
@@ -184,6 +170,9 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 	}
 	private void setData(byte[] data, boolean triming) {
 		try {
+			hex_text.setFont(FontManager.getInstance().getFont());
+			ascii_text.setFont(FontManager.getInstance().getFont());
+			search_text.setFont(FontManager.getInstance().getFont());
 			hex_text.setData(data, false);
 			this.data = data;
 			// データが多いと遅いので長いデータをリミングする

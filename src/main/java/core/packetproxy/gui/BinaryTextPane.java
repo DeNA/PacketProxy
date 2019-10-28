@@ -15,7 +15,6 @@
  */
 package packetproxy.gui;
 
-import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -29,33 +28,24 @@ import java.util.Base64;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
+import packetproxy.common.FontManager;
+import packetproxy.common.I18nString;
 import packetproxy.common.Utils;
 
+@SuppressWarnings("serial")
 public class BinaryTextPane extends ExtendedTextPane
 {
-	private String prev_text_panel = "";
 	private WrapEditorKit editor = new WrapEditorKit(new byte[]{});
-	private boolean init_flg = false;
-	private int init_count = 0;
-	private boolean fin_flg = false;
 	private byte[] data;
 
-	public BinaryTextPane() {
+	public BinaryTextPane() throws Exception {
 		setEditorKit(editor);
-		if (Utils.isWindows()) {
-			setFont(new Font("ＭＳ ゴシック", Font.PLAIN, 13));
-		} else {
-			setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-		}
+		setFont(FontManager.getInstance().getFont());
 
 		JPopupMenu menu = new JPopupMenu();
 
-		JMenuItem title_encoders = new JMenuItem("エンコーダ");
-		if (Utils.isWindows()) {
-			title_encoders.setFont(new Font("ＭＳ ゴシック", Font.PLAIN, 13));
-		} else {
-			title_encoders.setFont(new Font("Arial", Font.BOLD, 12));
-		}
+		JMenuItem title_encoders = new JMenuItem(I18nString.get("Encoders"));
+		title_encoders.setFont(FontManager.getInstance().getUICaptionFont());
 		title_encoders.setEnabled(false);
 		menu.add(title_encoders);
 

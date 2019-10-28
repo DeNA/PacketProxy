@@ -15,17 +15,18 @@
  */
 package packetproxy.model;
 
-import com.j256.ormlite.field.DatabaseField;
-import com.j256.ormlite.table.DatabaseTable;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
 import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
 
 /**
  * Certificate Model for Client Certificate Authentication
@@ -88,11 +89,6 @@ public class ClientCertificate {
         KeyStore ks = KeyStore.getInstance(type.getText());
         ks.load(fis, storePassword);
         fis.close();
-
-        // Update password for Private Key
-        if (type == Type.P12) {
-            keyPassword = storePassword;
-        }
 
         // Get an alias of FIRST ONLY!!!
         String alias = ks.aliases().nextElement();

@@ -16,6 +16,8 @@
 package packetproxy;
 
 import java.net.ServerSocket;
+
+import packetproxy.common.I18nString;
 import packetproxy.http.Https;
 import packetproxy.model.CAs.CA;
 import packetproxy.model.ListenPort;
@@ -55,7 +57,7 @@ public class ProxyFactory {
 			listen_socket.setReuseAddress(true);
 			proxy = new ProxyForward(listen_socket, listen_info);
 		}
-		PacketProxyUtility.getInstance().packetProxyLog("ポート" + listen_info.getPort() + "で待ち受けを開始します。");
+		PacketProxyUtility.getInstance().packetProxyLog(I18nString.get("Start listening port %d.", listen_info.getPort()));
 		return proxy;
 	}
 }

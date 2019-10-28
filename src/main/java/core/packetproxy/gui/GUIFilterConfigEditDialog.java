@@ -20,6 +20,7 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -30,15 +31,16 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.WindowConstants;
+
+import packetproxy.common.I18nString;
 import packetproxy.model.Filter;
 import packetproxy.model.Filters;
 
 public class GUIFilterConfigEditDialog extends JDialog
 {
 	private static final long serialVersionUID = 1L;
-	private JButton button_cancel = new JButton("キャンセル");
-	private JButton button_set = new JButton("更新");
+	private JButton button_cancel = new JButton(I18nString.get("Cancel"));
+	private JButton button_set = new JButton(I18nString.get("Update"));
     private JTextField text_project_name = new JTextField();
     private JTextArea text_comment = new JTextArea();
     JComboBox<String> type_combo = new JComboBox<String>();
@@ -73,14 +75,14 @@ public class GUIFilterConfigEditDialog extends JDialog
 		setVisible(true);
 	}
 	private JComponent createNameSetting() {
-	    return label_and_object("フィルタ名:", text_project_name);
+	    return label_and_object(I18nString.get("Filter name:"), text_project_name);
 	}
 	private JComponent createCommentSetting() {
-	    return label_and_object("フィルタ:", text_comment, 5);
+	    return label_and_object(I18nString.get("Filter:"), text_comment, 5);
 	}
 	public GUIFilterConfigEditDialog(JFrame owner, Filter flt) throws Exception {
 		super(owner);
-		setTitle("設定");
+		setTitle(I18nString.get("Setting"));
 		this.filter = flt;
 		Rectangle rect = owner.getBounds();
 		setBounds(rect.x + rect.width/2 - width/2, rect.y + rect.height/2 - height/2, width, height); /* ド真ん中 */

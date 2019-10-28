@@ -17,7 +17,6 @@ package packetproxy.gui;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -25,6 +24,7 @@ import java.io.FileOutputStream;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -33,14 +33,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.apache.commons.io.FileUtils;
-
-import packetproxy.common.Utils;
+import packetproxy.common.FontManager;
+import packetproxy.common.I18nString;
 import packetproxy.model.CAFactory;
+import packetproxy.model.InterceptOptions;
 import packetproxy.model.CAs.CA;
-import packetproxy.model.Packets;
 
 public class GUIOption
 {
@@ -49,15 +47,11 @@ public class GUIOption
 	public GUIOption(JFrame owner) {
 		this.owner = owner;
 	}
-	private JComponent createTitle(String title) {
+	private JComponent createTitle(String title) throws Exception {
 		JLabel label = new JLabel(title);
-		label.setForeground(Color.ORANGE);
+		label.setForeground(Color.decode("61136"));
 		label.setBackground(Color.WHITE);
-		if (Utils.isWindows()) {
-			label.setFont(new Font("Arial", Font.BOLD, 15));
-		} else {
-			label.setFont(new Font("Arial", Font.BOLD, 14));
-		}
+		label.setFont(FontManager.getInstance().getUICaptionFont());
 		int label_height = label.getMaximumSize().height;
 		label.setMaximumSize(new Dimension(Short.MAX_VALUE, label_height));
 		return label;
@@ -71,7 +65,7 @@ public class GUIOption
 		label.setMinimumSize(new Dimension(Short.MAX_VALUE, label_height*2));
 		return label;
 	}
-	private JComponent createElement(String title, String description) {
+	private JComponent createElement(String title, String description) throws Exception {
 		JPanel panel = new JPanel();
 		panel.setBackground(Color.WHITE);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -91,52 +85,72 @@ public class GUIOption
 		panel.setBackground(Color.WHITE);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-		panel.add(createElement("Listen Ports","リスニングポートとパケットを転送するサーバを設定します"));
+		panel.add(createElement("Listen Ports", I18nString.get("Set listen port and server that packets are forwarded to.")));
 		GUIOptionListenPorts listenPorts = new GUIOptionListenPorts(owner);
 		panel.add(listenPorts.createPanel());
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("Servers","サーバと通信時に利用するエンコードを設定します"));
+		panel.add(createElement("Servers", I18nString.get("Set server and encode module to be used to encode packets.")));
 		GUIOptionServers servers = new GUIOptionServers(owner);
 		panel.add(servers.createPanel());
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("Auto Modifications","データの自動改ざんを実施します"));
+		panel.add(createElement("Auto Modifications", I18nString.get("Set pattern for auto packet modification.")));
 		GUIOptionModifications mods = new GUIOptionModifications(owner);
 		panel.add(mods.createPanel());
 
-		panel.add(new JLabel("簡易16進数計算機"));
+		panel.add(new JLabel(I18nString.get("Hex calculator for binary pattern")));
 		panel.add(new GUIHexCalc().create());
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("Intercept Rule","Intercept時にチェックするルールを設定します"));
+		panel.add(createElement("Intercept Rules", ""));
 		GUIOptionIntercepts intercepts = new GUIOptionIntercepts(owner);
-		panel.add(intercepts.createPanel());
+		JComponent interceptPanel = intercepts.createPanel();
+
+		JCheckBox interceptRule = new JCheckBox(I18nString.get("Use these intercept rules"));
+		interceptRule.setSelected(InterceptOptions.getInstance().isEnabled());
+		interceptRule.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent ae) {
+				try {
+					if (interceptRule.isSelected()) {
+						InterceptOptions.getInstance().setEnabled(true);
+					} else {
+						InterceptOptions.getInstance().setEnabled(false);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		panel.add(interceptRule);
+		panel.add(interceptPanel);
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("Client Certificates","クライアント証明書を設定します"));
+		panel.add(createElement("Client Certificates", I18nString.get("Set client certificate to be used on SSL/TLS.")));
 		GUIOptionClientCertificate clientCertificate = new GUIOptionClientCertificate(owner);
 		panel.add(clientCertificate.createPanel());
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("SSL PassThrough","プロキシ利用(HTTP_PROXYタイプ利用)ポートにおいて、HTTPSパケットの解析をせずに素通しするHTTPSサーバを指定します。全てのプロキシポートは再起動されます"));
+		panel.add(createElement("SSL PassThrough", I18nString.get("Set HTTPS server that packets are forwarded to without analyzing. These settings are enabled only if 'HTTP_PROXY' type is used.")));
 		GUIOptionSSLPassThrough ssl = new GUIOptionSSLPassThrough(owner);
 		panel.add(ssl.createPanel());
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("Private DNS server","サーバの名前を自分自身のIPアドレスに名前解決したいときに利用します"));
+		panel.add(createElement("Private DNS server", I18nString.get("Use private DNS server that resolves server name to the IP address of this pc.")));
 		GUIOptionPrivateDNS privateDNS = new GUIOptionPrivateDNS();
 		panel.add(privateDNS.getPanel());
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("PacketProxy CA Certificates","PC/Mac/Linux/Android/iOSの信頼する証明書に登録してください。(拡張子は.crtが望ましいです)"));
+		panel.add(createElement("PacketProxy CA Certificates", I18nString.get("Export CA certificate used to view SSL packets. It needs to be registered in trusted CA list of PC/Mac/Linux/Android/iOS")));
 
 		JPanel caPanel = new JPanel();
 		caPanel.setBackground(Color.WHITE);
@@ -150,12 +164,12 @@ public class GUIOption
 		ca_combo.setMaximumRowCount(CAFactory.queryExportable().size());
 		ca_combo.setMaximumSize(new Dimension(500, 30));
 
-		JButton b = new JButton("CA証明書の取得");
+		JButton b = new JButton(I18nString.get("Export"));
 		b.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
-					WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner,"crt", "PacketProxyCA.crt");
+					WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "crt", "PacketProxyCA.crt");
 					filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
 						@Override
 						public void onApproved(File file, String extension) {
@@ -166,11 +180,11 @@ public class GUIOption
 								try (FileOutputStream fos = new FileOutputStream(derPath)) {
 									fos.write(derData);
 									fos.close();
-									JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", derPath));
+									JOptionPane.showMessageDialog(owner, I18nString.get("Successfully exported to %s", derPath));
 								}
 							}catch (Exception e1) {
 								e1.printStackTrace();
-								JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+								JOptionPane.showMessageDialog(null, I18nString.get("[Error] can't export"));
 							}
 						}
 
@@ -179,7 +193,7 @@ public class GUIOption
 
 						@Override
 						public void onError() {
-							JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+							JOptionPane.showMessageDialog(null, I18nString.get("[Error] can't export"));
 						}
 					});
 					filechooser.showSaveDialog();
@@ -195,9 +209,15 @@ public class GUIOption
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("Charactor encodings", "受信パケットの表示に利用する文字コードを追加します。"));
+		panel.add(createElement("Charactor encodings", I18nString.get("Add/Remove charactor encodings to be used to dispaly contents of packet.")));
 		GUIOptionCharSets charsetsGUI = new GUIOptionCharSets(owner);
 		panel.add(charsetsGUI.createPanel());
+
+		panel.add(createSeparator());
+
+		panel.add(createElement("Fonts", ""));
+		GUIOptionFonts fontsGUI = new GUIOptionFonts(owner);
+		panel.add(fontsGUI.createPanel());
 
 		panel.setPreferredSize(new Dimension(1000, 1600));
 		JScrollPane sc = new JScrollPane(panel);
