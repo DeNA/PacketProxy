@@ -36,6 +36,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import packetproxy.common.I18nString;
 import packetproxy.model.CAFactory;
 import packetproxy.model.ListenPort;
 import packetproxy.model.Server;
@@ -46,8 +47,8 @@ public class GUIOptionListenPortDialog extends JDialog
 {
 	private static final long serialVersionUID = 1L;
 	private JPanel main_panel = new JPanel(); 
-	private JButton button_cancel = new JButton("キャンセル");
-	private JButton button_set = new JButton("保存");
+	private JButton button_cancel = new JButton(I18nString.get("Cancel"));
+	private JButton button_set = new JButton(I18nString.get("Save"));
 	private JTextField text_port = new JTextField();
 	JComboBox<String> combo = new JComboBox<String>();
 	JComboBox<String> type_combo = new JComboBox<String>();
@@ -114,7 +115,7 @@ public class GUIOptionListenPortDialog extends JDialog
 				}
 			}
 		});
-		return label_and_object("転送先サーバ:", combo);
+		return label_and_object(I18nString.get("Forward to:"), combo);
 	}
 
 	private void updateNextHopList(String item) throws Exception {
@@ -123,29 +124,29 @@ public class GUIOptionListenPortDialog extends JDialog
 		List<Server> servers = null;
 		if (item.equals("HTTP_PROXY")) {
 			servers = Servers.getInstance().queryHttpProxies();
-			combo.addItem("Upsteam Proxyを利用せずに直接サーバ接続");
+			combo.addItem(I18nString.get("Forward to server directly without upsteam proxy"));
 		} else if (item.equals("SSL_TRANSPARENT_PROXY")) {
 			servers = new ArrayList<Server>();
-			combo.addItem("SNI拡張ヘッダに従って自動的に接続");
+			combo.addItem(I18nString.get("Forward to server specified in SNI header"));
 		} else if (item.equals("HTTP_TRANSPARENT_PROXY")) {
 			servers = new ArrayList<Server>();
-			combo.addItem("Hostsヘッダに従って自動的に接続");
+			combo.addItem(I18nString.get("Forward to server specified in Hosts header"));
 		} else if (item.equals("UDP_FORWARDER")) {
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
-				JOptionPane.showMessageDialog(this, "先にServerを登録してください");
+				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect in 'Servers' setting first."));
 				dispose();
 			}
 		} else if (item.equals("SSL_FORWARDER")) {
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
-				JOptionPane.showMessageDialog(this, "先にServerを登録してください");
+				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect in 'Servers' setting first."));
 				dispose();
 			}
 		} else if (item.equals("FORWARDER")) {
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
-				JOptionPane.showMessageDialog(this, "先にServerを登録してください");
+				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect in 'Servers' setting first."));
 				dispose();
 			}
 		} else {
@@ -191,11 +192,11 @@ public class GUIOptionListenPortDialog extends JDialog
 		ca_combo.setEnabled(true);
 		ca_combo.setMaximumRowCount(CAFactory.queryAll().size());
 		ca_combo.setSelectedItem("PacketProxy per-user CA");
-		return label_and_object("署名に利用するCA証明書:", ca_combo);
+		return label_and_object(I18nString.get("CA certificate to sign:"), ca_combo);
 	}
 	public GUIOptionListenPortDialog(JFrame owner) throws Exception {
 		super(owner);
-		setTitle("設定");
+		setTitle(I18nString.get("Listenning Port Setting"));
 		Rectangle rect = owner.getBounds();
 		setBounds(rect.x + rect.width/2 - width/2, rect.y + rect.height/2 - height/2, width, height); /* ド真ん中 */
 

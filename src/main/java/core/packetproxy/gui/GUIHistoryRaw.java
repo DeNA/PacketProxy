@@ -16,20 +16,12 @@
 package packetproxy.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import javax.swing.BoxLayout;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+
 import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
-import javax.swing.JTextField;
-import packetproxy.common.SelectedArea;
 
 public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataChangedListener
 {
@@ -43,8 +35,7 @@ public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataCh
 	private JScrollPane text_panel;
 	private TabSet parentTabs = null;
 
-	public GUIHistoryRaw()
-	{
+	public GUIHistoryRaw() throws Exception {
 		raw_text = new RawTextPane();
 		raw_text.setParentHistory(this);
 		raw_text.addDataChangedListener(this);
@@ -53,9 +44,11 @@ public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataCh
 		panel = new JPanel(new BorderLayout());
 		panel.add(text_panel, BorderLayout.CENTER);
 	}
+
 	public JComponent createPanel() {
 		return panel;
 	}
+
 	public void appendData(byte[] data) throws Exception {
 		javax.swing.text.StyledDocument document = raw_text.getStyledDocument();
 		document.insertString(document.getLength(), new String(data), null);

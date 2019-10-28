@@ -15,7 +15,6 @@
  */
 package packetproxy.gui;
 
-import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -33,6 +32,7 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoManager;
 
 import packetproxy.common.BinaryBuffer;
+import packetproxy.common.FontManager;
 import packetproxy.common.SelectedArea;
 import packetproxy.common.Utils;
 import packetproxy.util.PacketProxyUtility;
@@ -54,13 +54,9 @@ abstract class ExtendedTextPane extends JTextPane
 	public boolean fin_flg = false;
 	protected EventListenerList listenerList = new EventListenerList();
 
-	public ExtendedTextPane() {
+	public ExtendedTextPane() throws Exception {
 		setEditorKit(editor);
-		if (Utils.isWindows()) {
-			setFont(new Font("ＭＳ ゴシック", Font.PLAIN, 13));
-		} else {
-			setFont(new Font(Font.MONOSPACED, Font.PLAIN, FONT_SIZE));
-		}
+		setFont(FontManager.getInstance().getFont());
 		getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void insertUpdate(DocumentEvent e) {
@@ -155,6 +151,7 @@ abstract class ExtendedTextPane extends JTextPane
 	}
 
 	public void setData(byte[] data, boolean trimming) throws Exception {
+		setFont(FontManager.getInstance().getFont());
 		this.data = data;
 		// バイナリのデータが多いと遅いので長いデータをトリミングする
 		if (trimming && data.length > DEFAULT_SHOW_SIZE && PacketProxyUtility.getInstance().isBinaryData(data, DEFAULT_SHOW_SIZE))  {

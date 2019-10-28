@@ -88,14 +88,20 @@ public class InterceptController {
 	public byte[] received(byte[] data, Server server, Packet client_packet, Packet server_packet) throws Exception {
 		Packet target_packet = server_packet == null ? client_packet : server_packet;
 		synchronized (thread_lock) {
-			// InterceptがONでかつ、InterceptOptionで指定されたルールにマッチした場合にのみInterceptする
+			// Intercept=ON & InterceptOption=ON、かつ、指定されたルールにマッチした場合にのみIntercept
 			boolean is_target_packet = interceptModel.isInterceptEnabled();
 			if (is_target_packet) {
-				if (server_packet == null) { is_target_packet = InterceptOptions.getInstance().interceptOnRequest(server, client_packet); }
-				else { is_target_packet = InterceptOptions.getInstance().interceptOnResponse(server, client_packet, server_packet); }
+				if (InterceptOptions.getInstance().isEnabled()) {
+					if (server_packet == null) {
+						is_target_packet = InterceptOptions.getInstance().interceptOnRequest(server, client_packet);
+					} else {
+						is_target_packet = InterceptOptions.getInstance().interceptOnResponse(server, client_packet, server_packet);
+					}
+				}
 			}
-
-			if (!is_target_packet) { return data; }
+			if (!is_target_packet) {
+				return data;
+			}
 
 			synchronized (lock) {
 				interceptModel.setData(data, client_packet, server_packet);

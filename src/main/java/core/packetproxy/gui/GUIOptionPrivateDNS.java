@@ -17,7 +17,6 @@ package packetproxy.gui;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -26,16 +25,21 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 
 import org.xbill.DNS.DNSSpoofingIPGetter;
 
 import packetproxy.PrivateDNS;
+import packetproxy.common.FontManager;
+import packetproxy.common.I18nString;
 import packetproxy.model.ConfigBoolean;
 import packetproxy.model.Configs;
 
@@ -51,7 +55,7 @@ public class GUIOptionPrivateDNS implements Observer
 
 	public GUIOptionPrivateDNS() throws Exception {
 		privateDNS = PrivateDNS.getInstance();
-		
+
 		checkBox = createCheckBox();
 		textField = createAddressField();
 		base = createPanel(checkBox, textField);
@@ -59,40 +63,55 @@ public class GUIOptionPrivateDNS implements Observer
 		Configs.getInstance().addObserver(this);
 		updateState();
 	}
-	
+
 	public  JPanel getPanel(){
 		return base;
 	}
-	
-	private JPanel createPanel(JCheckBox checkBox, JTextField text){
-		JPanel panel = new JPanel();
-		panel.setMaximumSize(new Dimension(900, 100));
-		panel.setBackground(Color.WHITE);
-		panel.setLayout(new GridLayout(4, 2));
 
-		panel.add(checkBox);
-		panel.add(new JLabel("", 0));
-
-		panel.add(new JLabel("書き換え先IP"));
-		panel.add(new JLabel("", 0));
-
-		ButtonGroup group = new ButtonGroup();
-		auto = new JRadioButton("自動", true);
-		manual = new JRadioButton("手動", false);
-		group.add(auto);group.add(manual);
+	private JPanel createPanel(JCheckBox checkBox, JTextField text) throws Exception {
+		auto = new JRadioButton(I18nString.get("Auto (Replace resolved IP with local IP of suitable NIC automatically)"), true);
+		auto.setMinimumSize(new Dimension(Short.MAX_VALUE, auto.getMaximumSize().height));
 		auto.addActionListener(this::radioButtonChangeHandler);
+		manual = new JRadioButton(I18nString.get("Manual"), false);
 		manual.addActionListener(this::radioButtonChangeHandler);
-		
-		panel.add(auto);panel.add(new JLabel("適当なnicのローカルIPに置き換えます"));
-		panel.add(manual); panel.add(text);
+
+		ButtonGroup rewriteGroup = new ButtonGroup();
+		rewriteGroup.add(auto);
+		rewriteGroup.add(manual);
+
+		JPanel manualPanel = new JPanel();
+		manualPanel.setBackground(Color.WHITE);
+		manualPanel.setLayout(new BoxLayout(manualPanel, BoxLayout.X_AXIS));
+		manualPanel.add(manual);
+		manualPanel.add(text);
+
+		TitledBorder rewriteRuleBorder = new TitledBorder(I18nString.get("Rewrite Rule"));
+		LineBorder inborder = new LineBorder(Color.BLACK, 1);
+		rewriteRuleBorder.setBorder(inborder);
+		rewriteRuleBorder.setTitleFont(FontManager.getInstance().getUIFont());
+		rewriteRuleBorder.setTitleJustification(TitledBorder.LEFT);
+		rewriteRuleBorder.setTitlePosition(TitledBorder.TOP);
+
+		JPanel rewriteRule = new JPanel();
+		rewriteRule.setBackground(Color.WHITE);
+		rewriteRule.setBorder(rewriteRuleBorder);
+		rewriteRule.setLayout(new BoxLayout(rewriteRule, BoxLayout.Y_AXIS));
+		rewriteRule.add(auto);
+		rewriteRule.add(manualPanel);
+
+		JPanel panel = new JPanel();
+		panel.setBackground(Color.WHITE);
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.add(checkBox);
+		panel.add(rewriteRule);
 
 		return panel;
 	}
-	
+
 	private void radioButtonChangeHandler(ActionEvent e){
 		textField.setEnabled(manual.isSelected());
 	}
-	
+
 	public String getSpoofingIP(){
 		if(auto.isSelected()){
 			try {
@@ -105,17 +124,18 @@ public class GUIOptionPrivateDNS implements Observer
 		}
 		return "";
 	}
-	
-	
+
+
 	private JCheckBox createCheckBox(){
-		checkBox = new JCheckBox("プライベートDNSサーバを起動する");
+		checkBox = new JCheckBox(I18nString.get("Use private DNS server"));
 		checkBox.addActionListener(e ->{
 			if(checkBox.isSelected()) privateDNS.start(new DNSSpoofingIPGetter(this));
 			else privateDNS.stop();
 		});
+		checkBox.setMinimumSize(new Dimension(Short.MAX_VALUE, checkBox.getMaximumSize().height));
 		return checkBox;
 	}
-	
+
 	private JTextField createAddressField(){
 		JTextField text = new JTextField("");
 		try {
@@ -123,8 +143,8 @@ public class GUIOptionPrivateDNS implements Observer
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	    text.setMaximumSize(new Dimension(300, 30));
-	    text.setEnabled(false);
+		text.setMaximumSize(new Dimension(300, 30));
+		text.setEnabled(false);
 		return text;
 	}
 

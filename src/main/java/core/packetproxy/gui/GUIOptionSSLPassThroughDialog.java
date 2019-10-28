@@ -20,6 +20,7 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -27,16 +28,17 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.WindowConstants;
+
+import packetproxy.common.I18nString;
 import packetproxy.model.SSLPassThrough;
 
 public class GUIOptionSSLPassThroughDialog extends JDialog
 {
 	private static final long serialVersionUID = 1L;
-	private JButton button_cancel = new JButton("キャンセル");
-	private JButton button_set = new JButton("保存");
+	private JButton button_cancel = new JButton(I18nString.get("Cancel"));
+	private JButton button_set = new JButton(I18nString.get("Save"));
     private HintTextField serverNameField = new HintTextField(".*\\.apple\\.com");
-    private HintTextField portField = new HintTextField("全てのポートの場合は * ");
+    private HintTextField portField = new HintTextField(I18nString.get("Use * to apply all ports"));
     private int height = 500;
     private int width = 500;
     private SSLPassThrough sslPassThrough = null;
@@ -75,16 +77,16 @@ public class GUIOptionSSLPassThroughDialog extends JDialog
 		return sslPassThrough;
 	}
 	private JComponent createAppliedListenPort() throws Exception {
-	    return label_and_object("適用リッスンポート:", portField);
+	    return label_and_object(I18nString.get("Target listen port:"), portField);
 	}
 	private JComponent createServerNameSetting() {
-	    return label_and_object("サーバ名:", serverNameField);
+	    return label_and_object(I18nString.get("Target server name:"), serverNameField);
 	}
 	public GUIOptionSSLPassThroughDialog(JFrame owner) throws Exception {
 		super(owner);
-		setTitle("設定");
+		setTitle(I18nString.get("Setting"));
 		Rectangle rect = owner.getBounds();
-		setBounds(rect.x + rect.width/2 - width/2, rect.y + rect.height/2 - width/2, width, height); /* ド真ん中 */
+		setBounds(rect.x + rect.width/2 - width/2, rect.y + rect.height/2 - height/2, width, height); /* ド真ん中 */
 
 		Container c = getContentPane();
 		JPanel panel = new JPanel(); 

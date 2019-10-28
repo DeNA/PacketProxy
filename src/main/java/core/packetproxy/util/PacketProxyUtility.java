@@ -41,7 +41,7 @@ public class PacketProxyUtility {
 	public PacketProxyUtility() {
 		guiLog = GUILog.getInstance();
 	}
-
+	
 	public void packetProxyLog(String s) {
 		LocalDateTime now = LocalDateTime.now();
 		String ns = dtf.format(now);
@@ -70,7 +70,7 @@ public class PacketProxyUtility {
 		}
 	}
 
-	public byte[] prettyFormatJSONInRawData(byte[] data, String encoderName) {
+	public byte[] prettyFormatJSONInRawData(byte[] data) {
 		try {
 			String str = new String(data, "UTF-8");
 			Stream<String> stream = 

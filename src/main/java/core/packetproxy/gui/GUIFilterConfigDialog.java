@@ -19,11 +19,13 @@ import java.awt.Container;
 import java.awt.Rectangle;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+
 import javax.swing.BoxLayout;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.WindowConstants;
+
+import packetproxy.common.I18nString;
 
 public class GUIFilterConfigDialog extends JDialog
 {
@@ -40,7 +42,7 @@ public class GUIFilterConfigDialog extends JDialog
 	public GUIFilterConfigDialog(JFrame owner) throws Exception {
 		super(owner);
 		this.owner = owner;
-		setTitle("フィルタ管理");
+		setTitle(I18nString.get("Manage filters"));
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {

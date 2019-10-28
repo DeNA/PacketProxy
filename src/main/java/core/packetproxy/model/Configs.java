@@ -75,6 +75,7 @@ public class Configs extends Observable implements Observer {
 				// TODO ロックを解除
 				break;
 			case DISCONNECT_NOW:
+				instance = null;
 				break;
 			case RECONNECT:
 				database = Database.getInstance();

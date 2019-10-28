@@ -15,20 +15,20 @@
  */
 package packetproxy.util;
 
-import java.awt.Font;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 
-import packetproxy.common.Utils;
+import packetproxy.common.FontManager;
 
-import javax.swing.JPanel;
-import javax.swing.JLabel;
-import javax.swing.BoxLayout;
-
+@SuppressWarnings("serial")
 public class SearchBox extends JPanel
 {
 	private JTextPane baseText;
@@ -46,38 +46,39 @@ public class SearchBox extends JPanel
 
 	private JLabel search_count;
 
-	public SearchBox() {
+	public SearchBox() throws Exception {
 		search_text = new JTextField();
-		if (Utils.isWindows()) {
-			search_text.setFont(new Font("ＭＳ ゴシック", Font.PLAIN, 13));
-		} else {
-			search_text.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-		}
+		search_text.setFont(FontManager.getInstance().getFont());
 		search_text.addKeyListener(new KeyListener() {
 			private String prev_word = null;
 			private int cur_pos = 0;
 			@Override
 			public void keyReleased(KeyEvent arg0) {
-				// テキストの色変更
-				int count = coloringSearchText();
-				updateSearchCount(count);
+				try {
+					// テキストの色変更
+					search_text.setFont(FontManager.getInstance().getFont());
+					int count = coloringSearchText();
+					updateSearchCount(count);
 
-				// returnキーの時は、そこへ移動してハイライト
-				if (arg0.getKeyChar() == '\n') {
-					String word = search_text.getText();
-					if (word.equals(prev_word) == false) {
-						prev_word = word;
-						cur_pos = 0;
+					// returnキーの時は、そこへ移動してハイライト
+					if (arg0.getKeyChar() == '\n') {
+						String word = search_text.getText();
+						if (word.equals(prev_word) == false) {
+							prev_word = word;
+							cur_pos = 0;
+						}
+						cur_pos = searchText(cur_pos+word.length(), word);
+						if (cur_pos >= 0 && baseText != null) {
+							javax.swing.text.StyledDocument document = baseText.getStyledDocument();
+							javax.swing.text.MutableAttributeSet attributes = new javax.swing.text.SimpleAttributeSet();
+							attributes = new javax.swing.text.SimpleAttributeSet();
+							javax.swing.text.StyleConstants.setBackground(attributes, java.awt.Color.magenta);
+							document.setCharacterAttributes(cur_pos, word.length(), attributes, false);
+							baseText.setCaretPosition(cur_pos);
+						}
 					}
-					cur_pos = searchText(cur_pos+word.length(), word);
-					if (cur_pos >= 0) {
-						javax.swing.text.StyledDocument document = baseText.getStyledDocument();
-						javax.swing.text.MutableAttributeSet attributes = new javax.swing.text.SimpleAttributeSet();
-						attributes = new javax.swing.text.SimpleAttributeSet();
-						javax.swing.text.StyleConstants.setBackground(attributes, java.awt.Color.magenta);
-						document.setCharacterAttributes(cur_pos, word.length(), attributes, false);
-						baseText.setCaretPosition(cur_pos);
-					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 			@Override
@@ -99,6 +100,9 @@ public class SearchBox extends JPanel
 
 
 	private int searchText(int start, String word) {
+		if (baseText == null) {
+			return 0;
+		}
 		String str = baseText.getText();
 		int found = 0;
 		if ((found = str.indexOf(word, start)) >= 0) {
@@ -108,6 +112,9 @@ public class SearchBox extends JPanel
 	}
 
 	public int coloringSearchText() {
+		if (baseText == null) {
+			return 0;
+		}
 		javax.swing.text.StyledDocument document = baseText.getStyledDocument();
 		String str = baseText.getText();
 		String search_string = search_text.getText();
@@ -185,7 +192,5 @@ public class SearchBox extends JPanel
 		coloringHTTPText();
 		updateSearchCount(coloringSearchText());
 	}
-
-	//public update(
 }
 

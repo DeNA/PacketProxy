@@ -16,6 +16,7 @@
 package packetproxy.gui;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -24,15 +25,22 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import javax.swing.*;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
-import io.netty.util.CharsetUtil;
 import packetproxy.controller.ResendController;
 import packetproxy.http.Http;
-import packetproxy.model.*;
+import packetproxy.model.Diff;
+import packetproxy.model.DiffBinary;
+import packetproxy.model.DiffJson;
+import packetproxy.model.Packet;
+import packetproxy.model.Packets;
 import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
 
@@ -61,7 +69,7 @@ public class GUIData {
 		this.owner = owner;
 	}
 
-	public JComponent createPanel() {
+	public JComponent createPanel() throws Exception {
 		main_panel = new JPanel();
 		main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
 
@@ -295,6 +303,7 @@ public class GUIData {
 				}
 			}
 		});
+		charSetCombo.setMaximumSize(new Dimension(150, charSetCombo.getMaximumSize().height));
 
 		charSetCombo.addMouseListener(new MouseAdapter() {
 			@Override

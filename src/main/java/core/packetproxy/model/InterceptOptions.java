@@ -15,12 +15,17 @@
  */
 package packetproxy.model;
 
-import com.j256.ormlite.dao.Dao;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+
 import javax.swing.JOptionPane;
+
+import com.j256.ormlite.dao.Dao;
+
 import packetproxy.model.Database.DatabaseMessage;
+import packetproxy.model.InterceptOption.Direction;
 
 public class InterceptOptions extends Observable implements Observer
 {
@@ -36,11 +41,42 @@ public class InterceptOptions extends Observable implements Observer
 	private Database database;
 	private Dao<InterceptOption,Integer> dao;
 	private Servers servers;
+	private ConfigBoolean enabled;
+	
+	private void setDefaultRulesIfNotFound() throws Exception {
+		int i1Num = dao.queryBuilder().where().eq("Direction",  InterceptOption.Direction.ALL_THE_OTHER_REQUESTS).query().size();
+		if (i1Num == 0) {
+			InterceptOption i1 = new InterceptOption(
+				InterceptOption.Direction.ALL_THE_OTHER_REQUESTS,
+				InterceptOption.Type.REQUEST,
+				InterceptOption.Relationship.ARE_INTERCEPTED,
+				"",
+				InterceptOption.Method.UNDEFINED,
+				null
+			);
+			i1.setEnabled();
+			dao.create(i1);
+		}
+		int i2Num = dao.queryBuilder().where().eq("Direction",  InterceptOption.Direction.ALL_THE_OTHER_RESPONSES).query().size();
+		if (i2Num == 0) {
+			InterceptOption i2 = new InterceptOption(
+				InterceptOption.Direction.ALL_THE_OTHER_RESPONSES,
+				InterceptOption.Type.REQUEST,
+				InterceptOption.Relationship.ARE_INTERCEPTED,
+				"",
+				InterceptOption.Method.UNDEFINED,
+				null
+			);
+			i2.setEnabled();
+			dao.create(i2);
+		}
+	}
 	
 	private InterceptOptions() throws Exception {
 		database = Database.getInstance();
 		servers = Servers.getInstance();
 		dao = database.createTable(InterceptOption.class, this);
+		enabled = new ConfigBoolean("InterceptOptions");
 		if (!isLatestVersion()) {
 			RecreateTable();
 		}
@@ -68,38 +104,116 @@ public class InterceptOptions extends Observable implements Observer
 	public InterceptOption query(int id) throws Exception {
 		return dao.queryForId(id);
 	}
-	public List<InterceptOption> queryAll() throws Exception {
-		return dao.queryBuilder().query();
+	private List<InterceptOption> sort(List<InterceptOption> list) {
+			List<InterceptOption> sorted = new ArrayList<>();
+			for (InterceptOption l : list) {
+				if (l.isDirection(Direction.REQUEST)) {
+					sorted.add(l);
+				}
+			}
+			for (InterceptOption l : list) {
+				if (l.isDirection(Direction.ALL_THE_OTHER_REQUESTS)) {
+					sorted.add(l);
+				}
+			}
+			for (InterceptOption l : list) {
+				if (l.isDirection(Direction.RESPONSE)) {
+					sorted.add(l);
+				}
+			}
+			for (InterceptOption l : list) {
+				if (l.isDirection(Direction.ALL_THE_OTHER_RESPONSES)) {
+					sorted.add(l);
+				}
+			}
+			return sorted;
 	}
-
+	public List<InterceptOption> queryAll() throws Exception {
+		try {
+			setDefaultRulesIfNotFound();
+			List<InterceptOption> list = dao.queryBuilder().query();
+			return sort(list);
+		} catch (Exception e) {
+			database.dropTable(InterceptOption.class);
+			dao = database.createTable(InterceptOption.class, this);
+			setDefaultRulesIfNotFound();
+			return dao.queryBuilder().query();
+		}
+	}
 	public List<InterceptOption> queryEnabled(Server server) throws Exception {
 		int server_id = InterceptOption.ALL_SERVER;
 		if (server != null) { server_id = server.getId(); }
-		return dao.queryBuilder().where()
+		setDefaultRulesIfNotFound();
+		List<InterceptOption> list = dao.queryBuilder().where()
 				.eq("server_id",  server_id)
 				.or()
 				.eq("server_id",  InterceptOption.ALL_SERVER)
 				.and()
 				.eq("enabled", true)
 				.query();
+		return sort(list);
 	}
 	public boolean interceptOnRequest(Server server, Packet client_packet) throws Exception {
 		for (InterceptOption intercept : queryEnabled(server)) {
-			if (intercept.getDirection() == InterceptOption.Direction.CLIENT_REQUEST) {
-				if (intercept.getRelationship() == InterceptOption.Relationship.WAS_INTERCEPTED) { continue; }
-				if (!intercept.match(client_packet, null)) { return false; }
+			if (intercept.isDirection(InterceptOption.Direction.REQUEST)) {
+				switch (intercept.getRelationship()) {
+				case IS_INTERCEPTED_IF_IT_MATCHES:
+					if (intercept.match(client_packet, null)) {
+						return true;
+					}
+					break;
+				case IS_NOT_INTERCEPTED_IF_IT_MATCHES:
+					if (intercept.match(client_packet, null)) {
+						return false;
+					}
+					break;
+				default:
+					break;
+				}
+			} else if (intercept.isDirection(Direction.ALL_THE_OTHER_REQUESTS)) {
+				switch (intercept.getRelationship()) {
+				case ARE_INTERCEPTED:
+					return true;
+				case ARE_NOT_INTERCEPTED:
+					return false;
+				default:
+					return true;
+				}
 			}
 		}
 		return true;
 	}
 	public boolean interceptOnResponse(Server server, Packet client_packet, Packet server_packet) throws Exception {
 		for (InterceptOption intercept : queryEnabled(server)) {
-			if (intercept.getDirection() == InterceptOption.Direction.SERVER_RESPONSE) {
-				if (intercept.getRelationship() == InterceptOption.Relationship.WAS_INTERCEPTED) {
-					 // パケットにフラグを立てた方がいいけどDBが変わるので一旦これで
-					if (!interceptOnRequest(server, client_packet)) { return false; }
-				} else if (!intercept.match(client_packet, server_packet)) {
+			if (intercept.getDirection() == InterceptOption.Direction.RESPONSE) {
+				switch (intercept.getRelationship()) {
+				case IS_INTERCEPTED_IF_IT_MATCHES:
+					if (intercept.match(client_packet, server_packet)) {
+						return true;
+					}
+					break;
+				case IS_NOT_INTERCEPTED_IF_IT_MATCHES:
+					if (intercept.match(client_packet, server_packet)) {
+						return false;
+					}
+					break;
+				case IS_INTERCEPTED_IF_REQUEST_WAS_INTERCEPTED:
+					// パケットにフラグを立てた方がいいけどDBが変わるので一旦これで
+					if (interceptOnRequest(server, client_packet)) {
+						return true;
+					}
+					break;
+				default:
+					break;
+				}
+			} else if (intercept.isDirection(Direction.ALL_THE_OTHER_RESPONSES)) {
+				switch (intercept.getRelationship()) {
+				case ARE_INTERCEPTED:
+					return true;
+				case ARE_NOT_INTERCEPTED:
 					return false;
+				default:
+					break;
 				}
 			}
 		}
@@ -149,6 +263,12 @@ public class InterceptOptions extends Observable implements Observer
 		String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='interceptOptions'").getFirstResult()[0];
 		// System.out.println(result);
 		return result.equals("CREATE TABLE `interceptOptions` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `enabled` BOOLEAN , `direction` VARCHAR , `type` VARCHAR , `relationship` VARCHAR , `method` VARCHAR , `pattern` VARCHAR , `server_id` INTEGER , UNIQUE (`direction`,`type`,`relationship`,`method`,`pattern`,`server_id`) )");
+	}
+	public void setEnabled(boolean enabled) throws Exception {
+		this.enabled.setState(enabled);
+	}
+	public boolean isEnabled() throws Exception {
+		return this.enabled.getState();
 	}
 	private void RecreateTable() throws Exception {
 		int option = JOptionPane.showConfirmDialog(null,

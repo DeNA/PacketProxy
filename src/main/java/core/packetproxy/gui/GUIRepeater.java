@@ -145,7 +145,7 @@ public class GUIRepeater
 		private JButton resend_multiple_button;
 		private JPanel main_panel;
 
-		public Repeat(Repeats parent) {
+		public Repeat(Repeats parent) throws Exception {
 		
 			server_name_panel = new GUIServerNamePanel();
 			send_panel = new GUIPacketData();

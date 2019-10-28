@@ -15,16 +15,12 @@
  */
 package packetproxy.gui;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import packetproxy.common.Utils;
+
 import packetproxy.model.Packet;
 
 public class GUIPacket
@@ -65,7 +61,7 @@ public class GUIPacket
 		this.showing_packet = null;
 	}
 
-	public JComponent createPanel() {
+	public JComponent createPanel() throws Exception {
 		received_panel = new GUIData(this.owner);
 		decoded_panel = new GUIData(this.owner);
 		modified_panel = new GUIData(this.owner);

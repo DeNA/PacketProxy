@@ -21,6 +21,7 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -30,7 +31,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.WindowConstants;
+
+import packetproxy.common.I18nString;
 import packetproxy.model.Modification;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
@@ -38,8 +40,8 @@ import packetproxy.model.Servers;
 public class GUIOptionModificationDialog extends JDialog
 {
 	private static final long serialVersionUID = 1L;
-	private JButton button_cancel = new JButton("キャンセル");
-	private JButton button_set = new JButton("保存");
+	private JButton button_cancel = new JButton(I18nString.get("Cancel"));
+	private JButton button_set = new JButton(I18nString.get("Save"));
 	private JTextField text_pattern = new JTextField();
 	private JTextField text_replaced = new JTextField();
 	JComboBox<String> method_combo = new JComboBox<String>();
@@ -92,7 +94,7 @@ public class GUIOptionModificationDialog extends JDialog
 		}
 		server_combo.setEnabled(true);
 		server_combo.setMaximumRowCount(servers.size());
-		return label_and_object("適用サーバ:", server_combo);
+		return label_and_object(I18nString.get("Applied server:"), server_combo);
 	}
 	private JComponent createTypeSetting() {
 		direction_combo.addItem("CLIENT_REQUEST");
@@ -108,7 +110,7 @@ public class GUIOptionModificationDialog extends JDialog
 		method_combo.addItem("BINARY");
 		method_combo.setEnabled(true);
 		method_combo.setMaximumRowCount(3);
-		return label_and_object("Method", method_combo);
+		return label_and_object("Method:", method_combo);
 	}
 	private JComponent createPatternSetting() {
 		return label_and_object("Pattern:", text_pattern);
@@ -118,9 +120,9 @@ public class GUIOptionModificationDialog extends JDialog
 	}
 	public GUIOptionModificationDialog(JFrame owner) throws Exception {
 		super(owner);
-		setTitle("設定");
+		setTitle(I18nString.get("Setting"));
 		Rectangle rect = owner.getBounds();
-		setBounds(rect.x + rect.width/2 - width/2, rect.y + rect.height/2 - width/2, width, height); /* ド真ん中 */
+		setBounds(rect.x + rect.width/2 - width/2, rect.y + rect.height/2 - height/2, width, height); /* ド真ん中 */
 
 		//text_pattern.addKeyListener(new KeyAdapter() {
 		//	@Override

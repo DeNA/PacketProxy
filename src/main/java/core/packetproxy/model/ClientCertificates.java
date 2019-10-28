@@ -49,10 +49,18 @@ public class ClientCertificates extends Observable implements Observer
 			RecreateTable();
 		}
 	}
+	public boolean hasCorrectSecretKey(ClientCertificate certificate) throws Exception {
+		try {
+			ClientKeyManager.setKeyManagers(certificate.getServer(), certificate.load());
+			return true;
+		} catch (java.security.UnrecoverableKeyException keyException) {
+			return false;
+		}
+	}
 	public void create(ClientCertificate certificate) throws Exception {
+		ClientKeyManager.setKeyManagers(certificate.getServer(), certificate.load());
 		certificate.setEnabled();
 		dao.createIfNotExists(certificate);
-		ClientKeyManager.setKeyManagers(certificate.getServer(), certificate.load());
 		notifyObservers();
 	}
 	public void delete(ClientCertificate certificate) throws Exception {

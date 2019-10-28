@@ -34,6 +34,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 
+import packetproxy.common.I18nString;
 import packetproxy.model.Filter;
 import packetproxy.model.Filters;
 import packetproxy.util.PacketProxyUtility;
@@ -62,7 +63,7 @@ public class GUIFilterDropDownList extends JDialog
 		
 		// デフォルトのフィルタルール
 		defaultFilters = new ArrayList<Filter>();
-		Filter defaultFilter = new Filter("画像,css,js,font非表示","type != image && type != css && type != javascript && type != font");
+		Filter defaultFilter = new Filter(I18nString.get("No image,css,js,font"), "type != image && type != css && type != javascript && type != font");
 		defaultFilters.add(defaultFilter);
 
 		String[] columnNames = {"filter name", "filter"};
@@ -124,7 +125,7 @@ public class GUIFilterDropDownList extends JDialog
 			}
 		});
 		if (Filters.getInstance().queryAll().isEmpty() && defaultFilters.isEmpty()) {
-			tableModel.addRow(new String[]{ "--", "フィルタが登録されていません"});
+			tableModel.addRow(new String[]{ "--", I18nString.get("No filter")});
 		} else {
 			Filters.getInstance().queryAll().stream().forEach(filter -> tableModel.addRow(new String[]{ filter.getName(), filter.getFilter()}));
 			defaultFilters.forEach(filter -> tableModel.addRow(new String[]{ filter.getName(), filter.getFilter()}));

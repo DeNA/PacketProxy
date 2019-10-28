@@ -1,0 +1,39 @@
+#!/bin/bash
+
+function last_modified() {
+	if [ $(uname) == "Darwin" ]; then
+		timestamp=$(stat -f "%m" $1)
+	else
+		timestamp=$(stat -c %Y $1)
+	fi
+	echo $timestamp
+}
+
+cd src
+
+tmp1=`mktemp`
+tmp2=`mktemp`
+
+ja_properties=main/resources/strings_ja.properties
+ja_properties_ja_orig=`mktemp`
+ja_properties_ja_new=`mktemp`
+ja_properties_ja_merged=`mktemp`
+ja_properties_ja_sorted=`mktemp`
+
+grep -r -o -E 'I18nString.get\("[^"]*"' * | grep -o -E '".*"' | sed 's/"//g' | sed 's/ /_/g' | sed 's/=/_/g' | sed 's/:/\\:/g' | sed 's/(/\\(/g' | sed 's/)/\\)/g' > $tmp1
+grep -r -o -E 'I18nString.get\("[^"]*"' * | grep -o -E '".*"' | sed 's/"//g' > $tmp2
+
+native2ascii -reverse $ja_properties | sort -b > $ja_properties_ja_orig
+paste -d = $tmp1 $tmp2 | sort -b | uniq > $ja_properties_ja_new
+join -t = -a 1 -o "1.1 2.2" $ja_properties_ja_new $ja_properties_ja_orig > $ja_properties_ja_merged
+join -t = -v 2 $ja_properties_ja_new $ja_properties_ja_orig >> $ja_properties_ja_merged
+sort -b $ja_properties_ja_merged > $ja_properties_ja_sorted
+
+old=$(last_modified $ja_properties_ja_sorted)
+vim $ja_properties_ja_sorted
+new=$(last_modified $ja_properties_ja_sorted)
+if [ $old -eq $new ]; then
+	echo "Abort"
+else
+	native2ascii $ja_properties_ja_sorted > $ja_properties
+fi
