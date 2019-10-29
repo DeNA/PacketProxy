@@ -14,7 +14,7 @@ It can be used for development assistance or for risk assessments.
  
 # Features
  
-- **Major features for local proxy tool**
+- **Full featured local proxy tool**
   - History and filtering of packets' data
   - Show, search, modify, and diff packets' data
   - Interception
@@ -35,12 +35,12 @@ It can be used for development assistance or for risk assessments.
 
 # Usage
 
-Please see this page: [For Users](https://github.com/DeNA/PacketProxy/wiki/%E4%BD%BF%E3%81%A3%E3%81%A6%E3%81%BF%E3%82%8B)
+Please see this page: [For Users](https://github.com/DeNA/PacketProxy/wiki/Using-PacketProxy)
  
 # Development
 
 If you want to develop support for additional protocols or improve on the base PacketProxy application, please refer to this page:
-[For Developers](https://github.com/DeNA/PacketProxy/wiki/%E9%96%8B%E7%99%BA%E3%81%99%E3%82%8B)
+[For Developers](https://github.com/DeNA/PacketProxy/wiki/Developing-PacketProxy)
 
  
 # License
