@@ -154,6 +154,9 @@ public class RawTextPane extends ExtendedTextPane
 		url_decoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					if(charSetUtility.isAuto()){
+						charSetUtility.setGuessedCharSet(getData());
+					}
 					String chasetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
@@ -174,6 +177,10 @@ public class RawTextPane extends ExtendedTextPane
 				try {
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
+
+					if(charSetUtility.isAuto()){
+						charSetUtility.setGuessedCharSet(getData());
+					}
 					byte[] data = new String(getData(), charSetUtility.getCharSet()).substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
 					if (Utils.indexOf(data, 0, data.length, "_".getBytes()) >= 0 ||
@@ -194,6 +201,9 @@ public class RawTextPane extends ExtendedTextPane
 		jwt_decoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					if(charSetUtility.isAuto()){
+						charSetUtility.setGuessedCharSet(getData());
+					}
 					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
@@ -215,6 +225,9 @@ public class RawTextPane extends ExtendedTextPane
 		unicode_unescaper.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					if(charSetUtility.isAuto()){
+						charSetUtility.setGuessedCharSet(getData());
+					}
 					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
@@ -241,6 +254,9 @@ public class RawTextPane extends ExtendedTextPane
 		url_encoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					if(charSetUtility.isAuto()){
+						charSetUtility.setGuessedCharSet(getData());
+					}
 					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
@@ -259,6 +275,9 @@ public class RawTextPane extends ExtendedTextPane
 		base64_encoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					if(charSetUtility.isAuto()){
+						charSetUtility.setGuessedCharSet(getData());
+					}
 					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
@@ -277,6 +296,9 @@ public class RawTextPane extends ExtendedTextPane
 		base64url_encoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					if(charSetUtility.isAuto()){
+						charSetUtility.setGuessedCharSet(getData());
+					}
 					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
@@ -295,6 +317,9 @@ public class RawTextPane extends ExtendedTextPane
 		jwt_encoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					if(charSetUtility.isAuto()){
+						charSetUtility.setGuessedCharSet(getData());
+					}
 					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
@@ -324,6 +349,9 @@ public class RawTextPane extends ExtendedTextPane
 		unicode_escaper.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+					if(charSetUtility.isAuto()){
+						charSetUtility.setGuessedCharSet(getData());
+					}
 					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
 					int position_end   = getSelectionEnd();
@@ -360,12 +388,15 @@ public class RawTextPane extends ExtendedTextPane
 	}
 
 	public void setData(byte[] data) throws Exception {
-		String charSetName = charSetUtility.getCharSet();
 		init_flg = true;
 		fin_flg = true;
 		init_count = 0;
 		prev_text_panel = "";
 		raw_data.reset(data);
+		if(charSetUtility.isAuto()){
+			charSetUtility.setGuessedCharSet(getData());
+		}
+		String charSetName = charSetUtility.getCharSet();
 		setText(new String(data, charSetName));
 		undo_manager.discardAllEdits();
 	}

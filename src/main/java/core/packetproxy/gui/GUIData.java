@@ -313,7 +313,7 @@ public class GUIData {
 			}
 		});
 
-		charSetCombo.setSelectedItem(charSetUtility.getInstance().getCharSet());
+		charSetCombo.setSelectedItem(charSetUtility.getInstance().getCharSetForGUIComponent());
 
 		JPanel diff_panel = new JPanel();
 		diff_panel.add(diff_orig_button);
@@ -343,7 +343,7 @@ public class GUIData {
 		for(String charSetName:charSetUtility.getAvailableCharSetList()){
 			charSetCombo.addItem(charSetName);
 		}
-		String charSetName = CharSetUtility.getInstance().getCharSet();
+		String charSetName = CharSetUtility.getInstance().getCharSetForGUIComponent();
 		if(charSetUtility.getAvailableCharSetList().contains(charSetName)){
 			charSetCombo.setSelectedItem(charSetName);
 		}else{
