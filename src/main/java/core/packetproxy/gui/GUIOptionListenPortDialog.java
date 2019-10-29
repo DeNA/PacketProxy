@@ -134,19 +134,19 @@ public class GUIOptionListenPortDialog extends JDialog
 		} else if (item.equals("UDP_FORWARDER")) {
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
-				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect in 'Servers' setting first."));
+				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect into 'Servers setting' first."));
 				dispose();
 			}
 		} else if (item.equals("SSL_FORWARDER")) {
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
-				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect in 'Servers' setting first."));
+				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect into 'Servers setting' first."));
 				dispose();
 			}
 		} else if (item.equals("FORWARDER")) {
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
-				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect in 'Servers' setting first."));
+				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect into 'Servers setting' first."));
 				dispose();
 			}
 		} else {

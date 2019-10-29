@@ -82,7 +82,10 @@ public class GUIOptionClientCertificateDialog extends JDialog
 
     public ClientCertificate showDialog() throws Exception {
 		if (Servers.getInstance().queryAll().isEmpty()) {
-			JOptionPane.showMessageDialog(this.owner, I18nString.get("Set server you wish to connect in 'Servers' setting first."));
+			JOptionPane.showMessageDialog(this.owner,
+					I18nString.get("Set server you wish to connect into 'Servers setting' first."),
+					I18nString.get("Message"),
+					JOptionPane.INFORMATION_MESSAGE);
 			certificate = null;
 		} else {
 			setModal(true);
@@ -211,13 +214,19 @@ public class GUIOptionClientCertificateDialog extends JDialog
 						keyPasswordField.getPassword());
 				} catch (Exception e2) {
 					certificate = null;
-					JOptionPane.showMessageDialog(this.owner, I18nString.get("[Error] incorrect file password."));	
+					JOptionPane.showMessageDialog(this.owner,
+							I18nString.get("[Error] incorrect file password."),
+							I18nString.get("Message"),
+							JOptionPane.INFORMATION_MESSAGE);
 					return;
 				}
 
 				if (ClientCertificates.getInstance().hasCorrectSecretKey(certificate) == false) {
 					certificate = null;
-					JOptionPane.showMessageDialog(this.owner, I18nString.get("[Error] incorrect secret key password."));	
+					JOptionPane.showMessageDialog(this.owner,
+							I18nString.get("[Error] incorrect secret key password."),
+							I18nString.get("Message"),
+							JOptionPane.INFORMATION_MESSAGE);
 					return;
 				}
 

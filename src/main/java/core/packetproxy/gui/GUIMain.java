@@ -52,6 +52,7 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.Keymap;
 
 import packetproxy.common.FontManager;
+import packetproxy.common.I18nString;
 import packetproxy.model.InterceptModel;
 import packetproxy.util.PacketProxyUtility;
 
@@ -162,8 +163,8 @@ public class GUIMain extends JFrame implements Observer
 
 		// 環境変数RESTORE_HISTORYで指定されていなかった場合Historyをrestoreするか聞く
 		int restoreHistory = JOptionPane.showConfirmDialog(this,
-				"前回のHistoryを読み込みますか？\n※環境変数RESTORE_HISTORY=y/nでも指定できます。",
-				"前回のHistoryの読み込み",
+				I18nString.get("Do you want to load the previous packet data?"),
+				I18nString.get("Loading previous packet data"),
 				YES_NO_OPTION);
 		if (restoreHistory == YES_NO_OPTION) {
 			return GUIHistory.restoreLastInstance(this);
@@ -180,7 +181,10 @@ public class GUIMain extends JFrame implements Observer
 			}
 		}
 
+		// フォントの設定
 		UIManager.getLookAndFeelDefaults().put("defaultFont", FontManager.getInstance().getUIFont());
+		// OptionPaneのロケール
+		JOptionPane.setDefaultLocale(I18nString.getLocale());
 
 		setIconForWindows();
 		addShortcutForMac();
