@@ -405,9 +405,13 @@ public class GUIHistory implements Observer
 				try {
 					Packet packet = gui_packet.getPacket();
 					Http http = new Http(packet.getSentData());
+					CharSetUtility charsetutil = CharSetUtility.getInstance();
+					if(charsetutil.isAuto()){
+						charsetutil.setGuessedCharSet(http.getBody());
+					}
 					String copyData = http.getMethod() + "\t" +
 						http.getURL(packet.getServerPort()) + "\t" + 
-						new String(http.getBody(), CharSetUtility.getInstance().getCharSet());
+						new String(http.getBody(), charsetutil.getCharSet());
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(copyData);
 					clipboard.setContents(selection, selection);

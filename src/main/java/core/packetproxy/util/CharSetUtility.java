@@ -15,7 +15,9 @@ import java.util.Optional;
 public class CharSetUtility {
     private static CharSetUtility instance=null;
     private static String DEFAULT_CHARSET = "UTF-8";
+    private static String AUTO_CHARSET = "AUTO";
     private String charSet=DEFAULT_CHARSET;
+    private boolean isAuto = false;
 
     public static CharSetUtility getInstance(){
         if(null==instance){
@@ -151,10 +153,26 @@ public class CharSetUtility {
         return data.substring(s, e);
     }
 
+    public boolean isAuto(){
+        return isAuto;
+    }
+
     public void setCharSet(String charSet){
+        setCharSet(charSet, false);
+    }
+
+    public void setCharSet(String charSet, boolean autoStatusUnchanged){
     	if (charSet == null) {
     		return;
     	}
+    	if (AUTO_CHARSET.equals(charSet)){
+            isAuto = true;
+            this.charSet = DEFAULT_CHARSET;
+            return;
+        }
+    	if(!autoStatusUnchanged) {
+            isAuto = false;
+        }
         if(getAvailableCharSetList().contains(charSet)){
             this.charSet = charSet;
         }else{
@@ -167,9 +185,26 @@ public class CharSetUtility {
         return charSet;
     }
 
+    private String guessedCharSet(byte[] rawData){
+        String charset = guessCharSetFromHttpHeader(rawData);
+        if(!"".equals(charset)){
+            return charset;
+        }
+        charset = guessCharSetFromMetatag(rawData);
+        if(!"".equals(charset)){
+            return  charset;
+        }
+        return DEFAULT_CHARSET;
+    }
+
+    public void setGuessedCharSet(byte[] rawData){
+        setCharSet(guessedCharSet(rawData), true);
+    }
+
     public List<String> getAvailableCharSetList(){
         List<String> ret = new ArrayList<>();
         try {
+            ret.add(AUTO_CHARSET);
             for(CharSet charset: CharSets.getInstance().queryAll()){
                 ret.add(charset.toString());
             }
