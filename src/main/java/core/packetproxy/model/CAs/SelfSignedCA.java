@@ -17,9 +17,11 @@ package packetproxy.model.CAs;
 
 import java.security.KeyStore;
 
+import packetproxy.common.I18nString;
+
 public class SelfSignedCA extends CA {
 	private static final String name = "Temp CA (for SelfSigned Test)";
-	private static final String desc = "テンポラリCA証明書（オレオレ証明書の検証の為）";
+	private static final String desc = I18nString.get("self sigend CA (for security test purpose)");
 	private static final String keyStorePath = "/certificates/user.ks";
 
 	public SelfSignedCA() throws Exception {
