@@ -2,7 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/DeNA/PacketProxy/tree/master.svg?style=svg)](https://circleci.com/gh/DeNA/PacketProxy/tree/master)
 
-[English version]("https://github.com/DeNA/PacketProxy/blob/master/README.en.md")
+[English version](https://github.com/DeNA/PacketProxy/blob/master/README.en.md)
 
 # PacketProxyとは？
 
