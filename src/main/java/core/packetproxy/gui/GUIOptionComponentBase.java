@@ -15,6 +15,7 @@
  */
 package packetproxy.gui;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -29,6 +30,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 
+import packetproxy.common.FontManager;
 import packetproxy.model.OptionTableModel;
 
 public abstract class GUIOptionComponentBase<T> implements Observer
@@ -43,33 +45,39 @@ public abstract class GUIOptionComponentBase<T> implements Observer
 	}
 
 	public JComponent createPanel() {
+		jcomponent.setAlignmentX(Component.LEFT_ALIGNMENT);
 		return jcomponent;
 	}
 
-	protected JComponent createComponent(String[] menu, int[] menuWidth, MouseAdapter tableAction, ActionListener addAction, ActionListener editAction, ActionListener removeAction) {
+	protected JComponent createComponent(String[] menu, int[] menuWidth, MouseAdapter tableAction, ActionListener addAction, ActionListener editAction, ActionListener removeAction) throws Exception {
 		option_model = new OptionTableModel(menu, 0) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public boolean isCellEditable(int row, int column) { return false; }
 		};
+
 		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+
 		table = new JTable(option_model);
 		for (int i = 0; i < menu.length; i++) {
 			table.getColumn(menu[i]).setPreferredWidth(menuWidth[i]);
 		}
-		int maxHeight = 150;
 		((JComponent) table.getDefaultRenderer(Boolean.class)).setOpaque(true);
 		table.addMouseListener(tableAction);
+		table.setRowHeight(FontManager.getInstance().getUIFontHeight(table));
+
 		CustomScrollPane scrollpane1 = new CustomScrollPane();
 		scrollpane1.setViewportView(table);
-		scrollpane1.setMaximumSize(new Dimension(800, maxHeight));
 		scrollpane1.setBackground(Color.WHITE);
+		scrollpane1.setMinimumSize(new Dimension(800, 150));
+		scrollpane1.setMaximumSize(new Dimension(800, 150));
+		scrollpane1.setAlignmentY(Component.TOP_ALIGNMENT);
 
 		panel.add(createTableButton(addAction, editAction, removeAction));
 		panel.add(scrollpane1);
-		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-		panel.setMaximumSize(new Dimension(Short.MAX_VALUE, maxHeight));
 		panel.setBackground(Color.WHITE);
+		panel.setMaximumSize(new Dimension(Short.MAX_VALUE, panel.getMinimumSize().height));
 		return panel;
 	}
 
@@ -80,7 +88,7 @@ public abstract class GUIOptionComponentBase<T> implements Observer
 		JButton button_edit = new JButton("Edit");
 		JButton button_remove = new JButton("Remove");
 
-		int height = button_add.getMaximumSize().height;
+		int height = button_add.getMinimumSize().height;
 
 		button_add.setMaximumSize(new Dimension(100,height));
 		button_edit.setMaximumSize(new Dimension(100,height));
@@ -101,9 +109,10 @@ public abstract class GUIOptionComponentBase<T> implements Observer
 			button_remove.addActionListener(removeAction);
 		}
 
-		panel.setMaximumSize(new Dimension(100, 150));
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setBackground(Color.WHITE);
+		panel.setMaximumSize(new Dimension(100, panel.getMinimumSize().height));
+		panel.setAlignmentY(Component.TOP_ALIGNMENT);
 		return panel;
 	}
 

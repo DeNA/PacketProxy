@@ -16,6 +16,7 @@
 package packetproxy.gui;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.net.InetAddress;
@@ -93,17 +94,19 @@ public class GUIOptionPrivateDNS implements Observer
 		rewriteRuleBorder.setTitlePosition(TitledBorder.TOP);
 
 		JPanel rewriteRule = new JPanel();
+		rewriteRule.setLayout(new BoxLayout(rewriteRule, BoxLayout.Y_AXIS));
 		rewriteRule.setBackground(Color.WHITE);
 		rewriteRule.setBorder(rewriteRuleBorder);
-		rewriteRule.setLayout(new BoxLayout(rewriteRule, BoxLayout.Y_AXIS));
 		rewriteRule.add(auto);
 		rewriteRule.add(manualPanel);
+		rewriteRule.setMaximumSize(new Dimension(rewriteRule.getPreferredSize().width, rewriteRule.getMinimumSize().height));
 
 		JPanel panel = new JPanel();
 		panel.setBackground(Color.WHITE);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.add(checkBox);
 		panel.add(rewriteRule);
+		panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
 		return panel;
 	}

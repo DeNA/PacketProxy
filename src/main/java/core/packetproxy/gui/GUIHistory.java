@@ -69,6 +69,7 @@ import javax.swing.table.TableRowSorter;
 import org.apache.commons.io.FileUtils;
 
 import packetproxy.common.FilterTextParser;
+import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
 import packetproxy.common.Utils;
 import packetproxy.controller.ResendController;
@@ -164,8 +165,7 @@ public class GUIHistory implements Observer
 
 	private JComponent createFilterPanel() throws Exception {
 		gui_filter = new HintTextField(I18nString.get("filter string... (ex: request == example.com && type == image)"));
-		gui_filter.setMaximumSize(new Dimension(Short.MAX_VALUE, 27));
-		gui_filter.setMinimumSize(new Dimension(100, 27));
+		gui_filter.setMaximumSize(new Dimension(Short.MAX_VALUE, gui_filter.getMinimumSize().height));
 
 		gui_filter.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent e) {
@@ -191,7 +191,6 @@ public class GUIHistory implements Observer
 		});
 
 		JButton filterConfigAdd = new JButton(new ImageIcon(getClass().getResource("/gui/plus.png")));
-		filterConfigAdd.setMinimumSize(new Dimension(15, gui_filter.getMaximumSize().height));
 		filterConfigAdd.setMaximumSize(new Dimension(15, gui_filter.getMaximumSize().height));
 		filterConfigAdd.setBackground(filterConfigAdd.getBackground());
 		filterConfigAdd.addActionListener(new ActionListener() {
@@ -207,8 +206,7 @@ public class GUIHistory implements Observer
 		});
 
 		JToggleButton filterDropDown = new JToggleButton(new ImageIcon(getClass().getResource("/gui/arrow.png")));
-		filterDropDown.setMinimumSize(new Dimension(filterConfigAdd.getMaximumSize().width, filterConfigAdd.getMaximumSize().height));
-		filterDropDown.setMaximumSize(new Dimension(filterConfigAdd.getMaximumSize().width, filterConfigAdd.getMaximumSize().height));
+		filterDropDown.setMaximumSize(new Dimension(filterConfigAdd.getMaximumSize().width, gui_filter.getMaximumSize().height));
 		filterDropDown.setBackground(filterDropDown.getBackground());
 		filterDropDown.addMouseListener(new MouseAdapter() {
 			GUIFilterDropDownList dlg = null;
@@ -248,8 +246,7 @@ public class GUIHistory implements Observer
 
 		ImageIcon icon = new ImageIcon(getClass().getResource("/gui/config.png"));
 		JButton filterConfig = new JButton(icon);
-		filterConfig.setMinimumSize(new Dimension(filterConfigAdd.getMaximumSize().width, filterConfigAdd.getMaximumSize().height));
-		filterConfig.setMaximumSize(new Dimension(filterConfigAdd.getMaximumSize().width, filterConfigAdd.getMaximumSize().height));
+		filterConfig.setMaximumSize(new Dimension(filterConfigAdd.getMaximumSize().width, gui_filter.getMaximumSize().height));
 		filterConfig.setBackground(filterConfig.getBackground());
 		filterConfig.addActionListener(new ActionListener() {
 			@Override
@@ -336,6 +333,7 @@ public class GUIHistory implements Observer
 				return c;
 			}
 		};
+		table.setRowHeight(FontManager.getInstance().getUIFontHeight(table));
 		for (int i = 0; i < columnNames.length; i++) {
 			table.getColumn(columnNames[i]).setPreferredWidth(columnWidth[i]);
 		}
@@ -908,13 +906,11 @@ TODO: support --data-binary
 		tableModel.setRowCount(0);
 		for(Packet packet : packetList) {
 			tableModel.addRow(new Object[] {
-				packet.getId(),"Loading...","Loading...",0,"Loading...","","Loading...","","00:00:00 1900/01/01 Z",false,
-					false,"","",(long)-1
+				packet.getId(),"Loading...","Loading...",0,"Loading...","","Loading...","","00:00:00 1900/01/01 Z",false,false,"","",(long)-1
 			});
 			id_row.put(packet.getId(), tableModel.getRowCount() - 1);
 		}
 		update_packet_ids.clear();
-
 
 		new Thread(new Runnable() {
 			GUIHistory history = null;

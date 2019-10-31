@@ -15,24 +15,15 @@
  */
 package packetproxy.gui;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComponent;
+
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
+
 import packetproxy.model.ListenPort;
 import packetproxy.model.ListenPorts;
 

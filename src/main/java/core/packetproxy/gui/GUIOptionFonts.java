@@ -16,6 +16,7 @@
 package packetproxy.gui;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
@@ -49,7 +50,7 @@ public class GUIOptionFonts implements Observer
 				FontManager.getInstance().getUIFont().getName(),
 				FontManager.getInstance().getUIFont().getSize()));
 		uiFontInfo.setEditable(false);
-		uiFontInfo.setMaximumSize(new Dimension(1000, uiFontInfo.getMaximumSize().height));
+		uiFontInfo.setMaximumSize(new Dimension(Short.MAX_VALUE, uiFontInfo.getMinimumSize().height));
 
 		JButton uiButton = new JButton(I18nString.get("choose..."));
 	    uiButton.addMouseListener(new MouseAdapter() {
@@ -98,7 +99,7 @@ public class GUIOptionFonts implements Observer
 				FontManager.getInstance().getFont().getName(),
 				FontManager.getInstance().getFont().getSize()));
 		fontInfo.setEditable(false);
-		fontInfo.setMaximumSize(new Dimension(800, fontInfo.getMaximumSize().height));
+		fontInfo.setMaximumSize(new Dimension(Short.MAX_VALUE, fontInfo.getMinimumSize().height));
 
 		JButton button = new JButton(I18nString.get("choose..."));
 	    button.addMouseListener(new MouseAdapter() {
@@ -148,6 +149,7 @@ public class GUIOptionFonts implements Observer
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.add(uiPanel);
 		panel.add(fPanel);
+		panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
 		return panel;
 	}

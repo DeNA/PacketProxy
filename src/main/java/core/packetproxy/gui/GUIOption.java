@@ -16,6 +16,7 @@
 package packetproxy.gui;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -52,17 +53,16 @@ public class GUIOption
 		label.setForeground(Color.decode("61136"));
 		label.setBackground(Color.WHITE);
 		label.setFont(FontManager.getInstance().getUICaptionFont());
-		int label_height = label.getMaximumSize().height;
-		label.setMaximumSize(new Dimension(Short.MAX_VALUE, label_height));
+		label.setMaximumSize(new Dimension(Short.MAX_VALUE, label.getMinimumSize().height));
+		label.setAlignmentX(Component.LEFT_ALIGNMENT);
 		return label;
 	}
-	private JComponent createDescription(String description) {
+	private JComponent createDescription(String description) throws Exception {
 		JLabel label = new JLabel(description);
 		label.setForeground(Color.BLACK);
 		label.setBackground(Color.WHITE);
-		int label_height = label.getMaximumSize().height;
-		label.setMaximumSize(new Dimension(Short.MAX_VALUE, label_height*2));
-		label.setMinimumSize(new Dimension(Short.MAX_VALUE, label_height*2));
+		label.setMaximumSize(new Dimension(Short.MAX_VALUE, label.getMinimumSize().height));
+		label.setAlignmentX(Component.LEFT_ALIGNMENT);
 		return label;
 	}
 	private JComponent createElement(String title, String description) throws Exception {
@@ -71,12 +71,12 @@ public class GUIOption
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.add(createTitle(title));
 		panel.add(createDescription(description));
-		panel.setAlignmentX(0.0f);
+		panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		return panel;
 	}
 	private JComponent createSeparator() {
 		JSeparator line = new JSeparator();
-		line.setMaximumSize(new Dimension(Short.MAX_VALUE, 5));
+		line.setMaximumSize(new Dimension(Short.MAX_VALUE, line.getMinimumSize().height));
 		return line;
 	}
 	public JComponent createPanel() throws Exception
@@ -162,7 +162,7 @@ public class GUIOption
 			ca_combo.setEnabled(true);
 		});
 		ca_combo.setMaximumRowCount(CAFactory.queryExportable().size());
-		ca_combo.setMaximumSize(new Dimension(500, 30));
+		ca_combo.setMaximumSize(new Dimension(ca_combo.getPreferredSize().width, ca_combo.getMinimumSize().height));
 
 		JButton b = new JButton(I18nString.get("Export"));
 		b.addActionListener(new ActionListener() {
@@ -204,6 +204,7 @@ public class GUIOption
 		});
 		caPanel.add(ca_combo);
 		caPanel.add(b);
+		caPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
 		panel.add(caPanel);
 
@@ -218,8 +219,9 @@ public class GUIOption
 		panel.add(createElement("Fonts", ""));
 		GUIOptionFonts fontsGUI = new GUIOptionFonts(owner);
 		panel.add(fontsGUI.createPanel());
-
-		panel.setPreferredSize(new Dimension(1000, 1600));
+		
+		panel.setMaximumSize(new Dimension(panel.getPreferredSize().width, panel.getMinimumSize().height));
+		panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, panel.getMinimumSize().height));
 		JScrollPane sc = new JScrollPane(panel);
 		sc.getVerticalScrollBar().setUnitIncrement(16);
 		return sc;

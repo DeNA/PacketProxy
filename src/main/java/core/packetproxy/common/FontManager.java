@@ -1,7 +1,10 @@
 package packetproxy.common;
 
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.util.Locale;
+
+import javax.swing.JComponent;
 
 import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
@@ -114,6 +117,7 @@ public class FontManager {
 	
 	public Font getFont() { return this.font; }
 	public Font getUIFont() { return this.uiFont; }
+	public int  getUIFontHeight(JComponent comp) { return comp.getFontMetrics(this.uiFont).getHeight(); }
 	public Font getUICaptionFont() { return this.uiCaptionFont; }
 
 	public void setUIFont(Font font) throws Exception {
