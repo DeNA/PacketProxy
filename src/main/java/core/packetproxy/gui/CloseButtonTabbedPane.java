@@ -46,6 +46,8 @@ public class CloseButtonTabbedPane extends JTabbedPane
 		JLabel label = new JLabel(title);
 		JButton button = new JButton(icon);
 		button.setPreferredSize(new Dimension(icon.getIconWidth()+1, icon.getIconHeight()+1));
+		button.setMinimumSize(new Dimension(icon.getIconWidth()+1, icon.getIconHeight()+1));
+		button.setMaximumSize(new Dimension(icon.getIconWidth()+1, icon.getIconHeight()+1));
 		button.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
