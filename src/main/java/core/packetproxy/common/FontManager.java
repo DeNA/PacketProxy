@@ -38,6 +38,7 @@ public class FontManager {
 			put(new MultiKey<String>("Mac",     Locale.JAPAN.getLanguage()),   new LocaleFontStyles(new FontStyle("SansSerif",12), new FontStyle("Monospaced", 12)));
 			put(new MultiKey<String>("Mac",     Locale.ENGLISH.getLanguage()), new LocaleFontStyles(new FontStyle("SansSerif",12), new FontStyle("Monospaced", 12)));
 			put(new MultiKey<String>("Default", Locale.ENGLISH.getLanguage()), new LocaleFontStyles(new FontStyle("SansSerif",12), new FontStyle("Monospaced", 12)));
+			put(new MultiKey<String>("Default", Locale.JAPAN.getLanguage()), new LocaleFontStyles(new FontStyle("SansSerif",12), new FontStyle("Monospaced", 12)));
         }
     };
 
