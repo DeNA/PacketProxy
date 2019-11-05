@@ -6,9 +6,15 @@ import java.util.regex.Pattern;
 
 public class I18nString {
 	
-	public static ResourceBundle bundle = ResourceBundle.getBundle("strings");
-	//public static Locale currentLocale = Locale.ENGLISH;
-	public static Locale currentLocale = Locale.getDefault();
+	public static ResourceBundle bundle = null;
+	public static Locale currentLocale = null;
+
+	static {
+		currentLocale = Locale.getDefault();
+		if (currentLocale == Locale.JAPAN) {
+		 	bundle = ResourceBundle.getBundle("strings");
+		}
+    }
 	
 	private static String normalize(String message) {
 		return message.replace(' ', '_')
