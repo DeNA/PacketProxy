@@ -93,7 +93,7 @@ public class ListenPortManager implements Observer
 				listen_map.put(listen_port.getPort(), new_listen);
 			}
 		} catch (BindException e) {
-			e.printStackTrace();
+			PacketProxyUtility.getInstance().packetProxyLogErr("cannot listen port. (permission issue or already listened)");
 			listen_port.setDisabled();
 			listenPorts.update(listen_port);
 		}

@@ -21,6 +21,7 @@ import java.net.DatagramSocket;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.BindException;
 import java.net.UnknownHostException;
 import java.util.List;
 
@@ -66,8 +67,12 @@ public class PrivateDNS
 			if (dns == null) {
 				try {
 					dns = new PrivateDNSImp(dnsSpoofingIPGetter);
-					dns.start();
-					state.setState(true);
+					if (dns.isRunning()) {
+						dns.start();
+						state.setState(true);
+					} else {
+						
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -105,10 +110,15 @@ public class PrivateDNS
 		InetAddress s_sAddr;
 
 		public PrivateDNSImp(DNSSpoofingIPGetter dnsSpoofingIPGetter) throws Exception {
-			this.spoofingIp = dnsSpoofingIPGetter;
-			soc = new DatagramSocket(PORT);
-			recvPacket = new DatagramPacket(buf, BUFSIZE);
-			sendPacket = null;
+			try {
+				this.spoofingIp = dnsSpoofingIPGetter;
+				soc = new DatagramSocket(PORT);
+				recvPacket = new DatagramPacket(buf, BUFSIZE);
+				sendPacket = null;
+			} catch (BindException e) {
+				util.packetProxyLogErr("cannot boot private DNS server (permission issue or already listened)");
+				return;
+			}
 
 			s_sAddr = InetAddress.getByName(dnsServer);
 			s_soc = new DatagramSocket();
@@ -116,9 +126,17 @@ public class PrivateDNS
 			s_sendPacket = null;
 		}
 
+		public boolean isRunning() {
+			return soc != null;
+		}
+
 		public void finish() {
-			s_soc.close();
-			soc.close();
+			if (isRunning()) {
+				s_soc.close();
+				soc.close();
+				s_soc = null;
+				soc = null;
+			}
 		}
 
 		public void run() {
