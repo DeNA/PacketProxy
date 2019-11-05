@@ -70,11 +70,14 @@ public class Servers extends Observable implements Observer {
 		if (addr.getAddress() == null) {
 			throw new Exception(String.format("cannot resolv hostname: %s", addr.getHostName()));
 		}
+		if (addr.getPort() == 0) {
+			throw new Exception(String.format("cannot resolv portnumber: %s", addr.getPort()));
+		}
 		String target = addr.getAddress().getHostAddress();
 		for (Server server : all) {
 			List<InetAddress> ips = server.getIps();
 			for ( InetAddress ip : ips) {
-				if (ip.getHostAddress().equals(target)){
+				if (ip.getHostAddress().equals(target) && server.getPort()==addr.getPort()){
 					return server;
 				}
 			}
