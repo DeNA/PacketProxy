@@ -2,6 +2,8 @@
 
 [![CircleCI](https://circleci.com/gh/DeNA/PacketProxy/tree/master.svg?style=svg)](https://circleci.com/gh/DeNA/PacketProxy/tree/master)
 
+[日本語](https://github.com/DeNA/PacketProxy/blob/master/README.ja.md)
+
 # PacketProxy
 
 PacketProxy is an open source proxy tool that allows TCP/UDP Traffic to be read. It is not limited to just HTTP/HTTPS.
