@@ -15,8 +15,8 @@
  */
 package packetproxy.model.CAs;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.KeyPair;
@@ -24,26 +24,26 @@ import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
-import sun.security.x509.AlgorithmId;
-import sun.security.x509.CertificateAlgorithmId;
-import sun.security.x509.CertificateExtensions;
-import sun.security.x509.CertificateIssuerName;
-import sun.security.x509.CertificateSerialNumber;
-import sun.security.x509.CertificateSubjectName;
-import sun.security.x509.CertificateValidity;
-import sun.security.x509.CertificateX509Key;
-import sun.security.x509.GeneralName;
-import sun.security.x509.GeneralNames;
-import sun.security.x509.SubjectAlternativeNameExtension;
-import sun.security.x509.X500Name;
-import sun.security.x509.X509CertImpl;
-import sun.security.x509.X509CertInfo;
 
-import packetproxy.util.PacketProxyUtility;
-import packetproxy.util.SimpleDNSName;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.crypto.util.PrivateKeyFactory;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 
 abstract public class CA
 {
@@ -52,17 +52,15 @@ abstract public class CA
 	private KeyStore keyStoreCA;
 	private PrivateKey keyStoreCAPrivateKey;
 
-	private X509CertImpl keyStoreCACertRoot;
-	private X509CertInfo keyStoreCACertTemplate;
-	private AlgorithmId algorithmId;
+	private X509CertificateHolder caRootHolder;
+	private X500Name templateIssuer;
+	private Date templateFrom;
+	private Date templateTo;
+	private SubjectPublicKeyInfo templatePubKey;
 
-	private String caRoot = "root";
-	private String caTemplate = "template";
-	private String newAlias = "newalias";
-
-	private char[] password = new char[]{'t','e','s','t','t','e','s','t'};
-	private char[] caPassword = new char[]{'t','e','s','t','t','e','s','t'};
-	private char[] certPassword = new char[]{'t','e','s','t','t','e','s','t'};
+	private String aliasRoot = "root";
+	private String aliasServer = "newalias";
+	private char[] password = "testtest".toCharArray();
 
 	protected CA() {
 	}
@@ -91,85 +89,76 @@ abstract public class CA
 		this.keyStoreCA = KeyStore.getInstance("JKS");
 		this.keyStoreCA.load(input, password);
 
-		this.keyStoreCAPrivateKey = (PrivateKey) keyStoreCA.getKey(caRoot, caPassword);
+		this.keyStoreCAPrivateKey = (PrivateKey) keyStoreCA.getKey(aliasRoot, password);
 
-		/* Issuerの取り出し */
-		java.security.cert.Certificate caCert = this.keyStoreCA.getCertificate(caRoot);
-		keyStoreCACertRoot = new X509CertImpl(caCert.getEncoded());
-		X509CertInfo caCertInfo = (X509CertInfo) this.keyStoreCACertRoot.get(X509CertImpl.NAME + "." + X509CertImpl.INFO);
-		X500Name issuer = (X500Name) caCertInfo.get(X509CertInfo.SUBJECT + "." + CertificateIssuerName.DN_NAME);
-
-		/* Templateの取り出し */
-		java.security.cert.Certificate templateCert = this.keyStoreCA.getCertificate(caTemplate);
-		X509CertImpl certImpl = new X509CertImpl(templateCert.getEncoded());
-		keyStoreCACertTemplate = (X509CertInfo) certImpl.get(X509CertImpl.NAME + "." + X509CertImpl.INFO);
+		/* RootのSubject(Issuer)の取り出し */
+		Certificate caRootCert = keyStoreCA.getCertificate(aliasRoot);
+		caRootHolder = new X509CertificateHolder(caRootCert.getEncoded());
 
 		/* 有効期限の設定 */
-		GregorianCalendar date = new GregorianCalendar();
-		date.add(Calendar.DATE, -30);
-		Date firstDate = date.getTime();
-		Date lastDate = new Date(firstDate.getTime() + 365 * 24 * 60 * 60 * 1000L);
-		CertificateValidity interval = new CertificateValidity(firstDate, lastDate);
-		keyStoreCACertTemplate.set(X509CertInfo.VALIDITY, interval);
-
-		/* Issuerの設定 */
-		keyStoreCACertTemplate.set(X509CertInfo.ISSUER + "." + CertificateSubjectName.DN_NAME, issuer);
-
-		/* publicキーの設定 */
-		keyStoreCACertTemplate.set(X509CertInfo.KEY, new CertificateX509Key(this.keyPair.getPublic()));
-
-		/* 署名アルゴリズム設定 */
-		algorithmId = AlgorithmId.get(AlgorithmId.sha256WithRSAEncryption_oid.toString());
-		keyStoreCACertTemplate.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(algorithmId));
+		Date from = new Date();
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(from);
+		cal.add(Calendar.YEAR, 3);
+		Date to = cal.getTime();
+		
+		/* Templateの設定 */
+		templateIssuer = caRootHolder.getSubject();
+		templateFrom = from;
+		templateTo = to;
+		templatePubKey = SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded());
 	}
 
 	private KeyStore sign(String commonName, String[] domainNames) throws Exception {
+
 		/* シリアルナンバーの設定 */
 		MessageDigest digest = MessageDigest.getInstance("MD5");
 		byte[] hash = digest.digest(commonName.getBytes());
-		keyStoreCACertTemplate.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(new BigInteger(hash)));
-		/* DNの設定 */
-		String dn = String.format("CN=%s, OU=PacketProxy, O=PacketProxy, C=PacketProxy", commonName);
-		keyStoreCACertTemplate.set(X509CertInfo.SUBJECT + "." + CertificateSubjectName.DN_NAME, new X500Name(dn));
-		/* SANの設定 */
-		try {
-			GeneralNames gns = new GeneralNames(); 
-			gns.add(new GeneralName(new SimpleDNSName(commonName)));
-			for (String domainName : domainNames) {
-				//System.out.println(domainName);
-				gns.add(new GeneralName(new SimpleDNSName(domainName)));
-			}
-			SubjectAlternativeNameExtension san = new SubjectAlternativeNameExtension(gns);
-			CertificateExtensions ext = new CertificateExtensions();
-			ext.set(SubjectAlternativeNameExtension.NAME, san);
-			keyStoreCACertTemplate.set(X509CertInfo.EXTENSIONS, ext);
-		} catch (IOException e) {
-			PacketProxyUtility.getInstance().packetProxyLogErr(e.toString());
-			e.printStackTrace();
-			PacketProxyUtility.getInstance().packetProxyLogErr(String.format("[ERROR] %s: ドメイン名がアルファベット以外から始まっているとDNSNameクラスが例外を吐くためSANが使えない", commonName));
-			keyStoreCACertTemplate.delete(X509CertInfo.EXTENSIONS);
-		}
+		BigInteger templateSerial = new BigInteger(hash);
 
-		X509CertImpl newCert = sign(keyStoreCACertTemplate, keyStoreCAPrivateKey, algorithmId);
+		/* Subjectの設定 */
+		String subject = String.format("C=PacketProxy, ST=PacketProxy, L=PacketProxy, O=PacketProxy, OU=PacketProxy, CN=%s", commonName);
+		X500Name templateSubject =  new X500Name(subject);
+		
+		/* buidlerの生成 */
+		X509v3CertificateBuilder serverBuilder = new X509v3CertificateBuilder(
+				templateIssuer,
+				templateSerial,
+				templateFrom,
+				templateTo,
+				templateSubject,
+				templatePubKey);
+		
+		/* SANの設定 */
+		ArrayList<ASN1Encodable> sans = new ArrayList<>();
+		sans.add(new GeneralName(GeneralName.dNSName, commonName));
+		for (String domainName : domainNames) {
+			//System.out.println(domainName);
+			sans.add(new GeneralName(GeneralName.dNSName, domainName));
+		}
+		DERSequence subjectAlternativeNames = new DERSequence(sans.toArray(new ASN1Encodable[sans.size()]));
+		serverBuilder.addExtension(Extension.subjectAlternativeName, false, subjectAlternativeNames);
+
+		// CA: Template: 署名
+        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
+        AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
+        ContentSigner signer = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(PrivateKeyFactory.createKey(keyStoreCAPrivateKey.getEncoded()));
+        X509CertificateHolder serverHolder = serverBuilder.build(signer);
 
 		/* 新しいKeyStoreを作成 */
+		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
 		KeyStore ks = KeyStore.getInstance("JKS");
-		ks.load(null, certPassword);
-		ks.setKeyEntry(newAlias, this.keyPair.getPrivate(), certPassword, new java.security.cert.Certificate[] { newCert, this.keyStoreCACertRoot });
+		ks.load(null, password);
+		ks.setKeyEntry(
+			aliasServer,
+			keyPair.getPrivate(),
+			password,
+			new java.security.cert.Certificate[] {
+			certFactory.generateCertificate(new ByteArrayInputStream(serverHolder.getEncoded())),
+			certFactory.generateCertificate(new ByteArrayInputStream(caRootHolder.getEncoded()))
+		});
 
 		return ks;
-	}
-
-	protected X509CertImpl sign(X509CertInfo keyStoreCACertTemplate, PrivateKey keyStoreCAPrivateKey, AlgorithmId algorithmId){
-		/* 署名前の新しい証明書の完成 */
-		X509CertImpl newCert = new X509CertImpl(keyStoreCACertTemplate);
-		/* 署名！ */
-		try {
-			newCert.sign(keyStoreCAPrivateKey, algorithmId.getName());
-		} catch (Exception e){
-			e.printStackTrace();
-		} 
-		return newCert;
 	}
 
 	public KeyStore createKeyStore(String commonName, String[] domainNames) throws Exception {

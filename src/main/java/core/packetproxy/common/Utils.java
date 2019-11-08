@@ -31,9 +31,8 @@ import java.util.zip.GZIPOutputStream;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ArrayUtils;
-
-import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 import packetproxy.util.PacketProxyUtility;
 
@@ -178,7 +177,7 @@ public class Utils {
 		while ((len = in.read(buffer, 0, 4096)) > 0) {
 			bout.write(buffer, 0, len);
 		}
-		return Base64.decode(bout.toByteArray());
+		return Base64.decodeBase64(bout.toByteArray());
 	}
 
 	public static byte[] readfile(String filename) throws Exception
@@ -253,7 +252,7 @@ public class Utils {
 	}
 	
 	public static boolean supportedJava() {
-		if (executedByJDK() == true && javaVersionIs1_8() == true) {
+		if (executedByJDK() == true) {
 			return true;
 		}
 		return false;
