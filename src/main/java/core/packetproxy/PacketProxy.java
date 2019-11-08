@@ -18,14 +18,10 @@ package packetproxy;
 import java.io.File;
 import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.Locale;
-import java.util.ResourceBundle;
 
 import javax.swing.JOptionPane;
 
 import org.apache.commons.io.IOUtils;
-
-import com.sun.org.apache.xml.internal.security.utils.I18n;
 
 import packetproxy.common.ClientKeyManager;
 import packetproxy.common.I18nString;
@@ -41,7 +37,7 @@ public class PacketProxy
 		if (Utils.supportedJava() == false) {
 			JOptionPane.showMessageDialog(
 					null,
-					I18nString.get("PacketProxy can be executed with JDK8 only"),
+					I18nString.get("PacketProxy can be executed with JDK11 only"),
 					I18nString.get("Error"),
 					JOptionPane.ERROR_MESSAGE);
 			return;
