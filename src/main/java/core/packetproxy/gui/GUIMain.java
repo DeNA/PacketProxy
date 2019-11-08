@@ -20,14 +20,13 @@ import static javax.swing.JOptionPane.YES_NO_OPTION;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
-import java.awt.Image;
+import java.awt.Taskbar;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.lang.reflect.Method;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -209,16 +208,8 @@ public class GUIMain extends JFrame implements Observer
 		if (!PacketProxyUtility.getInstance().isMac()) {
 			return;
 		}
-		Class applicationClass = Class.forName("com.apple.eawt.Application");
-		Method getApplication = applicationClass.getMethod("getApplication", new Class[0]);
-		Object application = getApplication.invoke(applicationClass);
-		@SuppressWarnings("rawtypes")
-		Class params[] = new Class[1];
-		params[0] = Image.class;
-		Method setDockIconImage = applicationClass.getMethod("setDockIconImage", params);
 		ImageIcon icon = new ImageIcon(getClass().getResource("/gui/icon.png"));
-		setIconImage(icon.getImage());
-		setDockIconImage.invoke(application, icon.getImage());
+		Taskbar.getTaskbar().setIconImage(icon.getImage());
 	}
 
 	/**
@@ -285,10 +276,7 @@ public class GUIMain extends JFrame implements Observer
 		if (!PacketProxyUtility.getInstance().isMac()) {
 			return;
 		}
-		Class fullScreenUtil = Class.forName("com.apple.eawt.FullScreenUtilities");
-		Class params[] = new Class[]{Window.class, Boolean.TYPE};
-		Method method = fullScreenUtil.getMethod("setWindowCanFullScreen", params);
-		method.invoke(fullScreenUtil, window, true);
+		getRootPane().putClientProperty("apple.awt.fullscreenable", true);
 	}
 
 	// Nimbusのバグでjava1.6系列ではsetForgroundAt, setBackgroundAtが効かない

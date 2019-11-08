@@ -15,24 +15,33 @@
  */
 package packetproxy.model.CAs;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.util.Calendar;
+import java.util.Date;
 
-import sun.security.x509.AlgorithmId;
-import sun.security.x509.BasicConstraintsExtension;
-import sun.security.x509.CertificateExtensions;
-import sun.security.x509.CertificateSerialNumber;
-import sun.security.x509.CertificateX509Key;
-import sun.security.x509.X500Name;
-import sun.security.x509.X509CertImpl;
-import sun.security.x509.X509CertInfo;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.crypto.util.PrivateKeyFactory;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 
 public class PacketProxyCAPerUser extends CA {
 	private static final String name = "PacketProxy per-user CA";
@@ -50,7 +59,6 @@ public class PacketProxyCAPerUser extends CA {
 	public void generateKeyStore(String ksPath) throws Exception {
 		KeyStore ks;
 		KeyPair CAKeyPair = super.genRSAKeyPair();
-		KeyPair TemplateKeyPair = super.genRSAKeyPair();
 		
 		// 各ユーザ用のキーストアを作るためのテンプレートを取得
 		try (InputStream input = this.getClass().getResourceAsStream("/certificates/user.ks")) {
@@ -58,49 +66,45 @@ public class PacketProxyCAPerUser extends CA {
 			ks.load(input, password);
 		}
 		
-		// CA: 公開鍵の入れ替え
-		Certificate caRoot = ks.getCertificate("root");
-		X509CertImpl caRootImpl = new X509CertImpl(caRoot.getEncoded()); 
-		X509CertInfo caRootInfo = (X509CertInfo) caRootImpl.get(X509CertImpl.NAME + "." + X509CertImpl.INFO);
-		caRootInfo.set(X509CertInfo.KEY, new CertificateX509Key(CAKeyPair.getPublic())); /* publicキーの設定 */
-		// CA: シリアルナンバー入れ替え
 		int serialNumber = 0;
 		do {
 			serialNumber = SecureRandom.getInstance("SHA1PRNG").nextInt();
 		} while (serialNumber <= 0);
-		caRootInfo.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(serialNumber));
-		// CA: Subject入れ替え
-		caRootInfo.set(X509CertInfo.SUBJECT, new X500Name(
-				String.format("PacketProxy per-user CA (%x)", serialNumber),
-				"PacketProxy CA", "packetproxy", "packetproxy", "packetproxy", "packetproxy"));
-		// CA: Issuer入れ替え
-		caRootInfo.set(X509CertInfo.ISSUER, new X500Name(
-				String.format("PacketProxy per-user CA (%x)", serialNumber),
-				"PacketProxy CA", "packetproxy", "packetproxy", "packetproxy", "packetproxy"));
-		
+
+		String x500Name = String.format("C=PacketProxy, ST=PacketProxy, L=PacketProxy, O=PacketProxy, OU=PacketProxy CA, CN=PacketProxy per-user CA (%x)", serialNumber);
+		Date from = new Date();
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(from);
+		cal.add(Calendar.YEAR, 30);
+		Date to = cal.getTime();
+
+		X509v3CertificateBuilder caRootBuilder = new X509v3CertificateBuilder(
+				new X500Name(x500Name),
+				BigInteger.valueOf(serialNumber),
+				from,
+				to,
+				new X500Name(x500Name),
+				SubjectPublicKeyInfo.getInstance(CAKeyPair.getPublic().getEncoded()));
+        
 		/* CA: X509 Extensionsの設定（CA:true, pathlen:0) */
-		CertificateExtensions ext = new CertificateExtensions();
-		ext.set(BasicConstraintsExtension.NAME, new BasicConstraintsExtension(true, true, 0));
-		caRootInfo.set(X509CertInfo.EXTENSIONS, ext);
-
-		// Template: 公開鍵の入れ替え
-		Certificate Template = ks.getCertificate("template");
-		X509CertImpl TemplateImpl = new X509CertImpl(Template.getEncoded()); 
-		X509CertInfo TemplateInfo = (X509CertInfo) TemplateImpl.get(X509CertImpl.NAME + "." + X509CertImpl.INFO);
-		TemplateInfo.set(X509CertInfo.KEY, new CertificateX509Key(TemplateKeyPair.getPublic())); /* publicキーの設定 */
-
-		// CA: Template: 署名
-		AlgorithmId algorithmId = AlgorithmId.get(AlgorithmId.sha256WithRSAEncryption_oid.toString());
-		caRootImpl = sign(caRootInfo, CAKeyPair.getPrivate(), algorithmId);
-		TemplateImpl = sign(TemplateInfo, CAKeyPair.getPrivate(), algorithmId);
-
+		caRootBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(0)); 
+		
+        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
+        AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
+        ContentSigner signer = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(PrivateKeyFactory.createKey(CAKeyPair.getPrivate().getEncoded()));
+        X509CertificateHolder signedRoot = caRootBuilder.build(signer);
+		
 		// 新しいKeyStoreの生成
 		KeyStore newks = KeyStore.getInstance("JKS");
 		newks.load(null, password);
 		
 		// 証明書と秘密鍵の登録
-		newks.setKeyEntry("root", CAKeyPair.getPrivate(), password, new Certificate[]{caRootImpl});
-		newks.setKeyEntry("template", TemplateKeyPair.getPrivate(), password, new Certificate[]{TemplateImpl});
+		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+		newks.setKeyEntry(
+				"root",
+				CAKeyPair.getPrivate(),
+				password,
+				new Certificate[]{ certFactory.generateCertificate(new ByteArrayInputStream(signedRoot.getEncoded())) });
 		
 		File newksfile = new File(ksPath);
 		newksfile.getParentFile().mkdirs();
