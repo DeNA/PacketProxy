@@ -214,7 +214,7 @@ task prepareJPackage(dependsOn: "jar") {
     delete "${workDir}"
     new File("${workDir}").mkdirs()
     download {
-      src "https://d3pxv6yz143wms.cloudfront.net/11.0.3.7.1/amazon-corretto-11.0.3.7.1-macosx-x64.tar.gz"
+      src "https://d3pxv6yz143wms.cloudfront.net/11.0.5.10.1/amazon-corretto-11.0.5.10.1-macosx-x64.tar.gz"
       dest "${workDir}/OpenJDK11.tar.gz"
     }
     copy {
@@ -274,7 +274,7 @@ class CreateWinTarget extends DefaultTask {
       into project.file("${workDir}/OpenJDK11")
     }
     project.copy {
-      from project.file("${workDir}/OpenJDK11/jdk11.0.3_7")
+      from project.file("${workDir}/OpenJDK11/jdk11.0.5_10")
       into project.file("${targetDir}/OpenJDK11")
     }
   }
@@ -283,7 +283,7 @@ class CreateWinTarget extends DefaultTask {
 task createWin64Target(type: CreateWinTarget, dependsOn: ['jar', 'downloadLicenses']) {
   workDir   = project.ext.pathWin64WorkDir
   targetDir = project.ext.pathWin64Target
-  jdkUrl    = 'https://d3pxv6yz143wms.cloudfront.net/11.0.3.7.1/amazon-corretto-11.0.3.7.1-windows-x64.zip'
+  jdkUrl    = 'https://d3pxv6yz143wms.cloudfront.net/11.0.5.10.1/amazon-corretto-11.0.5.10.1-windows-x64.zip'
 }
 
 task preIzpack {
