@@ -20,6 +20,9 @@
 /***/*.class
 /***/.DS_Store
 
+# jenv
+.java-version
+
 # dena internal
 /dena/
 /denaN/
