@@ -52,7 +52,16 @@ public class Https {
 	public static ServerSocket createServerSSLSocket(int listen_port, String commonName, CA ca) throws Exception {
 		SSLContext sslContext = createSSLContext(commonName, ca);
 		ServerSocketFactory ssf = sslContext.getServerSocketFactory();
-		return ssf.createServerSocket(listen_port);
+		return (SSLServerSocket) ssf.createServerSocket(listen_port);
+	}
+
+	public static ServerSocket createServerSSLSocket(int listen_port, String commonName, CA ca, String ApplicationProtocol) throws Exception {
+		SSLServerSocket serverSocket = (SSLServerSocket)createServerSSLSocket(listen_port, commonName, ca);
+		SSLParameters sslp = serverSocket.getSSLParameters();
+		String[] serverAPs ={ ApplicationProtocol };
+		sslp.setApplicationProtocols(serverAPs);
+		serverSocket.setSSLParameters(sslp);
+		return serverSocket;
 	}
 
 	public static Socket convertToServerSSLSocket(Socket socket, String commonName, CA ca) throws Exception {
@@ -63,11 +72,29 @@ public class Https {
 		return ssl_socket;
 	}
 
+	public static Socket convertToServerSSLSocket(Socket socket, String commonName, CA ca, String ApplicationProtocol) throws Exception {
+		SSLSocket ssl_socket = (SSLSocket)convertToServerSSLSocket(socket, commonName, ca);
+		SSLParameters sslp = ssl_socket.getSSLParameters();
+		String[] serverAPs ={ ApplicationProtocol };
+		sslp.setApplicationProtocols(serverAPs);
+		ssl_socket.setSSLParameters(sslp);
+		return ssl_socket;
+	}
+
 	public static SSLSocket convertToServerSSLSocket(Socket socket, String commonName, CA ca, InputStream is) throws Exception {
 		SSLContext sslContext = createSSLContext(commonName, ca);
 		SSLSocketFactory ssf = sslContext.getSocketFactory();
 		SSLSocket ssl_socket  = (SSLSocket)ssf.createSocket(socket, is, true);
 		ssl_socket.setUseClientMode(false);
+		return ssl_socket;
+	}
+
+	public static SSLSocket convertToServerSSLSocket(Socket socket, String commonName, CA ca, InputStream is, String ApplicationProtocol) throws Exception {
+		SSLSocket ssl_socket  = (SSLSocket)convertToServerSSLSocket(socket, commonName, ca, is);
+		SSLParameters sslp = ssl_socket.getSSLParameters();
+		String[] serverAPs ={ ApplicationProtocol };
+		sslp.setApplicationProtocols(serverAPs);
+		ssl_socket.setSSLParameters(sslp);
 		return ssl_socket;
 	}
 
@@ -115,12 +142,24 @@ public class Https {
 
 	public static SSLSocket convertToClientSSLSocket(Socket socket) throws Exception {
 		SSLSocketFactory ssf = createSSLSocketFactory();
-		return (SSLSocket) ssf.createSocket(socket, null, socket.getPort(), false);
+		SSLSocket sock = (SSLSocket) ssf.createSocket(socket, null, socket.getPort(), false);
+		SSLParameters sslp = sock.getSSLParameters();
+		String[] clientAPs ={ "h2", "http/1.1", "http/1.0" };
+		sslp.setApplicationProtocols(clientAPs);
+		sock.setSSLParameters(sslp);
+		sock.startHandshake();
+		return sock;
 	}
 
 	public static SSLSocket createClientSSLSocket(InetSocketAddress addr) throws Exception {
 		SSLSocketFactory ssf = createSSLSocketFactory();
-		return (SSLSocket) ssf.createSocket(addr.getAddress(), addr.getPort());
+		SSLSocket sock = (SSLSocket) ssf.createSocket(addr.getAddress(), addr.getPort());
+		SSLParameters sslp = sock.getSSLParameters();
+		String[] clientAPs ={ "h2", "http/1.1", "http/1.0" };
+		sslp.setApplicationProtocols(clientAPs);
+		sock.setSSLParameters(sslp);
+		sock.startHandshake();
+		return sock;
 	}
 
 	public static SSLSocket createClientSSLSocket(InetSocketAddress addr, String SNIServerName) throws Exception {
@@ -132,11 +171,19 @@ public class Https {
 
 		SSLSocketFactory ssf = createSSLSocketFactory();
 		SSLSocket sock = (SSLSocket) ssf.createSocket(addr.getAddress(), addr.getPort());
+		SSLParameters sslp = sock.getSSLParameters();
+		String[] clientAPs ={ "h2", "http/1.1", "http/1.0" };
+		sslp.setApplicationProtocols(clientAPs);
+
+		// Populate the SSLSocket object with the SSLParameters object
+		// containing the ALPN values
+		sock.setSSLParameters(sslp);
 		List<SNIServerName> serverNames = new ArrayList<>();
 		serverNames.add(serverName);
 		SSLParameters params = sock.getSSLParameters();
 		params.setServerNames(serverNames);
 		sock.setSSLParameters(params);
+		sock.startHandshake();
 		return sock;
 	}
 

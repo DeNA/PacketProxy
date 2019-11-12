@@ -18,6 +18,7 @@ package packetproxy.common;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSocket;
 import packetproxy.http.Https;
 
@@ -50,4 +51,6 @@ public class SSLSocketEndpoint implements Endpoint
 	public String getName() {
 		return server_name;
 	}
+
+	public String getApplicationProtocol() { return this.socket.getApplicationProtocol();}
 }

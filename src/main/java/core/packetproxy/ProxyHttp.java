@@ -22,6 +22,7 @@ import java.util.List;
 import packetproxy.Simplex.SimplexEventAdapter;
 import packetproxy.common.Endpoint;
 import packetproxy.common.EndpointFactory;
+import packetproxy.common.SSLSocketEndpoint;
 import packetproxy.common.SocketEndpoint;
 import packetproxy.http.Http;
 import packetproxy.http.Https;
@@ -76,16 +77,22 @@ public class ProxyHttp extends Proxy
 								}
 
 								if (SSLPassThroughs.getInstance().includes(proxyHost, listen_info.getPort())) {
-									SocketEndpoint client_e = new SocketEndpoint(client);
 									SocketEndpoint server_e = new SocketEndpoint(http.getProxyAddr());
+									SocketEndpoint client_e = new SocketEndpoint(client);
 									DuplexAsync d = new DuplexAsync(client_e, server_e);
 									d.start();
 								} else {
-									Endpoint client_e = EndpointFactory.createClientEndpointFromHttp(client, http, listen_info.getCA().get()); // CAはPacketProxy側で発行するので、httpでも取得可能
 									Endpoint server_e = (listen_info.getServer() != null) ?
-										new HttpsProxySocketEndpoint(listen_info.getServer().getAddress(), http.getProxyAddr()) : // connect to upstream proxy TODO 非httpsの場合の対処
-										EndpointFactory.createServerEndpointFromHttp(http);
+											new HttpsProxySocketEndpoint(listen_info.getServer().getAddress(), http.getProxyAddr()) : // connect to upstream proxy TODO 非httpsの場合の対処
+											EndpointFactory.createServerEndpointFromHttp(http);
 									Server s = Servers.getInstance().queryByAddress(http.getProxyAddr());
+									Endpoint client_e;
+									if(server_e instanceof SSLSocketEndpoint){
+										client_e = EndpointFactory.createClientEndpointFromHttp(client, http, listen_info.getCA().get(), ((SSLSocketEndpoint) server_e).getApplicationProtocol());
+									}else{
+										client_e = EndpointFactory.createClientEndpointFromHttp(client, http, listen_info.getCA().get()); // CAはPacketProxy側で発行するので、httpでも取得可能
+									}
+
 									DuplexAsync d = (s != null) ?
 										DuplexFactory.createDuplexAsync(client_e, server_e, s.getEncoder()) :
 										DuplexFactory.createDuplexAsync(client_e, server_e, "HTTP");

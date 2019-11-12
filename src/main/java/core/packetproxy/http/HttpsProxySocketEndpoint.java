@@ -22,14 +22,16 @@ import java.net.Socket;
 import packetproxy.common.Endpoint;
 import packetproxy.common.Utils;
 
+import javax.net.ssl.SSLSocket;
+
 public class HttpsProxySocketEndpoint implements Endpoint {
-	Socket proxySocket;
+	SSLSocket proxySocket;
 	InputStream proxyIn;
 	OutputStream proxyOut;
 	String reqTmpl = "CONNECT %s:%d HTTP/1.1\r\nHost: %s\r\n\r\n";
 
 	public HttpsProxySocketEndpoint(InetSocketAddress proxyAddr, InetSocketAddress serverAddr) throws Exception {
-		proxySocket = new Socket();
+		proxySocket = (SSLSocket) new Socket();
 		proxySocket.connect(proxyAddr);
 
 		proxyOut = proxySocket.getOutputStream();
@@ -70,4 +72,6 @@ public class HttpsProxySocketEndpoint implements Endpoint {
 	public String getName() {
 		return null;
 	}
+
+	public String getApplicationProtocol(){ return this.proxySocket.getApplicationProtocol();}
 }

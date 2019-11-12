@@ -40,6 +40,21 @@ public class EndpointFactory
 			return new SocketEndpoint(socket);
 		}
 	}
+
+	public static Endpoint createClientEndpointFromHttp(Socket socket, Http http, CA ca, String TLSApplicationProtocol) throws Exception {
+		if (http.isProxySsl()) {
+			String proxyHost = http.getProxyHost();
+			Socket ssl_client = new Socket();
+			if(null==TLSApplicationProtocol){
+				ssl_client = Https.convertToServerSSLSocket(socket, proxyHost, ca);
+			}else{
+				ssl_client = Https.convertToServerSSLSocket(socket, proxyHost, ca, TLSApplicationProtocol);
+			}
+			return new SocketEndpoint(ssl_client);
+		} else {
+			return new SocketEndpoint(socket);
+		}
+	}
 	
 	public static Endpoint createClientEndpointFromSNIServerName(Socket socket, String serverName, CA ca, InputStream is) throws Exception {
 		Socket ssl_client = Https.convertToServerSSLSocket(socket, serverName, ca, is);
