@@ -129,7 +129,7 @@ abstract public class CA
 
 		/* SANの設定 */
 		ArrayList<ASN1Encodable> sans = new ArrayList<>();
-		sans.add(new GeneralName(GeneralName.dNSName, commonName));
+		sans.add(new GeneralName(GeneralName.dNSName, createCNforSAN(commonName)));
 		for (String domainName : domainNames) {
 			//System.out.println(domainName);
 			sans.add(new GeneralName(GeneralName.dNSName, domainName));
@@ -158,6 +158,10 @@ abstract public class CA
 	
 	protected String createSubject(String commonName) {
 		return String.format("C=PacketProxy, ST=PacketProxy, L=PacketProxy, O=PacketProxy, OU=PacketProxy, CN=%s", commonName);
+	}
+	
+	protected String createCNforSAN(String commonName) {
+		return commonName;
 	}
 
 	protected ContentSigner createSigner() throws Exception {
