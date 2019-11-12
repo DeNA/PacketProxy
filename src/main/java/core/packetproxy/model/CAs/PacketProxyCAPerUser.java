@@ -56,7 +56,35 @@ public class PacketProxyCAPerUser extends CA {
 		super.load(ksPath);
 	}
 	
-	public void generateKeyStore(String ksPath) throws Exception {
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public String getUTF8Name() {
+		return desc;
+	}
+
+	@Override
+	public String toString() {
+		return "PacketProxy per-user CA [name=" + name + ", desc=" + desc + "]";
+	}
+
+	@Override
+	public byte[] getCACertificate() {
+		try (InputStream input = new FileInputStream(ksPath)) {
+			KeyStore ks = KeyStore.getInstance("JKS");
+			ks.load(input, password);
+			Certificate caRoot = ks.getCertificate("root");
+			return caRoot.getEncoded();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	private void generateKeyStore(String ksPath) throws Exception {
 		KeyStore ks;
 		KeyPair CAKeyPair = super.genRSAKeyPair();
 		
@@ -115,39 +143,6 @@ public class PacketProxyCAPerUser extends CA {
 		newksfile.setReadable(true);
 		try (FileOutputStream fos = new FileOutputStream(ksPath)) {
 		    newks.store(fos, password);
-		}
-	}
-
-	@Override
-	public String getName() {
-		return name;
-	}
-
-	@Override
-	public String getUTF8Name() {
-		return desc;
-	}
-
-	@Override
-	public KeyStore createKeyStore(String commonName, String[] domainNames) throws Exception {
-		return super.createKeyStore(commonName, domainNames);
-	}
-
-	@Override
-	public String toString() {
-		return "PacketProxy per-user CA [name=" + name + ", desc=" + desc + "]";
-	}
-
-	@Override
-	public byte[] getCACertificate() {
-		try (InputStream input = new FileInputStream(ksPath)) {
-			KeyStore ks = KeyStore.getInstance("JKS");
-			ks.load(input, password);
-			Certificate caRoot = ks.getCertificate("root");
-			return caRoot.getEncoded();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
 		}
 	}
 }

@@ -15,8 +15,6 @@
  */
 package packetproxy.model.CAs;
 
-import java.security.KeyStore;
-
 import packetproxy.common.I18nString;
 
 public class SelfSignedCA extends CA {
@@ -36,11 +34,6 @@ public class SelfSignedCA extends CA {
 	@Override
 	public String getUTF8Name() {
 		return desc;
-	}
-
-	@Override
-	public KeyStore createKeyStore(String commonName, String[] domainNames) throws Exception {
-		return super.createKeyStore(commonName, domainNames);
 	}
 
 	@Override

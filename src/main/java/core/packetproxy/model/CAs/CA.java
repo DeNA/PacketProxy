@@ -101,7 +101,7 @@ abstract public class CA
 		cal.setTime(from);
 		cal.add(Calendar.YEAR, 3);
 		Date to = cal.getTime();
-		
+
 		/* Templateの設定 */
 		templateIssuer = caRootHolder.getSubject();
 		templateFrom = from;
@@ -109,18 +109,16 @@ abstract public class CA
 		templatePubKey = SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded());
 	}
 
-	private KeyStore sign(String commonName, String[] domainNames) throws Exception {
-
+	public KeyStore createKeyStore(String commonName, String[] domainNames) throws Exception {
 		/* シリアルナンバーの設定 */
 		MessageDigest digest = MessageDigest.getInstance("MD5");
 		byte[] hash = digest.digest(commonName.getBytes());
 		BigInteger templateSerial = new BigInteger(hash);
 
 		/* Subjectの設定 */
-		String subject = String.format("C=PacketProxy, ST=PacketProxy, L=PacketProxy, O=PacketProxy, OU=PacketProxy, CN=%s", commonName);
-		X500Name templateSubject =  new X500Name(subject);
-		
-		/* buidlerの生成 */
+		X500Name templateSubject =  new X500Name(createSubject(commonName));
+
+		/* Builderの生成 */
 		X509v3CertificateBuilder serverBuilder = new X509v3CertificateBuilder(
 				templateIssuer,
 				templateSerial,
@@ -128,7 +126,7 @@ abstract public class CA
 				templateTo,
 				templateSubject,
 				templatePubKey);
-		
+
 		/* SANの設定 */
 		ArrayList<ASN1Encodable> sans = new ArrayList<>();
 		sans.add(new GeneralName(GeneralName.dNSName, commonName));
@@ -139,30 +137,33 @@ abstract public class CA
 		DERSequence subjectAlternativeNames = new DERSequence(sans.toArray(new ASN1Encodable[sans.size()]));
 		serverBuilder.addExtension(Extension.subjectAlternativeName, false, subjectAlternativeNames);
 
-		// CA: Template: 署名
-        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
-        AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
-        ContentSigner signer = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(PrivateKeyFactory.createKey(keyStoreCAPrivateKey.getEncoded()));
-        X509CertificateHolder serverHolder = serverBuilder.build(signer);
+		// 署名
+		X509CertificateHolder serverHolder = serverBuilder.build(createSigner());
 
 		/* 新しいKeyStoreを作成 */
 		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
 		KeyStore ks = KeyStore.getInstance("JKS");
 		ks.load(null, password);
 		ks.setKeyEntry(
-			aliasServer,
-			keyPair.getPrivate(),
-			password,
-			new java.security.cert.Certificate[] {
-			certFactory.generateCertificate(new ByteArrayInputStream(serverHolder.getEncoded())),
-			certFactory.generateCertificate(new ByteArrayInputStream(caRootHolder.getEncoded()))
-		});
+				aliasServer,
+				keyPair.getPrivate(),
+				password,
+				new java.security.cert.Certificate[] {
+						certFactory.generateCertificate(new ByteArrayInputStream(serverHolder.getEncoded())),
+						certFactory.generateCertificate(new ByteArrayInputStream(caRootHolder.getEncoded()))
+				});
 
 		return ks;
 	}
+	
+	protected String createSubject(String commonName) {
+		return String.format("C=PacketProxy, ST=PacketProxy, L=PacketProxy, O=PacketProxy, OU=PacketProxy, CN=%s", commonName);
+	}
 
-	public KeyStore createKeyStore(String commonName, String[] domainNames) throws Exception {
-		return sign(commonName, domainNames);
+	protected ContentSigner createSigner() throws Exception {
+		AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
+		AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
+		return new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(PrivateKeyFactory.createKey(keyStoreCAPrivateKey.getEncoded()));
 	}
 
 	public String getName() {
@@ -176,7 +177,8 @@ abstract public class CA
 	public String toString() {
 		return "Unknown CA";
 	}
-	
+
+	// export可能なCAのとき、継承して実装すること
 	public byte[] getCACertificate() {
 		return null;
 	}
