@@ -75,7 +75,7 @@ public class Https {
 	public static Socket convertToServerSSLSocket(Socket socket, String commonName, CA ca, String ApplicationProtocol) throws Exception {
 		SSLSocket ssl_socket = (SSLSocket)convertToServerSSLSocket(socket, commonName, ca);
 		SSLParameters sslp = ssl_socket.getSSLParameters();
-		String[] serverAPs ={ ApplicationProtocol };
+		String[] serverAPs = new String[]{ApplicationProtocol} ;
 		sslp.setApplicationProtocols(serverAPs);
 		ssl_socket.setSSLParameters(sslp);
 		return ssl_socket;
@@ -175,8 +175,6 @@ public class Https {
 		String[] clientAPs ={ "h2", "http/1.1", "http/1.0" };
 		sslp.setApplicationProtocols(clientAPs);
 
-		// Populate the SSLSocket object with the SSLParameters object
-		// containing the ALPN values
 		sock.setSSLParameters(sslp);
 		List<SNIServerName> serverNames = new ArrayList<>();
 		serverNames.add(serverName);

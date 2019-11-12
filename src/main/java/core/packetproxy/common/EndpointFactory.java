@@ -45,7 +45,7 @@ public class EndpointFactory
 		if (http.isProxySsl()) {
 			String proxyHost = http.getProxyHost();
 			Socket ssl_client = new Socket();
-			if(null==TLSApplicationProtocol){
+			if(null==TLSApplicationProtocol || "".equals(TLSApplicationProtocol)){
 				ssl_client = Https.convertToServerSSLSocket(socket, proxyHost, ca);
 			}else{
 				ssl_client = Https.convertToServerSSLSocket(socket, proxyHost, ca, TLSApplicationProtocol);
