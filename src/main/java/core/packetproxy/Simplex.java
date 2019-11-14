@@ -27,6 +27,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import javax.net.ssl.SSLException;
 import javax.swing.event.EventListenerList;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -155,10 +156,11 @@ class Simplex extends Thread
 				int ret;
 				try {
 					ret = in.read(input_data);
+				} catch (SSLException e) {
+					//System.err.println(String.format("SSLException: %s", e.getMessage()));
+					ret = -1;	// should be finished
 				} catch (SocketException e) {
-					e.printStackTrace ();
-					/* comment this out just for now until the log tab ported on the decent data structure, not just plaintext */
-					//util.packetProxyLogErrWithStackTrace(e);
+					//System.err.println(String.format("SocketException: %s", e.getMessage()));
 					ret = -1;	// should be finished
 				}
 				return ret;
@@ -213,11 +215,13 @@ class Simplex extends Thread
 				e1.printStackTrace();
 				util.packetProxyLogErrWithStackTrace(e);
 			}
+		} catch (SSLException e) {
+			//System.err.println(String.format("SSLException: %s", e.getMessage()));
+		} catch (SocketException e) {
+			//System.err.println(String.format("SocketException: %s", e.getMessage()));
 		} catch (Exception e) {
-			if(!(e instanceof SocketException)) {
-				e.printStackTrace();
-				util.packetProxyLogErrWithStackTrace(e);
-			}
+			e.printStackTrace();
+			util.packetProxyLogErrWithStackTrace(e);
 		} finally {
 			executor.shutdownNow();
 			if (flag_close) {
