@@ -204,6 +204,7 @@ public class GUIOption
 		});
 		caPanel.add(ca_combo);
 		caPanel.add(b);
+		caPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, caPanel.getMaximumSize().height));
 		caPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
 		panel.add(caPanel);
