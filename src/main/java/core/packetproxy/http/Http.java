@@ -180,11 +180,11 @@ public class Http
 	//		return flag_https;
 	//	}
 
-	public String getProxyHost() {
+	public String getServerName() {
 		return proxyHost;
 	}
 
-	public int getProxyPort() {
+	public int getServerPort() {
 		return proxyPort;
 	}
 
@@ -297,8 +297,8 @@ public class Http
 			//String query = (getQuery() != null && getQuery().length() > 0) ? "?"+URLEncoder.encode(getQuery(),"utf-8") : "";
 			String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?"+getQueryAsString() : "";
 			if (this.isProxy() && this.flag_disable_proxy_format_url == false) {
-				String proxyPort = (getProxyPort() > 0) ? ":"+String.valueOf(getProxyPort()) : "";
-				statusLine = String.format("%s http://%s%s%s%s %s", this.method, getProxyHost(), proxyPort, getPath(), query, this.version);
+				String proxyPort = (getServerPort() > 0) ? ":"+String.valueOf(getServerPort()) : "";
+				statusLine = String.format("%s http://%s%s%s%s %s", this.method, getServerName(), proxyPort, getPath(), query, this.version);
 			} else {
 				statusLine = String.format("%s %s%s %s", this.method, this.path, query, this.version);
 			}
@@ -487,7 +487,7 @@ public class Http
 		return null;
 	}
 
-	public InetSocketAddress getProxyAddr() {
+	public InetSocketAddress getServerAddr() {
 		return new InetSocketAddress(proxyHost, proxyPort);
 	}
 

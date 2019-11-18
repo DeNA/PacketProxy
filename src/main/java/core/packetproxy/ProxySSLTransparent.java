@@ -141,11 +141,11 @@ public class ProxySSLTransparent extends Proxy
 				String serverName = new String(serverE.getEncoded()); // 接続先サーバを取得
 				PacketProxyUtility.getInstance().packetProxyLog(String.format("[SSL-forward! using SNI] %s", serverName));
 				ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, position);
-				Endpoint client_e = EndpointFactory.createClientEndpointFromSNIServerName(client, serverName, listen_info.getCA().get(), bais);
+				
 				Server server = Servers.getInstance().queryByHostNameAndPort(serverName, 443);
-				Endpoint server_e = server != null ? EndpointFactory.createFromServer(server) : EndpointFactory.createSSLFromName(serverName);
-
-				createConnection(client_e, server_e, server);
+				InetSocketAddress serverAddr = (server != null ? server.getAddress() : new InetSocketAddress(serverName, 443));
+				Endpoint[] eps = EndpointFactory.createBothSideSSLEndpoints(client, bais, serverAddr, null, serverName, listen_info.getCA().get());
+				createConnection(eps[0], eps[1], server);
 			}
 		}
 	}

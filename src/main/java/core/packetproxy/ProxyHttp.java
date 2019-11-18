@@ -23,11 +23,9 @@ import java.util.List;
 import packetproxy.Simplex.SimplexEventAdapter;
 import packetproxy.common.Endpoint;
 import packetproxy.common.EndpointFactory;
-import packetproxy.common.SSLSocketEndpoint;
 import packetproxy.common.SocketEndpoint;
 import packetproxy.http.Http;
 import packetproxy.http.Https;
-import packetproxy.http.HttpsProxySocketEndpoint;
 import packetproxy.model.ListenPort;
 import packetproxy.model.SSLPassThroughs;
 import packetproxy.model.Server;
@@ -67,7 +65,7 @@ public class ProxyHttp extends Proxy
 						synchronized (client_loopback) {
 
 							Http http = new Http(data);
-							System.out.println(String.format("%s: %s:%s", http.getMethod(), http.getProxyHost(), http.getProxyPort()));
+							System.out.println(String.format("%s: %s:%s", http.getMethod(), http.getServerName(), http.getServerPort()));
 
 							if (http.getMethod().equals("CONNECT")) {
 
@@ -75,34 +73,35 @@ public class ProxyHttp extends Proxy
 								// そのため、早めに「connection established」を返すことで、早めにSSLハンドシェイクを実施できるよう準備する。
 								client_loopback.sendWithoutRecording("HTTP/1.0 200 Connection Established\r\n\r\n".getBytes());
 									
-								String proxyHost = http.getProxyHost();
-								if (proxyHost.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")) {
-									proxyHost = Https.getCommonName(http.getProxyAddr());
-									util.packetProxyLog(String.format("Overwrite CN: %s --> %s", http.getProxyHost(), proxyHost));
+								String serverName = http.getServerName();
+								if (serverName.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")) {
+									serverName = Https.getCommonName(http.getServerAddr());
+									util.packetProxyLog(String.format("Overwrite CN: %s --> %s", http.getServerName(), serverName));
 								}
 
-								if (SSLPassThroughs.getInstance().includes(proxyHost, listen_info.getPort())) {
-									SocketEndpoint server_e = new SocketEndpoint(http.getProxyAddr());
+								if (SSLPassThroughs.getInstance().includes(serverName, listen_info.getPort())) {
+									SocketEndpoint server_e = new SocketEndpoint(http.getServerAddr());
 									SocketEndpoint client_e = new SocketEndpoint(client);
 									DuplexAsync d = new DuplexAsync(client_e, server_e);
 									d.start();
 
 								} else {
-									Endpoint server_e = (listen_info.getServer() != null) ?
-											new HttpsProxySocketEndpoint(listen_info.getServer().getAddress(), http.getProxyAddr()) : // connect to upstream proxy TODO 非httpsの場合の対処
-											EndpointFactory.createServerEndpointFromHttp(http);
-									Server s = Servers.getInstance().queryByAddress(http.getProxyAddr());
-
-									Endpoint client_e;
-									if (server_e instanceof SSLSocketEndpoint) {
-										client_e = EndpointFactory.createClientEndpointFromHttp(client, http, listen_info.getCA().get(), ((SSLSocketEndpoint) server_e).getApplicationProtocol());
-									} else {
-										client_e = EndpointFactory.createClientEndpointFromHttp(client, http, listen_info.getCA().get()); // CAはPacketProxy側で発行するので、httpでも取得可能
+									Endpoint clientE;
+									Endpoint serverE;
+									if (listen_info.getServer() != null) { // upstream proxyに接続する時
+										Endpoint[] es = EndpointFactory.createBothSideSSLEndpoints(client, null, http.getServerAddr(), listen_info.getServer().getAddress(), http.getServerName(), listen_info.getCA().get());
+										clientE = es[0];
+										serverE = es[1];
+									} else { // 直接サーバに接続する時
+										Endpoint[] es = EndpointFactory.createBothSideSSLEndpoints(client, null, http.getServerAddr(), null, http.getServerName(), listen_info.getCA().get());
+										clientE = es[0];
+										serverE = es[1];
 									}
 
+									Server s = Servers.getInstance().queryByAddress(http.getServerAddr());
 									DuplexAsync d = (s != null) ?
-										DuplexFactory.createDuplexAsync(client_e, server_e, s.getEncoder()) :
-										DuplexFactory.createDuplexAsync(client_e, server_e, "HTTP");
+										DuplexFactory.createDuplexAsync(clientE, serverE, s.getEncoder()) :
+										DuplexFactory.createDuplexAsync(clientE, serverE, "HTTP");
 									d.start();
 								}
 
@@ -118,11 +117,11 @@ public class ProxyHttp extends Proxy
 									server_e = new SocketEndpoint(next.getAddress());
 								} else {
 									http.disableProxyFormatUrl(); // direct connect!
-									Server s = Servers.getInstance().queryByAddress(http.getProxyAddr());
+									Server s = Servers.getInstance().queryByAddress(http.getServerAddr());
 									if (s != null) {
 										server_e = EndpointFactory.createFromServer(s);
 									} else {
-										server_e = new SocketEndpoint(http.getProxyAddr());
+										server_e = new SocketEndpoint(http.getServerAddr());
 									}
 								}
 
