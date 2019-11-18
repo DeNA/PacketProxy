@@ -15,26 +15,35 @@
  */
 package packetproxy.http2;
 
-import com.google.re2j.Matcher;
-import com.google.re2j.Pattern;
-import org.apache.commons.collections4.map.MultiValueMap;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import packetproxy.common.Binary;
-import packetproxy.common.Parameter;
-import packetproxy.common.Utils;
-import packetproxy.util.PacketProxyUtility;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
+import org.apache.commons.collections4.map.MultiValueMap;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
+
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
+
+import packetproxy.common.Binary;
+import packetproxy.common.Parameter;
+import packetproxy.common.Utils;
+import packetproxy.http.HttpHeader;
+import packetproxy.http.QueryString;
+import packetproxy.util.PacketProxyUtility;
 
 public class Http2
 {

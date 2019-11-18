@@ -15,8 +15,6 @@
  */
 package packetproxy.http;
 
-import com.google.re2j.Matcher;
-import com.google.re2j.Pattern;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -28,13 +26,32 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.net.ServerSocketFactory;
-import javax.net.ssl.*;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SNIHostName;
+import javax.net.ssl.SNIServerName;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.X509KeyManager;
+import javax.net.ssl.X509TrustManager;
+
+import org.msgpack.jackson.dataformat.Tuple;
+
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
+
 import packetproxy.CertCacheManager;
 import packetproxy.common.ClientKeyManager;
-import packetproxy.model.CAs.CA;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
+import packetproxy.model.CAs.CA;
 
 public class Https {
 	private static final char[] KS_PASS = "testtest".toCharArray();
@@ -63,21 +80,75 @@ public class Https {
 		serverSocket.setSSLParameters(sslp);
 		return serverSocket;
 	}
-
-	public static Socket convertToServerSSLSocket(Socket socket, String commonName, CA ca) throws Exception {
-		SSLContext sslContext = createSSLContext(commonName, ca);
+	
+	/*
+	 * SSLSocket client は Socketから生成
+	 * SSLSocket server は InetSocketAddressから生成
+	 */
+	public static Tuple<SSLSocket, SSLSocket> createClientAndServerSSLSocket(Socket clientSocket, InetSocketAddress serverAddr, String serverName, CA ca) throws Exception {
+		SSLContext sslContext = createSSLContext(serverName, ca);
 		SSLSocketFactory ssf = sslContext.getSocketFactory();
-		SSLSocket ssl_socket  = (SSLSocket)ssf.createSocket(socket, null, socket.getPort(), false);
-		ssl_socket.setUseClientMode(false);
-		return ssl_socket;
+		SSLSocket clientSSLSocket  = (SSLSocket)ssf.createSocket(clientSocket, null, true);
+		clientSSLSocket.setUseClientMode(false);
+
+		SSLSocket[] serverSSLSocket = new SSLSocket[1];
+
+		clientSSLSocket.setHandshakeApplicationProtocolSelector((serverSocket, clientProtocols) -> {
+			try {
+				serverSSLSocket[0] = (SSLSocket) SSLSocketFactory.getDefault().createSocket(serverAddr.getAddress(), serverAddr.getPort());
+				SSLParameters sp = serverSSLSocket[0].getSSLParameters();
+				sp.setApplicationProtocols(clientProtocols.toArray(new String[clientProtocols.size()]));
+				serverSSLSocket[0].setSSLParameters(sp);
+				serverSSLSocket[0].startHandshake();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return serverSSLSocket[0].getApplicationProtocol();
+		});
+
+		return new Tuple<SSLSocket, SSLSocket>(clientSSLSocket, serverSSLSocket[0]);
 	}
 
-	public static Socket convertToServerSSLSocket(Socket socket, String commonName, CA ca, String ApplicationProtocol) throws Exception {
-		SSLSocket ssl_socket = (SSLSocket)convertToServerSSLSocket(socket, commonName, ca);
+	public static SSLSocket convertToServerSSLSocket(Socket socket, String commonName, CA ca) throws Exception {
+		SSLContext sslContext = createSSLContext(commonName, ca);
+		SSLSocketFactory ssf = sslContext.getSocketFactory();
+		SSLSocket ssl_socket  = (SSLSocket)ssf.createSocket(socket, null, true);
+		ssl_socket.setUseClientMode(false);
+
 		SSLParameters sslp = ssl_socket.getSSLParameters();
-		String[] serverAPs = new String[]{ApplicationProtocol} ;
+		String[] serverAPs ={ "h2", "http/1.1", "http/1.0" };
 		sslp.setApplicationProtocols(serverAPs);
 		ssl_socket.setSSLParameters(sslp);
+		
+
+		ssl_socket.setHandshakeApplicationProtocolSelector((serverSocket, clientProtocols) -> {
+			SSLSession session = serverSocket.getHandshakeSession();
+			for (String a: clientProtocols) {
+				System.out.println(String.format("hoge: %s", a));
+			}
+			System.out.println(String.format("hoge1: %s", session.getProtocol()));
+			System.out.println(String.format("hoge1: %s", session.getCipherSuite()));
+			
+			// 接続先サーバにアクセスすることで、実際のALPNを決定する
+			String ret = "";
+			try {
+				SSLSocket s = (SSLSocket) SSLSocketFactory.getDefault().createSocket(commonName, 443);
+				SSLParameters sp = s.getSSLParameters();
+				sp.setApplicationProtocols(clientProtocols.toArray(new String[clientProtocols.size()]));
+				s.setSSLParameters(sp);
+				s.startHandshake();
+				ret = s.getApplicationProtocol();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			System.out.println(String.format("hoge2: %s", ret));
+			
+			return ret;
+		});
+
+		ssl_socket.startHandshake();
+
+		System.out.println(ssl_socket.getApplicationProtocol());
 		return ssl_socket;
 	}
 
@@ -86,15 +157,14 @@ public class Https {
 		SSLSocketFactory ssf = sslContext.getSocketFactory();
 		SSLSocket ssl_socket  = (SSLSocket)ssf.createSocket(socket, is, true);
 		ssl_socket.setUseClientMode(false);
-		return ssl_socket;
-	}
 
-	public static SSLSocket convertToServerSSLSocket(Socket socket, String commonName, CA ca, InputStream is, String ApplicationProtocol) throws Exception {
-		SSLSocket ssl_socket  = (SSLSocket)convertToServerSSLSocket(socket, commonName, ca, is);
 		SSLParameters sslp = ssl_socket.getSSLParameters();
-		String[] serverAPs ={ ApplicationProtocol };
+		String[] serverAPs ={ "h2", "http/1.1", "http/1.0" };
 		sslp.setApplicationProtocols(serverAPs);
 		ssl_socket.setSSLParameters(sslp);
+
+		ssl_socket.startHandshake();
+		System.out.println(ssl_socket.getApplicationProtocol());
 		return ssl_socket;
 	}
 

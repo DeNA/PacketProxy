@@ -19,6 +19,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+
 import packetproxy.Simplex.SimplexEventAdapter;
 import packetproxy.common.Endpoint;
 import packetproxy.common.EndpointFactory;
@@ -52,7 +53,7 @@ public class ProxyHttp extends Proxy
 				final Socket client = listen_socket.accept();
 				clients.add(client);
 				util.packetProxyLog("accept");
-
+				
 				final Simplex client_loopback = new Simplex(client.getInputStream(), client.getOutputStream());
 
 				client_loopback.addSimplexEventListener(new SimplexEventAdapter() {
@@ -66,9 +67,13 @@ public class ProxyHttp extends Proxy
 						synchronized (client_loopback) {
 
 							Http http = new Http(data);
-							//System.out.println(String.format("%s: %s:%s", http.getMethod(), http.getProxyHost(), http.getProxyPort()));
+							System.out.println(String.format("%s: %s:%s", http.getMethod(), http.getProxyHost(), http.getProxyPort()));
 
 							if (http.getMethod().equals("CONNECT")) {
+
+								// HTTP2対応の都合上、ALPNを早期に確定する必要がある。
+								// そのため、早めに「connection established」を返すことで、早めにSSLハンドシェイクを実施できるよう準備する。
+								client_loopback.sendWithoutRecording("HTTP/1.0 200 Connection Established\r\n\r\n".getBytes());
 									
 								String proxyHost = http.getProxyHost();
 								if (proxyHost.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")) {
@@ -81,15 +86,17 @@ public class ProxyHttp extends Proxy
 									SocketEndpoint client_e = new SocketEndpoint(client);
 									DuplexAsync d = new DuplexAsync(client_e, server_e);
 									d.start();
+
 								} else {
 									Endpoint server_e = (listen_info.getServer() != null) ?
 											new HttpsProxySocketEndpoint(listen_info.getServer().getAddress(), http.getProxyAddr()) : // connect to upstream proxy TODO 非httpsの場合の対処
 											EndpointFactory.createServerEndpointFromHttp(http);
 									Server s = Servers.getInstance().queryByAddress(http.getProxyAddr());
+
 									Endpoint client_e;
-									if(server_e instanceof SSLSocketEndpoint){
+									if (server_e instanceof SSLSocketEndpoint) {
 										client_e = EndpointFactory.createClientEndpointFromHttp(client, http, listen_info.getCA().get(), ((SSLSocketEndpoint) server_e).getApplicationProtocol());
-									}else{
+									} else {
 										client_e = EndpointFactory.createClientEndpointFromHttp(client, http, listen_info.getCA().get()); // CAはPacketProxy側で発行するので、httpでも取得可能
 									}
 
@@ -99,7 +106,6 @@ public class ProxyHttp extends Proxy
 									d.start();
 								}
 
-								result = "HTTP/1.0 200 Connection Established\r\n\r\n".getBytes();
 								client_loopback.finishWithoutClose();
 
 							} else if (http.isProxy()) {
