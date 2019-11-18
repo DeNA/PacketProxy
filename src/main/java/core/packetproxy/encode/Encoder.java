@@ -30,6 +30,18 @@ public abstract class Encoder
 	public abstract byte[] decodeClientRequest(byte[] input_data) throws Exception;
 	public abstract byte[] encodeClientRequest(byte[] input_data) throws Exception;
 	
+	protected byte[] clientInputData;
+	protected byte[] serverInputData;
+	/* 溜める */
+	public void clientRequestArrived(byte[] input_data) throws Exception { this.clientInputData = input_data; }
+	public void serverResponseArrived(byte[] input_data) throws Exception { this.serverInputData = input_data; }
+	/* 画面に表示せず、送信パターン (画面に表示したくないコントロールデータの送信をしたいとき利用) */
+	public byte[] passThroughClientRequest() throws Exception { return null; }
+	public byte[] passThroughServerResponse() throws Exception { return null; }
+	/* 画面に表示せず、送信しないパターン (まだデータが溜まっていない状態が存在するとき利用) */
+	public byte[] clientRequestAvailable() throws Exception { return clientInputData; }
+	public byte[] serverResponseAvailable() throws Exception { return serverInputData; }
+	
 	/**
 	 * 再送するときに、新しいコネクションを利用するか、それとも既存のコネクションを利用するかの使い分け
 	 * true: 新しいコネクションを利用する (Default)

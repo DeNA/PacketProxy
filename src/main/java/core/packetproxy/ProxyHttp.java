@@ -23,6 +23,7 @@ import java.util.List;
 import packetproxy.Simplex.SimplexEventAdapter;
 import packetproxy.common.Endpoint;
 import packetproxy.common.EndpointFactory;
+import packetproxy.common.SSLSocketEndpoint;
 import packetproxy.common.SocketEndpoint;
 import packetproxy.http.Http;
 import packetproxy.http.Https;
@@ -65,7 +66,7 @@ public class ProxyHttp extends Proxy
 						synchronized (client_loopback) {
 
 							Http http = new Http(data);
-							System.out.println(String.format("%s: %s:%s", http.getMethod(), http.getServerName(), http.getServerPort()));
+							//System.out.println(String.format("%s: %s:%s", http.getMethod(), http.getServerName(), http.getServerPort()));
 
 							if (http.getMethod().equals("CONNECT")) {
 
@@ -86,22 +87,32 @@ public class ProxyHttp extends Proxy
 									d.start();
 
 								} else {
-									Endpoint clientE;
-									Endpoint serverE;
+									SSLSocketEndpoint clientE;
+									SSLSocketEndpoint serverE;
 									if (listen_info.getServer() != null) { // upstream proxyに接続する時
-										Endpoint[] es = EndpointFactory.createBothSideSSLEndpoints(client, null, http.getServerAddr(), listen_info.getServer().getAddress(), http.getServerName(), listen_info.getCA().get());
+										SSLSocketEndpoint[] es = EndpointFactory.createBothSideSSLEndpoints(client, null, http.getServerAddr(), listen_info.getServer().getAddress(), http.getServerName(), listen_info.getCA().get());
 										clientE = es[0];
 										serverE = es[1];
 									} else { // 直接サーバに接続する時
-										Endpoint[] es = EndpointFactory.createBothSideSSLEndpoints(client, null, http.getServerAddr(), null, http.getServerName(), listen_info.getCA().get());
+										SSLSocketEndpoint[] es = EndpointFactory.createBothSideSSLEndpoints(client, null, http.getServerAddr(), null, http.getServerName(), listen_info.getCA().get());
 										clientE = es[0];
 										serverE = es[1];
 									}
 
-									Server s = Servers.getInstance().queryByAddress(http.getServerAddr());
-									DuplexAsync d = (s != null) ?
-										DuplexFactory.createDuplexAsync(clientE, serverE, s.getEncoder()) :
-										DuplexFactory.createDuplexAsync(clientE, serverE, "HTTP");
+									DuplexAsync d;
+									Server serverSetting = Servers.getInstance().queryByAddress(http.getServerAddr());
+									if (serverSetting != null) {
+										d = DuplexFactory.createDuplexAsync(clientE, serverE, serverSetting.getEncoder());
+									} else {
+										String alpn = clientE.getApplicationProtocol();
+										if (alpn.equals("h2")) {
+											d = DuplexFactory.createDuplexAsync(clientE, serverE, "HTTP2");
+										} else if (alpn.equals("http/1.1") || alpn.equals("http/1.0")) {
+											d = DuplexFactory.createDuplexAsync(clientE, serverE, "HTTP");
+										} else {
+											d = DuplexFactory.createDuplexAsync(clientE, serverE, "Sample");
+										}
+									}
 									d.start();
 								}
 
