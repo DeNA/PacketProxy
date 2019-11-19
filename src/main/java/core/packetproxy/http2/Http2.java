@@ -15,13 +15,14 @@
  */
 package packetproxy.http2;
 
+import java.io.ByteArrayOutputStream;
+
 public class Http2
 {
 	/**
 	 *  バイト列から1フレームを切り出す
 	 */
 	public static int parseFrameDelimiter(byte[] data) throws Exception {
-		/* 未実装 */
 		return data.length;
 	}
 
@@ -37,7 +38,12 @@ public class Http2
 		return http;
 	}
 	
+	private ByteArrayOutputStream clientStream;
+	private ByteArrayOutputStream serverStream;
+	
 	public Http2() throws Exception {
+		clientStream = new ByteArrayOutputStream();
+		serverStream = new ByteArrayOutputStream();
 	}
 	
 	/**
@@ -45,8 +51,10 @@ public class Http2
 	 * 本モジュールは、フレームを解析しストリームとして管理する。
 	 */
 	public void writeClientFrame(byte[] frame) throws Exception {
+		clientStream.write(frame);
 	}
 	public void writeServerFrame(byte[] frame) throws Exception {
+		serverStream.write(frame);
 	}
 	
 	/**
@@ -67,9 +75,13 @@ public class Http2
 	 * ユーザは、framesToHttp()を使ってHttpに戻しGUIに表示し、httpToFramesにより元に戻してサーバに送信することになる。
 	 */
 	public byte[] readClientFrames() throws Exception {
-		return null;
+		byte[] data = clientStream.toByteArray();
+		clientStream.reset();
+		return data;
 	}
 	public byte[] readServerFrames() throws Exception {
-		return null;
+		byte[] data = serverStream.toByteArray();
+		serverStream.reset();
+		return data;
 	}
 }

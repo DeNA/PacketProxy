@@ -26,6 +26,12 @@ public abstract class Duplex {
 	{
 		public int onClientPacketReceived(byte[] data) throws Exception;
 		public int onServerPacketReceived(byte[] data) throws Exception;
+		public void onClientChunkArrived(byte[] data) throws Exception;
+		public void onServerChunkArrived(byte[] data) throws Exception;
+		public byte[] onClientChunkPassThrough() throws Exception;
+		public byte[] onServerChunkPassThrough() throws Exception;
+		public byte[] onClientChunkAvailable() throws Exception;
+		public byte[] onServerChunkAvailable() throws Exception;
 		public byte[] onClientChunkReceived(byte[] data) throws Exception;
 		public byte[] onServerChunkReceived(byte[] data) throws Exception;
 		public byte[] onClientChunkSend(byte[] data) throws Exception;
@@ -39,6 +45,18 @@ public abstract class Duplex {
 		public int onClientPacketReceived(byte[] data) throws Exception { return data.length; }
 		@Override
 		public int onServerPacketReceived(byte[] data) throws Exception { return data.length; }
+		@Override
+		public void onClientChunkArrived(byte[] data) throws Exception {};
+		@Override
+		public void onServerChunkArrived(byte[] data) throws Exception {};
+		@Override
+		public byte[] onClientChunkPassThrough() throws Exception { return null; }
+		@Override
+		public byte[] onServerChunkPassThrough() throws Exception { return null; }
+		@Override
+		public byte[] onClientChunkAvailable() throws Exception { return null; }
+		@Override
+		public byte[] onServerChunkAvailable() throws Exception { return null; }
 		@Override
 		public byte[] onClientChunkReceived(byte[] data) throws Exception { return data; }
 		@Override
@@ -84,6 +102,58 @@ public abstract class Duplex {
 			return listener.onServerPacketReceived(data);
 		}
 		return data.length;
+	}
+	public void callOnClientChunkArrived(byte[] data) throws Exception {
+		if (isEnabledDuplexEventListener() == false) {
+			return;
+		}
+		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+			listener.onClientChunkArrived(data);
+		}
+	}
+	public void callOnServerChunkArrived(byte[] data) throws Exception {
+		if (isEnabledDuplexEventListener() == false) {
+			return;
+		}
+		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+			listener.onServerChunkArrived(data);
+		}
+	}
+	public byte[] callOnClientChunkPassThrough() throws Exception {
+		if (isEnabledDuplexEventListener() == false) {
+			return null;
+		}
+		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+			return listener.onClientChunkPassThrough();
+		}
+		return null;
+	}
+	public byte[] callOnServerChunkPassThrough() throws Exception {
+		if (isEnabledDuplexEventListener() == false) {
+			return null;
+		}
+		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+			return listener.onServerChunkPassThrough();
+		}
+		return null;
+	}
+	public byte[] callOnClientChunkAvailable() throws Exception {
+		if (isEnabledDuplexEventListener() == false) {
+			return null;
+		}
+		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+			return listener.onClientChunkAvailable();
+		}
+		return null;
+	}
+	public byte[] callOnServerChunkAvailable() throws Exception {
+		if (isEnabledDuplexEventListener() == false) {
+			return null;
+		}
+		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+			return listener.onServerChunkAvailable();
+		}
+		return null;
 	}
 	public byte[] callOnClientChunkReceived(byte[] data) throws Exception {
 		if (isEnabledDuplexEventListener() == false) {

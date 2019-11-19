@@ -43,11 +43,21 @@ class Simplex extends Thread
 
 	protected EventListenerList simplexEventListenerList = new EventListenerList();
 	public interface SimplexEventListener extends EventListener {
+		public void onChunkArrived(byte[] data) throws Exception;
+		public byte[] onChunkPassThrough() throws Exception;
+		public byte[] onChunkAvailable() throws Exception;
 		public int onPacketReceived(byte[] data) throws Exception;
 		public byte[] onChunkReceived(byte[] data) throws Exception;
 		public byte[] onChunkSend(byte[] data) throws Exception;
 	}
 	public abstract static class SimplexEventAdapter implements SimplexEventListener {
+		ByteArrayOutputStream inputData = new ByteArrayOutputStream();
+		@Override
+		public void onChunkArrived(byte[] data) throws Exception { inputData.write(data); }
+		@Override
+		public byte[] onChunkPassThrough() throws Exception { return null; }
+		@Override
+		public byte[] onChunkAvailable() throws Exception { byte[] ret = inputData.toByteArray(); inputData.reset(); return ret; }
 		@Override
 		public int onPacketReceived(byte[] data) throws Exception { return data.length; }
 		@Override
@@ -75,6 +85,32 @@ class Simplex extends Thread
 			return listener.onPacketReceived(data);
 		}
 		return data.length;
+	}
+	public void callOnChunkArrived(byte[] data) throws Exception {
+		if (!isEnabledSimplexEvent()) {
+			return;
+		}
+		for (SimplexEventListener listener: simplexEventListenerList.getListeners(SimplexEventListener.class)) {
+			listener.onChunkArrived(data);
+		}
+	}
+	public byte[] callOnChunkPassThrough() throws Exception {
+		if (!isEnabledSimplexEvent()) {
+			return null;
+		}
+		for (SimplexEventListener listener: simplexEventListenerList.getListeners(SimplexEventListener.class)) {
+			return listener.onChunkPassThrough();
+		}
+		return null;
+	}
+	public byte[] callOnChunkAvailable() throws Exception {
+		if (!isEnabledSimplexEvent()) {
+			return null;
+		}
+		for (SimplexEventListener listener: simplexEventListenerList.getListeners(SimplexEventListener.class)) {
+			return listener.onChunkAvailable();
+		}
+		return null;
 	}
 	public byte[] callOnChunkReceived(byte[] data) throws Exception {
 		if (!isEnabledSimplexEvent()) {
@@ -144,8 +180,22 @@ class Simplex extends Thread
 					bout.reset();
 					bout.write(unaccepted_array);
 					
-					accepted_array = callOnChunkReceived(accepted_array);
-					send(accepted_array);
+					callOnChunkArrived(accepted_array);
+
+					for (byte[] pass_through_data = callOnChunkPassThrough();
+							pass_through_data != null && pass_through_data.length > 0;
+							pass_through_data = callOnChunkPassThrough()) {
+						send(pass_through_data);
+					}
+
+					for (byte[] available_data = callOnChunkAvailable();
+							available_data != null && available_data.length > 0; 
+							available_data = callOnChunkAvailable()) {
+						byte[] send_data = callOnChunkReceived(available_data);
+						if (send_data != null && send_data.length > 0) {
+							send(send_data);
+						}
+					}
 				}
 			}
 		} catch (TimeoutException e) {

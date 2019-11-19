@@ -205,6 +205,30 @@ public class DuplexFactory {
 				packets.update(server_packet);
 				return encoded_data;
 			}
+			@Override
+			public void onClientChunkArrived(byte[] data) throws Exception {
+				encoder.clientRequestArrived(data);
+			}
+			@Override
+			public void onServerChunkArrived(byte[] data) throws Exception {
+				encoder.serverResponseArrived(data);
+			}
+			@Override
+			public byte[] onClientChunkPassThrough() throws Exception {
+				return encoder.passThroughClientRequest();
+			}
+			@Override
+			public byte[] onServerChunkPassThrough() throws Exception {
+				return encoder.passThroughServerResponse();
+			}
+			@Override
+			public byte[] onClientChunkAvailable() throws Exception {
+				return encoder.clientRequestAvailable();
+			}
+			@Override
+			public byte[] onServerChunkAvailable() throws Exception {
+				return encoder.serverResponseAvailable();
+			}
 		});
 	}
 	static  public DuplexSync createDuplexSyncFromOneShotPacket(final OneShotPacket oneshot) throws Exception {
@@ -281,6 +305,30 @@ public class DuplexFactory {
 			@Override
 			public byte[] onServerChunkSendForced(byte[] data) throws Exception {
 				return null;
+			}
+			@Override
+			public void onClientChunkArrived(byte[] data) throws Exception {
+				encoder.clientRequestArrived(data);
+			}
+			@Override
+			public void onServerChunkArrived(byte[] data) throws Exception {
+				encoder.serverResponseArrived(data);
+			}
+			@Override
+			public byte[] onClientChunkPassThrough() throws Exception {
+				return encoder.passThroughClientRequest();
+			}
+			@Override
+			public byte[] onServerChunkPassThrough() throws Exception {
+				return encoder.passThroughServerResponse();
+			}
+			@Override
+			public byte[] onClientChunkAvailable() throws Exception {
+				return encoder.clientRequestAvailable();
+			}
+			@Override
+			public byte[] onServerChunkAvailable() throws Exception {
+				return encoder.serverResponseAvailable();
 			}
 		});
 		return duplex;
@@ -361,6 +409,30 @@ public class DuplexFactory {
 			@Override
 			public byte[] onServerChunkSendForced(byte[] data) throws Exception {
 				return null;
+			}
+			@Override
+			public void onClientChunkArrived(byte[] data) throws Exception {
+				encoder.clientRequestArrived(data);
+			}
+			@Override
+			public void onServerChunkArrived(byte[] data) throws Exception {
+				encoder.serverResponseArrived(data);
+			}
+			@Override
+			public byte[] onClientChunkPassThrough() throws Exception {
+				return encoder.passThroughClientRequest();
+			}
+			@Override
+			public byte[] onServerChunkPassThrough() throws Exception {
+				return encoder.passThroughServerResponse();
+			}
+			@Override
+			public byte[] onClientChunkAvailable() throws Exception {
+				return encoder.clientRequestAvailable();
+			}
+			@Override
+			public byte[] onServerChunkAvailable() throws Exception {
+				return encoder.serverResponseAvailable();
 			}
 		});
 		return duplex;

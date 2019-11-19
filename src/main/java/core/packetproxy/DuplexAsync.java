@@ -73,6 +73,18 @@ public class DuplexAsync extends Duplex
 		Simplex simplex = new Simplex(in, out);
 		simplex.addSimplexEventListener(new Simplex.SimplexEventListener() {
 			@Override
+			public void onChunkArrived(byte[] data) throws Exception {
+				callOnClientChunkArrived(data);
+			}
+			@Override
+			public byte[] onChunkPassThrough() throws Exception {
+				return callOnClientChunkPassThrough();
+			}
+			@Override
+			public byte[] onChunkAvailable() throws Exception {
+				return callOnClientChunkAvailable();
+			}
+			@Override
 			public byte[] onChunkReceived(byte[] data) throws Exception {
 				return callOnClientChunkReceived(data);
 			}
@@ -94,6 +106,18 @@ public class DuplexAsync extends Duplex
 			@Override
 			public byte[] onChunkReceived(byte[] data) throws Exception {
 				return callOnServerChunkReceived(data);
+			}
+			@Override
+			public void onChunkArrived(byte[] data) throws Exception {
+				callOnServerChunkArrived(data);
+			}
+			@Override
+			public byte[] onChunkPassThrough() throws Exception {
+				return callOnServerChunkPassThrough();
+			}
+			@Override
+			public byte[] onChunkAvailable() throws Exception {
+				return callOnServerChunkAvailable();
 			}
 			@Override
 			public int onPacketReceived(byte[] data) throws Exception {
