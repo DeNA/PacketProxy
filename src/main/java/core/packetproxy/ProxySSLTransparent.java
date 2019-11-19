@@ -31,7 +31,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
 
-import packetproxy.common.Endpoint;
 import packetproxy.common.EndpointFactory;
 import packetproxy.common.I18nString;
 import packetproxy.common.SSLCapabilities;
