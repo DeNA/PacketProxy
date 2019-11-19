@@ -28,6 +28,11 @@ public class SSLSocketEndpoint implements Endpoint
 	protected SSLSocket socket;
 	protected String server_name;
 	
+	public SSLSocketEndpoint(SSLSocketEndpoint ep) {
+		this.server_name = ep.server_name;
+		this.socket = ep.socket;
+	}
+	
 	public SSLSocketEndpoint(SSLSocket socket, String SNIServerName) {
 		this.server_name = SNIServerName;
 		this.socket = socket;

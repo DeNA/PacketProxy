@@ -51,9 +51,9 @@ public class EndpointFactory
 		return endpoints;
 	}
 	
-	public static Endpoint createClientEndpointFromSNIServerName(Socket socket, String serverName, CA ca, InputStream is) throws Exception {
-		Socket ssl_client = Https.convertToServerSSLSocket(socket, serverName, ca, is);
-		return new SocketEndpoint(ssl_client);
+	public static SSLSocketEndpoint createClientEndpointFromSNIServerName(Socket socket, String serverName, CA ca, InputStream is) throws Exception {
+		SSLSocket ssl_client = Https.convertToServerSSLSocket(socket, serverName, ca, is);
+		return new SSLSocketEndpoint(ssl_client, serverName);
 	}
 	
 	public static Endpoint createFromURI(String uri) throws Exception {
@@ -92,10 +92,6 @@ public class EndpointFactory
 		} else {
 			return new SocketEndpoint(server.getAddress());
 		}
-	}
-
-	public static Endpoint createSSLFromName(String name) throws Exception {
-		return new SSLSocketEndpoint(new InetSocketAddress(name, 443), name);
 	}
 
 	public static Endpoint createServerEndpoint(InetSocketAddress addr) throws Exception {
