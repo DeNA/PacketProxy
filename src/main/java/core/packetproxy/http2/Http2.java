@@ -15,63 +15,61 @@
  */
 package packetproxy.http2;
 
-import packetproxy.http.Http;
-
 public class Http2
 {
-	public static int parseFrameDelimiter(byte[] data) throws Exception
-	{
+	/**
+	 *  バイト列から1フレームを切り出す
+	 */
+	public static int parseFrameDelimiter(byte[] data) throws Exception {
 		/* 未実装 */
 		return data.length;
 	}
 
-	public Http2() throws Exception
-	{
+	/** 
+	 * ユーザが利用するユーティリティ関数。
+	 * フレーム列(HEADER + DATA)をHTTPバイトデータに変換する
+	 * 変換後のHTTPデータは、元のフレームに完全に戻すための情報をヘッダに付与すること（例：ストリーム番号）
+	 */
+	public static byte[] framesToHttp(byte[] frames) {
+		return frames;
+	}
+	public static byte[] httpToFrames(byte[] http) {
+		return http;
 	}
 	
-	/* クライアントからのリクエストフレームを1つ読み込む */
+	public Http2() throws Exception {
+	}
+	
+	/**
+	 * クライアントリクエストフレームをHTTP2モジュールに渡す。
+	 * 本モジュールは、フレームを解析しストリームとして管理する。
+	 */
 	public void writeClientFrame(byte[] frame) throws Exception {
-		/* 未実装 */
 	}
-
-	/* サーバからのレスポンスフレームを1つ読み込む */
 	public void writeServerFrame(byte[] frame) throws Exception {
-		/* 未実装 */
 	}
 	
-	/* クライアントリクエストのHTTP以外のデータ（例SETTINGフレーム）を返す */
-	/* 理由は、GUIに表示せず、直接サーバに送りたいため */
-	public byte[] readClientControlFrame() throws Exception {
-		/* 未実装 */
+	/**
+	 * クライアントリクエストのHTTP以外のフレーム（例:SETTING）を読み出す。
+	 * readClientFrameと分ける理由は、GUIに表示せず、直接サーバに送信したいため。
+	 * 送信すべきフレームがなければ、nullを返す。
+	 */
+	public byte[] readClientControlFrames() throws Exception {
+		return null;
+	}
+	public byte[] readServerControlFrames() throws Exception {
 		return null;
 	}
 
-	/* サーバレスポンスのHTTP以外のデータ（例SETTINGフレーム）を返す */
-	/* 理由は、GUIに表示せず、直接クライアントに送りたいため */
-	public byte[] readServerControlFrame() throws Exception {
-		/* 未実装 */
+	/**
+	 * クライアントリクエストのHTTPデータフレーム(HEADER+DATA)を読み出す。
+	 * HTTPを構成するフレームがまだ溜まっていなかったら、nullを返す。
+	 * ユーザは、framesToHttp()を使ってHttpに戻しGUIに表示し、httpToFramesにより元に戻してサーバに送信することになる。
+	 */
+	public byte[] readClientFrames() throws Exception {
 		return null;
 	}
-
-	/* クライアントリクエストのHTTPデータを返す */
-	/* HTTPデータには、元にフレームに戻せるだけの情報をヘッダに付与する必要がある */
-	/* まだフレームが溜まっていなかったら、nullを返す */
-	public Http readClientRequest() throws Exception {
-		/* 未実装 */
-		return new Http("".getBytes());
-	}
-	public void writeClientRequest(Http http) throws Exception {
-		/* 未実装 */
-	}
-
-	/* サーバレスポンスのHTTPデータを返す */
-	/* HTTPデータには、元にフレームに戻せるだけの情報をヘッダに付与する必要がある */
-	/* まだフレームが溜まっていなかったら、nullを返す */
-	public Http readServerResponse() throws Exception {
-		/* 未実装 */
-		return new Http("".getBytes());
-	}
-	public void writeServerResponse(Http http) throws Exception {
-		/* 未実装 */
+	public byte[] readServerFrames() throws Exception {
+		return null;
 	}
 }

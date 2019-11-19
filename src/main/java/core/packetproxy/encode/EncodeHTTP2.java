@@ -15,90 +15,56 @@
  */
 package packetproxy.encode;
 
-import packetproxy.http.Http;
 import packetproxy.http2.Http2;
 
 public class EncodeHTTP2 extends Encoder
 {
-	Http2 http2;
+	private Http2 http2;
 
-	public EncodeHTTP2() throws Exception
-	{
+	public EncodeHTTP2() throws Exception {
 		http2 = new Http2();
 	}
 	
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return "HTTP2";
 	}
 
 	@Override
-	public int checkDelimiter(byte[] input) throws Exception
-	{
-		/* 1フレームを切り出す */
+	public int checkDelimiter(byte[] input) throws Exception {
 		return Http2.parseFrameDelimiter(input);
 	}
 
 	@Override
-	public void clientRequestArrived(byte[] frame) throws Exception {
-		http2.writeClientFrame(frame);
-	}
+	public void clientRequestArrived(byte[] frame) throws Exception { http2.writeClientFrame(frame); }
 	@Override
-	public void serverResponseArrived(byte[] frame) throws Exception {
-		http2.writeServerFrame(frame);
-	}
+	public void serverResponseArrived(byte[] frame) throws Exception { http2.writeServerFrame(frame); }
 	@Override
-	public byte[] passThroughClientRequest() throws Exception { 
-		return http2.readClientControlFrame();
-	}
+	public byte[] passThroughClientRequest() throws Exception { return http2.readClientControlFrames(); }
 	@Override
-	public byte[] passThroughServerResponse() throws Exception {
-		return http2.readServerControlFrame();
-	}
+	public byte[] passThroughServerResponse() throws Exception { return http2.readServerControlFrames(); }
 	@Override
-	public byte[] clientRequestAvailable() throws Exception {
-		Http http = http2.readClientRequest();
-		return http.toByteArray();
-	}
+	public byte[] clientRequestAvailable() throws Exception { return http2.readClientFrames(); }
 	@Override
-	public byte[] serverResponseAvailable() throws Exception {
-		Http http = http2.readServerResponse();
-		return http.toByteArray();
+	public byte[] serverResponseAvailable() throws Exception { return http2.readServerFrames(); }
+
+	@Override
+	public byte[] decodeClientRequest(byte[] frames) throws Exception {
+		return Http2.framesToHttp(frames);
 	}
 	
 	@Override
-	public byte[] decodeClientRequest(byte[] input_data) throws Exception
-	{
-		Http http = new Http(input_data);
-		return http.toByteArray();
-	}
-	
-	@Override
-	public byte[] encodeClientRequest(byte[] input_data) throws Exception
-	{
-		Http http = new Http(input_data);
-		return http.toByteArray();
+	public byte[] encodeClientRequest(byte[] http) throws Exception {
+		return Http2.httpToFrames(http);
 	}
 
 	@Override
-	public byte[] decodeServerResponse(byte[] input_data) throws Exception
-	{
-		Http http = new Http(input_data);
-		return http.toByteArray();
+	public byte[] decodeServerResponse(byte[] frames) throws Exception {
+		return Http2.framesToHttp(frames);
 	}
 
 	@Override
-	public byte[] encodeServerResponse(byte[] input_data) throws Exception
-	{
-		Http http = new Http(input_data);
-		return http.toByteArray();
-	}
-	
-	@Override
-	public String getContentType(byte[] input_data) throws Exception
-	{
-		Http http = new Http(input_data);
-		return http.getFirstHeader("Content-Type");
+	public byte[] encodeServerResponse(byte[] http) throws Exception {
+		return Http2.httpToFrames(http);
 	}
 }
