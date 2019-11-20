@@ -22,10 +22,17 @@ import java.nio.ByteBuffer;
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.http.HttpURI;
+import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.http.MetaData;
 import org.eclipse.jetty.http.MetaData.Request;
 import org.eclipse.jetty.http.MetaData.Response;
 import org.eclipse.jetty.http2.hpack.HpackDecoder;
+import org.eclipse.jetty.http2.hpack.HpackEncoder;
+
+import packetproxy.http.HeaderField;
+import packetproxy.http.Http;
+import packetproxy.http.HttpHeader;
 
 public class HeadersFrame extends Frame {
 
@@ -35,24 +42,69 @@ public class HeadersFrame extends Frame {
 	private String path;
 	private String scheme;
 	private String authority;
+	private int port;
+	private String uriString;
 	private HttpFields fields;
 	private boolean bRequest;
 	private int status;
-	
-	//public static void main(String[] args) throws Exception {
-    //	byte[] frame = Hex.decodeHex("00001B010500000001828487418798E79A82AE43D37A8825B650C3ABB6D2E053032A2F2A".toCharArray());
-   // 	HeadersFrame fb = new HeadersFrame(frame);
-   // 	System.out.println(fb.toString());
-	//}
+	private HttpVersion version;
 	
 	public HeadersFrame(Frame frame) throws Exception {
 		super(frame);
 		parsePayload();
 	}
 
-	public HeadersFrame(byte[] data) throws Exception {
-		super(data);
+	public HeadersFrame(byte[] frameData) throws Exception {
+		super(frameData);
 		parsePayload();
+	}
+	
+	public HeadersFrame(Http http) throws Exception {
+		super();
+
+		method = http.getMethod();
+		version = HttpVersion.fromString("HTTP/2.0");
+		
+		HttpHeader headers = http.getHeader();
+		fields = new HttpFields();
+		for (HeaderField field : headers.getFields()) {
+			if (field.getName().equals("X-PacketProxy-HTTP2-Stream-Id")) {
+				super.streamId = Integer.parseInt(field.getValue());
+			} else if (field.getName().equals("X-PacketProxy-HTTP2-URI")) {
+				uriString = field.getValue();
+				URI uri = new URI(uriString);
+				scheme = uri.getScheme();
+				authority = uri.getAuthority();
+				path = uri.getPath();
+				port = uri.getPort();
+			} else {
+				fields.add(field.getName(), field.getValue());
+			}
+		}
+		
+		long contentLength = (http.getBody().length == 0 ? Long.MIN_VALUE : http.getBody().length);
+		
+		MetaData meta;
+		if (http.isRequest()) {
+			HttpURI uri = HttpURI.createHttpURI(scheme, authority, port, path, null, null, null);
+			meta = new MetaData.Request(method, uri, version, fields, contentLength);
+		} else {
+			fields.add("content-length", "220"); // test
+			meta = new MetaData.Response(version, Integer.parseInt(http.getStatusCode()), fields, 220);
+		}
+
+		HpackEncoder encoder = new HpackEncoder(4096, 4096);
+		ByteBuffer buffer = ByteBuffer.allocate(4096);
+		encoder.encode(buffer, meta);
+		
+		byte[] array = new byte[buffer.position()];
+		buffer.flip();
+		buffer.get(array);
+		payload = array;
+
+		super.type = TYPE;
+		super.length = payload.length;
+		
 	}
 	
 	public String getMethod() { return method; }
@@ -75,10 +127,13 @@ public class HeadersFrame extends Frame {
     			bRequest = true;
     			Request req = (Request)meta;
     			method = req.getMethod();
-    			URI uri = new URI(req.getURIString());
+    			uriString = req.getURIString();
+    			URI uri = new URI(uriString);
     			scheme = uri.getScheme();
     			authority = uri.getAuthority();
     			path = uri.getPath();
+    			version = req.getHttpVersion();
+
     	} else {
     			bRequest = false;
     			Response res = (Response)meta;
@@ -91,7 +146,7 @@ public class HeadersFrame extends Frame {
 	public byte[] toHttp1() throws Exception {
 		ByteArrayOutputStream buf = new ByteArrayOutputStream();
 		if (bRequest) {
-			String statusLine = String.format("%s %s://%s%s HTTP/2.0\r\n", method, scheme, authority, path);
+			String statusLine = String.format("%s / HTTP/2.0\r\n", method, scheme, authority, path);
 			buf.write(statusLine.getBytes());
 		} else {
 			buf.write(String.format("HTTP/2.0 %d %s\r\n", status, HttpStatus.getMessage(status)).getBytes());
@@ -99,7 +154,11 @@ public class HeadersFrame extends Frame {
 		for (HttpField field: fields) {
 			buf.write(String.format("%s: %s\r\n", field.getName(), field.getValue()).getBytes());
 		}
-		buf.write("\r\n\r\n".getBytes());
+		if (bRequest) {
+			buf.write(String.format("X-PacketProxy-HTTP2-URI: %s\r\n", uriString).getBytes());
+		}
+		buf.write(String.format("X-PacketProxy-HTTP2-Stream-Id: %d\r\n", streamId).getBytes());
+		buf.write("\r\n".getBytes());
 		return buf.toByteArray();
 	}
 	

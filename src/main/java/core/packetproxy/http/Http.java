@@ -560,5 +560,8 @@ public class Http
 	public List<String> getHeader(String key){
 		return header.getAllValue(key);
 	}
-
+	
+	public boolean isRequest() {
+		return flag_request;
+	}
 }

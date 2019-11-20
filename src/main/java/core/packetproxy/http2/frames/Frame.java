@@ -45,11 +45,8 @@ public class Frame {
     protected int streamId;
     protected byte[] payload;
     
-    //public static void main(String[] args) throws Exception {
-    //	byte[] frame = Hex.decodeHex("00001B010500000001828487418798E79A82AE43D37A8825B650C3ABB6D2E053032A2F2A".toCharArray());
-   // 	Frame fb = new Frame(frame);
-   // 	System.out.println(fb.toString());
-    //}
+    protected Frame() throws Exception {
+    }
     
     public Frame(Frame frame) throws Exception {
     	length = frame.length;

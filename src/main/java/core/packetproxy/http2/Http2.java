@@ -35,7 +35,7 @@ import packetproxy.http2.frames.HeadersFrame;
 
 public class Http2
 {
-	private static byte[] PREFACE; /* PRI * HTTP/2.0 .... */
+	static private byte[] PREFACE; /* PRI * HTTP/2.0 .... */
 	
 	static {
 		try {
@@ -45,11 +45,11 @@ public class Http2
 		}
 	}
 
-	private static boolean isPreface(byte[] frameData) {
+	static private boolean isPreface(byte[] frameData) {
 		return (PREFACE.length > frameData.length) ? false : Arrays.equals(frameData, 0, PREFACE.length, PREFACE, 0, PREFACE.length);
 	}
 	
-	public static List<Frame> parseFrame(byte[] frames) throws Exception {
+	static public List<Frame> parseFrame(byte[] frames) throws Exception {
 		List<Frame> frameList = new LinkedList<Frame>();
 		while (frames != null && frames.length > 0) {
 			int delim = Http2.parseFrameDelimiter(frames);
@@ -67,7 +67,7 @@ public class Http2
 	/**
 	 *  バイト列から1フレームを切り出す
 	 */
-	public static int parseFrameDelimiter(byte[] data) throws Exception {
+	static public int parseFrameDelimiter(byte[] data) throws Exception {
 		if (isPreface(data)) {
 			return PREFACE.length;
 		} else {
@@ -82,7 +82,7 @@ public class Http2
 	 * フレーム列(HEADER + DATA)をHTTPバイトデータに変換する
 	 * 変換後のHTTPデータは、元のフレームに完全に戻すための情報をヘッダに付与すること（例：ストリーム番号）
 	 */
-	public static byte[] framesToHttp(byte[] frames) throws Exception {
+	static public byte[] framesToHttp(byte[] frames) throws Exception {
 		ByteArrayOutputStream buf = new ByteArrayOutputStream();
 		for (Frame frame : Http2.parseFrame(frames)) {
 			buf.write(frame.toHttp1());
@@ -90,12 +90,7 @@ public class Http2
 		return buf.toByteArray();
 	}
 	public static byte[] httpToFrames(byte[] httpData) throws Exception {
-		Http http = new Http(httpData);
-		HttpHeader headers = http.getHeader();
-		for (HeaderField a : headers.getFields()) {
-			System.out.println(a.getName());
-			System.out.println(a.getValue());
-		}
+		//Http http = new Http(httpData);
 		return "".getBytes();
 	}
 	
