@@ -1,6 +1,22 @@
+/*
+ * Copyright 2019 DeNA Co., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package packetproxy.http2.frames;
 
 import java.io.ByteArrayInputStream;
+import java.nio.ByteBuffer;
 
 import org.apache.commons.codec.binary.Hex;
 
@@ -20,6 +36,8 @@ public class Frame {
     	Unassigned,
     	ORIGIN
     };
+    
+    static protected Type TYPE = Type.Unassigned; 
 
     protected int length;
     protected Type type;
@@ -27,10 +45,18 @@ public class Frame {
     protected int streamId;
     protected byte[] payload;
     
-    public static void main(String[] args) throws Exception {
-    	byte[] frame = Hex.decodeHex("00001B010500000001828487418798E79A82AE43D37A8825B650C3ABB6D2E053032A2F2A".toCharArray());
-    	Frame fb = new Frame(frame);
-    	System.out.println(fb.toString());
+    //public static void main(String[] args) throws Exception {
+    //	byte[] frame = Hex.decodeHex("00001B010500000001828487418798E79A82AE43D37A8825B650C3ABB6D2E053032A2F2A".toCharArray());
+   // 	Frame fb = new Frame(frame);
+   // 	System.out.println(fb.toString());
+    //}
+    
+    public Frame(Frame frame) throws Exception {
+    	length = frame.length;
+    	type = frame.type;
+    	flags = frame.flags;
+    	streamId = frame.streamId;
+    	payload = frame.payload;
     }
     
     public Frame(byte[] data) throws Exception {
@@ -38,13 +64,13 @@ public class Frame {
     	byte[] buffer = new byte[128];
 
     	bais.read(buffer, 0, 3);
-    	length = (int)(buffer[0] << 16 | buffer[1] << 8 | buffer[2]);
+    	length = (int)((buffer[0] & 0xff) << 16 | (buffer[1] & 0xff) << 8 | (buffer[2] & 0xff));
     	bais.read(buffer, 0, 1);
     	type = Type.values()[(int)buffer[0]];
     	bais.read(buffer, 0, 1);
     	flags = (int)buffer[0];
     	bais.read(buffer, 0, 4);
-    	streamId = (int)((buffer[0] & 0x7f) << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3]);
+    	streamId = (int)((buffer[0] & 0x7f) << 24 | (buffer[1] & 0xff) << 16 | (buffer[2] & 0xff) << 8 | (buffer[3] & 0xff));
     	payload = new byte[length];
     	bais.read(payload);
     }
@@ -54,6 +80,25 @@ public class Frame {
     public int getFlags() { return flags; }
     public int getStreamId() { return streamId; }
     public byte[] getPayload() { return payload; }
+    
+    public byte[] toByteArray() {
+    	ByteBuffer bb = ByteBuffer.allocate(4096);
+    	bb.put((byte)((payload.length >>> 16) & 0xff));
+    	bb.put((byte)((payload.length >>> 8) & 0xff));
+    	bb.put((byte)(payload.length & 0xff));
+    	bb.put((byte)(type.ordinal() & 0xff));
+    	bb.put((byte)(flags & 0xff));
+    	bb.putInt(streamId);
+    	bb.put(payload);
+    	byte[] array = new byte[bb.position()];
+    	bb.flip();
+    	bb.get(array);
+    	return array;
+    }
+    
+    public byte[] toHttp1() throws Exception {
+    	return null;
+    }
     
     @Override
     public String toString() {
