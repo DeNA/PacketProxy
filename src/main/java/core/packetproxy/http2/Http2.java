@@ -72,8 +72,8 @@ public class Http2
 	 * 変換後のHTTPデータは、元のフレームに完全に戻すための情報をヘッダに付与すること（例：ストリーム番号）
 	 */
 	
-	private HpackEncoder hpackEncoder = new HpackEncoder(65535, 65535);
-	private HpackDecoder hpackDecoder = new HpackDecoder(65535, 65535);
+	private HpackEncoder hpackEncoder = new HpackEncoder(165535, 165535); // TODO: 適切なサイズの見極め
+	private HpackDecoder hpackDecoder = new HpackDecoder(165535, 165535); // TODO: 適切なサイズの見極め
 	private Map<Integer, List<Frame>> bufferedHttpStreams = new HashMap<>();
 	private List<Frame> httpStreams = new LinkedList<>();
 	private List<Frame> otherStreams = new LinkedList<>();

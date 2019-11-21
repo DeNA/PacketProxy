@@ -88,6 +88,7 @@ public class DuplexFactory {
 				if (data.length < SKIP_LENGTH) { packets.update(client_packet); }
 				byte[] decoded_data = encoder.decodeClientRequest(client_packet);
 				client_packet.setDecodedData(decoded_data);
+				encoder.setGroupId(client_packet); /* 実行するのはsetDecodedDataのあと */
 				if (data.length < SKIP_LENGTH) { packets.update(client_packet); }
 
 				Server server = Servers.getInstance().queryByAddress(server_addr);
@@ -121,6 +122,7 @@ public class DuplexFactory {
 				if (data.length < SKIP_LENGTH) { packets.update(server_packet); }
 				byte[] decoded_data = encoder.decodeServerResponse(client_packet, server_packet);
 				server_packet.setDecodedData(decoded_data);
+				encoder.setGroupId(server_packet); /* 実行するのはsetDecodedDataのあと */
 				server_packet.setContentType(encoder.getContentType(client_packet, server_packet));
 				if (data.length < SKIP_LENGTH) { packets.update(server_packet); }
 				if (!server_packet.getContentType().equals("")) {

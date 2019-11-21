@@ -15,19 +15,22 @@
  */
 package packetproxy.encode;
 
-import org.apache.commons.lang3.ArrayUtils;
-
+import packetproxy.common.UniqueID;
+import packetproxy.http.Http;
 import packetproxy.http2.Http2;
 import packetproxy.http2.frames.Frame;
+import packetproxy.model.Packet;
 
 public class EncodeHTTP2 extends Encoder
 {
 	private Http2 h2client;
 	private Http2 h2server;
+	private long groupSeed;
 
 	public EncodeHTTP2() throws Exception {
 		h2client = new Http2();
 		h2server = new Http2(true);
+		groupSeed = UniqueID.getInstance().createId();
 	}
 	
 	@Override
@@ -70,9 +73,18 @@ public class EncodeHTTP2 extends Encoder
 	
 	@Override
 	public byte[] encodeClientRequest(byte[] http) throws Exception {
-		byte[] a = h2client.httpToFrames(http);
-		//System.out.println(new Binary(a).toHexString());
-		return a;
+		byte[] frames = h2client.httpToFrames(http);
+		//byte[] a = frames.clone();
+		//int len;
+		//while ((len = Http2.parseFrameDelimiter(a)) > 0) {
+		//	Frame f = new Frame(ArrayUtils.subarray(a, 0, len));
+		//	System.out.println("--> client: " + f);
+		//	a = ArrayUtils.subarray(a, len, a.length);
+		//	if (a.length == 0) {
+		//		break;
+		//	}
+		//}
+		return frames;
 	}
 
 	@Override
@@ -82,17 +94,63 @@ public class EncodeHTTP2 extends Encoder
 
 	@Override
 	public byte[] encodeServerResponse(byte[] http) throws Exception {
-		byte[] hoge = h2server.httpToFrames(http);
-		byte[] a = hoge.clone();
-		int len;
-		while ((len = Http2.parseFrameDelimiter(a)) > 0) {
-			Frame f = new Frame(ArrayUtils.subarray(a, 0, len));
-			System.out.println("    server: " + f);
-			a = ArrayUtils.subarray(a, len, a.length);
-			if (a.length == 0) {
-				break;
-			}
+		byte[] frames = h2server.httpToFrames(http);
+		//byte[] a = frames.clone();
+		//int len;
+		//while ((len = Http2.parseFrameDelimiter(a)) > 0) {
+		//	Frame f = new Frame(ArrayUtils.subarray(a, 0, len));
+		//	System.out.println("--> server: " + f);
+		//	a = ArrayUtils.subarray(a, len, a.length);
+		//	if (a.length == 0) {
+		//		break;
+		//	}
+		//}
+		return frames;
+	}
+	
+	@Override
+	public String getSummarizedRequest(Packet packet)
+	{
+		String summary = "";
+		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
+		try {
+			byte[] data = (packet.getDecodedData().length > 0) ?
+			packet.getDecodedData() : packet.getModifiedData();
+			Http http = new Http(data);
+			String uriString = http.getFirstHeader("X-PacketProxy-HTTP2-URI");
+			summary = http.getMethod() + " " + uriString;
+		} catch (Exception e) {
+			e.printStackTrace();
+			summary = "Headlineを生成できません・・・";
 		}
-		return hoge;
+		return summary;
+	}
+	
+	@Override
+	public void setGroupId(Packet packet) throws Exception {
+		byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
+		Http http = new Http(data);
+		String streamId = http.getFirstHeader("X-PacketProxy-HTTP2-Stream-Id");
+		if (streamId != null && streamId.length() > 0) {
+			packet.setGroup((groupSeed << 16 | (Short.parseShort(streamId) & 0xffff)) & 0x7fffffffffffffffl);
+		}
+	}
+
+	@Override
+	public String getSummarizedResponse(Packet packet)
+	{
+		String summary = "";
+		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
+		try {
+			byte[] data = (packet.getDecodedData().length > 0) ?
+			packet.getDecodedData() : packet.getModifiedData();
+			Http http = new Http(data);
+			String statusCode = http.getStatusCode();
+			summary = statusCode;
+		} catch (Exception e) {
+			e.printStackTrace();
+			summary = "Headlineを生成できません・・・";
+		}
+		return summary;
 	}
 }

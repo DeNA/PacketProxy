@@ -46,6 +46,8 @@ public class HeadersFrame extends Frame {
 	private String path;
 	private String scheme;
 	private String authority;
+	private String query;
+	private String fragment;
 	private int port;
 	private String uriString;
 	private HttpFields fields;
@@ -81,18 +83,28 @@ public class HeadersFrame extends Frame {
 				authority = uri.getAuthority();
 				path = uri.getPath();
 				port = uri.getPort();
+				query = uri.getQuery();
+				fragment = uri.getFragment();
 			} else {
 				fields.add(field.getName(), field.getValue());
 			}
 		}
 		
-		long contentLength = (http.getBody().length == 0 ? Long.MIN_VALUE : http.getBody().length);
-		
 		MetaData meta;
 		if (http.isRequest()) {
-			HttpURI uri = HttpURI.createHttpURI(scheme, authority, port, path, null, null, null);
+			long contentLength = 0;
+			if (method.equals("GET")) {
+				contentLength = (http.getBody().length == 0 ? Long.MIN_VALUE : http.getBody().length);
+			} else if (method.equals("POST")) {
+				contentLength = http.getBody().length;
+				fields.add("content-length", String.valueOf(contentLength));
+			}
+			HttpURI uri = HttpURI.createHttpURI(scheme, authority, port, path, null, query, fragment);
 			meta = new MetaData.Request(method, uri, version, fields, contentLength);
+			//System.out.println("# meta.request2: " + meta);
+			//System.out.println("# meta.request3: " + fields);
 		} else {
+			long contentLength = (http.getBody().length == 0 ? Long.MIN_VALUE : http.getBody().length);
 			fields.put("content-length", String.valueOf(contentLength));
 			meta = new MetaData.Response(version, Integer.parseInt(http.getStatusCode()), fields, contentLength);
 		}
@@ -106,9 +118,10 @@ public class HeadersFrame extends Frame {
 		payload = array;
 
 		if (http.getBody().length > 0)
-			super.flags = 0x4;
+			super.flags = FLAG_END_HEADERS;
 		else
-			super.flags = 0x5;
+			super.flags = FLAG_END_HEADERS | FLAG_END_STREAM;
+
 		super.type = TYPE;
 		super.length = payload.length;
 	}
@@ -134,6 +147,7 @@ public class HeadersFrame extends Frame {
     	MetaData meta = decoder.decode(in);
 
     	if (meta instanceof Request) {
+    		//System.out.println("# meta.request: " + meta);
     		bRequest = true;
     		Request req = (Request)meta;
     		method = req.getMethod();
@@ -142,9 +156,12 @@ public class HeadersFrame extends Frame {
     		scheme = uri.getScheme();
     		authority = uri.getAuthority();
     		path = uri.getPath();
+			query = uri.getQuery();
+			fragment = uri.getFragment();
     		version = req.getHttpVersion();
 
     	} else {
+    		//System.out.println("# meta.response: " + meta);
     		bRequest = false;
     		Response res = (Response)meta;
     		status = res.getStatus();
@@ -156,7 +173,9 @@ public class HeadersFrame extends Frame {
 	public byte[] toHttp1() throws Exception {
 		ByteArrayOutputStream buf = new ByteArrayOutputStream();
 		if (bRequest) {
-			String statusLine = String.format("%s / HTTP/2.0\r\n", method, scheme, authority, path);
+			String queryStr    = (query != null && query.length() > 0) ? "?"+query : "";
+			String fragmentStr = (fragment != null && fragment.length() > 0) ? "#"+fragment : "";
+			String statusLine = String.format("%s %s%s%s HTTP/2.0\r\n", method, path, queryStr, fragmentStr);
 			buf.write(statusLine.getBytes());
 		} else {
 			buf.write(String.format("HTTP/2.0 %d %s\r\n", status, HttpStatus.getMessage(status)).getBytes());

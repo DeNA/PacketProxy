@@ -109,7 +109,7 @@ public class Frame {
     
     @Override
     public String toString() {
-    	return String.format("length=%d, type=%s, flags=%d, streamId=%d", length, type.name(), flags, streamId);
+    	return String.format("length=%d, type=%s, flags=0x%x, streamId=%d", length, type.name(), flags, streamId);
     }
     
 }

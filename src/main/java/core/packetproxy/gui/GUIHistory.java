@@ -1007,7 +1007,7 @@ TODO: support --data-binary
 				packet.getModified(),
 				packet.getContentType(),
 				packet.getEncoder(),
-				packet.getGroup()
+				String.format("%x", packet.getGroup())
 		};
 	}
 

@@ -114,4 +114,6 @@ public abstract class Encoder
 	public String getContentType(byte[] input_data) throws Exception {
 		return "";
 	}
+	public void setGroupId(Packet packet) throws Exception {
+	}
 }

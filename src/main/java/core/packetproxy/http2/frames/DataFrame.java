@@ -18,6 +18,8 @@ package packetproxy.http2.frames;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import packetproxy.http.Http;
 import packetproxy.http.HttpHeader;
 
@@ -26,6 +28,8 @@ public class DataFrame extends Frame {
     static protected Type TYPE = Type.DATA; 
     static byte FLAG_END_STREAM = 0x01;
     static byte FLAG_PADDED     = 0x08;
+    
+    private byte[] httpBody;
     
     public DataFrame(Frame frame) throws Exception {
 		super(frame);
@@ -55,7 +59,8 @@ public class DataFrame extends Frame {
 
 	private void parsePayload() throws Exception {
 		if ((flags & FLAG_PADDED) > 0) {
-			System.err.println("[Error] padded DATA Frame is not supported yet.");
+			int padLen = (payload[0] & 0xff);
+			payload = ArrayUtils.subarray(payload, 1, payload.length - padLen);
 		}
 	}
 
@@ -76,7 +81,7 @@ public class DataFrame extends Frame {
     		if (rest > 0) {
     			bb.put((byte)0x0);
     		} else {
-    			bb.put((byte)0x1);
+    			bb.put((byte)FLAG_END_STREAM);
     		}
     		bb.putInt(streamId);
     		bb.put(payload, offset, blockLen);
