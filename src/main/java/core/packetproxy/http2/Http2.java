@@ -24,10 +24,10 @@ import java.util.Map;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.ArrayUtils;
+import org.eclipse.jetty.http2.hpack.HpackDecoder;
+import org.eclipse.jetty.http2.hpack.HpackEncoder;
 
-import packetproxy.http.HeaderField;
 import packetproxy.http.Http;
-import packetproxy.http.HttpHeader;
 import packetproxy.http2.frames.DataFrame;
 import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameFactory;
@@ -44,26 +44,15 @@ public class Http2
 			e.printStackTrace();
 		}
 	}
+	
+	static byte[] getPreface() {
+		return PREFACE;
+	}
 
 	static private boolean isPreface(byte[] frameData) {
 		return (PREFACE.length > frameData.length) ? false : Arrays.equals(frameData, 0, PREFACE.length, PREFACE, 0, PREFACE.length);
 	}
 	
-	static public List<Frame> parseFrame(byte[] frames) throws Exception {
-		List<Frame> frameList = new LinkedList<Frame>();
-		while (frames != null && frames.length > 0) {
-			int delim = Http2.parseFrameDelimiter(frames);
-
-			byte[] frame = ArrayUtils.subarray(frames, 0, delim);
-			frames = ArrayUtils.subarray(frames, delim, frames.length);
-
-			if (isPreface(frame) == false) {
-				frameList.add(FrameFactory.create(frame));
-			}
-		}
-		return frameList;
-	}
-
 	/**
 	 *  バイト列から1フレームを切り出す
 	 */
@@ -82,30 +71,48 @@ public class Http2
 	 * フレーム列(HEADER + DATA)をHTTPバイトデータに変換する
 	 * 変換後のHTTPデータは、元のフレームに完全に戻すための情報をヘッダに付与すること（例：ストリーム番号）
 	 */
-	static public byte[] framesToHttp(byte[] frames) throws Exception {
-		ByteArrayOutputStream buf = new ByteArrayOutputStream();
-		for (Frame frame : Http2.parseFrame(frames)) {
-			buf.write(frame.toHttp1());
-		}
-		return buf.toByteArray();
-	}
-	public static byte[] httpToFrames(byte[] httpData) throws Exception {
-		//Http http = new Http(httpData);
-		return "".getBytes();
-	}
 	
-	private ByteArrayOutputStream clientStream;
-	private ByteArrayOutputStream serverStream;
-	private Map<Integer, List<Frame>> bufferedHttpClientStreams = new HashMap<>();
-	private Map<Integer, List<Frame>> bufferedHttpServerStreams = new HashMap<>();
-	private List<Frame> httpClientStreams = new LinkedList<>();
-	private List<Frame> httpServerStreams = new LinkedList<>();
-	private List<Frame> otherClientStreams = new LinkedList<>();
-	private List<Frame> otherServerStreams = new LinkedList<>();
-	
+	private HpackEncoder hpackEncoder = new HpackEncoder(65535, 65535);
+	private HpackDecoder hpackDecoder = new HpackDecoder(65535, 65535);
+	private Map<Integer, List<Frame>> bufferedHttpStreams = new HashMap<>();
+	private List<Frame> httpStreams = new LinkedList<>();
+	private List<Frame> otherStreams = new LinkedList<>();
+	private boolean alreadySentPreface = false;
+
 	public Http2() throws Exception {
-		clientStream = new ByteArrayOutputStream();
-		serverStream = new ByteArrayOutputStream();
+	}
+	
+	public Http2(boolean fServer) throws Exception {
+		if (fServer) {
+			alreadySentPreface = true;
+		}
+	}
+
+	public List<Frame> parseFrames(byte[] frames) throws Exception {
+		List<Frame> frameList = new LinkedList<Frame>();
+		while (frames != null && frames.length > 0) {
+			int delim = Http2.parseFrameDelimiter(frames);
+			byte[] frame = ArrayUtils.subarray(frames, 0, delim);
+			frames = ArrayUtils.subarray(frames, delim, frames.length);
+			if (isPreface(frame) == false) {
+				frameList.add(FrameFactory.create(frame, hpackDecoder));
+			}
+		}
+		return frameList;
+	}
+
+	public byte[] httpToFrames(byte[] httpData) throws Exception {
+		ByteArrayOutputStream framesData = new ByteArrayOutputStream();
+		Http http = new Http(httpData);
+		/* HEADERS */
+		byte[] headersFrame = new HeadersFrame(http, hpackEncoder).toByteArray();
+		framesData.write(headersFrame);
+		/* DATA */
+		if (http.getBody().length > 0) {
+			byte[] dataFrame = new DataFrame(http).toByteArray();
+			framesData.write(dataFrame);
+		}
+		return framesData.toByteArray();
 	}
 	
 	private void addFrameToBufferedStream(Map<Integer,List<Frame>> bufferdStream, Frame frame) {
@@ -121,31 +128,25 @@ public class Http2
 	 * クライアントリクエストフレームをHTTP2モジュールに渡す。
 	 * 本モジュールは、フレームを解析しストリームとして管理する。
 	 */
-	public void writeClientFrame(byte[] framesData) throws Exception {
-		for (Frame frame : Http2.parseFrame(framesData)) {
+	public void writeFrame(byte[] framesData) throws Exception {
+		for (Frame frame : parseFrames(framesData)) {
 			if (frame instanceof HeadersFrame) {
 				HeadersFrame headersFrame = (HeadersFrame)frame;
-				String contentLengthStr = headersFrame.getHttpFields().get("content-length");
-				if (contentLengthStr == null || Integer.parseInt(contentLengthStr) == 0) {
-					httpClientStreams.add(frame);
+				if ((headersFrame.getFlags() & 0x01) > 0) {
+					httpStreams.add(frame);
 				} else {
-					addFrameToBufferedStream(bufferedHttpClientStreams, frame);
+					addFrameToBufferedStream(bufferedHttpStreams, frame);
 				}
 			} else if (frame instanceof DataFrame) {
-				addFrameToBufferedStream(bufferedHttpClientStreams, frame);
+				addFrameToBufferedStream(bufferedHttpStreams, frame);
 				if ((frame.getFlags() & 0x01) > 0) {
-					httpClientStreams.addAll(bufferedHttpClientStreams.get(frame.getStreamId()));
-					bufferedHttpClientStreams.remove(frame.getStreamId());
+					httpStreams.addAll(bufferedHttpStreams.get(frame.getStreamId()));
+					bufferedHttpStreams.remove(frame.getStreamId());
 				}
 			} else {
-				otherClientStreams.add(frame);
+				otherStreams.add(frame);
 			}
 		}
-		//System.out.println(httpClientStreams.toString());
-		//System.out.println(otherClientStreams.toString());
-	}
-	public void writeServerFrame(byte[] frames) throws Exception {
-		serverStream.write(frames);
 	}
 	
 	/**
@@ -153,29 +154,33 @@ public class Http2
 	 * readClientFrameと分ける理由は、GUIに表示せず、直接サーバに送信したいため。
 	 * 送信すべきフレームがなければ、nullを返す。
 	 */
-	public byte[] readClientControlFrames() throws Exception {
-		return null;
-	}
-	public byte[] readServerControlFrames() throws Exception {
-		return null;
+	public byte[] readControlFrames() throws Exception {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		if (alreadySentPreface == false) {
+			baos.write(PREFACE);
+			alreadySentPreface = true;
+		}
+		for (Frame frame : otherStreams) {
+			baos.write(frame.toByteArray());
+		}
+		otherStreams.clear();
+		return baos.toByteArray();
 	}
 
 	/**
-	 * クライアントリクエストのHTTPデータフレーム(HEADER+DATA)を読み出す。
+	 * クライアントリクエストのHTTPデータを読み出す。
 	 * HTTPを構成するフレームがまだ溜まっていなかったら、nullを返す。
-	 * ユーザは、framesToHttp()を使ってHttpに戻しGUIに表示し、httpToFramesにより元に戻してサーバに送信することになる。
+	 * ユーザはhttpToFrames()により元に戻してサーバに送信することになる。
 	 */
-	public byte[] readClientFrames() throws Exception {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		for (Frame frame : httpClientStreams) {
-			baos.write(frame.toByteArray());
+	public byte[] readHttp() throws Exception {
+		if (httpStreams.size() == 0) {
+			return null;
 		}
-		httpClientStreams.clear();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		for (Frame frame : httpStreams) {
+			baos.write(frame.toHttp1());
+		}
+		httpStreams.clear();
 		return baos.toByteArray();
-	}
-	public byte[] readServerFrames() throws Exception {
-		byte[] data = serverStream.toByteArray();
-		serverStream.reset();
-		return data;
 	}
 }

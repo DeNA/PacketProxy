@@ -37,6 +37,10 @@ import packetproxy.http.HttpHeader;
 public class HeadersFrame extends Frame {
 
     static protected Type TYPE = Type.HEADERS; 
+    static protected byte FLAG_END_STREAM = 0x01;
+    static protected byte FLAG_END_HEADERS = 0x04;
+    static protected byte FLAG_PADDED = 0x08;
+    static protected byte FLAG_PRIORITY = 0x20;
 	
 	private String method;
 	private String path;
@@ -49,17 +53,17 @@ public class HeadersFrame extends Frame {
 	private int status;
 	private HttpVersion version;
 	
-	public HeadersFrame(Frame frame) throws Exception {
+	public HeadersFrame(Frame frame, HpackDecoder decoder) throws Exception {
 		super(frame);
-		parsePayload();
+		parsePayload(decoder);
 	}
 
-	public HeadersFrame(byte[] frameData) throws Exception {
+	public HeadersFrame(byte[] frameData, HpackDecoder decoder) throws Exception {
 		super(frameData);
-		parsePayload();
+		parsePayload(decoder);
 	}
 	
-	public HeadersFrame(Http http) throws Exception {
+	public HeadersFrame(Http http, HpackEncoder encoder) throws Exception {
 		super();
 
 		method = http.getMethod();
@@ -89,11 +93,10 @@ public class HeadersFrame extends Frame {
 			HttpURI uri = HttpURI.createHttpURI(scheme, authority, port, path, null, null, null);
 			meta = new MetaData.Request(method, uri, version, fields, contentLength);
 		} else {
-			fields.add("content-length", "220"); // test
-			meta = new MetaData.Response(version, Integer.parseInt(http.getStatusCode()), fields, 220);
+			fields.put("content-length", String.valueOf(contentLength));
+			meta = new MetaData.Response(version, Integer.parseInt(http.getStatusCode()), fields, contentLength);
 		}
 
-		HpackEncoder encoder = new HpackEncoder(4096, 4096);
 		ByteBuffer buffer = ByteBuffer.allocate(4096);
 		encoder.encode(buffer, meta);
 		
@@ -102,9 +105,12 @@ public class HeadersFrame extends Frame {
 		buffer.get(array);
 		payload = array;
 
+		if (http.getBody().length > 0)
+			super.flags = 0x4;
+		else
+			super.flags = 0x5;
 		super.type = TYPE;
 		super.length = payload.length;
-		
 	}
 	
 	public String getMethod() { return method; }
@@ -115,29 +121,33 @@ public class HeadersFrame extends Frame {
 	public boolean isRequest() { return bRequest; }
 	public int getStatus() { return status; }
 	
-	private void parsePayload() throws Exception {
+	private void parsePayload(HpackDecoder decoder) throws Exception {
     	ByteBuffer in = ByteBuffer.allocate(4096);
     	in.put(payload);
     	in.flip();
     	
-    	HpackDecoder decoder = new HpackDecoder(4096, 4096);
+    	if ((flags & FLAG_PRIORITY) > 0) {
+    		in.getInt(); // skip dependency
+    		in.get(); // skip weight
+    	}
+    	
     	MetaData meta = decoder.decode(in);
 
     	if (meta instanceof Request) {
-    			bRequest = true;
-    			Request req = (Request)meta;
-    			method = req.getMethod();
-    			uriString = req.getURIString();
-    			URI uri = new URI(uriString);
-    			scheme = uri.getScheme();
-    			authority = uri.getAuthority();
-    			path = uri.getPath();
-    			version = req.getHttpVersion();
+    		bRequest = true;
+    		Request req = (Request)meta;
+    		method = req.getMethod();
+    		uriString = req.getURIString();
+    		URI uri = new URI(uriString);
+    		scheme = uri.getScheme();
+    		authority = uri.getAuthority();
+    		path = uri.getPath();
+    		version = req.getHttpVersion();
 
     	} else {
-    			bRequest = false;
-    			Response res = (Response)meta;
-    			status = res.getStatus();
+    		bRequest = false;
+    		Response res = (Response)meta;
+    		status = res.getStatus();
     	}
     	fields = meta.getFields();
 	}
@@ -164,9 +174,13 @@ public class HeadersFrame extends Frame {
 	
 	@Override
 	public String toString() {
-		return super.toString() + "\n" +
-				String.format("method:%s, scheme:%s, authority:%s, path:%s", method, scheme, authority, path) + "\n" +
-				fields.toString();
+		String msg;
+		if (isRequest()) {
+			msg = String.format("method:%s, scheme:%s, authority:%s, path:%s\n", method, scheme, authority, path);
+		} else {
+			msg = String.format("status:%d\n", status);
+		}
+		return super.toString() + "\n" + msg + fields.toString();
 	}
 
 }

@@ -28,17 +28,19 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 
+import org.eclipse.jetty.http2.hpack.HpackDecoder;
+
 import com.google.common.collect.Sets;
 
 import packetproxy.http2.frames.Frame.Type;
 
 public class FrameFactory {
 	
-	static private Map<Type, Class<Frame>> frameList;
+	static private Map<Type, Class<?>> frameList;
 	
 	static {
 		try {
-			frameList = new HashMap<Type,Class<Frame>>();
+			frameList = new HashMap<Type,Class<?>>();
 
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 			JavaFileManager fm = compiler.getStandardFileManager(new DiagnosticCollector<JavaFileObject>(), null, null);
@@ -67,11 +69,15 @@ public class FrameFactory {
 		}
 	}
 
-	static public Frame create(byte[] data) throws Exception {
+	static public Frame create(byte[] data, HpackDecoder decoder) throws Exception {
 		Frame f = new Frame(data);
-		Class<Frame> frameClass = frameList.get(f.getType());
+		Class<?> frameClass = frameList.get(f.getType());
 		if (frameClass != null) {
-			return frameClass.getConstructor(Frame.class).newInstance(f);
+			if (frameClass == HeadersFrame.class) {
+				return (Frame) frameClass.getConstructor(Frame.class, HpackDecoder.class).newInstance(f, decoder);
+			} else {
+				return (Frame) frameClass.getConstructor(Frame.class).newInstance(f);
+			}
 		}
 		return f;
 	}

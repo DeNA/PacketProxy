@@ -185,7 +185,8 @@ class Simplex extends Thread
 					for (byte[] pass_through_data = callOnChunkPassThrough();
 							pass_through_data != null && pass_through_data.length > 0;
 							pass_through_data = callOnChunkPassThrough()) {
-						send(pass_through_data);
+						out.write(pass_through_data);
+						out.flush();
 					}
 
 					for (byte[] available_data = callOnChunkAvailable();

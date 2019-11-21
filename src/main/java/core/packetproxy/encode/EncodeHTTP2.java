@@ -15,14 +15,19 @@
  */
 package packetproxy.encode;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import packetproxy.http2.Http2;
+import packetproxy.http2.frames.Frame;
 
 public class EncodeHTTP2 extends Encoder
 {
-	private Http2 http2;
+	private Http2 h2client;
+	private Http2 h2server;
 
 	public EncodeHTTP2() throws Exception {
-		http2 = new Http2();
+		h2client = new Http2();
+		h2server = new Http2(true);
 	}
 	
 	@Override
@@ -36,35 +41,58 @@ public class EncodeHTTP2 extends Encoder
 	}
 
 	@Override
-	public void clientRequestArrived(byte[] frame) throws Exception { http2.writeClientFrame(frame); }
+	public void clientRequestArrived(byte[] frame) throws Exception {
+		if (frame[0] != 'P' || frame[1] != 'R') {
+			Frame f = new Frame(frame);
+			System.out.println("Client:" + f);
+		}
+		h2client.writeFrame(frame);
+	}
 	@Override
-	public void serverResponseArrived(byte[] frame) throws Exception { http2.writeServerFrame(frame); }
+	public void serverResponseArrived(byte[] frame) throws Exception {
+		Frame f = new Frame(frame);
+		System.out.println("Server:" + f);
+		h2server.writeFrame(frame);
+	}
 	@Override
-	public byte[] passThroughClientRequest() throws Exception { return http2.readClientControlFrames(); }
+	public byte[] passThroughClientRequest() throws Exception { return h2client.readControlFrames(); }
 	@Override
-	public byte[] passThroughServerResponse() throws Exception { return http2.readServerControlFrames(); }
+	public byte[] passThroughServerResponse() throws Exception { return h2server.readControlFrames(); }
 	@Override
-	public byte[] clientRequestAvailable() throws Exception { return http2.readClientFrames(); }
+	public byte[] clientRequestAvailable() throws Exception { return h2client.readHttp(); }
 	@Override
-	public byte[] serverResponseAvailable() throws Exception { return http2.readServerFrames(); }
+	public byte[] serverResponseAvailable() throws Exception { return h2server.readHttp(); }
 
 	@Override
-	public byte[] decodeClientRequest(byte[] frames) throws Exception {
-		return Http2.framesToHttp(frames);
+	public byte[] decodeClientRequest(byte[] http) throws Exception {
+		return http;
 	}
 	
 	@Override
 	public byte[] encodeClientRequest(byte[] http) throws Exception {
-		return Http2.httpToFrames(http);
+		byte[] a = h2client.httpToFrames(http);
+		//System.out.println(new Binary(a).toHexString());
+		return a;
 	}
 
 	@Override
-	public byte[] decodeServerResponse(byte[] frames) throws Exception {
-		return Http2.framesToHttp(frames);
+	public byte[] decodeServerResponse(byte[] http) throws Exception {
+		return http;
 	}
 
 	@Override
 	public byte[] encodeServerResponse(byte[] http) throws Exception {
-		return Http2.httpToFrames(http);
+		byte[] hoge = h2server.httpToFrames(http);
+		byte[] a = hoge.clone();
+		int len;
+		while ((len = Http2.parseFrameDelimiter(a)) > 0) {
+			Frame f = new Frame(ArrayUtils.subarray(a, 0, len));
+			System.out.println("    server: " + f);
+			a = ArrayUtils.subarray(a, len, a.length);
+			if (a.length == 0) {
+				break;
+			}
+		}
+		return hoge;
 	}
 }

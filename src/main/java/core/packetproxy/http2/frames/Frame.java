@@ -16,9 +16,8 @@
 package packetproxy.http2.frames;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-
-import org.apache.commons.codec.binary.Hex;
 
 public class Frame {
     public enum Type {
@@ -78,19 +77,30 @@ public class Frame {
     public int getStreamId() { return streamId; }
     public byte[] getPayload() { return payload; }
     
-    public byte[] toByteArray() {
-    	ByteBuffer bb = ByteBuffer.allocate(4096);
-    	bb.put((byte)((payload.length >>> 16) & 0xff));
-    	bb.put((byte)((payload.length >>> 8) & 0xff));
-    	bb.put((byte)(payload.length & 0xff));
-    	bb.put((byte)(type.ordinal() & 0xff));
-    	bb.put((byte)(flags & 0xff));
-    	bb.putInt(streamId);
-    	bb.put(payload);
-    	byte[] array = new byte[bb.position()];
-    	bb.flip();
-    	bb.get(array);
-    	return array;
+    public byte[] toByteArray() throws Exception {
+    	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    	int offset = 0;
+
+    	for (int rest = payload.length; rest > 0; ) {
+    		int blockLen = (rest > 8192 ? 8192 : rest);
+    		rest = rest - blockLen;
+
+    		ByteBuffer bb = ByteBuffer.allocate(blockLen + 1024);
+    		bb.put((byte)((blockLen >>> 16) & 0xff));
+    		bb.put((byte)((blockLen >>> 8) & 0xff));
+    		bb.put((byte)((blockLen) & 0xff));
+    		bb.put((byte)(type.ordinal() & 0xff));
+    		bb.put((byte)(flags));
+    		bb.putInt(streamId);
+    		bb.put(payload, offset, blockLen);
+    		byte[] array = new byte[bb.position()];
+    		bb.flip();
+    		bb.get(array);
+    		baos.write(array);
+
+    		offset = offset + blockLen;
+    	}
+    	return baos.toByteArray();
     }
     
     public byte[] toHttp1() throws Exception {
@@ -99,7 +109,7 @@ public class Frame {
     
     @Override
     public String toString() {
-    	return String.format("length=%d, type=%s, flags=%d, streamId=%d, data=%s", length, type.name(), flags, streamId, new String(Hex.encodeHex(payload)));
+    	return String.format("length=%d, type=%s, flags=%d, streamId=%d", length, type.name(), flags, streamId);
     }
     
 }
