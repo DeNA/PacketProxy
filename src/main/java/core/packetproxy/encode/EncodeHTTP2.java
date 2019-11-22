@@ -28,6 +28,8 @@ public class EncodeHTTP2 extends Encoder
 {
 	private Http2 h2client;
 	private Http2 h2server;
+	private long clientStreamId;
+	private long serverStreamId;
 
 	public EncodeHTTP2() throws Exception {
 		h2client = new Http2();
@@ -69,7 +71,7 @@ public class EncodeHTTP2 extends Encoder
 
 	@Override
 	public byte[] decodeClientRequest(byte[] http) throws Exception {
-		return http;
+		return new Http(http).toByteArray();
 	}
 	
 	@Override
@@ -90,7 +92,7 @@ public class EncodeHTTP2 extends Encoder
 
 	@Override
 	public byte[] decodeServerResponse(byte[] http) throws Exception {
-		return http;
+		return new Http(http).toByteArray();
 	}
 
 	@Override
