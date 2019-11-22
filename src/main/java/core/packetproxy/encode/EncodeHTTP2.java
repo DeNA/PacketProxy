@@ -15,6 +15,9 @@
  */
 package packetproxy.encode;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import packetproxy.common.UniqueID;
 import packetproxy.http.Http;
 import packetproxy.http2.Http2;
@@ -25,12 +28,10 @@ public class EncodeHTTP2 extends Encoder
 {
 	private Http2 h2client;
 	private Http2 h2server;
-	private long groupSeed;
 
 	public EncodeHTTP2() throws Exception {
 		h2client = new Http2();
 		h2server = new Http2(true);
-		groupSeed = UniqueID.getInstance().createId();
 	}
 	
 	@Override
@@ -126,13 +127,22 @@ public class EncodeHTTP2 extends Encoder
 		return summary;
 	}
 	
+	/* key: streamId, value: groupId */
+	private Map<Long,Long> groupMap = new HashMap<>();
 	@Override
 	public void setGroupId(Packet packet) throws Exception {
 		byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
 		Http http = new Http(data);
-		String streamId = http.getFirstHeader("X-PacketProxy-HTTP2-Stream-Id");
-		if (streamId != null && streamId.length() > 0) {
-			packet.setGroup((groupSeed << 16 | (Short.parseShort(streamId) & 0xffff)) & 0x7fffffffffffffffl);
+		String streamIdStr = http.getFirstHeader("X-PacketProxy-HTTP2-Stream-Id");
+		if (streamIdStr != null && streamIdStr.length() > 0) {
+			long streamId = Long.parseLong(streamIdStr); 
+			if (groupMap.containsKey(streamId)) {
+				packet.setGroup(groupMap.get(streamId));
+			} else {
+				long groupId = UniqueID.getInstance().createId();
+				groupMap.put(streamId, groupId);
+				packet.setGroup(groupId);
+			}
 		}
 	}
 
