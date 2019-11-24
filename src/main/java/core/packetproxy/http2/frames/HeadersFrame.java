@@ -46,8 +46,6 @@ public class HeadersFrame extends Frame {
 	private String scheme;
 	private String authority;
 	private String query;
-	private String fragment;
-	private int port;
 	private String uriString;
 	private HttpFields fields;
 	private boolean bRequest;
@@ -75,15 +73,13 @@ public class HeadersFrame extends Frame {
 		for (HeaderField field : headers.getFields()) {
 			if (field.getName().equals("X-PacketProxy-HTTP2-Stream-Id")) {
 				super.streamId = Integer.parseInt(field.getValue());
-			} else if (field.getName().equals("X-PacketProxy-HTTP2-URI")) {
-				uriString = field.getValue();
-				HttpURI uri = new HttpURI(uriString);
-				scheme = uri.getScheme();
-				authority = uri.getAuthority();
-				path = uri.getPath();
-				port = uri.getPort();
-				query = uri.getQuery();
-				fragment = uri.getFragment();
+			} else if (field.getName().equals("X-PacketProxy-HTTP2-Host")) {
+				scheme = "https";
+				authority = field.getValue();
+				path = http.getPath();
+				query = http.getQueryAsString();
+				String queryStr = (query != null && query.length() > 0) ? "?"+query : "";
+				uriString = scheme + "://" + authority + path + queryStr;
 			} else {
 				fields.add(field.getName(), field.getValue());
 			}
@@ -98,7 +94,7 @@ public class HeadersFrame extends Frame {
 				contentLength = http.getBody().length;
 				fields.add("content-length", String.valueOf(contentLength));
 			}
-			HttpURI uri = HttpURI.createHttpURI(scheme, authority, port, path, null, query, fragment);
+			HttpURI uri = new HttpURI(uriString);
 			meta = new MetaData.Request(method, uri, version, fields, contentLength);
 		} else {
 			long contentLength = (http.getBody().length == 0 ? Long.MIN_VALUE : http.getBody().length);
@@ -154,7 +150,6 @@ public class HeadersFrame extends Frame {
     		authority = uri.getAuthority();
     		path = uri.getPath();
     		query = uri.getQuery();
-    		fragment = uri.getFragment();
 
     	} else {
     		//System.out.println("# meta.response: " + meta);
@@ -170,8 +165,8 @@ public class HeadersFrame extends Frame {
 		ByteArrayOutputStream buf = new ByteArrayOutputStream();
 		if (bRequest) {
 			String queryStr    = (query != null && query.length() > 0) ? "?"+query : "";
-			String fragmentStr = (fragment != null && fragment.length() > 0) ? "#"+fragment : "";
-			String statusLine = String.format("%s %s%s%s HTTP/2.0\r\n", method, path, queryStr, fragmentStr);
+			//String fragmentStr = (fragment != null && fragment.length() > 0) ? "#"+fragment : "";
+			String statusLine = String.format("%s %s%s HTTP/2.0\r\n", method, path, queryStr);
 			buf.write(statusLine.getBytes());
 		} else {
 			buf.write(String.format("HTTP/2.0 %d %s\r\n", status, HttpStatus.getMessage(status)).getBytes());
@@ -180,7 +175,7 @@ public class HeadersFrame extends Frame {
 			buf.write(String.format("%s: %s\r\n", field.getName(), field.getValue()).getBytes());
 		}
 		if (bRequest) {
-			buf.write(String.format("X-PacketProxy-HTTP2-URI: %s\r\n", uriString).getBytes());
+			buf.write(String.format("X-PacketProxy-HTTP2-Host: %s\r\n", authority).getBytes());
 		}
 		buf.write(String.format("X-PacketProxy-HTTP2-Stream-Id: %d\r\n", streamId).getBytes());
 		buf.write("\r\n".getBytes());

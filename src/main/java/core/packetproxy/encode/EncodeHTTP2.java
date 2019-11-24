@@ -140,8 +140,7 @@ public class EncodeHTTP2 extends Encoder
 			byte[] data = (packet.getDecodedData().length > 0) ?
 			packet.getDecodedData() : packet.getModifiedData();
 			Http http = new Http(data);
-			String uriString = http.getFirstHeader("X-PacketProxy-HTTP2-URI");
-			summary = http.getMethod() + " " + uriString;
+			summary = http.getMethod() + " " + http.getURI();
 		} catch (Exception e) {
 			e.printStackTrace();
 			summary = "Headlineを生成できません・・・";
