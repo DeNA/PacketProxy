@@ -16,7 +16,6 @@
 package packetproxy.http2.frames;
 
 import java.io.ByteArrayOutputStream;
-import java.net.URI;
 import java.nio.ByteBuffer;
 
 import org.eclipse.jetty.http.HttpField;
@@ -78,7 +77,7 @@ public class HeadersFrame extends Frame {
 				super.streamId = Integer.parseInt(field.getValue());
 			} else if (field.getName().equals("X-PacketProxy-HTTP2-URI")) {
 				uriString = field.getValue();
-				URI uri = new URI(uriString);
+				HttpURI uri = new HttpURI(uriString);
 				scheme = uri.getScheme();
 				authority = uri.getAuthority();
 				path = uri.getPath();
@@ -101,15 +100,12 @@ public class HeadersFrame extends Frame {
 			}
 			HttpURI uri = HttpURI.createHttpURI(scheme, authority, port, path, null, query, fragment);
 			meta = new MetaData.Request(method, uri, version, fields, contentLength);
-			//System.out.println("# meta.request2: " + meta);
-			//System.out.println("# meta.request3: " + fields);
 		} else {
 			long contentLength = (http.getBody().length == 0 ? Long.MIN_VALUE : http.getBody().length);
-			//fields.put("content-length", String.valueOf(contentLength));
 			meta = new MetaData.Response(version, Integer.parseInt(http.getStatusCode()), fields, contentLength);
 		}
 
-		ByteBuffer buffer = ByteBuffer.allocate(4096);
+		ByteBuffer buffer = ByteBuffer.allocate(65535);
 		encoder.encode(buffer, meta);
 		
 		byte[] array = new byte[buffer.position()];
@@ -135,7 +131,7 @@ public class HeadersFrame extends Frame {
 	public int getStatus() { return status; }
 	
 	private void parsePayload(HpackDecoder decoder) throws Exception {
-    	ByteBuffer in = ByteBuffer.allocate(4096);
+    	ByteBuffer in = ByteBuffer.allocate(65535);
     	in.put(payload);
     	in.flip();
     	
@@ -151,14 +147,14 @@ public class HeadersFrame extends Frame {
     		bRequest = true;
     		Request req = (Request)meta;
     		method = req.getMethod();
-    		uriString = req.getURIString();
-    		URI uri = new URI(uriString);
-    		scheme = uri.getScheme();
-    		authority = uri.getRawAuthority();
-    		path = uri.getRawPath();
-			query = uri.getRawQuery();
-			fragment = uri.getRawFragment();
     		version = req.getHttpVersion();
+    		uriString = req.getURIString();
+    		HttpURI uri = req.getURI();
+    		scheme = uri.getScheme();
+    		authority = uri.getAuthority();
+    		path = uri.getPath();
+    		query = uri.getQuery();
+    		fragment = uri.getFragment();
 
     	} else {
     		//System.out.println("# meta.response: " + meta);
