@@ -36,10 +36,18 @@ import packetproxy.http2.frames.HeadersFrame;
 public class Http2
 {
 	static private byte[] PREFACE; /* PRI * HTTP/2.0 .... */
+	static private byte[] SETTINGS;
+	static private byte[] WINDOW_UPDATE;
+	
+	public enum Http2Type {
+		PROXY_CLIENT, PROXY_SERVER, RESEND_CLIENT
+	}
 	
 	static {
 		try {
 			PREFACE = Hex.decodeHex("505249202a20485454502f322e300d0a0d0a534d0d0a0d0a".toCharArray());
+			SETTINGS = Hex.decodeHex("000012040000000000000300000064000440000000000200000000".toCharArray());
+			WINDOW_UPDATE = Hex.decodeHex("0000040800000000003fff0001".toCharArray());
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -57,13 +65,19 @@ public class Http2
 	 *  バイト列から1フレームを切り出す
 	 */
 	static public int parseFrameDelimiter(byte[] data) throws Exception {
+		if (data.length < 9) {
+			return -1;
+		}
 		if (isPreface(data)) {
 			return PREFACE.length;
-		} else {
-			int headerSize = 9;
-			int payloadSize = ((data[0] & 0xff) << 16 | (data[1] & 0xff) << 8 | (data[2] & 0xff));
-			return headerSize + payloadSize;
 		}
+		int headerSize = 9;
+		int payloadSize = ((data[0] & 0xff) << 16 | (data[1] & 0xff) << 8 | (data[2] & 0xff));
+		int expectedSize = headerSize + payloadSize;
+		if (data.length < expectedSize) {
+			return -1;
+		}
+		return expectedSize;
 	}
 
 	/** 
@@ -78,13 +92,25 @@ public class Http2
 	private List<Frame> httpStreams = new LinkedList<>();
 	private List<Frame> otherStreams = new LinkedList<>();
 	private boolean alreadySentPreface = false;
+	private boolean alreadySentPrefaceSettingsWindowupdate = false;
 
 	public Http2() throws Exception {
 	}
 	
-	public Http2(boolean fServer) throws Exception {
-		if (fServer) {
+	public Http2(Http2Type type) throws Exception {
+		switch (type) {
+		case PROXY_CLIENT:
+			alreadySentPreface = false;
+			alreadySentPrefaceSettingsWindowupdate = true;
+			break;
+		case PROXY_SERVER:
 			alreadySentPreface = true;
+			alreadySentPrefaceSettingsWindowupdate = true;
+			break;
+		case RESEND_CLIENT:
+			alreadySentPreface = true;
+			alreadySentPrefaceSettingsWindowupdate = false;
+			break;
 		}
 	}
 
@@ -159,6 +185,12 @@ public class Http2
 		if (alreadySentPreface == false) {
 			baos.write(PREFACE);
 			alreadySentPreface = true;
+		}
+		if (alreadySentPrefaceSettingsWindowupdate == false) {
+			baos.write(PREFACE);
+			baos.write(SETTINGS);
+			baos.write(WINDOW_UPDATE);
+			alreadySentPrefaceSettingsWindowupdate = true;
 		}
 		for (Frame frame : otherStreams) {
 			baos.write(frame.toByteArray());

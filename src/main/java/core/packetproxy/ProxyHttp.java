@@ -107,9 +107,10 @@ public class ProxyHttp extends Proxy
 										String alpn = clientE.getApplicationProtocol();
 										if (alpn.equals("h2")) {
 											d = DuplexFactory.createDuplexAsync(clientE, serverE, "HTTP2");
-										} else if (alpn.equals("http/1.1") || alpn.equals("http/1.0")) {
+										} else if (alpn.equals("http/1.1") || alpn.equals("http/1.0") || alpn.equals("")) {
 											d = DuplexFactory.createDuplexAsync(clientE, serverE, "HTTP");
 										} else {
+											System.err.println(String.format("unknown ALPN: '%s', use Sample as encode module.", alpn));
 											d = DuplexFactory.createDuplexAsync(clientE, serverE, "Sample");
 										}
 									}

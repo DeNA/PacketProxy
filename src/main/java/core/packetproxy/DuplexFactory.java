@@ -237,7 +237,7 @@ public class DuplexFactory {
 		DuplexSync duplex = new DuplexSync(EndpointFactory.createFromOneShotPacket(oneshot));
 		duplex.addDuplexEventListener(new Duplex.DuplexEventListener() {
 			private Packets packets = Packets.getInstance();
-			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder());
+			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder().equals("HTTP2") ? "HTTP2 Resend" : oneshot.getEncoder());
 			private Packet client_packet;
 			private Packet server_packet;
 			@Override
@@ -341,7 +341,7 @@ public class DuplexFactory {
 		Duplex duplex = original_duplex.crateSameConnectionDuplex();
 		duplex.addDuplexEventListener(new Duplex.DuplexEventListener() {
 			private Packets packets = Packets.getInstance();
-			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder());
+			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder().equals("HTTP2") ? "HTTP2 Resend" : oneshot.getEncoder());
 			private Packet client_packet;
 			private Packet server_packet;
 			@Override

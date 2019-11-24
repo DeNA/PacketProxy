@@ -105,7 +105,7 @@ public class HeadersFrame extends Frame {
 			//System.out.println("# meta.request3: " + fields);
 		} else {
 			long contentLength = (http.getBody().length == 0 ? Long.MIN_VALUE : http.getBody().length);
-			fields.put("content-length", String.valueOf(contentLength));
+			//fields.put("content-length", String.valueOf(contentLength));
 			meta = new MetaData.Response(version, Integer.parseInt(http.getStatusCode()), fields, contentLength);
 		}
 
@@ -154,10 +154,10 @@ public class HeadersFrame extends Frame {
     		uriString = req.getURIString();
     		URI uri = new URI(uriString);
     		scheme = uri.getScheme();
-    		authority = uri.getAuthority();
-    		path = uri.getPath();
-			query = uri.getQuery();
-			fragment = uri.getFragment();
+    		authority = uri.getRawAuthority();
+    		path = uri.getRawPath();
+			query = uri.getRawQuery();
+			fragment = uri.getRawFragment();
     		version = req.getHttpVersion();
 
     	} else {

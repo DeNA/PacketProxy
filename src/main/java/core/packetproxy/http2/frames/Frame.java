@@ -16,7 +16,6 @@
 package packetproxy.http2.frames;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
 public class Frame {
@@ -78,29 +77,18 @@ public class Frame {
     public byte[] getPayload() { return payload; }
     
     public byte[] toByteArray() throws Exception {
-    	ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    	int offset = 0;
-
-    	for (int rest = payload.length; rest > 0; ) {
-    		int blockLen = (rest > 8192 ? 8192 : rest);
-    		rest = rest - blockLen;
-
-    		ByteBuffer bb = ByteBuffer.allocate(blockLen + 1024);
-    		bb.put((byte)((blockLen >>> 16) & 0xff));
-    		bb.put((byte)((blockLen >>> 8) & 0xff));
-    		bb.put((byte)((blockLen) & 0xff));
-    		bb.put((byte)(type.ordinal() & 0xff));
-    		bb.put((byte)(flags));
-    		bb.putInt(streamId);
-    		bb.put(payload, offset, blockLen);
-    		byte[] array = new byte[bb.position()];
-    		bb.flip();
-    		bb.get(array);
-    		baos.write(array);
-
-    		offset = offset + blockLen;
-    	}
-    	return baos.toByteArray();
+    	ByteBuffer bb = ByteBuffer.allocate(payload.length + 1024);
+    	bb.put((byte)((payload.length >>> 16) & 0xff));
+    	bb.put((byte)((payload.length >>> 8) & 0xff));
+    	bb.put((byte)((payload.length) & 0xff));
+    	bb.put((byte)(type.ordinal() & 0xff));
+    	bb.put((byte)(flags));
+    	bb.putInt(streamId);
+    	bb.put(payload, 0, payload.length);
+    	byte[] array = new byte[bb.position()];
+    	bb.flip();
+    	bb.get(array);
+    	return array;
     }
     
     public byte[] toHttp1() throws Exception {

@@ -18,9 +18,12 @@ package packetproxy.encode;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import packetproxy.common.UniqueID;
 import packetproxy.http.Http;
 import packetproxy.http2.Http2;
+import packetproxy.http2.Http2.Http2Type;
 import packetproxy.http2.frames.Frame;
 import packetproxy.model.Packet;
 
@@ -28,12 +31,10 @@ public class EncodeHTTP2 extends Encoder
 {
 	private Http2 h2client;
 	private Http2 h2server;
-	private long clientStreamId;
-	private long serverStreamId;
 
 	public EncodeHTTP2() throws Exception {
-		h2client = new Http2();
-		h2server = new Http2(true);
+		h2client = new Http2(Http2Type.PROXY_CLIENT);
+		h2server = new Http2(Http2Type.PROXY_SERVER);
 	}
 	
 	@Override
@@ -48,16 +49,16 @@ public class EncodeHTTP2 extends Encoder
 
 	@Override
 	public void clientRequestArrived(byte[] frame) throws Exception {
-		if (frame[0] != 'P' || frame[1] != 'R') {
-			Frame f = new Frame(frame);
-			System.out.println("Client:" + f);
-		}
+		//if (frame[0] != 'P' || frame[1] != 'R') {
+		//	Frame f = new Frame(frame);
+		//	System.out.println("Client:" + f);
+		//}
 		h2client.writeFrame(frame);
 	}
 	@Override
 	public void serverResponseArrived(byte[] frame) throws Exception {
-		Frame f = new Frame(frame);
-		System.out.println("Server:" + f);
+		//Frame f = new Frame(frame);
+		//System.out.println("Server:" + f);
 		h2server.writeFrame(frame);
 	}
 	@Override
@@ -111,24 +112,6 @@ public class EncodeHTTP2 extends Encoder
 		return frames;
 	}
 	
-	@Override
-	public String getSummarizedRequest(Packet packet)
-	{
-		String summary = "";
-		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
-		try {
-			byte[] data = (packet.getDecodedData().length > 0) ?
-			packet.getDecodedData() : packet.getModifiedData();
-			Http http = new Http(data);
-			String uriString = http.getFirstHeader("X-PacketProxy-HTTP2-URI");
-			summary = http.getMethod() + " " + uriString;
-		} catch (Exception e) {
-			e.printStackTrace();
-			summary = "Headlineを生成できません・・・";
-		}
-		return summary;
-	}
-	
 	/* key: streamId, value: groupId */
 	private Map<Long,Long> groupMap = new HashMap<>();
 	@Override
@@ -146,6 +129,24 @@ public class EncodeHTTP2 extends Encoder
 				packet.setGroup(groupId);
 			}
 		}
+	}
+	
+	@Override
+	public String getSummarizedRequest(Packet packet)
+	{
+		String summary = "";
+		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
+		try {
+			byte[] data = (packet.getDecodedData().length > 0) ?
+			packet.getDecodedData() : packet.getModifiedData();
+			Http http = new Http(data);
+			String uriString = http.getFirstHeader("X-PacketProxy-HTTP2-URI");
+			summary = http.getMethod() + " " + uriString;
+		} catch (Exception e) {
+			e.printStackTrace();
+			summary = "Headlineを生成できません・・・";
+		}
+		return summary;
 	}
 
 	@Override

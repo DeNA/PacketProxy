@@ -29,8 +29,6 @@ public class DataFrame extends Frame {
     static byte FLAG_END_STREAM = 0x01;
     static byte FLAG_PADDED     = 0x08;
     
-    private byte[] httpBody;
-    
     public DataFrame(Frame frame) throws Exception {
 		super(frame);
 		parsePayload();
@@ -102,7 +100,7 @@ public class DataFrame extends Frame {
 	
 	@Override
 	public String toString() {
-		return super.toString() + new String(payload);
+		return super.toString();
 	}
 
 }
