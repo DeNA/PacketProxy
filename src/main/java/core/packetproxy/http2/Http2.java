@@ -32,6 +32,8 @@ import packetproxy.http2.frames.DataFrame;
 import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameFactory;
 import packetproxy.http2.frames.HeadersFrame;
+import packetproxy.http2.frames.SettingsFrame;
+import packetproxy.http2.frames.WindowUpdateFrame;
 
 public class Http2
 {
@@ -169,6 +171,22 @@ public class Http2
 					httpStreams.addAll(bufferedHttpStreams.get(frame.getStreamId()));
 					bufferedHttpStreams.remove(frame.getStreamId());
 				}
+			} else if (frame instanceof SettingsFrame) {
+				SettingsFrame settingsFrame = (SettingsFrame)frame;
+				if ((settingsFrame.getFlags() & 0x1) > 0) {
+					otherStreams.add(settingsFrame);
+				} else {
+					otherStreams.add(new Frame(SETTINGS));
+				}
+			} else if (frame instanceof WindowUpdateFrame) {
+				WindowUpdateFrame windowUpdateFrame = (WindowUpdateFrame)frame;
+				if (windowUpdateFrame.getStreamId() == 0) {
+					// 全部のstreamIDのwindowを増やす
+				} else {
+					// streamIdのwindowをふやす
+				}
+				System.out.println("WindowUpdate:" + windowUpdateFrame.getWindowSize());
+				otherStreams.add(frame);
 			} else {
 				otherStreams.add(frame);
 			}
