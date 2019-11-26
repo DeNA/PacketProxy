@@ -94,6 +94,7 @@ public class Http2
 	private Map<Integer, List<Frame>> bufferedHttpStreams = new HashMap<>();
 	private List<Frame> httpStreams = new LinkedList<>();
 	private List<Frame> otherStreams = new LinkedList<>();
+	private FlowControlManager flowControlManager = new FlowControlManager();
 	private boolean alreadySentPreface = false;
 	private boolean alreadySentPrefaceSettingsWindowupdate = false;
 
@@ -231,9 +232,6 @@ public class Http2
 		httpStreams.clear();
 		return baos.toByteArray();
 	}
-
-	/* 以下、フロー制御 */
-	private FlowControlManager flowControlManager = new FlowControlManager();
 
 	public void putToFlowControlledQueue(byte[] frames) throws Exception {
 		for (Frame frame : parseFrames(frames)) {

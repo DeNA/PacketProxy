@@ -127,5 +127,4 @@ public abstract class Encoder
 	public InputStream getFlowControlledInputStream() {
 		return null;
 	}
-	
 }

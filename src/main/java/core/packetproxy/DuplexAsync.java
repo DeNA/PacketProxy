@@ -17,8 +17,12 @@ package packetproxy;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import packetproxy.common.Endpoint;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+
 import org.apache.commons.lang3.ArrayUtils;
+
+import packetproxy.common.Endpoint;
 
 public class DuplexAsync extends Duplex
 {
@@ -26,6 +30,8 @@ public class DuplexAsync extends Duplex
 	private Endpoint server;
 	private Simplex client_to_server;
 	private Simplex server_to_client;
+	private Thread flowSourceThread;
+	private Thread flowSinkThread;
 
 	public DuplexAsync(Endpoint client_endpoint, Endpoint server_endpoint) throws Exception
 	{
@@ -35,9 +41,44 @@ public class DuplexAsync extends Duplex
 		OutputStream client_output = (client_endpoint != null) ? client_endpoint.getOutputStream() : null;
 		InputStream server_input  = (server_endpoint != null) ? server_endpoint.getInputStream() : null;
 		OutputStream server_output = (server_endpoint != null) ? server_endpoint.getOutputStream() : null;
+		
+		PipedOutputStream flow_controlled_client_output = new PipedOutputStream();
+		PipedInputStream flow_controlled_client_input = new PipedInputStream(flow_controlled_client_output, 65536);
+		
+		flowSourceThread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					byte[] inputBuf = new byte[65536];
+					int inputLen = 0;
+					while ((inputLen = flow_controlled_client_input.read(inputBuf)) > 0) {
+						callOnClientChunkFlowControl(ArrayUtils.subarray(inputBuf, 0, inputLen));
+					}
+					flow_controlled_client_input.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		flowSourceThread.start();
+
+		flowSinkThread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					byte[] inputBuf = new byte[65536];
+					int inputLen = 0;
+					while ((inputLen = getFlowSinkInputStream().read(inputBuf)) > 0) {
+						client_output.write(inputBuf, 0, inputLen);
+					}
+					client_output.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		flowSinkThread.start();
 
 		client_to_server = createClientToServerSimplex(client_input, server_output);
-		server_to_client = createServerToClientSimplex(server_input, client_output);
+		server_to_client = createServerToClientSimplex(server_input, flow_controlled_client_output);
 		disableDuplexEventListener();
 	}
 

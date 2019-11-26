@@ -17,6 +17,7 @@ package packetproxy;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
+
 import packetproxy.common.CryptUtils;
 import packetproxy.common.Endpoint;
 import packetproxy.common.EndpointFactory;
@@ -230,6 +231,12 @@ public class DuplexFactory {
 			@Override
 			public byte[] onServerChunkAvailable() throws Exception {
 				return encoder.serverResponseAvailable();
+			}
+			@Override
+			public void onClientChunkFlowControl(byte[] data) throws Exception {
+				if (encoder.isFlowControlled()) {
+					encoder.putToFlowControlledQueue(data);
+				}
 			}
 		});
 	}
