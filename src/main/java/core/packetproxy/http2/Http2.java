@@ -16,6 +16,7 @@
 package packetproxy.http2;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -173,6 +174,7 @@ public class Http2
 				}
 			} else if (frame instanceof SettingsFrame) {
 				SettingsFrame settingsFrame = (SettingsFrame)frame;
+				flowControlManager.setInitialWindowSize(settingsFrame);
 				if ((settingsFrame.getFlags() & 0x1) > 0) {
 					otherStreams.add(settingsFrame);
 				} else {
@@ -180,12 +182,8 @@ public class Http2
 				}
 			} else if (frame instanceof WindowUpdateFrame) {
 				WindowUpdateFrame windowUpdateFrame = (WindowUpdateFrame)frame;
-				if (windowUpdateFrame.getStreamId() == 0) {
-					// 全部のstreamIDのwindowを増やす
-				} else {
-					// streamIdのwindowをふやす
-				}
-				System.out.println("WindowUpdate:" + windowUpdateFrame.getWindowSize());
+				flowControlManager.appendWindowSize(windowUpdateFrame);
+				//System.out.println("WindowUpdate:" + windowUpdateFrame.getWindowSize());
 				otherStreams.add(frame);
 			} else {
 				otherStreams.add(frame);
@@ -233,4 +231,17 @@ public class Http2
 		httpStreams.clear();
 		return baos.toByteArray();
 	}
+
+	/* 以下、フロー制御 */
+	private FlowControlManager flowControlManager = new FlowControlManager();
+
+	public void putToFlowControlledQueue(byte[] frames) throws Exception {
+		for (Frame frame : parseFrames(frames)) {
+			flowControlManager.write(frame);
+		}
+	}
+	public InputStream getFlowControlledInputStream() {
+		return flowControlManager.getInputStream();
+	}
+	
 }

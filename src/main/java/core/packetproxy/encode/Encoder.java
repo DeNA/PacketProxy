@@ -16,6 +16,7 @@
 package packetproxy.encode;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -116,4 +117,15 @@ public abstract class Encoder
 	}
 	public void setGroupId(Packet packet) throws Exception {
 	}
+	
+	/* 今の所、クライアントはスマホ等バッファが少ない可能性があるため、クライアント側だけフロー制御 */
+	public boolean isFlowControlled() {
+		return false;
+	}
+	public void putToFlowControlledQueue(byte[] frames) throws Exception {
+	}
+	public InputStream getFlowControlledInputStream() {
+		return null;
+	}
+	
 }

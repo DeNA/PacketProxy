@@ -15,16 +15,14 @@
  */
 package packetproxy.encode;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.lang3.ArrayUtils;
 
 import packetproxy.common.UniqueID;
 import packetproxy.http.Http;
 import packetproxy.http2.Http2;
 import packetproxy.http2.Http2.Http2Type;
-import packetproxy.http2.frames.Frame;
 import packetproxy.model.Packet;
 
 public class EncodeHTTP2 extends Encoder
@@ -165,4 +163,19 @@ public class EncodeHTTP2 extends Encoder
 		}
 		return summary;
 	}
+	
+	/* 今の所、クライアントはスマホ等バッファが少ない可能性があるため、クライアント側だけフロー制御 */
+	@Override
+	public boolean isFlowControlled() {
+		return true;
+	}
+	@Override
+	public void putToFlowControlledQueue(byte[] frames) throws Exception {
+		h2client.putToFlowControlledQueue(frames);
+	}
+	@Override
+	public InputStream getFlowControlledInputStream() {
+		return h2client.getFlowControlledInputStream();
+	}
+	
 }
