@@ -23,6 +23,7 @@ import packetproxy.common.UniqueID;
 import packetproxy.http.Http;
 import packetproxy.http2.Http2;
 import packetproxy.http2.Http2.Http2Type;
+import packetproxy.http2.frames.Frame;
 import packetproxy.model.Packet;
 
 public class EncodeHTTP2 extends Encoder
@@ -47,16 +48,16 @@ public class EncodeHTTP2 extends Encoder
 
 	@Override
 	public void clientRequestArrived(byte[] frame) throws Exception {
-		//if (frame[0] != 'P' || frame[1] != 'R') {
-		//	Frame f = new Frame(frame);
-		//	System.out.println("Client:" + f);
-		//}
+		if (frame[0] != 'P' || frame[1] != 'R') {
+			Frame f = new Frame(frame);
+			System.out.println("Client:" + f);
+		}
 		h2client.writeFrame(frame);
 	}
 	@Override
 	public void serverResponseArrived(byte[] frame) throws Exception {
-		//Frame f = new Frame(frame);
-		//System.out.println("Server:" + f);
+		Frame f = new Frame(frame);
+		System.out.println("Server:" + f);
 		h2server.writeFrame(frame);
 	}
 	@Override
@@ -164,11 +165,6 @@ public class EncodeHTTP2 extends Encoder
 		return summary;
 	}
 	
-	/* 今の所、クライアントはスマホ等バッファが少ない可能性があるため、クライアント側だけフロー制御 */
-	@Override
-	public boolean isFlowControlled() {
-		return true;
-	}
 	@Override
 	public void putToFlowControlledQueue(byte[] frames) throws Exception {
 		h2client.putToFlowControlledQueue(frames);

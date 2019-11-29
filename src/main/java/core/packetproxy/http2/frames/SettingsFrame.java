@@ -23,7 +23,7 @@ public class SettingsFrame extends Frame {
     	10,
     	65535,
     	16884,
-    	0
+    	65536,
     };
     
     private Map<SettingsFrameType, Integer> values = new HashMap<>();

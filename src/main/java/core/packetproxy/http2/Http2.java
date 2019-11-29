@@ -32,8 +32,11 @@ import packetproxy.http.Http;
 import packetproxy.http2.frames.DataFrame;
 import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameFactory;
+import packetproxy.http2.frames.GoawayFrame;
 import packetproxy.http2.frames.HeadersFrame;
+import packetproxy.http2.frames.RstStreamFrame;
 import packetproxy.http2.frames.SettingsFrame;
+import packetproxy.http2.frames.SettingsFrame.SettingsFrameType;
 import packetproxy.http2.frames.WindowUpdateFrame;
 
 public class Http2
@@ -49,8 +52,8 @@ public class Http2
 	static {
 		try {
 			PREFACE = Hex.decodeHex("505249202a20485454502f322e300d0a0d0a534d0d0a0d0a".toCharArray());
-			SETTINGS = Hex.decodeHex("000012040000000000000300000064000440000000000200000000".toCharArray());
-			WINDOW_UPDATE = Hex.decodeHex("0000040800000000003fff0001".toCharArray());
+			SETTINGS = Hex.decodeHex("00001204000000000000030000006400045fffffff000200000000".toCharArray()); // header_table:4096, header_list:unlimited, window_size:unlimited
+			WINDOW_UPDATE = Hex.decodeHex("0000040800000000005fffffff".toCharArray()); // connection_window_size:unlimited
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -89,8 +92,8 @@ public class Http2
 	 * 変換後のHTTPデータは、元のフレームに完全に戻すための情報をヘッダに付与すること（例：ストリーム番号）
 	 */
 	
-	private HpackEncoder hpackEncoder = new HpackEncoder(165535, 165535); // TODO: 適切なサイズの見極め
-	private HpackDecoder hpackDecoder = new HpackDecoder(165535, 165535); // TODO: 適切なサイズの見極め
+	private HpackEncoder hpackEncoder = new HpackEncoder(4096, 65536); // TODO: 適切なサイズの見極め
+	private HpackDecoder hpackDecoder;
 	private Map<Integer, List<Frame>> bufferedHttpStreams = new HashMap<>();
 	private List<Frame> httpStreams = new LinkedList<>();
 	private List<Frame> otherStreams = new LinkedList<>();
@@ -163,10 +166,11 @@ public class Http2
 			if (frame instanceof HeadersFrame) {
 				HeadersFrame headersFrame = (HeadersFrame)frame;
 				if ((headersFrame.getFlags() & 0x01) > 0) {
-					httpStreams.add(frame);
+					httpStreams.add(headersFrame);
 				} else {
-					addFrameToBufferedStream(bufferedHttpStreams, frame);
+					addFrameToBufferedStream(bufferedHttpStreams, headersFrame);
 				}
+				//System.out.println("HeadersFrame:" + headersFrame);
 			} else if (frame instanceof DataFrame) {
 				addFrameToBufferedStream(bufferedHttpStreams, frame);
 				if ((frame.getFlags() & 0x01) > 0) {
@@ -176,11 +180,26 @@ public class Http2
 			} else if (frame instanceof SettingsFrame) {
 				SettingsFrame settingsFrame = (SettingsFrame)frame;
 				flowControlManager.setInitialWindowSize(settingsFrame);
+				//System.out.println("SettingsFrame:" + settingsFrame);
 				if ((settingsFrame.getFlags() & 0x1) > 0) {
 					otherStreams.add(settingsFrame);
 				} else {
+					int header_table_size = settingsFrame.get(SettingsFrameType.SETTINGS_HEADER_TABLE_SIZE);
+					int header_list_size = settingsFrame.get(SettingsFrameType.SETTINGS_MAX_HEADER_LIST_SIZE);
+					hpackDecoder = new HpackDecoder(header_table_size, header_list_size);
 					otherStreams.add(new Frame(SETTINGS));
 				}
+			} else if (frame instanceof GoawayFrame) {
+				GoawayFrame goAwayFrame = (GoawayFrame)frame;
+				if (goAwayFrame.getErrorCode() != 0) { // 0 is NO_ERROR
+					System.err.println("GoAway:" + goAwayFrame);
+				}
+			} else if (frame instanceof RstStreamFrame) {
+				RstStreamFrame rstFrame = (RstStreamFrame)frame;
+				if (rstFrame.getErrorCode() != 0) { // 0 is NO_ERROR
+					System.err.println("RstStream:" + rstFrame);
+				}
+				otherStreams.add(rstFrame);
 			} else if (frame instanceof WindowUpdateFrame) {
 				WindowUpdateFrame windowUpdateFrame = (WindowUpdateFrame)frame;
 				flowControlManager.appendWindowSize(windowUpdateFrame);
@@ -233,9 +252,16 @@ public class Http2
 		return baos.toByteArray();
 	}
 
-	public void putToFlowControlledQueue(byte[] frames) throws Exception {
-		for (Frame frame : parseFrames(frames)) {
-			flowControlManager.write(frame);
+	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	public void putToFlowControlledQueue(byte[] frameData) throws Exception {
+		baos.write(frameData);
+		int length = 0;
+		while ((length = parseFrameDelimiter(baos.toByteArray())) > 0) {
+			byte[] frame = ArrayUtils.subarray(baos.toByteArray(), 0, length);
+			byte[] remaining = ArrayUtils.subarray(baos.toByteArray(), length, baos.size());
+			baos.reset();
+			baos.write(remaining);
+			flowControlManager.write(new Frame(frame));
 		}
 	}
 	public InputStream getFlowControlledInputStream() {

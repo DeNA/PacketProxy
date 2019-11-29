@@ -3,6 +3,7 @@ package packetproxy.encode;
 import packetproxy.http.Http;
 import packetproxy.http2.Http2;
 import packetproxy.http2.Http2.Http2Type;
+import packetproxy.http2.frames.Frame;
 
 public class EncodeHTTP2Resend extends Encoder
 {
@@ -33,7 +34,20 @@ public class EncodeHTTP2Resend extends Encoder
 	public byte[] passThroughClientRequest() throws Exception { return h2resend.readControlFrames(); }
 
 	@Override
-	public void serverResponseArrived(byte[] frame) throws Exception { h2server.writeFrame(frame); }
+	public void clientRequestArrived(byte[] frame) throws Exception {
+		if (frame[0] != 'P' || frame[1] != 'R') {
+			Frame f = new Frame(frame);
+			System.out.println("Client:" + f);
+		}
+		super.clientRequestArrived(frame);
+	}
+
+	@Override
+	public void serverResponseArrived(byte[] frame) throws Exception {
+		Frame f = new Frame(frame);
+		System.out.println("Server:" + f);
+		h2server.writeFrame(frame);
+	}
 
 	@Override
 	public byte[] serverResponseAvailable() throws Exception { return h2server.readHttp(); }

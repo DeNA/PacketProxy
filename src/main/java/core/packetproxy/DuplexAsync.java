@@ -32,53 +32,28 @@ public class DuplexAsync extends Duplex
 	private Simplex server_to_client;
 	private Thread flowSourceThread;
 	private Thread flowSinkThread;
+	private InputStream client_input;
+	private InputStream server_input;
+	private OutputStream client_output;
+	private OutputStream server_output;
+	private PipedInputStream flow_controlled_client_input;
+	private PipedOutputStream flow_controlled_client_output;
 
 	public DuplexAsync(Endpoint client_endpoint, Endpoint server_endpoint) throws Exception
 	{
 		this.client = client_endpoint;
 		this.server = server_endpoint;
-		InputStream client_input  = (client_endpoint != null) ? client_endpoint.getInputStream() : null;
-		OutputStream client_output = (client_endpoint != null) ? client_endpoint.getOutputStream() : null;
-		InputStream server_input  = (server_endpoint != null) ? server_endpoint.getInputStream() : null;
-		OutputStream server_output = (server_endpoint != null) ? server_endpoint.getOutputStream() : null;
+		client_input  = (client_endpoint != null) ? client_endpoint.getInputStream() : null;
+		client_output = (client_endpoint != null) ? client_endpoint.getOutputStream() : null;
+		server_input  = (server_endpoint != null) ? server_endpoint.getInputStream() : null;
+		server_output = (server_endpoint != null) ? server_endpoint.getOutputStream() : null;
 		
-		PipedOutputStream flow_controlled_client_output = new PipedOutputStream();
-		PipedInputStream flow_controlled_client_input = new PipedInputStream(flow_controlled_client_output, 65536);
-		
-		flowSourceThread = new Thread(new Runnable() {
-			public void run() {
-				try {
-					byte[] inputBuf = new byte[65536];
-					int inputLen = 0;
-					while ((inputLen = flow_controlled_client_input.read(inputBuf)) > 0) {
-						callOnClientChunkFlowControl(ArrayUtils.subarray(inputBuf, 0, inputLen));
-					}
-					flow_controlled_client_input.close();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		flowSourceThread.start();
-
-		flowSinkThread = new Thread(new Runnable() {
-			public void run() {
-				try {
-					byte[] inputBuf = new byte[65536];
-					int inputLen = 0;
-					while ((inputLen = getFlowSinkInputStream().read(inputBuf)) > 0) {
-						client_output.write(inputBuf, 0, inputLen);
-					}
-					client_output.close();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		flowSinkThread.start();
+		flow_controlled_client_output = new PipedOutputStream();
+		flow_controlled_client_input = new PipedInputStream(flow_controlled_client_output, 65536);
 
 		client_to_server = createClientToServerSimplex(client_input, server_output);
 		server_to_client = createServerToClientSimplex(server_input, flow_controlled_client_output);
+		
 		disableDuplexEventListener();
 	}
 
@@ -101,8 +76,46 @@ public class DuplexAsync extends Duplex
 	}
 
 	public void start() throws Exception {
+		flowSourceThread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					byte[] inputBuf = new byte[65536];
+					int inputLen = 0;
+					while ((inputLen = flow_controlled_client_input.read(inputBuf)) > 0) {
+						callOnClientChunkFlowControl(ArrayUtils.subarray(inputBuf, 0, inputLen));
+					}
+				} catch (Exception e) {
+					//e.printStackTrace();
+				}
+			}
+		});
+
+		flowSinkThread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					byte[] inputBuf = new byte[65536];
+					int inputLen = 0;
+					while ((inputLen = getClientChunkFlowControlSink().read(inputBuf)) > 0) {
+						client_output.write(inputBuf, 0, inputLen);
+					}
+					flow_controlled_client_input.close();
+					client_output.close();
+				} catch (Exception e) {
+					try {
+						flow_controlled_client_input.close();
+						client_output.close();
+					} catch (Exception e1) {
+						//e1.printStackTrace();
+					}
+					//e.printStackTrace();
+				}
+			}
+		});
+
 		client_to_server.start();
 		server_to_client.start();
+		flowSinkThread.start();
+		flowSourceThread.start();
 	}
 	@Override
 	public void close() throws Exception {

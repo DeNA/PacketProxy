@@ -15,6 +15,7 @@
  */
 package packetproxy;
 
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 
@@ -234,9 +235,11 @@ public class DuplexFactory {
 			}
 			@Override
 			public void onClientChunkFlowControl(byte[] data) throws Exception {
-				if (encoder.isFlowControlled()) {
-					encoder.putToFlowControlledQueue(data);
-				}
+				encoder.putToFlowControlledQueue(data);
+			}
+			@Override
+			public InputStream getClientChunkFlowControlSink() throws Exception {
+				return encoder.getFlowControlledInputStream();
 			}
 		});
 	}
@@ -338,6 +341,14 @@ public class DuplexFactory {
 			@Override
 			public byte[] onServerChunkAvailable() throws Exception {
 				return encoder.serverResponseAvailable();
+			}
+			@Override
+			public void onClientChunkFlowControl(byte[] data) throws Exception {
+				encoder.putToFlowControlledQueue(data);
+			}
+			@Override
+			public InputStream getClientChunkFlowControlSink() throws Exception {
+				return encoder.getFlowControlledInputStream();
 			}
 		});
 		return duplex;
@@ -442,6 +453,14 @@ public class DuplexFactory {
 			@Override
 			public byte[] onServerChunkAvailable() throws Exception {
 				return encoder.serverResponseAvailable();
+			}
+			@Override
+			public void onClientChunkFlowControl(byte[] data) throws Exception {
+				encoder.putToFlowControlledQueue(data);
+			}
+			@Override
+			public InputStream getClientChunkFlowControlSink() throws Exception {
+				return encoder.getFlowControlledInputStream();
 			}
 		});
 		return duplex;

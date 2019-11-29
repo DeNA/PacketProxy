@@ -18,6 +18,7 @@ package packetproxy.http2.frames;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpStatus;
@@ -51,6 +52,9 @@ public class HeadersFrame extends Frame {
 	private boolean bRequest;
 	private int status;
 	private HttpVersion version;
+	private boolean priority = false;
+	private int dependency = 0;
+	private int weight = 0;
 	
 	public HeadersFrame(Frame frame, HpackDecoder decoder) throws Exception {
 		super(frame);
@@ -80,6 +84,11 @@ public class HeadersFrame extends Frame {
 				query = http.getQueryAsString();
 				String queryStr = (query != null && query.length() > 0) ? "?"+query : "";
 				uriString = scheme + "://" + authority + path + queryStr;
+			} else if (field.getName().equals("X-PacketProxy-HTTP2-Dependency")) {
+				priority = true;
+				dependency = Integer.parseInt(field.getValue());
+			} else if (field.getName().equals("X-PacketProxy-HTTP2-Weight")) {
+				weight = Integer.parseInt(field.getValue());
 			} else {
 				fields.add(field.getName(), field.getValue());
 			}
@@ -113,6 +122,17 @@ public class HeadersFrame extends Frame {
 			super.flags = FLAG_END_HEADERS;
 		else
 			super.flags = FLAG_END_HEADERS | FLAG_END_STREAM;
+		
+		if (priority) {
+			super.flags |= FLAG_PRIORITY;
+			ByteBuffer b = ByteBuffer.allocate(16);
+			b.putInt(dependency | 0x80000000);
+			b.put((byte)(weight & 0xff));
+			byte[] priorityField = new byte[b.position()];
+			b.flip();
+			b.get(priorityField);
+			payload = ArrayUtils.addAll(priorityField, payload);
+		}
 
 		super.type = TYPE;
 		super.length = payload.length;
@@ -132,8 +152,9 @@ public class HeadersFrame extends Frame {
     	in.flip();
     	
     	if ((flags & FLAG_PRIORITY) > 0) {
-    		in.getInt(); // skip dependency
-    		in.get(); // skip weight
+    		priority = true;
+    		dependency = in.getInt() & 0x7fffffff;
+    		weight = in.get();
     	}
     	
     	MetaData meta = decoder.decode(in);
@@ -176,6 +197,10 @@ public class HeadersFrame extends Frame {
 		}
 		if (bRequest) {
 			buf.write(String.format("X-PacketProxy-HTTP2-Host: %s\r\n", authority).getBytes());
+			if (priority) {
+				buf.write(String.format("X-PacketProxy-HTTP2-Dependency: %d\r\n", dependency).getBytes());
+				buf.write(String.format("X-PacketProxy-HTTP2-Weight: %d\r\n", weight & 0xff).getBytes());
+			}
 		}
 		buf.write(String.format("X-PacketProxy-HTTP2-Stream-Id: %d\r\n", streamId).getBytes());
 		buf.write("\r\n".getBytes());
@@ -186,11 +211,11 @@ public class HeadersFrame extends Frame {
 	public String toString() {
 		String msg;
 		if (isRequest()) {
-			msg = String.format("method:%s, scheme:%s, authority:%s, path:%s\n", method, scheme, authority, path);
+			msg = String.format("dependency:%d, weight:%d, method:%s, scheme:%s, authority:%s, path:%s\n", dependency, weight, method, scheme, authority, path);
 		} else {
-			msg = String.format("status:%d\n", status);
+			msg = String.format("dependency:%d, weight:%d, status:%d\n", dependency, weight, status);
 		}
-		return super.toString() + "\n" + msg + fields.toString();
+		return super.toString() + "\n" + msg;
 	}
 
 }

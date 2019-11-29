@@ -65,8 +65,23 @@ public class DataFrame extends Frame {
 	@Override
     public byte[] toByteArray() throws Exception {
     	ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    	int offset = 0;
 
+    	if (payload.length == 0) {
+    		ByteBuffer bb = ByteBuffer.allocate(1024);
+    		bb.put((byte)0);
+    		bb.put((byte)0);
+    		bb.put((byte)0);
+    		bb.put((byte)(type.ordinal() & 0xff));
+   			bb.put((byte)FLAG_END_STREAM);
+    		bb.putInt(streamId);
+    		byte[] array = new byte[bb.position()];
+    		bb.flip();
+    		bb.get(array);
+    		baos.write(array);
+    		return baos.toByteArray();
+		}
+
+    	int offset = 0;
     	for (int rest = payload.length; rest > 0; ) {
     		int blockLen = (rest > 8192 ? 8192 : rest);
     		rest = rest - blockLen;

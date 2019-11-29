@@ -15,13 +15,17 @@
  */
 package packetproxy;
 
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.EventListener;
+
 import javax.swing.event.EventListenerList;
 
 public abstract class Duplex {
 	protected EventListenerList duplexEventListenerList = new EventListenerList();
 	private boolean flag_event_listener;
-
+	
 	public interface DuplexEventListener extends EventListener
 	{
 		public int onClientPacketReceived(byte[] data) throws Exception;
@@ -39,40 +43,22 @@ public abstract class Duplex {
 		public byte[] onClientChunkSendForced(byte[] data) throws Exception;
 		public byte[] onServerChunkSendForced(byte[] data) throws Exception;
 		public void onClientChunkFlowControl(byte[] data) throws Exception;
+		public InputStream getClientChunkFlowControlSink() throws Exception;
 	}
-	public abstract static class DuplexEventAdapter implements DuplexEventListener
-	{
-		@Override
-		public int onClientPacketReceived(byte[] data) throws Exception { return data.length; }
-		@Override
-		public int onServerPacketReceived(byte[] data) throws Exception { return data.length; }
-		@Override
-		public void onClientChunkArrived(byte[] data) throws Exception {}
-		@Override
-		public void onServerChunkArrived(byte[] data) throws Exception {}
-		@Override
-		public byte[] onClientChunkPassThrough() throws Exception { return null; }
-		@Override
-		public byte[] onServerChunkPassThrough() throws Exception { return null; }
-		@Override
-		public byte[] onClientChunkAvailable() throws Exception { return null; }
-		@Override
-		public byte[] onServerChunkAvailable() throws Exception { return null; }
-		@Override
-		public byte[] onClientChunkReceived(byte[] data) throws Exception { return data; }
-		@Override
-		public byte[] onServerChunkReceived(byte[] data) throws Exception { return data; }
-		@Override
-		public byte[] onClientChunkSend(byte[] data) throws Exception { return data; }
-		@Override
-		public byte[] onServerChunkSend(byte[] data) throws Exception { return data; }
-		@Override
-		public byte[] onClientChunkSendForced(byte[] data) throws Exception { return data; }
-		@Override
-		public byte[] onServerChunkSendForced(byte[] data) throws Exception { return data; }
-		@Override
-		public void onClientChunkFlowControl(byte[] data) throws Exception {} 
+	
+	private int PIPE_SIZE = 65536;
+	private PipedOutputStream outputForFlowControl;
+	private PipedInputStream inputForFlowControl;
+	
+	public Duplex() {
+		try {
+			outputForFlowControl = new PipedOutputStream();
+			inputForFlowControl = new PipedInputStream(outputForFlowControl, PIPE_SIZE);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
+	
 	public void disableDuplexEventListener() {
 		flag_event_listener = false;
 	}
@@ -212,14 +198,22 @@ public abstract class Duplex {
 		}
 		return data;
 	}
-	public byte[] callOnClientChunkFlowControl(byte[] data) throws Exception {
+	public void callOnClientChunkFlowControl(byte[] data) throws Exception {
 		if (isEnabledDuplexEventListener() == false) {
-			return data;
+			outputForFlowControl.write(data);
 		}
 		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
-			return listener.onClientChunkFlowControl(data);
+			listener.onClientChunkFlowControl(data);
 		}
-		return data;
+	}
+	public InputStream getClientChunkFlowControlSink() throws Exception {
+		if (isEnabledDuplexEventListener() == false) {
+			return inputForFlowControl;
+		}
+		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+			return listener.getClientChunkFlowControlSink();
+		}
+		return null;
 	}
 
 	public void send(byte[] data) throws Exception { }

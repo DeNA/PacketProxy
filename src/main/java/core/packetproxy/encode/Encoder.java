@@ -17,6 +17,8 @@ package packetproxy.encode;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -25,6 +27,19 @@ import packetproxy.model.Packet;
 
 public abstract class Encoder
 {
+	private int PIPE_SIZE = 65536;
+	private PipedOutputStream outputForFlowControl;
+	private PipedInputStream inputForFlowControl;
+	
+	public Encoder() {
+		try {
+			outputForFlowControl = new PipedOutputStream();
+			inputForFlowControl = new PipedInputStream(outputForFlowControl, PIPE_SIZE);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	public abstract String getName();
 	public abstract int checkDelimiter(byte[] input_data) throws Exception;
 	public int checkRequestDelimiter(byte[] input_data) throws Exception { return checkDelimiter(input_data); }
@@ -115,16 +130,19 @@ public abstract class Encoder
 	public String getContentType(byte[] input_data) throws Exception {
 		return "";
 	}
+	/**
+	 * GrouptId 
+	 */
 	public void setGroupId(Packet packet) throws Exception {
 	}
-	
-	/* 今の所、クライアントはスマホ等バッファが少ない可能性があるため、クライアント側だけフロー制御 */
-	public boolean isFlowControlled() {
-		return false;
-	}
-	public void putToFlowControlledQueue(byte[] frames) throws Exception {
+
+	/**
+	 * Flow Controls 
+	 */
+	public void putToFlowControlledQueue(byte[] output_data) throws Exception {
+		outputForFlowControl.write(output_data);
 	}
 	public InputStream getFlowControlledInputStream() {
-		return null;
+		return inputForFlowControl;
 	}
 }
