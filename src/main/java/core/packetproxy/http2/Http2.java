@@ -99,7 +99,7 @@ public class Http2
 	private List<Frame> otherStreams = new LinkedList<>();
 	private FlowControlManager flowControlManager = new FlowControlManager();
 	private boolean alreadySentPreface = false;
-	private boolean alreadySentPrefaceSettingsWindowupdate = false;
+	private boolean alreadySentSettingsWindowupdate = false;
 
 	public Http2() throws Exception {
 	}
@@ -108,15 +108,15 @@ public class Http2
 		switch (type) {
 		case PROXY_CLIENT:
 			alreadySentPreface = false;
-			alreadySentPrefaceSettingsWindowupdate = true;
+			alreadySentSettingsWindowupdate = false;
 			break;
 		case PROXY_SERVER:
 			alreadySentPreface = true;
-			alreadySentPrefaceSettingsWindowupdate = true;
+			alreadySentSettingsWindowupdate = false;
 			break;
 		case RESEND_CLIENT:
-			alreadySentPreface = true;
-			alreadySentPrefaceSettingsWindowupdate = false;
+			alreadySentPreface = false;
+			alreadySentSettingsWindowupdate = false;
 			break;
 		}
 	}
@@ -137,6 +137,7 @@ public class Http2
 	public byte[] httpToFrames(byte[] httpData) throws Exception {
 		ByteArrayOutputStream framesData = new ByteArrayOutputStream();
 		Http http = new Http(httpData);
+
 		/* HEADERS */
 		byte[] headersFrame = new HeadersFrame(http, hpackEncoder).toByteArray();
 		framesData.write(headersFrame);
@@ -180,15 +181,12 @@ public class Http2
 			} else if (frame instanceof SettingsFrame) {
 				SettingsFrame settingsFrame = (SettingsFrame)frame;
 				flowControlManager.setInitialWindowSize(settingsFrame);
-				//System.out.println("SettingsFrame:" + settingsFrame);
-				if ((settingsFrame.getFlags() & 0x1) > 0) {
-					otherStreams.add(settingsFrame);
-				} else {
+				if ((settingsFrame.getFlags() & 0x1) == 0) {
 					int header_table_size = settingsFrame.get(SettingsFrameType.SETTINGS_HEADER_TABLE_SIZE);
 					int header_list_size = settingsFrame.get(SettingsFrameType.SETTINGS_MAX_HEADER_LIST_SIZE);
 					hpackDecoder = new HpackDecoder(header_table_size, header_list_size);
-					otherStreams.add(new Frame(SETTINGS));
 				}
+				//System.out.println("SettingsFrame:" + settingsFrame);
 			} else if (frame instanceof GoawayFrame) {
 				GoawayFrame goAwayFrame = (GoawayFrame)frame;
 				if (goAwayFrame.getErrorCode() != 0) { // 0 is NO_ERROR
@@ -204,7 +202,6 @@ public class Http2
 				WindowUpdateFrame windowUpdateFrame = (WindowUpdateFrame)frame;
 				flowControlManager.appendWindowSize(windowUpdateFrame);
 				//System.out.println("WindowUpdate:" + windowUpdateFrame.getWindowSize());
-				otherStreams.add(frame);
 			} else {
 				otherStreams.add(frame);
 			}
@@ -222,11 +219,10 @@ public class Http2
 			baos.write(PREFACE);
 			alreadySentPreface = true;
 		}
-		if (alreadySentPrefaceSettingsWindowupdate == false) {
-			baos.write(PREFACE);
+		if (alreadySentSettingsWindowupdate == false) {
 			baos.write(SETTINGS);
 			baos.write(WINDOW_UPDATE);
-			alreadySentPrefaceSettingsWindowupdate = true;
+			alreadySentSettingsWindowupdate = true;
 		}
 		for (Frame frame : otherStreams) {
 			baos.write(frame.toByteArray());
