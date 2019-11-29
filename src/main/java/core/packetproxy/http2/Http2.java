@@ -92,7 +92,7 @@ public class Http2
 	 * 変換後のHTTPデータは、元のフレームに完全に戻すための情報をヘッダに付与すること（例：ストリーム番号）
 	 */
 	
-	private HpackEncoder hpackEncoder = new HpackEncoder(4096, 65536); // TODO: 適切なサイズの見極め
+	private HpackEncoder hpackEncoder = new HpackEncoder(4096, 65536);
 	private HpackDecoder hpackDecoder;
 	private Map<Integer, List<Frame>> bufferedHttpStreams = new HashMap<>();
 	private List<Frame> httpStreams = new LinkedList<>();
@@ -209,7 +209,7 @@ public class Http2
 	}
 	
 	/**
-	 * クライアントリクエストのHTTP以外のフレーム（例:SETTING）を読み出す。
+	 * HTTP以外のフレーム（例:PING等）を読み出す。
 	 * readClientFrameと分ける理由は、GUIに表示せず、直接サーバに送信したいため。
 	 * 送信すべきフレームがなければ、nullを返す。
 	 */
@@ -232,7 +232,7 @@ public class Http2
 	}
 
 	/**
-	 * クライアントリクエストのHTTPデータを読み出す。
+	 * HTTPデータを読み出す。
 	 * HTTPを構成するフレームがまだ溜まっていなかったら、nullを返す。
 	 * ユーザはhttpToFrames()により元に戻してサーバに送信することになる。
 	 */
