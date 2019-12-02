@@ -18,9 +18,11 @@ package packetproxy;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import org.apache.commons.lang3.ArrayUtils;
+
 import packetproxy.common.Endpoint;
 import packetproxy.model.OneShotPacket;
-import org.apache.commons.lang3.ArrayUtils;
 
 public class DuplexSync extends Duplex
 {
@@ -35,7 +37,6 @@ public class DuplexSync extends Duplex
 	}
 	
 	public static OneShotPacket encodePacket(OneShotPacket one_shot) {
-		
 		return one_shot;
 	}
 
@@ -50,9 +51,12 @@ public class DuplexSync extends Duplex
 		}
 		byte[] accepted = ArrayUtils.subarray(data, 0, accepted_length);
 		
+		byte[] pass = callOnClientChunkPassThrough();
+
 		byte[] decoded = super.callOnClientChunkReceived(accepted);
 		byte[] encoded = super.callOnClientChunkSend(decoded);
-		return encoded;
+
+		return ArrayUtils.addAll(pass, encoded);
 	}
 	public void execFastSend(byte[] data) throws Exception {
 		out.write(data);
@@ -74,63 +78,40 @@ public class DuplexSync extends Duplex
 	}
 
 	@Override
-	public void sendToServer(byte[] data) throws Exception {
-		byte[] encoded = super.callOnClientChunkSend(data);
-		out.write(encoded);
-		out.flush();
-	}
-	
-	class Recever extends Thread {
-		public void run() {
-			try {
-				ByteArrayOutputStream bout = new ByteArrayOutputStream();
-				byte[] input_data = new byte[100 * 1024];
-				int length = 0;
-
-				while((length = in.read(input_data, 0, input_data.length)) != -1)
-				{
-					bout.write(input_data, 0, length);
-					int accepted_input_size = 0;
-
-					while (bout.size() > 0 && (accepted_input_size = callOnServerPacketReceived(bout.toByteArray())) > 0)
-					{
-						byte[] accepted_array   = ArrayUtils.subarray(bout.toByteArray(), 0, accepted_input_size);
-						byte[] unaccepted_array = ArrayUtils.subarray(bout.toByteArray(), accepted_input_size, bout.size());
-						bout.reset();
-						bout.write(unaccepted_array);
-
-						callOnServerChunkReceived(accepted_array);
-					}
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	@Override
-	public void receiveAll() throws Exception {
-		Recever recv = new Recever();
-		recv.start();
-	}
-	
-	@Override
 	public byte[] receive() throws Exception {
 		byte[] input_data = new byte[100 * 1024];
+
+		ByteArrayOutputStream bin = new ByteArrayOutputStream();
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 
 		int length = 0;
-		while((length = in.read(input_data, 0, input_data.length)) != -1){
-			bout.write(input_data, 0, length);
-			if (bout.size() > 0 && callOnServerPacketReceived(bout.toByteArray()) > 0){
-				break;
+		while((length = in.read(input_data, 0, input_data.length)) >= 0) {
+
+			bin.write(input_data, 0, length);
+
+			int packetLen = 0;
+			while ((packetLen = callOnServerPacketReceived(bin.toByteArray())) > 0) {
+				
+				byte[] packetData = ArrayUtils.subarray(bin.toByteArray(), 0, packetLen);
+				byte[] restData = ArrayUtils.subarray(bin.toByteArray(), packetLen, bin.size());
+				bin.reset();
+				bin.write(restData);
+
+				callOnServerChunkArrived(packetData);
+
+				byte[] available_data = callOnServerChunkAvailable();
+				if (available_data == null || available_data.length == 0) {
+					continue;
+				}
+				do {
+					byte[] decoded = callOnServerChunkReceived(available_data);
+					bout.write(decoded);
+					available_data = callOnServerChunkAvailable();
+				} while (available_data != null && available_data.length > 0);
+				return bout.toByteArray();
 			}
 		}
-			
-		byte[] accepted = ArrayUtils.subarray(bout.toByteArray(), 0, bout.size());
-		byte[] decoded = super.callOnServerChunkReceived(accepted);
-		byte[] encoded = super.callOnServerChunkSend(decoded);
-		return encoded;
+		return null;
 	}
 	
 	@Override

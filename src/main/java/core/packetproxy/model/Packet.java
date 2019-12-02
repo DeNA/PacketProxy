@@ -233,6 +233,9 @@ public class Packet implements PacketInfo
 	public long getGroup() {
 		return this.group;
 	}
+	public void setGroup(long group) {
+		this.group = group;
+	}
 	public String getSummarizedRequest() throws Exception {
 		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name);
 		if (encoder == null) {

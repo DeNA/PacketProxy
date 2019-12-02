@@ -21,15 +21,14 @@ import java.io.OutputStream;
 import java.io.SequenceInputStream;
 import java.net.InetSocketAddress;
 
-public class WrapEndpoint implements Endpoint
+public class WrapEndpoint extends SSLSocketEndpoint
 {
-	Endpoint endpoint;
 	InputStream inputstream;
 	
-	public WrapEndpoint(Endpoint ep, byte[] lookaheadBuffer) throws Exception {
-		this.endpoint = ep;
+	public WrapEndpoint(SSLSocketEndpoint ep, byte[] lookaheadBuffer) throws Exception {
+		super(ep);
 		ByteArrayInputStream bais = new ByteArrayInputStream(lookaheadBuffer);
-		this.inputstream = new SequenceInputStream(bais, endpoint.getInputStream());
+		this.inputstream = new SequenceInputStream(bais, super.getInputStream());
 	}
 
 	@Override
@@ -39,12 +38,12 @@ public class WrapEndpoint implements Endpoint
 
 	@Override
 	public OutputStream getOutputStream() throws Exception {
-		return endpoint.getOutputStream();
+		return super.getOutputStream();
 	}
 
 	@Override
 	public InetSocketAddress getAddress() {
-		return endpoint.getAddress();
+		return super.getAddress();
 	}
 
 	@Override
