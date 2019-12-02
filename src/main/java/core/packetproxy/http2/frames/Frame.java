@@ -75,6 +75,7 @@ public class Frame {
     public int getFlags() { return flags; }
     public int getStreamId() { return streamId; }
     public byte[] getPayload() { return payload; }
+    public void setFlags(int flags) { this.flags = flags; }
     
     public byte[] toByteArray() throws Exception {
     	ByteBuffer bb = ByteBuffer.allocate(payload.length + 1024);

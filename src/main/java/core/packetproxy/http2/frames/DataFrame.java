@@ -44,8 +44,8 @@ public class DataFrame extends Frame {
 
 		HttpHeader headers = http.getHeader();
 		super.streamId = Integer.parseInt(headers.getValue("X-PacketProxy-HTTP2-Stream-Id").orElse("0"));
+		super.flags = Integer.parseInt(headers.getValue("X-PacketProxy-HTTP2-Stream-Flags").orElse("0"));
 		super.payload = http.getBody();
-		super.flags = FLAG_END_STREAM;
 		super.type = TYPE;
 		super.length = payload.length;
 		
@@ -59,6 +59,7 @@ public class DataFrame extends Frame {
 		if ((flags & FLAG_PADDED) > 0) {
 			int padLen = (payload[0] & 0xff);
 			payload = ArrayUtils.subarray(payload, 1, payload.length - padLen);
+			flags = flags & ~FLAG_PADDED;
 		}
 	}
 
@@ -72,7 +73,7 @@ public class DataFrame extends Frame {
     		bb.put((byte)0);
     		bb.put((byte)0);
     		bb.put((byte)(type.ordinal() & 0xff));
-   			bb.put((byte)FLAG_END_STREAM);
+   			bb.put((byte)flags);
     		bb.putInt(streamId);
     		byte[] array = new byte[bb.position()];
     		bb.flip();
@@ -110,7 +111,13 @@ public class DataFrame extends Frame {
 	
 	@Override
 	public byte[] toHttp1() throws Exception {
-		return payload;
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		baos.write("HTTP/2.0 200 OK\r\n".getBytes());
+		baos.write(new String("X-PacketProxy-HTTP2-Stream-Id: " + streamId + "\r\n").getBytes());
+		baos.write(new String("X-PacketProxy-HTTP2-Stream-Flags: " + flags + "\r\n").getBytes());
+		baos.write("\r\n".getBytes());
+		baos.write(payload);
+		return baos.toByteArray();
 	}
 	
 	@Override

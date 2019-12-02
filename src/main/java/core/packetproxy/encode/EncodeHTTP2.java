@@ -173,5 +173,4 @@ public class EncodeHTTP2 extends Encoder
 	public InputStream getFlowControlledInputStream() {
 		return h2client.getFlowControlledInputStream();
 	}
-	
 }

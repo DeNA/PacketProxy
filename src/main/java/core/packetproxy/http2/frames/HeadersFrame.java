@@ -89,6 +89,8 @@ public class HeadersFrame extends Frame {
 				dependency = Integer.parseInt(field.getValue());
 			} else if (field.getName().equals("X-PacketProxy-HTTP2-Weight")) {
 				weight = Integer.parseInt(field.getValue());
+			} else if (field.getName().equals("X-PacketProxy-HTTP2-Flags")) {
+				flags = Integer.parseInt(field.getValue());
 			} else {
 				fields.add(field.getName(), field.getValue());
 			}
@@ -118,10 +120,10 @@ public class HeadersFrame extends Frame {
 		buffer.get(array);
 		payload = array;
 
-		if (http.getBody().length > 0)
-			super.flags = FLAG_END_HEADERS;
-		else
-			super.flags = FLAG_END_HEADERS | FLAG_END_STREAM;
+		//if (http.getBody().length > 0)
+		//	super.flags = FLAG_END_HEADERS;
+		//else
+		//	super.flags = FLAG_END_HEADERS | FLAG_END_STREAM;
 		
 		if (priority) {
 			super.flags |= FLAG_PRIORITY;
@@ -203,6 +205,7 @@ public class HeadersFrame extends Frame {
 			}
 		}
 		buf.write(String.format("X-PacketProxy-HTTP2-Stream-Id: %d\r\n", streamId).getBytes());
+		buf.write(String.format("X-PacketProxy-HTTP2-Flags: %d\r\n", flags).getBytes());
 		buf.write("\r\n".getBytes());
 		return buf.toByteArray();
 	}
