@@ -15,8 +15,10 @@
  */
 package packetproxy;
 
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
+
 import packetproxy.common.CryptUtils;
 import packetproxy.common.Endpoint;
 import packetproxy.common.EndpointFactory;
@@ -88,6 +90,7 @@ public class DuplexFactory {
 				if (data.length < SKIP_LENGTH) { packets.update(client_packet); }
 				byte[] decoded_data = encoder.decodeClientRequest(client_packet);
 				client_packet.setDecodedData(decoded_data);
+				encoder.setGroupId(client_packet); /* 実行するのはsetDecodedDataのあと */
 				if (data.length < SKIP_LENGTH) { packets.update(client_packet); }
 
 				Server server = Servers.getInstance().queryByAddress(server_addr);
@@ -121,6 +124,7 @@ public class DuplexFactory {
 				if (data.length < SKIP_LENGTH) { packets.update(server_packet); }
 				byte[] decoded_data = encoder.decodeServerResponse(client_packet, server_packet);
 				server_packet.setDecodedData(decoded_data);
+				encoder.setGroupId(server_packet); /* 実行するのはsetDecodedDataのあと */
 				server_packet.setContentType(encoder.getContentType(client_packet, server_packet));
 				if (data.length < SKIP_LENGTH) { packets.update(server_packet); }
 				if (!server_packet.getContentType().equals("")) {
@@ -205,13 +209,45 @@ public class DuplexFactory {
 				packets.update(server_packet);
 				return encoded_data;
 			}
+			@Override
+			public void onClientChunkArrived(byte[] data) throws Exception {
+				encoder.clientRequestArrived(data);
+			}
+			@Override
+			public void onServerChunkArrived(byte[] data) throws Exception {
+				encoder.serverResponseArrived(data);
+			}
+			@Override
+			public byte[] onClientChunkPassThrough() throws Exception {
+				return encoder.passThroughClientRequest();
+			}
+			@Override
+			public byte[] onServerChunkPassThrough() throws Exception {
+				return encoder.passThroughServerResponse();
+			}
+			@Override
+			public byte[] onClientChunkAvailable() throws Exception {
+				return encoder.clientRequestAvailable();
+			}
+			@Override
+			public byte[] onServerChunkAvailable() throws Exception {
+				return encoder.serverResponseAvailable();
+			}
+			@Override
+			public void onClientChunkFlowControl(byte[] data) throws Exception {
+				encoder.putToFlowControlledQueue(data);
+			}
+			@Override
+			public InputStream getClientChunkFlowControlSink() throws Exception {
+				return encoder.getFlowControlledInputStream();
+			}
 		});
 	}
 	static  public DuplexSync createDuplexSyncFromOneShotPacket(final OneShotPacket oneshot) throws Exception {
 		DuplexSync duplex = new DuplexSync(EndpointFactory.createFromOneShotPacket(oneshot));
 		duplex.addDuplexEventListener(new Duplex.DuplexEventListener() {
 			private Packets packets = Packets.getInstance();
-			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder());
+			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder().equals("HTTP2") ? "HTTP2 Resend" : oneshot.getEncoder());
 			private Packet client_packet;
 			private Packet server_packet;
 			@Override
@@ -282,6 +318,38 @@ public class DuplexFactory {
 			public byte[] onServerChunkSendForced(byte[] data) throws Exception {
 				return null;
 			}
+			@Override
+			public void onClientChunkArrived(byte[] data) throws Exception {
+				encoder.clientRequestArrived(data);
+			}
+			@Override
+			public void onServerChunkArrived(byte[] data) throws Exception {
+				encoder.serverResponseArrived(data);
+			}
+			@Override
+			public byte[] onClientChunkPassThrough() throws Exception {
+				return encoder.passThroughClientRequest();
+			}
+			@Override
+			public byte[] onServerChunkPassThrough() throws Exception {
+				return encoder.passThroughServerResponse();
+			}
+			@Override
+			public byte[] onClientChunkAvailable() throws Exception {
+				return encoder.clientRequestAvailable();
+			}
+			@Override
+			public byte[] onServerChunkAvailable() throws Exception {
+				return encoder.serverResponseAvailable();
+			}
+			@Override
+			public void onClientChunkFlowControl(byte[] data) throws Exception {
+				encoder.putToFlowControlledQueue(data);
+			}
+			@Override
+			public InputStream getClientChunkFlowControlSink() throws Exception {
+				return encoder.getFlowControlledInputStream();
+			}
 		});
 		return duplex;
 	}
@@ -291,7 +359,7 @@ public class DuplexFactory {
 		Duplex duplex = original_duplex.crateSameConnectionDuplex();
 		duplex.addDuplexEventListener(new Duplex.DuplexEventListener() {
 			private Packets packets = Packets.getInstance();
-			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder());
+			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder().equals("HTTP2") ? "HTTP2 Resend" : oneshot.getEncoder());
 			private Packet client_packet;
 			private Packet server_packet;
 			@Override
@@ -361,6 +429,38 @@ public class DuplexFactory {
 			@Override
 			public byte[] onServerChunkSendForced(byte[] data) throws Exception {
 				return null;
+			}
+			@Override
+			public void onClientChunkArrived(byte[] data) throws Exception {
+				encoder.clientRequestArrived(data);
+			}
+			@Override
+			public void onServerChunkArrived(byte[] data) throws Exception {
+				encoder.serverResponseArrived(data);
+			}
+			@Override
+			public byte[] onClientChunkPassThrough() throws Exception {
+				return encoder.passThroughClientRequest();
+			}
+			@Override
+			public byte[] onServerChunkPassThrough() throws Exception {
+				return encoder.passThroughServerResponse();
+			}
+			@Override
+			public byte[] onClientChunkAvailable() throws Exception {
+				return encoder.clientRequestAvailable();
+			}
+			@Override
+			public byte[] onServerChunkAvailable() throws Exception {
+				return encoder.serverResponseAvailable();
+			}
+			@Override
+			public void onClientChunkFlowControl(byte[] data) throws Exception {
+				encoder.putToFlowControlledQueue(data);
+			}
+			@Override
+			public InputStream getClientChunkFlowControlSink() throws Exception {
+				return encoder.getFlowControlledInputStream();
 			}
 		});
 		return duplex;

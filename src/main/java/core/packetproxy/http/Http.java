@@ -15,8 +15,6 @@
  */
 package packetproxy.http;
 
-import com.google.re2j.Matcher;
-import com.google.re2j.Pattern;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
@@ -32,13 +30,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import packetproxy.common.Binary;
-import packetproxy.common.Parameter;
-import packetproxy.common.Utils;
+
 import org.apache.commons.collections4.map.MultiValueMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
+
+import packetproxy.common.Binary;
+import packetproxy.common.Parameter;
+import packetproxy.common.Utils;
 import packetproxy.util.PacketProxyUtility;
 
 public class Http
@@ -180,11 +182,11 @@ public class Http
 	//		return flag_https;
 	//	}
 
-	public String getProxyHost() {
+	public String getServerName() {
 		return proxyHost;
 	}
 
-	public int getProxyPort() {
+	public int getServerPort() {
 		return proxyPort;
 	}
 
@@ -230,6 +232,16 @@ public class Http
 
 	public String getQueryAsString() {
 		return this.queryString.toString();
+	}
+	
+	/* 今のところHTTP/2.0の時しか動作しない */
+	public String getURI() {
+		String authority = getFirstHeader("X-PacketProxy-HTTP2-Host");
+		String scheme = "https";
+		String path = getPath();
+		String query = getQueryAsString();
+		String queryStr = (query != null && query.length() > 0) ? "?"+query : "";
+		return scheme + "://" + authority + path + queryStr;
 	}
 
 	public String getStatusCode() {
@@ -281,11 +293,15 @@ public class Http
 	}
 
 	public String getURL(int port) {
-		String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?"+getQueryAsString() : "";
-		String path = getPath();
-		String host = header.getValue("Host").orElse(null);
-		String protocol = (port == 443 ? "https" : "http"); 
-		return String.format("%s://%s%s%s", protocol, host, path, query);
+		if (version.equals("HTTP/2.0")) { /* HTTP/2.0 */
+			return getURI();
+		} else { /* HTTP/1.1 */
+			String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?"+getQueryAsString() : "";
+			String path = getPath();
+			String host = header.getValue("Host").orElse(null);
+			String protocol = (port == 443 ? "https" : "http"); 
+			return String.format("%s://%s%s%s", protocol, host, path, query);
+		}
 	}
 
 	public byte[] toByteArray() throws Exception{
@@ -297,8 +313,8 @@ public class Http
 			//String query = (getQuery() != null && getQuery().length() > 0) ? "?"+URLEncoder.encode(getQuery(),"utf-8") : "";
 			String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?"+getQueryAsString() : "";
 			if (this.isProxy() && this.flag_disable_proxy_format_url == false) {
-				String proxyPort = (getProxyPort() > 0) ? ":"+String.valueOf(getProxyPort()) : "";
-				statusLine = String.format("%s http://%s%s%s%s %s", this.method, getProxyHost(), proxyPort, getPath(), query, this.version);
+				String proxyPort = (getServerPort() > 0) ? ":"+String.valueOf(getServerPort()) : "";
+				statusLine = String.format("%s http://%s%s%s%s %s", this.method, getServerName(), proxyPort, getPath(), query, this.version);
 			} else {
 				statusLine = String.format("%s %s%s %s", this.method, this.path, query, this.version);
 			}
@@ -487,7 +503,7 @@ public class Http
 		return null;
 	}
 
-	public InetSocketAddress getProxyAddr() {
+	public InetSocketAddress getServerAddr() {
 		return new InetSocketAddress(proxyHost, proxyPort);
 	}
 
@@ -560,5 +576,8 @@ public class Http
 	public List<String> getHeader(String key){
 		return header.getAllValue(key);
 	}
-
+	
+	public boolean isRequest() {
+		return flag_request;
+	}
 }
