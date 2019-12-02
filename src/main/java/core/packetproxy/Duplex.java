@@ -15,6 +15,7 @@
  */
 package packetproxy;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -49,6 +50,8 @@ public abstract class Duplex {
 	private int PIPE_SIZE = 65536;
 	private PipedOutputStream outputForFlowControl;
 	private PipedInputStream inputForFlowControl;
+	private ByteArrayOutputStream inputClientData = new ByteArrayOutputStream();
+	private ByteArrayOutputStream inputServerData = new ByteArrayOutputStream();
 	
 	public Duplex() {
 		try {
@@ -94,7 +97,7 @@ public abstract class Duplex {
 	}
 	public void callOnClientChunkArrived(byte[] data) throws Exception {
 		if (isEnabledDuplexEventListener() == false) {
-			return;
+			inputClientData.write(data);
 		}
 		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
 			listener.onClientChunkArrived(data);
@@ -102,7 +105,7 @@ public abstract class Duplex {
 	}
 	public void callOnServerChunkArrived(byte[] data) throws Exception {
 		if (isEnabledDuplexEventListener() == false) {
-			return;
+			inputServerData.write(data);
 		}
 		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
 			listener.onServerChunkArrived(data);
@@ -128,7 +131,7 @@ public abstract class Duplex {
 	}
 	public byte[] callOnClientChunkAvailable() throws Exception {
 		if (isEnabledDuplexEventListener() == false) {
-			return null;
+			byte[] ret = inputClientData.toByteArray(); inputClientData.reset(); return ret;
 		}
 		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
 			return listener.onClientChunkAvailable();
@@ -137,7 +140,7 @@ public abstract class Duplex {
 	}
 	public byte[] callOnServerChunkAvailable() throws Exception {
 		if (isEnabledDuplexEventListener() == false) {
-			return null;
+			byte[] ret = inputServerData.toByteArray(); inputServerData.reset(); return ret;
 		}
 		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
 			return listener.onServerChunkAvailable();
@@ -213,7 +216,7 @@ public abstract class Duplex {
 		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
 			return listener.getClientChunkFlowControlSink();
 		}
-		return null;
+		return inputForFlowControl;
 	}
 
 	public void send(byte[] data) throws Exception { }
