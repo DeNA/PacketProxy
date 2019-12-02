@@ -44,7 +44,7 @@ public class DataFrame extends Frame {
 
 		HttpHeader headers = http.getHeader();
 		super.streamId = Integer.parseInt(headers.getValue("X-PacketProxy-HTTP2-Stream-Id").orElse("0"));
-		super.flags = Integer.parseInt(headers.getValue("X-PacketProxy-HTTP2-Stream-Flags").orElse("0"));
+		super.flags = Integer.parseInt(headers.getValue("X-PacketProxy-HTTP2-Flags").orElse("0"));
 		super.payload = http.getBody();
 		super.type = TYPE;
 		super.length = payload.length;
@@ -62,6 +62,37 @@ public class DataFrame extends Frame {
 			flags = flags & ~FLAG_PADDED;
 		}
 	}
+	
+    public byte[] toByteArrayTest() throws Exception {
+    	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    	if (payload.length == 0) {
+    		ByteBuffer bb = ByteBuffer.allocate(1024);
+    		bb.put((byte)0);
+    		bb.put((byte)0);
+    		bb.put((byte)0);
+    		bb.put((byte)(type.ordinal() & 0xff));
+   			bb.put((byte)(flags & 0xff));
+    		bb.putInt(streamId);
+    		byte[] array = new byte[bb.position()];
+    		bb.flip();
+    		bb.get(array);
+    		baos.write(array);
+		} else {
+    		ByteBuffer bb = ByteBuffer.allocate(payload.length + 1024);
+    		bb.put((byte)((payload.length >>> 16) & 0xff));
+    		bb.put((byte)((payload.length >>> 8) & 0xff));
+    		bb.put((byte)((payload.length) & 0xff));
+    		bb.put((byte)(type.ordinal() & 0xff));
+   			bb.put((byte)(flags & 0xff));
+    		bb.putInt(streamId);
+    		bb.put(payload);
+    		byte[] array = new byte[bb.position()];
+    		bb.flip();
+    		bb.get(array);
+    		baos.write(array);
+    	}
+    	return baos.toByteArray();
+    }
 
 	@Override
     public byte[] toByteArray() throws Exception {
@@ -108,13 +139,13 @@ public class DataFrame extends Frame {
     	}
     	return baos.toByteArray();
     }
-	
+
 	@Override
 	public byte[] toHttp1() throws Exception {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		baos.write("HTTP/2.0 200 OK\r\n".getBytes());
 		baos.write(new String("X-PacketProxy-HTTP2-Stream-Id: " + streamId + "\r\n").getBytes());
-		baos.write(new String("X-PacketProxy-HTTP2-Stream-Flags: " + flags + "\r\n").getBytes());
+		baos.write(new String("X-PacketProxy-HTTP2-Flags: " + flags + "\r\n").getBytes());
 		baos.write("\r\n".getBytes());
 		baos.write(payload);
 		return baos.toByteArray();

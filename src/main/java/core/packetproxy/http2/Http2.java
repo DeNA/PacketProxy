@@ -100,14 +100,14 @@ public class Http2
 	private FlowControlManager flowControlManager = new FlowControlManager();
 	private boolean alreadySentPreface = false;
 	private boolean alreadySentSettingsWindowupdate = false;
-	private boolean withoutBufferingHttp = false;
+	private boolean compatHttp1 = false;
 
 	public Http2() throws Exception {
 	}
 	
-	public Http2(Http2Type type, boolean withoutBufferingHttp) throws Exception {
+	public Http2(Http2Type type, boolean compatHttp1) throws Exception {
 		this(type);
-		this.withoutBufferingHttp = withoutBufferingHttp;
+		this.compatHttp1 = compatHttp1;
 	}
 	
 	public Http2(Http2Type type) throws Exception {
@@ -141,24 +141,9 @@ public class Http2
 	}
 
 	public byte[] httpToFrames(byte[] httpData) throws Exception {
-		if (withoutBufferingHttp) {
-			if (httpData[0] == 'H' && httpData[1] == 'T') {
-				ByteArrayOutputStream framesData = new ByteArrayOutputStream();
-				Http http = new Http(httpData);
-
-				/* HEADERS */
-				byte[] headersFrame = new HeadersFrame(http, hpackEncoder).toByteArray();
-				framesData.write(headersFrame);
-				return framesData.toByteArray();
-			} else {
-				Http http = new Http(httpData);
-				byte[] dataFrame = new DataFrame(http).toByteArray();
-				return dataFrame; //Utils.gzip(httpData);
-			}
-		} else {
+		if (compatHttp1) {
 			ByteArrayOutputStream framesData = new ByteArrayOutputStream();
 			Http http = new Http(httpData);
-
 			/* HEADERS */
 			byte[] headersFrame = new HeadersFrame(http, hpackEncoder).toByteArray();
 			framesData.write(headersFrame);
@@ -168,6 +153,18 @@ public class Http2
 				framesData.write(dataFrame);
 			}
 			return framesData.toByteArray();
+
+		} else {
+			Http http = new Http(httpData);
+			if (http.getHeader().getHeader("server").isPresent()) { /* header frame */
+				HeadersFrame frame = new HeadersFrame(http, hpackEncoder);
+				frame.setFlags(frame.getFlags() & ~0x01);
+				byte[] headersFrame = frame.toByteArray();
+				return headersFrame;
+			} else { /* data frame */
+				byte[] dataFrame = new DataFrame(http).toByteArrayTest();
+				return dataFrame;
+			}
 		}
 	}
 	
@@ -188,23 +185,25 @@ public class Http2
 		for (Frame frame : parseFrames(framesData)) {
 			if (frame instanceof HeadersFrame) {
 				HeadersFrame headersFrame = (HeadersFrame)frame;
-				if (withoutBufferingHttp) {
-					httpStreams.add(headersFrame);
-				} else if ((headersFrame.getFlags() & 0x01) > 0) {
-					httpStreams.add(headersFrame);
+				if (compatHttp1) {
+					if ((headersFrame.getFlags() & 0x01) > 0) {
+						httpStreams.add(headersFrame);
+					} else {
+						addFrameToBufferedStream(bufferedHttpStreams, headersFrame);
+					}
 				} else {
-					addFrameToBufferedStream(bufferedHttpStreams, headersFrame);
+					httpStreams.add(headersFrame);
 				}
 				//System.out.println("HeadersFrame:" + headersFrame);
 			} else if (frame instanceof DataFrame) {
-				if (withoutBufferingHttp) {
-					httpStreams.add(frame);
-				} else {
+				if (compatHttp1) {
 					addFrameToBufferedStream(bufferedHttpStreams, frame);
 					if ((frame.getFlags() & 0x01) > 0) {
 						httpStreams.addAll(bufferedHttpStreams.get(frame.getStreamId()));
 						bufferedHttpStreams.remove(frame.getStreamId());
 					}
+				} else {
+					httpStreams.add(frame);
 				}
 			} else if (frame instanceof SettingsFrame) {
 				SettingsFrame settingsFrame = (SettingsFrame)frame;
@@ -270,17 +269,14 @@ public class Http2
 		}
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		for (Frame frame : httpStreams) {
-			if (withoutBufferingHttp) {
-				baos.write(frame.toHttp1());
-				httpStreams.remove(frame);
-				return baos.toByteArray();
-			} else {
+			if (compatHttp1) {
 				if (frame instanceof HeadersFrame) {
-					frame.setFlags(frame.getFlags() | 0x01);
 					baos.write(frame.toHttp1());
 				} else if (frame instanceof DataFrame) {
 					baos.write(frame.getPayload());
 				}
+			} else {
+				baos.write(frame.toHttp1());
 			}
 		}
 		httpStreams.clear();

@@ -3,7 +3,6 @@ package packetproxy.encode;
 import packetproxy.http.Http;
 import packetproxy.http2.Http2;
 import packetproxy.http2.Http2.Http2Type;
-import packetproxy.http2.frames.Frame;
 
 public class EncodeHTTP2Resend extends Encoder
 {
@@ -11,8 +10,8 @@ public class EncodeHTTP2Resend extends Encoder
 	private Http2 h2server;
 	
 	public EncodeHTTP2Resend() throws Exception {
-		h2resend = new Http2(Http2Type.RESEND_CLIENT);
-		h2server = new Http2(Http2Type.PROXY_SERVER);
+		h2resend = new Http2(Http2Type.RESEND_CLIENT, true);
+		h2server = new Http2(Http2Type.PROXY_SERVER, true);
 	}
 	
 	@Override
@@ -35,17 +34,17 @@ public class EncodeHTTP2Resend extends Encoder
 
 	@Override
 	public void clientRequestArrived(byte[] frame) throws Exception {
-		if (frame[0] != 'P' || frame[1] != 'R') {
-			Frame f = new Frame(frame);
-			System.out.println("Client:" + f);
-		}
+		//if (frame[0] != 'P' || frame[1] != 'R') {
+		//	Frame f = new Frame(frame);
+		//	System.out.println("Client:" + f);
+		//}
 		super.clientRequestArrived(frame);
 	}
 
 	@Override
 	public void serverResponseArrived(byte[] frame) throws Exception {
-		Frame f = new Frame(frame);
-		System.out.println("Server:" + f);
+		//Frame f = new Frame(frame);
+		//System.out.println("Server:" + f);
 		h2server.writeFrame(frame);
 	}
 

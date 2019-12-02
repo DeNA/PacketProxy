@@ -16,21 +16,17 @@
 package packetproxy.encode;
 
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.ArrayUtils;
 
 import packetproxy.common.StringUtils;
-import packetproxy.common.UniqueID;
 import packetproxy.common.Utils;
 import packetproxy.http.Http;
 import packetproxy.http2.Http2;
 import packetproxy.http2.Http2.Http2Type;
 import packetproxy.http2.frames.DataFrame;
 import packetproxy.http2.frames.Frame;
-import packetproxy.model.Packet;
 
 public class EncodeFirestore extends Encoder
 {
@@ -38,8 +34,8 @@ public class EncodeFirestore extends Encoder
 	private Http2 h2server;
 
 	public EncodeFirestore() throws Exception {
-		h2client = new Http2(Http2Type.PROXY_CLIENT);
-		h2server = new Http2(Http2Type.PROXY_SERVER, true);
+		h2client = new Http2(Http2Type.PROXY_CLIENT, true);
+		h2server = new Http2(Http2Type.PROXY_SERVER);
 	}
 	
 	@Override
@@ -56,22 +52,22 @@ public class EncodeFirestore extends Encoder
 	public int checkResponseDelimiter(byte[] input) throws Exception {
 		int length = Http2.parseFrameDelimiter(input);
 		if (length > 0) {
-			byte[] frameData = ArrayUtils.subarray(input, 0, length);
-			Frame frame = new Frame(frameData);
-			if (frame.getType() == Frame.Type.DATA && frame.getLength() > 0) {
-				DataFrame dataFrame = new DataFrame(frame);
-				byte[] firestorePayload = dataFrame.getPayload();
-				if (firestorePayload.length == 0) {
-					return length;
-				}
-				System.out.println(new String(Hex.encodeHex(firestorePayload)));
-				firestorePayload = Utils.ungzip(firestorePayload);
-				int l = StringUtils.binaryFind(firestorePayload, "\n".getBytes());
-				String chunkLenStr = new String(ArrayUtils.subarray(firestorePayload, 0, l));
-				int chunkLen = Integer.valueOf(chunkLenStr);
-				System.out.println(chunkLen);
-				return length;
-			}
+			//byte[] frameData = ArrayUtils.subarray(input, 0, length);
+			//Frame frame = new Frame(frameData);
+			//if (frame.getType() == Frame.Type.DATA && frame.getLength() > 0) {
+			//	DataFrame dataFrame = new DataFrame(frame);
+			//	byte[] firestorePayload = dataFrame.getPayload();
+			//	if (firestorePayload.length == 0) {
+			//		return length;
+			//	}
+			//	System.out.println(new String(Hex.encodeHex(firestorePayload)));
+			//	firestorePayload = Utils.ungzip(firestorePayload);
+			//	int l = StringUtils.binaryFind(firestorePayload, "\n".getBytes());
+			//	String chunkLenStr = new String(ArrayUtils.subarray(firestorePayload, 0, l));
+			//	int chunkLen = Integer.valueOf(chunkLenStr);
+			//	System.out.println(chunkLen);
+			//	return length;
+			//}
 		}
 		return length;
 	}
@@ -122,7 +118,16 @@ public class EncodeFirestore extends Encoder
 
 	@Override
 	public byte[] decodeServerResponse(byte[] http) throws Exception {
-		return http;
+		Http h2 = new Http(http);
+		if (h2.getHeader().getHeader("server").isPresent()) { /* header frame */
+		} else {
+			byte[] body = h2.getBody();
+			if (body.length > 0) {
+				System.out.println(new String(Hex.encodeHex(body)));
+				h2.setBody(Utils.ungzip(h2.getBody()));
+			}
+		}
+		return h2.toByteArray();
 	}
 
 	@Override
@@ -132,13 +137,13 @@ public class EncodeFirestore extends Encoder
 		int len;
 		while ((len = Http2.parseFrameDelimiter(a)) > 0) {
 			Frame f = new Frame(ArrayUtils.subarray(a, 0, len));
-			System.out.println("--> server: " + f);
+			System.out.println("<-- server: " + f);
 			a = ArrayUtils.subarray(a, len, a.length);
 			if (a.length == 0) {
 				break;
 			}
 		}
-		return http;
+		return frames;
 	}
 	
 	/* key: streamId, value: groupId */

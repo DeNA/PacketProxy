@@ -19,6 +19,8 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import packetproxy.common.UniqueID;
 import packetproxy.http.Http;
 import packetproxy.http2.Http2;
@@ -32,8 +34,8 @@ public class EncodeHTTP2 extends Encoder
 	private Http2 h2server;
 
 	public EncodeHTTP2() throws Exception {
-		h2client = new Http2(Http2Type.PROXY_CLIENT);
-		h2server = new Http2(Http2Type.PROXY_SERVER);
+		h2client = new Http2(Http2Type.PROXY_CLIENT, true);
+		h2server = new Http2(Http2Type.PROXY_SERVER, true);
 	}
 	
 	@Override
