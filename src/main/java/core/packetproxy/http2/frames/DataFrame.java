@@ -73,7 +73,7 @@ public class DataFrame extends Frame {
     		bb.put((byte)0);
     		bb.put((byte)0);
     		bb.put((byte)(type.ordinal() & 0xff));
-   			bb.put((byte)flags);
+   			bb.put((byte)(byte)FLAG_END_STREAM);
     		bb.putInt(streamId);
     		byte[] array = new byte[bb.position()];
     		bb.flip();

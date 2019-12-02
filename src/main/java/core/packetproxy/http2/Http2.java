@@ -276,7 +276,7 @@ public class Http2
 				return baos.toByteArray();
 			} else {
 				if (frame instanceof HeadersFrame) {
-					//frame.setFlags(frame.getFlags() | 0x01);
+					frame.setFlags(frame.getFlags() | 0x01);
 					baos.write(frame.toHttp1());
 				} else if (frame instanceof DataFrame) {
 					baos.write(frame.getPayload());

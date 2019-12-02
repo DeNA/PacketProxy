@@ -120,10 +120,10 @@ public class HeadersFrame extends Frame {
 		buffer.get(array);
 		payload = array;
 
-		//if (http.getBody().length > 0)
-		//	super.flags = FLAG_END_HEADERS;
-		//else
-		//	super.flags = FLAG_END_HEADERS | FLAG_END_STREAM;
+		if (http.getBody().length > 0)
+			super.flags = FLAG_END_HEADERS;
+		else
+			super.flags = FLAG_END_HEADERS | FLAG_END_STREAM;
 		
 		if (priority) {
 			super.flags |= FLAG_PRIORITY;

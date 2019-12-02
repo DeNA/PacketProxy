@@ -107,16 +107,16 @@ public class EncodeFirestore extends Encoder
 	@Override
 	public byte[] encodeClientRequest(byte[] http) throws Exception {
 		byte[] frames = h2client.httpToFrames(http);
-		//byte[] a = frames.clone();
-		//int len;
-		//while ((len = Http2.parseFrameDelimiter(a)) > 0) {
-		//	Frame f = new Frame(ArrayUtils.subarray(a, 0, len));
-		//	System.out.println("--> client: " + f);
-		//	a = ArrayUtils.subarray(a, len, a.length);
-		//	if (a.length == 0) {
-		//		break;
-		//	}
-		//}
+		byte[] a = frames.clone();
+		int len;
+		while ((len = Http2.parseFrameDelimiter(a)) > 0) {
+			Frame f = new Frame(ArrayUtils.subarray(a, 0, len));
+			System.out.println("--> client: " + f);
+			a = ArrayUtils.subarray(a, len, a.length);
+			if (a.length == 0) {
+				break;
+			}
+		}
 		return frames;
 	}
 
@@ -127,17 +127,17 @@ public class EncodeFirestore extends Encoder
 
 	@Override
 	public byte[] encodeServerResponse(byte[] http) throws Exception {
-		//byte[] frames = h2server.httpToFrames(http);
-		//byte[] a = frames.clone();
-		//int len;
-		//while ((len = Http2.parseFrameDelimiter(a)) > 0) {
-		//	Frame f = new Frame(ArrayUtils.subarray(a, 0, len));
-		//	System.out.println("--> server: " + f);
-		//	a = ArrayUtils.subarray(a, len, a.length);
-		//	if (a.length == 0) {
-		//		break;
-		//	}
-		//}
+		byte[] frames = h2server.httpToFrames(http);
+		byte[] a = frames.clone();
+		int len;
+		while ((len = Http2.parseFrameDelimiter(a)) > 0) {
+			Frame f = new Frame(ArrayUtils.subarray(a, 0, len));
+			System.out.println("--> server: " + f);
+			a = ArrayUtils.subarray(a, len, a.length);
+			if (a.length == 0) {
+				break;
+			}
+		}
 		return http;
 	}
 	
