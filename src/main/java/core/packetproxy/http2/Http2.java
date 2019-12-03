@@ -15,511 +15,288 @@
  */
 package packetproxy.http2;
 
-import com.google.re2j.Matcher;
-import com.google.re2j.Pattern;
-import org.apache.commons.collections4.map.MultiValueMap;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import packetproxy.common.Binary;
-import packetproxy.common.Parameter;
-import packetproxy.common.Utils;
-import packetproxy.util.PacketProxyUtility;
-
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.InetSocketAddress;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.ArrayUtils;
+import org.eclipse.jetty.http2.hpack.HpackDecoder;
+import org.eclipse.jetty.http2.hpack.HpackEncoder;
+
+import packetproxy.http.Http;
+import packetproxy.http2.frames.DataFrame;
+import packetproxy.http2.frames.Frame;
+import packetproxy.http2.frames.FrameFactory;
+import packetproxy.http2.frames.GoawayFrame;
+import packetproxy.http2.frames.HeadersFrame;
+import packetproxy.http2.frames.RstStreamFrame;
+import packetproxy.http2.frames.SettingsFrame;
+import packetproxy.http2.frames.SettingsFrame.SettingsFrameType;
+import packetproxy.http2.frames.WindowUpdateFrame;
 
 public class Http2
 {
-	private HttpHeader header;
-	private HttpHeader originalHeader;
-	private byte[] rawBody;
-	private String statusCode;
-	private String method;
-	private String proxyHost;
-	private int proxyPort = 0;
-	private String path;
-	private QueryString queryString;
-	private String version;
-	//private MultiValueMap<String,String> header;
-	//private MultiValueMap<String,Parameter> bodyParams;
-	//private ArrayList<String> header_order;
-	private byte[] body;
-	//	private boolean flag_https = false;
-	private boolean flag_request = false;
-	private boolean flag_proxy = false;
-	private boolean flag_proxy_ssl = false;
-	private boolean flag_disable_proxy_format_url = false;
-	private boolean flag_disable_content_length = false;
-
-
-
-
-	// TODO header系作業をHttpHeaderに分離
-	public static int parseHttpDelimiter(byte[] data) throws Exception
-	{
-		int header_size = HttpHeader.calcHeaderSize(data);
-		if (header_size == -1) { return -1; }
-
-		byte[] header = ArrayUtils.subarray(data, 0, header_size);
-		String header_str = new String(header, "UTF-8");
-
-		Pattern continue_pattern = Pattern.compile("HTTP/1.1 100 Continue\r?\n\r?\n", Pattern.CASE_INSENSITIVE);
-		Matcher continue_matcher = continue_pattern.matcher(header_str);
-
-		if (continue_matcher.find()) {
-			header_size = continue_matcher.end();
-			return header_size;
+	static private byte[] PREFACE; /* PRI * HTTP/2.0 .... */
+	static private byte[] SETTINGS;
+	static private byte[] WINDOW_UPDATE;
+	
+	public enum Http2Type {
+		PROXY_CLIENT, PROXY_SERVER, RESEND_CLIENT
+	}
+	
+	static {
+		try {
+			PREFACE = Hex.decodeHex("505249202a20485454502f322e300d0a0d0a534d0d0a0d0a".toCharArray());
+			SETTINGS = Hex.decodeHex("00001204000000000000030000006400045fffffff000200000000".toCharArray()); // header_table:4096, header_list:unlimited, window_size:unlimited
+			WINDOW_UPDATE = Hex.decodeHex("0000040800000000005fffffff".toCharArray()); // connection_window_size:unlimited
+		} catch (Exception e){
+			e.printStackTrace();
 		}
+	}
+	
+	static byte[] getPreface() {
+		return PREFACE;
+	}
 
-		Pattern plain_pattern = Pattern.compile("\nContent-Length *: *([0-9]+)", Pattern.CASE_INSENSITIVE);
-		Matcher plain_matcher = plain_pattern.matcher(header_str);
-
-		int content_length;
-		if (plain_matcher.find()) {
-			content_length = Integer.parseInt(plain_matcher.group(1));
-		} else {
-			content_length = 0;
-		}
-
-		Pattern pattern = Pattern.compile("\nTransfer-Encoding *: *chunked", Pattern.CASE_INSENSITIVE);
-		Matcher matcher = pattern.matcher(header_str);
-		if (matcher.find()) {
-			// TODO subarrayを何度もして遅くなるので末尾が0でなかったらreturn -1する
-			byte[] body = ArrayUtils.subarray(data, header_size, data.length);
-			body = getChankedHttpBody(body);
-			if (body == null)
-				return -1;
-		} else if (content_length == 0) {
-			Pattern pat = Pattern.compile("\nContent-Encoding *: *gzip", Pattern.CASE_INSENSITIVE);
-			Matcher mat = pat.matcher(header_str);
-			if (mat.find()) {
-				byte[] body = ArrayUtils.subarray(data, header_size, data.length);
-				try {
-					gunzip(body);
-				} catch (Exception e1) {
-					return -1;
-				}
-			}
-		}
-
-		if (content_length == 0) {
-			return data.length;
-		}
-
-		if (data.length < header_size + content_length) {
+	static private boolean isPreface(byte[] frameData) {
+		return (PREFACE.length > frameData.length) ? false : Arrays.equals(frameData, 0, PREFACE.length, PREFACE, 0, PREFACE.length);
+	}
+	
+	/**
+	 *  バイト列から1フレームを切り出す
+	 */
+	static public int parseFrameDelimiter(byte[] data) throws Exception {
+		if (data.length < 9) {
 			return -1;
 		}
-		return header_size + content_length;
-	}
-	static public boolean isHTTP(byte[] data) {
-		return HttpHeader.isHTTPHeader(data);
-	}
-
-	public Http2(byte[] data) throws Exception
-	{
-		queryString = new QueryString("");
-		header = new HttpHeader(data);
-		originalHeader = new HttpHeader(data);
-		analyzeStatusLine(header.getStatusline());
-		rawBody = getHttpBody(data);
-		body = getCookedBody(header, rawBody);
+		if (isPreface(data)) {
+			return PREFACE.length;
+		}
+		int headerSize = 9;
+		int payloadSize = ((data[0] & 0xff) << 16 | (data[1] & 0xff) << 8 | (data[2] & 0xff));
+		int expectedSize = headerSize + payloadSize;
+		if (data.length < expectedSize) {
+			return -1;
+		}
+		return expectedSize;
 	}
 
-	public HttpHeader getHeader(){
-		return header;
+	/** 
+	 * ユーザが利用するユーティリティ関数。
+	 * フレーム列(HEADER + DATA)をHTTPバイトデータに変換する
+	 * 変換後のHTTPデータは、元のフレームに完全に戻すための情報をヘッダに付与すること（例：ストリーム番号）
+	 */
+	
+	private HpackEncoder hpackEncoder = new HpackEncoder(4096, 65536);
+	private HpackDecoder hpackDecoder;
+	private Map<Integer, List<Frame>> bufferedHttpStreams = new HashMap<>();
+	private List<Frame> httpStreams = new LinkedList<>();
+	private List<Frame> otherStreams = new LinkedList<>();
+	private FlowControlManager flowControlManager = new FlowControlManager();
+	private boolean alreadySentPreface = false;
+	private boolean alreadySentSettingsWindowupdate = false;
+	private boolean compatHttp1 = false;
+
+	public Http2() throws Exception {
+	}
+	
+	public Http2(Http2Type type, boolean compatHttp1) throws Exception {
+		this(type);
+		this.compatHttp1 = compatHttp1;
+	}
+	
+	public Http2(Http2Type type) throws Exception {
+		switch (type) {
+		case PROXY_CLIENT:
+			alreadySentPreface = false;
+			alreadySentSettingsWindowupdate = false;
+			break;
+		case PROXY_SERVER:
+			alreadySentPreface = true;
+			alreadySentSettingsWindowupdate = false;
+			break;
+		case RESEND_CLIENT:
+			alreadySentPreface = false;
+			alreadySentSettingsWindowupdate = false;
+			break;
+		}
 	}
 
-	//	public boolean isHTTPS() {
-	//		return flag_https;
-	//	}
-
-	public String getProxyHost() {
-		return proxyHost;
-	}
-
-	public int getProxyPort() {
-		return proxyPort;
-	}
-
-	public boolean isProxy() {
-		return flag_proxy;
-	}
-
-	public boolean isProxySsl() {
-		return flag_proxy_ssl;
-	}
-
-	public byte[] getBody() {
-		return body;
-	}
-
-	public void setPath(String path) {
-		this.path = path;
-	}
-
-	public String getPath() {
-		return this.path;
-	}
-
-	public String getMethod() {
-		return this.method;
-	}
-
-	public String getHost() {
-		return header.getValue("Host").orElse(null);
-	}
-
-	public void setQuery(String query) {
-		this.queryString = new QueryString(query);
-	}
-
-	public void setQuery(QueryString query){
-		this.queryString = query;
-	}
-
-	public QueryString getQuery(){
-		return this.queryString;
-	}
-
-	public String getQueryAsString() {
-		return this.queryString.toString();
-	}
-
-	public String getStatusCode() {
-		return this.statusCode;
-	}
-
-	public void setBody(byte[] body) {
-		this.body = body != null ? body : new byte[]{};
-	}
-
-	public void disableContentLength() {
-		this.flag_disable_content_length = true;
-	}
-
-	public void disableProxyFormatUrl() {
-		this.flag_disable_proxy_format_url = true;
-	}
-
-	private byte[] getCookedBody(HttpHeader header, byte[] rawBody) throws Exception
-	{
-		byte[] cookedBody = rawBody;
-
-		{
-			String headerName = "Transfer-Encoding";
-			Optional<String> enc = header.getValue(headerName);
-
-			if (enc.isPresent() && enc.get().equalsIgnoreCase("chunked")) {
-				header.removeAll(headerName);
-				cookedBody = getChankedHttpBody(cookedBody);
-				if (cookedBody == null)
-					return null;
+	public List<Frame> parseFrames(byte[] frames) throws Exception {
+		List<Frame> frameList = new LinkedList<Frame>();
+		while (frames != null && frames.length > 0) {
+			int delim = Http2.parseFrameDelimiter(frames);
+			byte[] frame = ArrayUtils.subarray(frames, 0, delim);
+			frames = ArrayUtils.subarray(frames, delim, frames.length);
+			if (isPreface(frame) == false) {
+				frameList.add(FrameFactory.create(frame, hpackDecoder));
 			}
 		}
-
-		{
-			String headerName = "Content-Encoding";
-			Optional<String> enc = header.getValue(headerName);
-
-			if (enc.isPresent() && enc.get().equalsIgnoreCase("gzip")) {
-				cookedBody = gunzip(cookedBody);
-				header.removeAll(headerName);
-				if (cookedBody == null)
-					return null;
-			}
-		}
-
-		header.removeAll("Content-Length");
-		return cookedBody;
+		return frameList;
 	}
 
-	public String getURL(int port) {
-		String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?"+getQueryAsString() : "";
-		String path = getPath();
-		String host = header.getValue("Host").orElse(null);
-		String protocol = (port == 443 ? "https" : "http"); 
-		return String.format("%s://%s%s%s", protocol, host, path, query);
-	}
-
-	public byte[] toByteArray() throws Exception{
-		byte[] result = null;
-		byte[] newLine = new String("\r\n").getBytes();
-		String statusLine = header.getStatusline();
-
-		if (flag_request) {
-			//String query = (getQuery() != null && getQuery().length() > 0) ? "?"+URLEncoder.encode(getQuery(),"utf-8") : "";
-			String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?"+getQueryAsString() : "";
-			if (this.isProxy() && this.flag_disable_proxy_format_url == false) {
-				String proxyPort = (getProxyPort() > 0) ? ":"+String.valueOf(getProxyPort()) : "";
-				statusLine = String.format("%s http://%s%s%s%s %s", this.method, getProxyHost(), proxyPort, getPath(), query, this.version);
-			} else {
-				statusLine = String.format("%s %s%s %s", this.method, this.path, query, this.version);
+	public byte[] httpToFrames(byte[] httpData) throws Exception {
+		if (compatHttp1) {
+			ByteArrayOutputStream framesData = new ByteArrayOutputStream();
+			Http http = new Http(httpData);
+			/* HEADERS */
+			byte[] headersFrame = new HeadersFrame(http, hpackEncoder).toByteArray();
+			framesData.write(headersFrame);
+			/* DATA */
+			if (http.getBody().length > 0) {
+				byte[] dataFrame = new DataFrame(http).toByteArray();
+				framesData.write(dataFrame);
 			}
-		}
+			return framesData.toByteArray();
 
-		result = ArrayUtils.addAll(result, statusLine.getBytes());
-		result = ArrayUtils.addAll(result, newLine);
-		if (!flag_request && this.statusCode != null && this.statusCode.equals("100")) {
-			// 100 Continueの場合は、Content-Lengthがいらないのですぐに返す
-			result = ArrayUtils.addAll(result, newLine);
-			return result;
-		}
-		result = ArrayUtils.addAll(result, header.toByteArray());
-
-		if (body.length == 0 && flag_request && this.getHost() != null &&
-				(this.getHost().equals("dpoint.jp") ||
-				 this.getHost().equals("id.smt.docomo.ne.jp") ||
-				 this.getHost().equals("cfg.smt.docomo.ne.jp"))) {
-			// 特定サイトでは Content-Length: 0をつけるとうまく動かないので例外処理する
-		} else if (this.flag_disable_content_length) { 
-			// content-lengthがいらないと明示的に指定したケース
 		} else {
-			// Content-Typeがないパターンでも必ずContent-Lengthはつけるべき
-			//if (header.containsKey("Content-Type")) {
-			result = ArrayUtils.addAll(result, String.format("Content-Length: %d", body.length).getBytes());
-			result = ArrayUtils.addAll(result, newLine);
-			//}
+			Http http = new Http(httpData);
+			if (http.getHeader().getHeader("server").isPresent()) { /* header frame */
+				HeadersFrame frame = new HeadersFrame(http, hpackEncoder);
+				frame.setFlags(frame.getFlags() & ~0x01);
+				byte[] headersFrame = frame.toByteArray();
+				return headersFrame;
+			} else { /* data frame */
+				byte[] dataFrame = new DataFrame(http).toByteArrayTest();
+				return dataFrame;
+			}
 		}
-
-		result = ArrayUtils.addAll(result, newLine);
-		return ArrayUtils.addAll(result, body);
+	}
+	
+	private void addFrameToBufferedStream(Map<Integer,List<Frame>> bufferdStream, Frame frame) {
+		List<Frame> stream = bufferdStream.get(frame.getStreamId());
+		if (stream == null) {
+			stream = new LinkedList<Frame>();
+			bufferdStream.put(frame.getStreamId(), stream);
+		}
+		stream.add(frame);
 	}
 
-	public HttpHeader getOriginalHeader(){
-		return originalHeader;
-	}
-
-	public boolean isGzipEncoded(){
-		return getOriginalHeader().getValue("Content-Encoding")
-			.orElse("").equalsIgnoreCase("gzip");
-	}
-
-	public void encodeBodyByGzip() throws Exception{
-		body = gzip(body);
-		header.update("Content-Encoding", "gzip");
-	}
-
-	private void analyzeRequestStatusLine(String status_line) throws Exception
-	{
-		Pattern pattern = Pattern.compile("([^ ]+) +([^ ]+) +([^ ]+)$");
-		Matcher matcher = pattern.matcher(status_line);
-		if (matcher.find()) {
-			this.method = matcher.group(1).trim();
-			this.version = matcher.group(3).trim();
-			if (this.method.startsWith("CONNECT")) {
-				String urlStr = matcher.group(2).trim();
-				URL url = new URL("https://" + urlStr + "/");
-				this.proxyHost = url.getHost();
-				this.proxyPort = (url.getPort() > 0) ? url.getPort() : 443;
-				if (this.proxyPort == 80) {
-					// websocketとかは平文だけどCONNECTが来る事があるので80番ポートは平文と決め打ち
-					flag_proxy = true;
-				} else if (this.proxyPort == 443) {
-					flag_proxy_ssl = true;
+	/**
+	 * クライアントリクエストフレームをHTTP2モジュールに渡す。
+	 * 本モジュールは、フレームを解析しストリームとして管理する。
+	 */
+	public void writeFrame(byte[] framesData) throws Exception {
+		for (Frame frame : parseFrames(framesData)) {
+			if (frame instanceof HeadersFrame) {
+				HeadersFrame headersFrame = (HeadersFrame)frame;
+				if (compatHttp1) {
+					if ((headersFrame.getFlags() & 0x01) > 0) {
+						httpStreams.add(headersFrame);
+					} else {
+						addFrameToBufferedStream(bufferedHttpStreams, headersFrame);
+					}
 				} else {
-					// 多分httpsだけど、httpだと原因を探すのが大変になるので一応エラー出力しておく
-					flag_proxy_ssl = true;
-					PacketProxyUtility.getInstance().packetProxyLog(status_line + " can't distinguish HTTP or HTTPS, but use HTTPS");
+					httpStreams.add(headersFrame);
 				}
-			} else {
-				String urlStr = matcher.group(2).trim();
-				if (urlStr.startsWith("http")) {
-					flag_proxy = true;
-					URL url = new URL(urlStr);
-					this.proxyHost = url.getHost();
-					this.proxyPort = (url.getPort() > 0) ? url.getPort() : 80;
-					this.path = url.getPath();
-					if (url.getQuery() != null) {
-						this.queryString = new QueryString(url.getQuery());
+				//System.out.println("HeadersFrame:" + headersFrame);
+			} else if (frame instanceof DataFrame) {
+				if (compatHttp1) {
+					addFrameToBufferedStream(bufferedHttpStreams, frame);
+					if ((frame.getFlags() & 0x01) > 0) {
+						httpStreams.addAll(bufferedHttpStreams.get(frame.getStreamId()));
+						bufferedHttpStreams.remove(frame.getStreamId());
 					}
-				} else { /* normal */
-					URL url = new URL("http://example.com" + urlStr);
-					this.path = url.getPath();
-					if (url.getQuery() != null) {
-						this.queryString = new QueryString(url.getQuery());
-					}
+				} else {
+					httpStreams.add(frame);
 				}
-			}
-		}
-	}
-
-	@SuppressWarnings("unused")
-	private String replaceStatusLineToNonProxyStyte(String status_line) throws Exception
-	{
-		String result = status_line;
-		Pattern pattern = Pattern.compile("http://[^/]+");
-		Matcher matcher = pattern.matcher(status_line);
-		if (matcher.find()) {
-			result = matcher.replaceAll("");
-		}
-		return result;
-	}
-
-	private void analyzeResponseStatusLine(String status_line) throws Exception
-	{
-		Pattern pattern = Pattern.compile("[^ ]+ +([^ ]+) +([a-z0-9A-Z ]+)$");
-		Matcher matcher = pattern.matcher(status_line);
-		if (matcher.find()) {
-			this.statusCode = matcher.group(1).trim();
-			//			if (matcher.group(2).trim().equals("Connection established")) {
-			//				//flag_httpsは使ってない
-			//				flag_https = true;
-			//			}
-		}
-	}
-
-	private void analyzeStatusLine(String status_line) throws Exception
-	{
-		Pattern pattern = Pattern.compile("^([^ ]+)");
-		Matcher matcher = pattern.matcher(status_line);
-		if (matcher.find()) {
-			if (matcher.group(1).trim().startsWith("HTTP")) {
-				analyzeResponseStatusLine(status_line);
+			} else if (frame instanceof SettingsFrame) {
+				SettingsFrame settingsFrame = (SettingsFrame)frame;
+				flowControlManager.setInitialWindowSize(settingsFrame);
+				if ((settingsFrame.getFlags() & 0x1) == 0) {
+					int header_table_size = settingsFrame.get(SettingsFrameType.SETTINGS_HEADER_TABLE_SIZE);
+					int header_list_size = settingsFrame.get(SettingsFrameType.SETTINGS_MAX_HEADER_LIST_SIZE);
+					hpackDecoder = new HpackDecoder(header_table_size, header_list_size);
+				}
+				//System.out.println("SettingsFrame:" + settingsFrame);
+			} else if (frame instanceof GoawayFrame) {
+				GoawayFrame goAwayFrame = (GoawayFrame)frame;
+				if (goAwayFrame.getErrorCode() != 0) { // 0 is NO_ERROR
+					System.err.println("GoAway:" + goAwayFrame);
+				}
+			} else if (frame instanceof RstStreamFrame) {
+				RstStreamFrame rstFrame = (RstStreamFrame)frame;
+				if (rstFrame.getErrorCode() != 0) { // 0 is NO_ERROR
+					System.err.println("RstStream:" + rstFrame);
+				}
+				otherStreams.add(rstFrame);
+			} else if (frame instanceof WindowUpdateFrame) {
+				WindowUpdateFrame windowUpdateFrame = (WindowUpdateFrame)frame;
+				flowControlManager.appendWindowSize(windowUpdateFrame);
+				//System.out.println("WindowUpdate:" + windowUpdateFrame.getWindowSize());
 			} else {
-				flag_request = true;
-				analyzeRequestStatusLine(status_line);
+				otherStreams.add(frame);
 			}
 		}
 	}
-
-
-	private static byte[] getHttpBody(byte[] input_data) throws Exception
-	{
-		byte[][] search_words = { new String("\r\n\r\n").getBytes(), new String("\n\n").getBytes(), new String("\r\r").getBytes() };
-		for (byte[] search_word : search_words) {
-			int idx;
-			if ((idx = Utils.indexOf(input_data, 0, input_data.length, search_word)) < 0) {
-				continue;
-			}
-			return ArrayUtils.subarray(input_data, idx + search_word.length, input_data.length);
+	
+	/**
+	 * HTTP以外のフレーム（例:PING等）を読み出す。
+	 * readClientFrameと分ける理由は、GUIに表示せず、直接サーバに送信したいため。
+	 * 送信すべきフレームがなければ、nullを返す。
+	 */
+	public byte[] readControlFrames() throws Exception {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		if (alreadySentPreface == false) {
+			baos.write(PREFACE);
+			alreadySentPreface = true;
 		}
-		return new byte[]{};
-	}
-
-	private static byte[] gunzip(byte[] input_data) throws Exception
-	{
-		if(input_data.length == 0){return input_data;}
-		ByteArrayInputStream in = new ByteArrayInputStream(input_data);
-		GZIPInputStream gzin = new GZIPInputStream(in);
-		return IOUtils.toByteArray(gzin);
-	}
-
-	private static byte[] gzip(byte[] input_data) throws Exception
-	{
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		GZIPOutputStream gout = new GZIPOutputStream(out);
-		gout.write(input_data);
-		gout.close();
-		return out.toByteArray();
-	}
-
-	private static byte[] getChankedHttpBody(byte[] input_data) throws Exception
-	{
-		// TODO 改行コードの対応
-		byte[] search_word = new String("\r\n").getBytes();
-		int index = 0;
-		int start_index = 0;
-		byte[] body = new byte[0];
-		while ((index = Utils.indexOf(input_data, start_index, input_data.length, search_word)) >= 0) {
-			try {
-				byte[] chank_header = ArrayUtils.subarray(input_data, start_index, index);
-				String chank_length_str = new String(chank_header, "UTF-8").replaceAll("^0+([^0].*)$", "$1");
-				int chank_length = Integer.parseInt(chank_length_str.trim(), 16);
-				if (chank_length == 0) {
-					return body;
-				}
-				byte[] chank = ArrayUtils.subarray(input_data, index + search_word.length, index + search_word.length + chank_length);
-				body = ArrayUtils.addAll(body, chank);
-				start_index = index + search_word.length*2 + chank_length;
-			} catch (Exception e) {
-				e.printStackTrace();
-				Binary b = new Binary(input_data);
-				PacketProxyUtility.getInstance().packetProxyLog(new String(b.toHexString().toString()));
-			}
+		if (alreadySentSettingsWindowupdate == false) {
+			baos.write(SETTINGS);
+			baos.write(WINDOW_UPDATE);
+			alreadySentSettingsWindowupdate = true;
 		}
-		return null;
+		for (Frame frame : otherStreams) {
+			baos.write(frame.toByteArray());
+		}
+		otherStreams.clear();
+		return baos.toByteArray();
 	}
 
-	public InetSocketAddress getProxyAddr() {
-		return new InetSocketAddress(proxyHost, proxyPort);
-	}
-
-	public List<String> getBodyParamsOrder(){
-		String body;
-		try {
-			body = new String(getBody(), "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+	/**
+	 * HTTPデータを読み出す。
+	 * HTTPを構成するフレームがまだ溜まっていなかったら、nullを返す。
+	 * ユーザはhttpToFrames()により元に戻してサーバに送信することになる。
+	 */
+	public byte[] readHttp() throws Exception {
+		if (httpStreams.size() == 0) {
 			return null;
 		}
-		List<String> pairs = Arrays.asList(body.split("&"));
-		Set<String> usedName = new HashSet<>();
-		List<String> names = pairs.stream().map(p -> p.split("=")[0]).collect(Collectors.toList());
-
-		return names.stream().filter(n -> !usedName.contains(n)).peek(usedName::add).collect(Collectors.toList());
-	}
-
-	public MultiValueMap<String, Parameter> getBodyParams(){
-		String body;
-		try {
-			body = new String(getBody(), "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			return null;
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		for (Frame frame : httpStreams) {
+			if (compatHttp1) {
+				if (frame instanceof HeadersFrame) {
+					baos.write(frame.toHttp1());
+				} else if (frame instanceof DataFrame) {
+					baos.write(frame.getPayload());
+				}
+			} else {
+				baos.write(frame.toHttp1());
+			}
 		}
-		String[] pairs = body.split("&");
-		MultiValueMap<String, Parameter> nameToParams = new MultiValueMap<>();
-		for(String param : pairs){
-			Parameter p = new Parameter(param);
-			nameToParams.put(p.getName(), p);
+		httpStreams.clear();
+		return baos.toByteArray();
+	}
+
+	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	public void putToFlowControlledQueue(byte[] frameData) throws Exception {
+		baos.write(frameData);
+		int length = 0;
+		while ((length = parseFrameDelimiter(baos.toByteArray())) > 0) {
+			byte[] frame = ArrayUtils.subarray(baos.toByteArray(), 0, length);
+			byte[] remaining = ArrayUtils.subarray(baos.toByteArray(), length, baos.size());
+			baos.reset();
+			baos.write(remaining);
+			flowControlManager.write(new Frame(frame));
 		}
-		return nameToParams;
 	}
-
-	public void setBodyParams(List<Parameter> params){
-		List<String> paramStrings = params.stream().map(e -> e.toString()).collect(Collectors.toList()); 
-		setBody(String.join("&", paramStrings).getBytes());
-		return ;
+	public InputStream getFlowControlledInputStream() {
+		return flowControlManager.getInputStream();
 	}
-
-	@SuppressWarnings("deprecation")
-	public String getCookie(String key){
-		List<String> cookies = getHeader().getAllValue("Cookie");	
-		Map<String, String> cookieMap;
-		cookieMap = cookies
-			.stream()
-			.flatMap(v -> Arrays.stream(v.split(";")))
-			.map(kv -> kv.split("="))
-			.collect(Collectors.toMap(
-						kv -> URLDecoder.decode(kv[0]),
-						kv -> URLDecoder.decode(kv[1])
-						));
-		return cookieMap.get(key);
-	}
-
-	public String getOverrideHttpMethod(){
-		String tmp = this.getFirstHeader("X-HTTP-Method-Override");
-		return tmp.isEmpty() ? this.method : tmp;
-	}
-
-	// 以下非推奨　互換性のため
-	public String getFirstHeader(String key){
-		return header.getValue(key).orElse("");
-	}
-	public void updateHeader(String key, String value){
-		header.update(key, value);
-	}
-
-	public List<String> getHeader(String key){
-		return header.getAllValue(key);
-	}
-
+	
 }

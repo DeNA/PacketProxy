@@ -197,7 +197,7 @@ public class ResendController
 						while (new Http(data).getStatusCode().equals("100")) {
 							data = duplex.receive();
 						}
-							}
+					}
 
 					OneShotPacket result = new OneShotPacket(
 							oneshot.getId(),
