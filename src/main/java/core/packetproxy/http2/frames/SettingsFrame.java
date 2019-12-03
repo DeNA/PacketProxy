@@ -42,10 +42,14 @@ public class SettingsFrame extends Frame {
 		ByteBuffer bb = ByteBuffer.allocate(4096);
 		bb.put(payload);
 		bb.flip();
+		SettingsFrameType[] settingsFrameTypes = SettingsFrameType.values();
 		for(int length = 0; length < bb.limit(); length += 6) {
-			SettingsFrameType type = SettingsFrameType.values()[bb.getShort()];
-			int data = bb.getInt();
-			values.put(type, data);
+			short l = bb.getShort();
+			if(0x00<=l && l<settingsFrameTypes.length){
+				SettingsFrameType type = settingsFrameTypes[l];
+				int data = bb.getInt();
+				values.put(type, data);
+			}
 			//System.out.println(String.format("%s: %d", type, data));
 		}
 	}
