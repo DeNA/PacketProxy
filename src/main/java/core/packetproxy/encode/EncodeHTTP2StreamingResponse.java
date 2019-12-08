@@ -15,13 +15,20 @@
  */
 package packetproxy.encode;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
 
+import packetproxy.common.StringUtils;
 import packetproxy.common.UniqueID;
 import packetproxy.http.Http;
 import packetproxy.http2.StreamManager;
@@ -30,19 +37,98 @@ import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameUtils;
 import packetproxy.http2.frames.HeadersFrame;
 import packetproxy.model.Packet;
+import packetproxy.model.Packets;
 
-public class EncodeHTTP2 extends EncodeHTTP2FramesBase
+public class EncodeHTTP2StreamingResponse extends EncodeHTTP2FramesBase
 {
 	private StreamManager clientStreamManager = new StreamManager();
 	private StreamManager serverStreamManager = new StreamManager();
 
-	public EncodeHTTP2() throws Exception {
-		super();
+	public EncodeHTTP2StreamingResponse() throws Exception {
 	}
-
+	
 	@Override
 	public String getName() {
-		return "HTTP2";
+		return "HTTP2 Streaming Response";
+	}
+
+	StreamManager stream = new StreamManager();
+	private Queue<Frame> frameQueue = new ArrayDeque<>();
+	
+	@Override
+	public byte[] passThroughServerResponse() throws Exception {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		if (super.alreadySentClientRequestEpilogue == false) {
+			out.write(FrameUtils.SETTINGS);
+			out.write(FrameUtils.WINDOW_UPDATE);
+			super.alreadySentClientRequestEpilogue = true;
+		}
+		for (Frame frame: super.serverFrameManager.readControlFrames()) {
+			out.write(frame.toByteArray());
+		}
+		for (Frame frame: super.serverFrameManager.readHeadersDataFrames()) {
+			if (frame instanceof HeadersFrame) {
+				HeadersFrame headersFrame = (HeadersFrame)frame;
+				out.write(headersFrame.toByteArrayWithoutExtra(super.getServerHpackEncoder(), true));
+				Http http = new Http(headersFrame.getExtra());
+				http.updateHeader("X-PacketProxy-HTTP2-UUID", StringUtils.randomUUID());
+				headersFrame.saveExtra(http.toByteArray());
+				frameQueue.add(headersFrame);
+				synchronized (stream) {
+					stream.write(headersFrame);
+				}
+			} else { /* Data Frame */
+				out.write(frame.toByteArray());
+				synchronized (stream) {
+					stream.write(frame);
+				}
+				Thread guiHistoryUpdater = new Thread(new Runnable() {
+					public void run() {
+						try {
+							ByteArrayOutputStream header = new ByteArrayOutputStream();
+							ByteArrayOutputStream body = new ByteArrayOutputStream();
+							synchronized (stream) {
+								for (Frame frame : stream.read(frame.getStreamId())) {
+									if (frame instanceof HeadersFrame) {
+										header.write(frame.getExtra());
+									} else {
+										body.write(frame.getPayload());
+									}
+								}
+							}
+							byte[] zipped = body.toByteArray();
+							if (zipped.length == 0)
+								return;
+							InputStream in = new GZIPInputStream(new ByteArrayInputStream(zipped));
+							byte[] inflates = new byte[zipped.length * 10];
+							int inflatesLength = 0;
+							ByteArrayOutputStream unzipped = new ByteArrayOutputStream();
+							try {
+								while ((inflatesLength = in.read(inflates, 0, inflates.length)) > 0) {
+									unzipped.write(ArrayUtils.subarray(inflates, 0, inflatesLength));
+								}
+							} catch (Exception e1) {
+							}
+							if (unzipped.toByteArray().length > 0) {
+								List<Packet> packets = Packets.getInstance().queryFullText(new Http(header.toByteArray()).getFirstHeader("X-PacketProxy-HTTP2-UUID"));
+								for (Packet packet: packets) {
+									Packet p = Packets.getInstance().query(packet.getId());
+									Http http = new Http(header.toByteArray());
+									http.removeHeader("content-encoding");
+									p.setDecodedData(ArrayUtils.addAll(http.toByteArray(), unzipped.toByteArray()));
+									p.setModifiedData(ArrayUtils.addAll(http.toByteArray(), unzipped.toByteArray()));
+									Packets.getInstance().update(p);
+								}
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				});
+				guiHistoryUpdater.start();
+			}
+		}
+		return out.toByteArray();
 	}
 
 	@Override
@@ -52,7 +138,12 @@ public class EncodeHTTP2 extends EncodeHTTP2FramesBase
 
 	@Override
 	protected byte[] passFramesToDecodeServerResponse(List<Frame> frames) throws Exception {
-		return filterFrames(serverStreamManager, frames);
+		Frame frame = frameQueue.poll();
+		if (frame != null) {
+			return frame.toByteArray();
+		} else {
+			return filterFrames(serverStreamManager, frames);
+		}
 	}
 	
 	private byte[] filterFrames(StreamManager streamManager, List<Frame> frames) throws Exception {
@@ -72,6 +163,7 @@ public class EncodeHTTP2 extends EncodeHTTP2FramesBase
 
 	@Override
 	protected byte[] decodeClientRequestFromFrames(byte[] frames) throws Exception { return decodeFromFrames(frames); }
+
 	@Override
 	protected byte[] decodeServerResponseFromFrames(byte[] frames) throws Exception { return decodeFromFrames(frames); }
 
@@ -96,9 +188,10 @@ public class EncodeHTTP2 extends EncodeHTTP2FramesBase
 
 	@Override
 	protected byte[] encodeClientRequestToFrames(byte[] http) throws Exception { return encodeToFrames(http, super.getClientHpackEncoder()); }
+
 	@Override
-	protected byte[] encodeServerResponseToFrames(byte[] http) throws Exception { return encodeToFrames(http, super.getServerHpackEncoder()); }
-	
+	protected byte[] encodeServerResponseToFrames(byte[] http) throws Exception { return null; }
+
 	private byte[] encodeToFrames(byte[] data, HpackEncoder encoder) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		Http http = new Http(data);
@@ -164,12 +257,11 @@ public class EncodeHTTP2 extends EncodeHTTP2FramesBase
 		}
 		return summary;
 	}
-	
+
 	@Override
 	public String getContentType(byte[] input_data) throws Exception
 	{
 		Http http = new Http(input_data);
 		return http.getFirstHeader("Content-Type");
 	}
-
 }
