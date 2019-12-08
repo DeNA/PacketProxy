@@ -244,7 +244,7 @@ class Simplex extends Thread
 	public void send(byte[] input_data) throws Exception
 	{
 		input_data = callOnChunkSend(input_data);
-		if (out != null) {
+		if (out != null && input_data != null) {
 			out.write(input_data);
 			out.flush();
 		}

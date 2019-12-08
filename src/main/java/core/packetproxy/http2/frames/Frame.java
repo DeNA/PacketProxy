@@ -19,7 +19,8 @@ import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 
 public class Frame {
-    public enum Type {
+
+	public enum Type {
     	DATA,
     	HEADERS,
     	PRIORITY,
@@ -36,12 +37,15 @@ public class Frame {
     };
     
     static protected Type TYPE = Type.Unassigned; 
+    static protected byte FLAG_EXTRA = 0x40; /* internal use only */
 
-    protected int length;
-    protected Type type;
-    protected int flags;
-    protected int streamId;
-    protected byte[] payload;
+    protected int length = 9;
+    protected Type type = Type.Unassigned;
+    protected int flags = 0;
+    protected int streamId = 0;
+    protected byte[] payload = new byte[]{};
+    protected byte[] origPayload = new byte[]{};
+    protected byte[] extra = new byte[]{}; /* internal use only */
     
     protected Frame() throws Exception {
     }
@@ -52,6 +56,8 @@ public class Frame {
     	flags = frame.flags;
     	streamId = frame.streamId;
     	payload = frame.payload;
+    	origPayload = frame.origPayload;
+    	extra = frame.extra;
     }
     
     public Frame(byte[] data) throws Exception {
@@ -68,17 +74,35 @@ public class Frame {
     	streamId = (int)((buffer[0] & 0x7f) << 24 | (buffer[1] & 0xff) << 16 | (buffer[2] & 0xff) << 8 | (buffer[3] & 0xff));
     	payload = new byte[length];
     	bais.read(payload);
+    	splitExtraFromPayload();
     }
     
     public int getLength() { return length; }
     public Type getType() { return type; }
     public int getFlags() { return flags; }
+    public void setFlags(int flags) { this.flags = flags; }
     public int getStreamId() { return streamId; }
     public byte[] getPayload() { return payload; }
-    public void setFlags(int flags) { this.flags = flags; }
+	public byte[] getOrigPayload() throws Exception { return this.origPayload; }
+	public byte[] getExtra() throws Exception { return this.extra; }
+    
+    public byte[] toByteArrayWithoutExtra() throws Exception {
+    	ByteBuffer bb = ByteBuffer.allocate(origPayload.length + 9);
+    	bb.put((byte)((origPayload.length >>> 16) & 0xff));
+    	bb.put((byte)((origPayload.length >>> 8) & 0xff));
+    	bb.put((byte)((origPayload.length) & 0xff));
+    	bb.put((byte)(type.ordinal() & 0xff));
+    	bb.put((byte)(flags & ~FLAG_EXTRA));
+    	bb.putInt(streamId);
+    	bb.put(origPayload, 0, origPayload.length);
+    	byte[] array = new byte[bb.position()];
+    	bb.flip();
+    	bb.get(array);
+    	return array;
+    }
     
     public byte[] toByteArray() throws Exception {
-    	ByteBuffer bb = ByteBuffer.allocate(payload.length + 1024);
+    	ByteBuffer bb = ByteBuffer.allocate(payload.length + 9);
     	bb.put((byte)((payload.length >>> 16) & 0xff));
     	bb.put((byte)((payload.length >>> 8) & 0xff));
     	bb.put((byte)((payload.length) & 0xff));
@@ -92,9 +116,72 @@ public class Frame {
     	return array;
     }
     
-    public byte[] toHttp1() throws Exception {
-    	return null;
+    public void removeExtra() {
+		if ((flags & FLAG_EXTRA) == 0) {
+			return;
+		}
+		ByteBuffer payloadBuf = ByteBuffer.allocate(this.payload.length);
+		payloadBuf.put(this.payload);
+		payloadBuf.flip();
+		int extraLen = payloadBuf.getInt();
+		int origPayloadLen = this.payload.length - extraLen - 4;
+		this.origPayload = new byte[origPayloadLen];
+		payloadBuf.get(this.origPayload);
+		this.payload = this.origPayload;
+		this.length = this.payload.length;
+		this.extra = new byte[]{};
+		flags &= ~FLAG_EXTRA;
     }
+
+	public void saveExtra(byte[] extra) throws Exception {
+		ByteBuffer newPayload = ByteBuffer.allocate(this.origPayload.length + extra.length + 4);
+		newPayload.putInt(extra.length);
+		newPayload.put(this.origPayload);
+		newPayload.put(extra);
+		byte[] newPayloadArray =  new byte[newPayload.limit()];
+		newPayload.flip();
+		newPayload.get(newPayloadArray);
+		this.payload = newPayloadArray;
+		this.length = this.payload.length;
+		this.extra = extra;
+		this.flags |= FLAG_EXTRA;
+	}
+
+	public void saveOrigPayload(byte[] origPayload) throws Exception {
+		if ((flags & FLAG_EXTRA) == 0) {
+			this.payload = origPayload;
+			this.origPayload = origPayload;
+			this.length = origPayload.length;
+		} else {
+			ByteBuffer newPayload = ByteBuffer.allocate(origPayload.length + this.extra.length + 4);
+			newPayload.putInt(this.extra.length);
+			newPayload.put(origPayload);
+			newPayload.put(this.extra);
+			byte[] newPayloadArray =  new byte[newPayload.limit()];
+			newPayload.flip();
+			newPayload.get(newPayloadArray);
+			this.payload = newPayloadArray;
+			this.origPayload = origPayload;
+			this.length = this.payload.length;
+		}
+	}
+	
+	private void splitExtraFromPayload() {
+		if ((flags & FLAG_EXTRA) == 0) {
+			this.origPayload = payload;
+			this.extra = new byte[]{};
+			return;
+		}
+		ByteBuffer payloadBuf = ByteBuffer.allocate(this.payload.length);
+		payloadBuf.put(this.payload);
+		payloadBuf.flip();
+		int extraLen = payloadBuf.getInt();
+		int origPayloadLen = this.payload.length - extraLen - 4;
+		this.origPayload = new byte[origPayloadLen];
+		this.extra = new byte[extraLen];
+		payloadBuf.get(this.origPayload);
+		payloadBuf.get(this.extra);
+	}
     
     @Override
     public String toString() {

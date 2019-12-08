@@ -569,6 +569,9 @@ public class Http
 	public String getFirstHeader(String key){
 		return header.getValue(key).orElse("");
 	}
+	public void removeHeader(String key) {
+		header.removeAll(key);
+	}
 	public void updateHeader(String key, String value){
 		header.update(key, value);
 	}

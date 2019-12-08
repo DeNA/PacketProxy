@@ -26,8 +26,8 @@ import packetproxy.http.HttpHeader;
 public class DataFrame extends Frame {
 
     static protected Type TYPE = Type.DATA; 
-    static byte FLAG_END_STREAM = 0x01;
-    static byte FLAG_PADDED     = 0x08;
+    static public byte FLAG_END_STREAM = (byte)0x01;
+    static public byte FLAG_PADDED     = (byte)0x08;
     
     public DataFrame(Frame frame) throws Exception {
 		super(frame);
@@ -44,56 +44,28 @@ public class DataFrame extends Frame {
 
 		HttpHeader headers = http.getHeader();
 		super.streamId = Integer.parseInt(headers.getValue("X-PacketProxy-HTTP2-Stream-Id").orElse("0"));
-		super.flags = Integer.parseInt(headers.getValue("X-PacketProxy-HTTP2-Flags").orElse("0"));
+		super.flags = FLAG_END_STREAM;
 		super.payload = http.getBody();
+		super.origPayload = http.getBody(); 
+		super.extra = new byte[]{};
 		super.type = TYPE;
 		super.length = payload.length;
 		
 	}
 	
-	public boolean isEnd() {
-		return (flags & FLAG_END_STREAM) > 0;
-	}
-
 	private void parsePayload() throws Exception {
 		if ((flags & FLAG_PADDED) > 0) {
 			int padLen = (payload[0] & 0xff);
 			payload = ArrayUtils.subarray(payload, 1, payload.length - padLen);
-			flags = flags & ~FLAG_PADDED;
+			flags &= ~FLAG_PADDED;
 		}
 	}
-	
-    public byte[] toByteArrayTest() throws Exception {
-    	ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    	if (payload.length == 0) {
-    		ByteBuffer bb = ByteBuffer.allocate(1024);
-    		bb.put((byte)0);
-    		bb.put((byte)0);
-    		bb.put((byte)0);
-    		bb.put((byte)(type.ordinal() & 0xff));
-   			bb.put((byte)(flags & 0xff));
-    		bb.putInt(streamId);
-    		byte[] array = new byte[bb.position()];
-    		bb.flip();
-    		bb.get(array);
-    		baos.write(array);
-		} else {
-    		ByteBuffer bb = ByteBuffer.allocate(payload.length + 1024);
-    		bb.put((byte)((payload.length >>> 16) & 0xff));
-    		bb.put((byte)((payload.length >>> 8) & 0xff));
-    		bb.put((byte)((payload.length) & 0xff));
-    		bb.put((byte)(type.ordinal() & 0xff));
-   			bb.put((byte)(flags & 0xff));
-    		bb.putInt(streamId);
-    		bb.put(payload);
-    		byte[] array = new byte[bb.position()];
-    		bb.flip();
-    		bb.get(array);
-    		baos.write(array);
-    	}
-    	return baos.toByteArray();
-    }
 
+	@Override
+    public byte[] toByteArrayWithoutExtra() throws Exception {
+		return toByteArray();
+    }
+	
 	@Override
     public byte[] toByteArray() throws Exception {
     	ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -104,7 +76,7 @@ public class DataFrame extends Frame {
     		bb.put((byte)0);
     		bb.put((byte)0);
     		bb.put((byte)(type.ordinal() & 0xff));
-   			bb.put((byte)(byte)FLAG_END_STREAM);
+   			bb.put((byte)(flags & 0xff));
     		bb.putInt(streamId);
     		byte[] array = new byte[bb.position()];
     		bb.flip();
@@ -124,9 +96,9 @@ public class DataFrame extends Frame {
     		bb.put((byte)((blockLen) & 0xff));
     		bb.put((byte)(type.ordinal() & 0xff));
     		if (rest > 0) {
-    			bb.put((byte)0x0);
+    			bb.put((byte)(flags & ~FLAG_END_STREAM & 0xff));
     		} else {
-    			bb.put((byte)FLAG_END_STREAM);
+    			bb.put((byte)(flags & 0xff));
     		}
     		bb.putInt(streamId);
     		bb.put(payload, offset, blockLen);
@@ -140,8 +112,7 @@ public class DataFrame extends Frame {
     	return baos.toByteArray();
     }
 
-	@Override
-	public byte[] toHttp1() throws Exception {
+	public byte[] getHttp() throws Exception {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		baos.write("HTTP/2.0 200 OK\r\n".getBytes());
 		baos.write(new String("X-PacketProxy-HTTP2-Stream-Id: " + streamId + "\r\n").getBytes());

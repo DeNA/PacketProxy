@@ -161,7 +161,7 @@ public class DuplexFactory {
 
 				// 画像データの場合には、ディスクスペース節約のためにDBに保存しない
 				if (server_packet.getContentType().startsWith("image")) {
-					Http http = new Http(server_packet.getReceivedData());
+					Http http = new Http(server_packet.getDecodedData());
 					http.setBody("[Info] body data were deleted by PacketProxy to save space of disc.".getBytes());
 					server_packet.setReceivedData(http.toByteArray());
 					server_packet.setDecodedData(http.toByteArray());
@@ -247,7 +247,7 @@ public class DuplexFactory {
 		DuplexSync duplex = new DuplexSync(EndpointFactory.createFromOneShotPacket(oneshot));
 		duplex.addDuplexEventListener(new Duplex.DuplexEventListener() {
 			private Packets packets = Packets.getInstance();
-			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder().equals("HTTP2") ? "HTTP2 Resend" : oneshot.getEncoder());
+			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder());
 			private Packet client_packet;
 			private Packet server_packet;
 			@Override
@@ -359,7 +359,7 @@ public class DuplexFactory {
 		Duplex duplex = original_duplex.crateSameConnectionDuplex();
 		duplex.addDuplexEventListener(new Duplex.DuplexEventListener() {
 			private Packets packets = Packets.getInstance();
-			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder().equals("HTTP2") ? "HTTP2 Resend" : oneshot.getEncoder());
+			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder());
 			private Packet client_packet;
 			private Packet server_packet;
 			@Override
