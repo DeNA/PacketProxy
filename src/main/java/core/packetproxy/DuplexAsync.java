@@ -30,14 +30,18 @@ public class DuplexAsync extends Duplex
 	private Endpoint server;
 	private Simplex client_to_server;
 	private Simplex server_to_client;
-	private Thread flowSourceThread;
-	private Thread flowSinkThread;
+	private Thread clientFlowSourceThread;
+	private Thread serverFlowSourceThread;
+	private Thread clientFlowSinkThread;
+	private Thread serverFlowSinkThread;
 	private InputStream client_input;
 	private InputStream server_input;
 	private OutputStream client_output;
 	private OutputStream server_output;
 	private PipedInputStream flow_controlled_client_input;
 	private PipedOutputStream flow_controlled_client_output;
+	private PipedInputStream flow_controlled_server_input;
+	private PipedOutputStream flow_controlled_server_output;
 
 	public DuplexAsync(Endpoint client_endpoint, Endpoint server_endpoint) throws Exception
 	{
@@ -51,7 +55,10 @@ public class DuplexAsync extends Duplex
 		flow_controlled_client_output = new PipedOutputStream();
 		flow_controlled_client_input = new PipedInputStream(flow_controlled_client_output, 65536);
 
-		client_to_server = createClientToServerSimplex(client_input, server_output);
+		flow_controlled_server_output = new PipedOutputStream();
+		flow_controlled_server_input = new PipedInputStream(flow_controlled_server_output, 65536);
+
+		client_to_server = createClientToServerSimplex(client_input, flow_controlled_server_output);
 		server_to_client = createServerToClientSimplex(server_input, flow_controlled_client_output);
 		
 		disableDuplexEventListener();
@@ -76,7 +83,7 @@ public class DuplexAsync extends Duplex
 	}
 
 	public void start() throws Exception {
-		flowSourceThread = new Thread(new Runnable() {
+		clientFlowSourceThread = new Thread(new Runnable() {
 			public void run() {
 				try {
 					byte[] inputBuf = new byte[65536];
@@ -90,7 +97,21 @@ public class DuplexAsync extends Duplex
 			}
 		});
 
-		flowSinkThread = new Thread(new Runnable() {
+		serverFlowSourceThread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					byte[] inputBuf = new byte[65536];
+					int inputLen = 0;
+					while ((inputLen = flow_controlled_server_input.read(inputBuf)) > 0) {
+						callOnServerChunkFlowControl(ArrayUtils.subarray(inputBuf, 0, inputLen));
+					}
+				} catch (Exception e) {
+					//e.printStackTrace();
+				}
+			}
+		});
+
+		clientFlowSinkThread = new Thread(new Runnable() {
 			public void run() {
 				try {
 					byte[] inputBuf = new byte[65536];
@@ -112,10 +133,34 @@ public class DuplexAsync extends Duplex
 			}
 		});
 
+		serverFlowSinkThread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					byte[] inputBuf = new byte[65536];
+					int inputLen = 0;
+					while ((inputLen = getServerChunkFlowControlSink().read(inputBuf)) > 0) {
+						server_output.write(inputBuf, 0, inputLen);
+					}
+					flow_controlled_server_input.close();
+					server_output.close();
+				} catch (Exception e) {
+					try {
+						flow_controlled_server_input.close();
+						server_output.close();
+					} catch (Exception e1) {
+						//e1.printStackTrace();
+					}
+					//e.printStackTrace();
+				}
+			}
+		});
+
 		client_to_server.start();
 		server_to_client.start();
-		flowSinkThread.start();
-		flowSourceThread.start();
+		clientFlowSinkThread.start();
+		serverFlowSinkThread.start();
+		clientFlowSourceThread.start();
+		serverFlowSourceThread.start();
 	}
 	@Override
 	public void close() throws Exception {

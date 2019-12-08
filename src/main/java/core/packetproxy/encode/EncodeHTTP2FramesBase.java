@@ -109,7 +109,7 @@ public abstract class EncodeHTTP2FramesBase extends Encoder
 	@Override
 	public byte[] encodeClientRequest(byte[] data) throws Exception {
 		byte[] frames = encodeClientRequestToFrames(data);
-		//frames.stream().forEach(frame -> System.out.println("* --> " + frame));
+		//FrameUtils.parseFrames(frames).stream().forEach(frame -> System.out.println("* --> " + frame));
 		return frames;
 	}
 
@@ -121,18 +121,28 @@ public abstract class EncodeHTTP2FramesBase extends Encoder
 	@Override
 	public byte[] encodeServerResponse(byte[] data) throws Exception {
 		byte[] frames = encodeServerResponseToFrames(data);
-		//frames.stream().forEach(frame -> System.out.println("<-- * " + frame));
+		//FrameUtils.parseFrames(frames).stream().forEach(frame -> System.out.println("<-- * " + frame));
 		return frames;
 	}
-	
+
 	@Override
-	public void putToFlowControlledQueue(byte[] frames) throws Exception {
+	public void putToClientFlowControlledQueue(byte[] frames) throws Exception {
 		clientFrameManager.putToFlowControlledQueue(frames);
 	}
 
 	@Override
-	public InputStream getFlowControlledInputStream() {
+	public void putToServerFlowControlledQueue(byte[] frames) throws Exception {
+		serverFrameManager.putToFlowControlledQueue(frames);
+	}
+	
+	@Override
+	public InputStream getClientFlowControlledInputStream() {
 		return clientFrameManager.getFlowControlledInputStream();
+	}
+
+	@Override
+	public InputStream getServerFlowControlledInputStream() {
+		return serverFrameManager.getFlowControlledInputStream();
 	}
 	
 	protected HpackDecoder getClientHpackDecoder() { return clientFrameManager.getHpackDecoder(); }

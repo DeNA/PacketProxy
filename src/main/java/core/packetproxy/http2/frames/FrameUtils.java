@@ -28,12 +28,14 @@ public class FrameUtils {
 
 	static public byte[] PREFACE; /* PRI * HTTP/2.0 .... */
 	static public byte[] SETTINGS;
+	static public byte[] END_SETTINGS;
 	static public byte[] WINDOW_UPDATE;
 	
 	static {
 		try {
 			PREFACE = Hex.decodeHex("505249202a20485454502f322e300d0a0d0a534d0d0a0d0a".toCharArray());
-			SETTINGS = Hex.decodeHex("00001204000000000000030000006400045fffffff000200000000".toCharArray()); // header_table:4096, header_list:unlimited, window_size:unlimited
+			SETTINGS = Hex.decodeHex("0000120400000000000003000003e800045fffffff000200000000".toCharArray()); // header_table:4096, header_list:unlimited, window_size:unlimited
+			END_SETTINGS = Hex.decodeHex("000000040100000000".toCharArray());
 			WINDOW_UPDATE = Hex.decodeHex("0000040800000000005fffffff".toCharArray()); // connection_window_size:unlimited
 		} catch (Exception e){
 			e.printStackTrace();

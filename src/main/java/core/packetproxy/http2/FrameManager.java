@@ -41,6 +41,9 @@ public class FrameManager {
 	private List<Frame> headersDataFrames = new LinkedList<>();
 	private List<Frame> controlFrames = new LinkedList<>();
 	private FlowControlManager flowControlManager;
+	private boolean flag_receive_peer_settings = false;
+	private boolean flag_send_settings = false;
+	private boolean flag_send_end_settings = false;
 	
 	public FrameManager() throws Exception {
 		flowControlManager = new FlowControlManager();
@@ -78,6 +81,11 @@ public class FrameManager {
 				int header_table_size = settingsFrame.get(SettingsFrameType.SETTINGS_HEADER_TABLE_SIZE);
 				int header_list_size = settingsFrame.get(SettingsFrameType.SETTINGS_MAX_HEADER_LIST_SIZE);
 				hpackDecoder = new HpackDecoder(header_table_size, header_list_size);
+				flag_receive_peer_settings = true;
+				if (flag_send_end_settings == false && flag_send_settings == true) {
+					flowControlManager.getOutputStream().write(FrameUtils.END_SETTINGS);
+					flag_send_end_settings = true;
+				}
 			}
 			//System.out.println("SettingsFrame: " + settingsFrame);
 		} else if (frame instanceof GoawayFrame) {
@@ -127,7 +135,19 @@ public class FrameManager {
 			byte[] remaining = ArrayUtils.subarray(baos.toByteArray(), length, baos.size());
 			baos.reset();
 			baos.write(remaining);
-			flowControlManager.write(new Frame(frame));
+			if (FrameUtils.isPreface(frame)) {
+				flowControlManager.getOutputStream().write(frame);
+			} else {
+				Frame f = new Frame(frame);
+				if (f.getType() == Frame.Type.SETTINGS) {
+					flag_send_settings = true;
+					if (flag_send_end_settings == false && flag_receive_peer_settings == true) {
+						flowControlManager.getOutputStream().write(FrameUtils.END_SETTINGS);
+						flag_send_end_settings = true;
+					}
+				}
+				flowControlManager.write(f);
+			}
 		}
 	}
 	public InputStream getFlowControlledInputStream() {

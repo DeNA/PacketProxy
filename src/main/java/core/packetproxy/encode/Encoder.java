@@ -28,13 +28,17 @@ import packetproxy.model.Packet;
 public abstract class Encoder
 {
 	private int PIPE_SIZE = 65536;
-	private PipedOutputStream outputForFlowControl;
-	private PipedInputStream inputForFlowControl;
+	private PipedOutputStream clientOutputForFlowControl;
+	private PipedInputStream clientInputForFlowControl;
+	private PipedOutputStream serverOutputForFlowControl;
+	private PipedInputStream serverInputForFlowControl;
 	
 	public Encoder() {
 		try {
-			outputForFlowControl = new PipedOutputStream();
-			inputForFlowControl = new PipedInputStream(outputForFlowControl, PIPE_SIZE);
+			clientOutputForFlowControl = new PipedOutputStream();
+			clientInputForFlowControl = new PipedInputStream(clientOutputForFlowControl, PIPE_SIZE);
+			serverOutputForFlowControl = new PipedOutputStream();
+			serverInputForFlowControl = new PipedInputStream(serverOutputForFlowControl, PIPE_SIZE);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -139,10 +143,16 @@ public abstract class Encoder
 	/**
 	 * Flow Controls 
 	 */
-	public void putToFlowControlledQueue(byte[] output_data) throws Exception {
-		outputForFlowControl.write(output_data);
+	public void putToClientFlowControlledQueue(byte[] output_data) throws Exception {
+		clientOutputForFlowControl.write(output_data);
 	}
-	public InputStream getFlowControlledInputStream() {
-		return inputForFlowControl;
+	public void putToServerFlowControlledQueue(byte[] output_data) throws Exception {
+		serverOutputForFlowControl.write(output_data);
+	}
+	public InputStream getClientFlowControlledInputStream() {
+		return clientInputForFlowControl;
+	}
+	public InputStream getServerFlowControlledInputStream() {
+		return serverInputForFlowControl;
 	}
 }

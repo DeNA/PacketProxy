@@ -1,6 +1,22 @@
+/*
+ * Copyright 2019 DeNA Co., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package packetproxy.http2;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.HashMap;
@@ -17,6 +33,7 @@ public class FlowControlManager
 	private int PIPE_SIZE = 65535;
 	private int connectionWindowSize = 65535;
 	private int initialStreamWindowSize = 65535;
+	private int maxConcurrentStreams = 100;
 	private PipedOutputStream outputForFlowControl;
 	private PipedInputStream inputForFlowControl;
 	
@@ -51,6 +68,14 @@ public class FlowControlManager
 		}
 		initialStreamWindowSize = frame.get(SettingsFrameType.SETTINGS_INITIAL_WINDOW_SIZE);
 	}
+	
+	public void setMaxConcurrentStreams(SettingsFrame frame) {
+		int flags = frame.getFlags();
+		if ((flags & 0x1) > 0) {
+			return;
+		}
+		maxConcurrentStreams = frame.get(SettingsFrameType.SETTINGS_MAX_CONCURRENT_STREAMS);
+	}
 
 	public void appendWindowSize(WindowUpdateFrame frame) throws Exception {
 		int streamId = frame.getStreamId();
@@ -69,13 +94,20 @@ public class FlowControlManager
 	}
 
 	public void write(Frame frame) throws Exception {
-		if (frame.getType() == Frame.Type.DATA) {
+		if (frame.getType() == Frame.Type.HEADERS) {
+			/* TODO: maximum concurrent streams is not implemented yet */
+			outputForFlowControl.write(frame.toByteArray());
+		} else if (frame.getType() == Frame.Type.DATA) {
 			FlowControl flow = getFlow(frame.getStreamId());
 			flow.enqueue(frame.toByteArray());
 			writeData(flow);
 		} else {
 			outputForFlowControl.write(frame.toByteArray());
 		}
+	}
+	
+	public OutputStream getOutputStream() {
+		return outputForFlowControl;
 	}
 
 	public InputStream getInputStream() {

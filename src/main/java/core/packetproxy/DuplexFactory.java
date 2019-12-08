@@ -235,11 +235,19 @@ public class DuplexFactory {
 			}
 			@Override
 			public void onClientChunkFlowControl(byte[] data) throws Exception {
-				encoder.putToFlowControlledQueue(data);
+				encoder.putToClientFlowControlledQueue(data);
+			}
+			@Override
+			public void onServerChunkFlowControl(byte[] data) throws Exception {
+				encoder.putToServerFlowControlledQueue(data);
 			}
 			@Override
 			public InputStream getClientChunkFlowControlSink() throws Exception {
-				return encoder.getFlowControlledInputStream();
+				return encoder.getClientFlowControlledInputStream();
+			}
+			@Override
+			public InputStream getServerChunkFlowControlSink() throws Exception {
+				return encoder.getServerFlowControlledInputStream();
 			}
 		});
 	}
@@ -344,11 +352,19 @@ public class DuplexFactory {
 			}
 			@Override
 			public void onClientChunkFlowControl(byte[] data) throws Exception {
-				encoder.putToFlowControlledQueue(data);
+				encoder.putToClientFlowControlledQueue(data);
+			}
+			@Override
+			public void onServerChunkFlowControl(byte[] data) throws Exception {
+				encoder.putToServerFlowControlledQueue(data);
 			}
 			@Override
 			public InputStream getClientChunkFlowControlSink() throws Exception {
-				return encoder.getFlowControlledInputStream();
+				return encoder.getClientFlowControlledInputStream();
+			}
+			@Override
+			public InputStream getServerChunkFlowControlSink() throws Exception {
+				return encoder.getServerFlowControlledInputStream();
 			}
 		});
 		return duplex;
@@ -456,11 +472,19 @@ public class DuplexFactory {
 			}
 			@Override
 			public void onClientChunkFlowControl(byte[] data) throws Exception {
-				encoder.putToFlowControlledQueue(data);
+				encoder.putToClientFlowControlledQueue(data);
+			}
+			@Override
+			public void onServerChunkFlowControl(byte[] data) throws Exception {
+				encoder.putToServerFlowControlledQueue(data);
 			}
 			@Override
 			public InputStream getClientChunkFlowControlSink() throws Exception {
-				return encoder.getFlowControlledInputStream();
+				return encoder.getClientFlowControlledInputStream();
+			}
+			@Override
+			public InputStream getServerChunkFlowControlSink() throws Exception {
+				return encoder.getServerFlowControlledInputStream();
 			}
 		});
 		return duplex;
