@@ -217,10 +217,10 @@ public class HeadersFrame extends Frame
 		}
 		if (bRequest) {
 			buf.write(String.format("X-PacketProxy-HTTP2-Host: %s\r\n", authority).getBytes());
-			if (priority) {
-				buf.write(String.format("X-PacketProxy-HTTP2-Dependency: %d\r\n", dependency).getBytes());
-				buf.write(String.format("X-PacketProxy-HTTP2-Weight: %d\r\n", weight & 0xff).getBytes());
-			}
+		}
+		if (priority) {
+			buf.write(String.format("X-PacketProxy-HTTP2-Dependency: %d\r\n", dependency).getBytes());
+			buf.write(String.format("X-PacketProxy-HTTP2-Weight: %d\r\n", weight & 0xff).getBytes());
 		}
 		buf.write(String.format("X-PacketProxy-HTTP2-Stream-Id: %d\r\n", streamId).getBytes());
 		buf.write(String.format("X-PacketProxy-HTTP2-Flags: %d\r\n", flags).getBytes());
