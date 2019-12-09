@@ -34,7 +34,7 @@ public class FrameUtils {
 	static {
 		try {
 			PREFACE = Hex.decodeHex("505249202a20485454502f322e300d0a0d0a534d0d0a0d0a".toCharArray());
-			SETTINGS = Hex.decodeHex("0000120400000000000003000003e800045fffffff000200000000".toCharArray()); // header_table:4096, header_list:unlimited, window_size:unlimited
+			SETTINGS = Hex.decodeHex("0000180400000000000001000010000003000003e800045fffffff000200000000".toCharArray()); // header_table:4096, header_list:unlimited, window_size:unlimited, push: disable
 			END_SETTINGS = Hex.decodeHex("000000040100000000".toCharArray());
 			WINDOW_UPDATE = Hex.decodeHex("0000040800000000005fffffff".toCharArray()); // connection_window_size:unlimited
 		} catch (Exception e){
