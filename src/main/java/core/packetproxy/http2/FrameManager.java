@@ -95,7 +95,7 @@ public class FrameManager {
 			}
 		} else if (frame instanceof RstStreamFrame) {
 			RstStreamFrame rstFrame = (RstStreamFrame)frame;
-			if (rstFrame.getErrorCode() != 0) { // 0 is NO_ERROR
+			if (rstFrame.getErrorCode() != 0 && rstFrame.getErrorCode() != 8) { // 0 is NO_ERROR, 8 is CANCEL
 				System.err.println("RstStream:" + rstFrame);
 			}
 			controlFrames.add(rstFrame);
