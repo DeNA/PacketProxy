@@ -102,11 +102,17 @@ public class EncodeHTTP2 extends EncodeHTTP2FramesBase
 	private byte[] encodeToFrames(byte[] data, HpackEncoder encoder) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		Http http = new Http(data);
-		HeadersFrame headersFrame = new HeadersFrame(http);
-		out.write(headersFrame.toByteArrayWithoutExtra(encoder));
+		int flags = Integer.valueOf(http.getFirstHeader("X-PacketProxy-HTTP2-Flags"));
 		if (http.getBody() != null && http.getBody().length > 0) {
+			http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff & ~HeadersFrame.FLAG_END_STREAM));
+			HeadersFrame headersFrame = new HeadersFrame(http);
+			out.write(headersFrame.toByteArrayWithoutExtra(encoder));
 			DataFrame dataFrame = new DataFrame(http);
 			out.write(dataFrame.toByteArrayWithoutExtra());
+		} else {
+			http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff | HeadersFrame.FLAG_END_STREAM));
+			HeadersFrame headersFrame = new HeadersFrame(http);
+			out.write(headersFrame.toByteArrayWithoutExtra(encoder));
 		}
 		return out.toByteArray();
 	}
