@@ -46,16 +46,18 @@ public class FlowControlManager
 	private FlowControl getFlow(int streamId) {
 		FlowControl flow = flows.get(streamId);
 		if (flow == null) {
-			flow = new FlowControl(initialStreamWindowSize);
+			flow = new FlowControl(streamId, initialStreamWindowSize);
 			flows.put(streamId, flow);
 		}
 		return flow;
 	}
 	
 	private void writeData(FlowControl flow) throws Exception {
-		byte[] data = flow.dequeue(connectionWindowSize);
-		connectionWindowSize -= data.length;
-		outputForFlowControl.write(data);
+		Stream stream = flow.dequeue(connectionWindowSize);
+		if (stream != null) {
+			connectionWindowSize -= stream.payloadSize();
+			outputForFlowControl.write(stream.toByteArray());
+		}
 	}
 	
 	public void setInitialWindowSize(SettingsFrame frame) {
@@ -99,7 +101,7 @@ public class FlowControlManager
 			outputForFlowControl.write(frame.toByteArray());
 		} else if (frame.getType() == Frame.Type.DATA) {
 			FlowControl flow = getFlow(frame.getStreamId());
-			flow.enqueue(frame.toByteArray());
+			flow.enqueue(frame);
 			writeData(flow);
 		} else {
 			outputForFlowControl.write(frame.toByteArray());

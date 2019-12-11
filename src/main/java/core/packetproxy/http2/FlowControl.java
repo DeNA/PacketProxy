@@ -4,14 +4,22 @@ import java.io.ByteArrayOutputStream;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import packetproxy.http2.frames.DataFrame;
+import packetproxy.http2.frames.Frame;
+import packetproxy.http2.frames.FrameFactory;
+
 public class FlowControl {
 
+	private int streamId;
 	private int windowSize;
 	private ByteArrayOutputStream queue;
+	private boolean end_flag;
 
-	public FlowControl(int initialWindowSize) {
+	public FlowControl(int streamId, int initialWindowSize) {
+		this.streamId = streamId;
 		this.windowSize = initialWindowSize;
 		queue = new ByteArrayOutputStream();
+		end_flag = false;
 	}
 	
 	public void appendWindowSize(int appendWindowSize) {
@@ -20,31 +28,53 @@ public class FlowControl {
 		}
 	}
 	
-	public void enqueue(byte[] data) throws Exception {
+	public void enqueue(Frame frame) throws Exception {
 		synchronized (queue) {
-			queue.write(data);
+			queue.write(frame.getPayload());
+			if ((frame.getFlags() & DataFrame.FLAG_END_STREAM) > 0) {
+				end_flag = true;
+			}
 		}
 	}
 
-	public byte[] dequeue(int connectionWindowSize) throws Exception {
+	public Stream dequeue(int connectionWindowSize) throws Exception {
 		synchronized (queue) {
 			int capacity = Math.min(windowSize, connectionWindowSize);
 			if (capacity == 0) {
 				System.err.println("[HTTP/2 FlowControl] running out of window.");
-				return new byte[]{};
+				return null;
 			}
-			int length = Math.min(queue.size(), capacity);
-			if (length == 0) {
+			int dataLen = Math.min(queue.size(), capacity);
+			if (dataLen == 0) {
 				//System.err.println("[HTTP/2 FlowControl] sending data is not found.");
-				return new byte[]{};
+				return null;
 			}
-			windowSize -= length;
-
-			byte[] data = ArrayUtils.subarray(queue.toByteArray(), 0, length);
-			byte[] remaining = ArrayUtils.subarray(queue.toByteArray(), length, queue.size());
+			windowSize -= dataLen;
+			byte[] data = ArrayUtils.subarray(queue.toByteArray(), 0, dataLen);
+			byte[] remaining = ArrayUtils.subarray(queue.toByteArray(), dataLen, queue.size());
 			queue.reset();
 			queue.write(remaining);
-			return data;
+			
+			Stream stream = new Stream();
+			
+			while (data.length > 0) {
+
+				int payloadLen = Math.min(data.length, 16384);
+				byte[] payload = ArrayUtils.subarray(data, 0, payloadLen);
+				data = ArrayUtils.subarray(data, payloadLen, data.length);
+
+				int flags = 0x0;
+				if (remaining.length == 0 && end_flag == true && data.length == 0) {
+					flags = DataFrame.FLAG_END_STREAM;
+				}
+
+				Frame frame = FrameFactory.create(DataFrame.TYPE, flags, streamId, payload);
+				System.out.println(frame);
+
+				stream.write(frame);
+			}
+
+			return stream;
 		}
 	}
 	

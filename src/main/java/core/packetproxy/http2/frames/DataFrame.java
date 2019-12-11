@@ -16,7 +16,6 @@
 package packetproxy.http2.frames;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -25,9 +24,13 @@ import packetproxy.http.HttpHeader;
 
 public class DataFrame extends Frame {
 
-    static protected Type TYPE = Type.DATA; 
+    static public Type TYPE = Type.DATA; 
     static public byte FLAG_END_STREAM = (byte)0x01;
     static public byte FLAG_PADDED     = (byte)0x08;
+
+    public DataFrame(int flags, int streamId, byte[] payload) {
+    	super(TYPE, flags, streamId, payload);
+    }
     
     public DataFrame(Frame frame) throws Exception {
 		super(frame);
@@ -64,52 +67,6 @@ public class DataFrame extends Frame {
 	@Override
     public byte[] toByteArrayWithoutExtra() throws Exception {
 		return toByteArray();
-    }
-	
-	@Override
-    public byte[] toByteArray() throws Exception {
-    	ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-    	if (payload.length == 0) {
-    		ByteBuffer bb = ByteBuffer.allocate(1024);
-    		bb.put((byte)0);
-    		bb.put((byte)0);
-    		bb.put((byte)0);
-    		bb.put((byte)(type.ordinal() & 0xff));
-   			bb.put((byte)(flags & 0xff));
-    		bb.putInt(streamId);
-    		byte[] array = new byte[bb.position()];
-    		bb.flip();
-    		bb.get(array);
-    		baos.write(array);
-    		return baos.toByteArray();
-		}
-
-    	int offset = 0;
-    	for (int rest = payload.length; rest > 0; ) {
-    		int blockLen = (rest > 8192 ? 8192 : rest);
-    		rest = rest - blockLen;
-
-    		ByteBuffer bb = ByteBuffer.allocate(blockLen + 1024);
-    		bb.put((byte)((blockLen >>> 16) & 0xff));
-    		bb.put((byte)((blockLen >>> 8) & 0xff));
-    		bb.put((byte)((blockLen) & 0xff));
-    		bb.put((byte)(type.ordinal() & 0xff));
-    		if (rest > 0) {
-    			bb.put((byte)(flags & ~FLAG_END_STREAM & 0xff));
-    		} else {
-    			bb.put((byte)(flags & 0xff));
-    		}
-    		bb.putInt(streamId);
-    		bb.put(payload, offset, blockLen);
-    		byte[] array = new byte[bb.position()];
-    		bb.flip();
-    		bb.get(array);
-    		baos.write(array);
-
-    		offset = offset + blockLen;
-    	}
-    	return baos.toByteArray();
     }
 
 	public byte[] getHttp() throws Exception {

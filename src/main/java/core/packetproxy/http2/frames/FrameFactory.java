@@ -68,6 +68,19 @@ public class FrameFactory {
 			e.printStackTrace();
 		}
 	}
+	
+	static public Frame create(Type type, int flags, int streamId, byte[] payload) throws Exception {
+		Class<?> frameClass = frameList.get(type);
+		if (frameClass != null) {
+			if (frameClass == DataFrame.class) {
+				return (Frame) frameClass.getConstructor(int.class, int.class, byte[].class).newInstance(flags, streamId, payload);
+			} else {
+				throw new Exception("create Frames except DataFrame are not implemented yet");
+			}
+		} else {
+			throw new Exception("unknown frame type");
+		}
+	}
 
 	static public Frame create(byte[] data, HpackDecoder decoder) throws Exception {
 		Frame f = new Frame(data);

@@ -50,6 +50,16 @@ public class Frame {
     protected Frame() throws Exception {
     }
     
+    public Frame(Type type, int flags, int streamId, byte[] payload) {
+    	this.type = type;
+    	this.length = payload.length;
+    	this.flags = flags;
+    	this.streamId = streamId;
+    	this.payload = payload;
+    	this.origPayload = payload;
+    	this.extra = new byte[]{};
+    }
+    
     public Frame(Frame frame) throws Exception {
     	length = frame.length;
     	type = frame.type;
