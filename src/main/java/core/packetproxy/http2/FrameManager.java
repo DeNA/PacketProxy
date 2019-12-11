@@ -139,6 +139,7 @@ public class FrameManager {
 				flowControlManager.getOutputStream().write(frame);
 			} else {
 				Frame f = new Frame(frame);
+				flowControlManager.write(f);
 				if (f.getType() == Frame.Type.SETTINGS) {
 					flag_send_settings = true;
 					if (flag_send_end_settings == false && flag_receive_peer_settings == true) {
@@ -146,7 +147,6 @@ public class FrameManager {
 						flag_send_end_settings = true;
 					}
 				}
-				flowControlManager.write(f);
 			}
 		}
 	}
