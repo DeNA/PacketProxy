@@ -15,20 +15,15 @@
  */
 package packetproxy.encode;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.zip.GZIPInputStream;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
 
-import packetproxy.common.StringUtils;
 import packetproxy.common.UniqueID;
 import packetproxy.http.Http;
 import packetproxy.http2.StreamManager;
@@ -70,9 +65,6 @@ public class EncodeHTTP2StreamingResponse extends EncodeHTTP2FramesBase
 			if (frame instanceof HeadersFrame) {
 				HeadersFrame headersFrame = (HeadersFrame)frame;
 				out.write(headersFrame.toByteArrayWithoutExtra(super.getServerHpackEncoder(), true));
-				Http http = new Http(headersFrame.getExtra());
-				http.updateHeader("X-PacketProxy-HTTP2-UUID", StringUtils.randomUUID());
-				headersFrame.saveExtra(http.toByteArray());
 				frameQueue.add(headersFrame);
 				synchronized (stream) {
 					stream.write(headersFrame);
@@ -85,38 +77,25 @@ public class EncodeHTTP2StreamingResponse extends EncodeHTTP2FramesBase
 				Thread guiHistoryUpdater = new Thread(new Runnable() {
 					public void run() {
 						try {
-							ByteArrayOutputStream header = new ByteArrayOutputStream();
-							ByteArrayOutputStream body = new ByteArrayOutputStream();
+							ByteArrayOutputStream data = new ByteArrayOutputStream();
 							synchronized (stream) {
 								for (Frame frame : stream.read(frame.getStreamId())) {
 									if (frame instanceof HeadersFrame) {
-										header.write(frame.getExtra());
+										data.write(frame.getExtra());
 									} else {
-										body.write(frame.getPayload());
+										data.write(frame.getPayload());
 									}
 								}
 							}
-							byte[] zipped = body.toByteArray();
-							if (zipped.length == 0)
-								return;
-							InputStream in = new GZIPInputStream(new ByteArrayInputStream(zipped));
-							byte[] inflates = new byte[zipped.length * 10];
-							int inflatesLength = 0;
-							ByteArrayOutputStream unzipped = new ByteArrayOutputStream();
-							try {
-								while ((inflatesLength = in.read(inflates, 0, inflates.length)) > 0) {
-									unzipped.write(ArrayUtils.subarray(inflates, 0, inflatesLength));
-								}
-							} catch (Exception e1) {
-							}
-							if (unzipped.toByteArray().length > 0) {
-								List<Packet> packets = Packets.getInstance().queryFullText(new Http(header.toByteArray()).getFirstHeader("X-PacketProxy-HTTP2-UUID"));
+							
+							Http http = new Http(data.toByteArray());
+
+							if (http.getBody().length > 0) {
+								List<Packet> packets = Packets.getInstance().queryFullText(http.getFirstHeader("X-PacketProxy-HTTP2-UUID"));
 								for (Packet packet: packets) {
 									Packet p = Packets.getInstance().query(packet.getId());
-									Http http = new Http(header.toByteArray());
-									http.removeHeader("content-encoding");
-									p.setDecodedData(ArrayUtils.addAll(http.toByteArray(), unzipped.toByteArray()));
-									p.setModifiedData(ArrayUtils.addAll(http.toByteArray(), unzipped.toByteArray()));
+									p.setDecodedData(http.toByteArray());
+									p.setModifiedData(http.toByteArray());
 									Packets.getInstance().update(p);
 								}
 							}

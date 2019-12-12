@@ -17,6 +17,7 @@ package packetproxy.http;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.URL;
@@ -461,10 +462,28 @@ public class Http
 
 	private static byte[] gunzip(byte[] input_data) throws Exception
 	{
-		if(input_data.length == 0){return input_data;}
-		ByteArrayInputStream in = new ByteArrayInputStream(input_data);
-		GZIPInputStream gzin = new GZIPInputStream(in);
-		return IOUtils.toByteArray(gzin);
+		if (input_data.length == 0) {
+			return input_data;
+		}
+		try {
+			ByteArrayInputStream in = new ByteArrayInputStream(input_data);
+			GZIPInputStream gzin = new GZIPInputStream(in);
+			return IOUtils.toByteArray(gzin);
+		} catch (Exception e) {
+			/* Streaming Responseサポートのため、中途半端なgzipを展開しないといけないケースが多々ある */
+			byte[] zipped = input_data;
+			InputStream in = new GZIPInputStream(new ByteArrayInputStream(zipped));
+			byte[] inflates = new byte[zipped.length * 10];
+			int inflatesLength = 0;
+			ByteArrayOutputStream unzipped = new ByteArrayOutputStream();
+			try {
+				while ((inflatesLength = in.read(inflates, 0, inflates.length)) > 0) {
+					unzipped.write(ArrayUtils.subarray(inflates, 0, inflatesLength));
+				}
+			} catch (Exception e1) {
+			}
+			return unzipped.toByteArray();
+		}
 	}
 
 	private static byte[] gzip(byte[] input_data) throws Exception

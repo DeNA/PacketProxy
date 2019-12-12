@@ -30,6 +30,7 @@ import org.eclipse.jetty.http.MetaData.Response;
 import org.eclipse.jetty.http2.hpack.HpackDecoder;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
 
+import packetproxy.common.StringUtils;
 import packetproxy.http.HeaderField;
 import packetproxy.http.Http;
 import packetproxy.http.HttpHeader;
@@ -224,6 +225,7 @@ public class HeadersFrame extends Frame
 		}
 		buf.write(String.format("X-PacketProxy-HTTP2-Stream-Id: %d\r\n", streamId).getBytes());
 		buf.write(String.format("X-PacketProxy-HTTP2-Flags: %d\r\n", flags).getBytes());
+		buf.write(String.format("X-PacketProxy-HTTP2-UUID: %s\r\n", StringUtils.randomUUID()).getBytes());
 		buf.write("\r\n".getBytes());
 
     	saveExtra(buf.toByteArray());
