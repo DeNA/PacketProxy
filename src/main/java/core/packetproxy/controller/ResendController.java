@@ -27,6 +27,7 @@ import packetproxy.DuplexFactory;
 import packetproxy.DuplexManager;
 import packetproxy.EncoderManager;
 import packetproxy.common.I18nString;
+import packetproxy.encode.EncodeHTTPBase;
 import packetproxy.encode.Encoder;
 import packetproxy.http.Http;
 import packetproxy.model.OneShotPacket;
@@ -154,7 +155,7 @@ public class ResendController
 			public DataToBeSend(OneShotPacket oneshot, Consumer<OneShotPacket> onReceived) throws Exception {
 				this.oneshot = oneshot;
 				this.onReceived = onReceived;
-				Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder());
+				Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(), oneshot.getAlpn());
 				if (encoder.useNewConnectionForResend() == true) {
 					this.duplex = DuplexFactory.createDuplexSyncFromOneShotPacket(this.oneshot);
 					this.isSync = false;
@@ -185,17 +186,22 @@ public class ResendController
 							oneshot.getUseSSL(),
 							I18nString.get("In case that packets were resend to already connected socket, results can't be displayed in this window. See the history window instead.").getBytes(),
 							oneshot.getEncoder(),
+							oneshot.getAlpn(),
 							Packet.Direction.SERVER,
 							oneshot.getConn(),
 							oneshot.getGroup());
 					this.onReceived.accept(result);
 				} else {
 					byte[] data = duplex.receive();
+
 					/* 100 Continue 対策 */
-					if (oneshot.getEncoder().equals("HTTP") ||
-							EncoderManager.getInstance().createInstance(oneshot.getEncoder()).getClass().getSuperclass().getName().equals("packetproxy.encode.EncodeHTTPBase")) {
-						while (new Http(data).getStatusCode().equals("100")) {
-							data = duplex.receive();
+					Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(), oneshot.getAlpn());
+					if (encoder instanceof EncodeHTTPBase) {
+						EncodeHTTPBase httpEncoder = (EncodeHTTPBase)encoder;
+						if (httpEncoder.getHttpVersion() == EncodeHTTPBase.HTTPVersion.HTTP1) {
+							while (new Http(data).getStatusCode().equals("100")) {
+								data = duplex.receive();
+							}
 						}
 					}
 
@@ -208,6 +214,7 @@ public class ResendController
 							oneshot.getUseSSL(),
 							data,
 							oneshot.getEncoder(),
+							oneshot.getAlpn(),
 							Packet.Direction.SERVER,
 							oneshot.getConn(),
 							oneshot.getGroup());

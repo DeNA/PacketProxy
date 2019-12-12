@@ -15,7 +15,12 @@
  */
 package packetproxy.encode;
 
-public class EncodeSampleUpperCase extends Encoder {
+public class EncodeSampleUpperCase extends Encoder
+{
+	public EncodeSampleUpperCase(String ALPN) throws Exception {
+		super(ALPN);
+	}
+
 	@Override
 	public String getName() {
 		return "Sample UpperCase";

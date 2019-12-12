@@ -23,6 +23,10 @@ public class EncodeHTTPWebSocket extends Encoder
 {
 	protected boolean binary_start = false;
 
+	public EncodeHTTPWebSocket(String ALPN) throws Exception {
+		super(ALPN);
+	}
+
 	public EncodeHTTPWebSocket()
 	{
 	}

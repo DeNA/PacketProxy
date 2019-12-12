@@ -235,16 +235,6 @@ public class Http
 		return this.queryString.toString();
 	}
 	
-	/* 今のところHTTP/2.0の時しか動作しない */
-	public String getURI() {
-		String authority = getFirstHeader("X-PacketProxy-HTTP2-Host");
-		String scheme = "https";
-		String path = getPath();
-		String query = getQueryAsString();
-		String queryStr = (query != null && query.length() > 0) ? "?"+query : "";
-		return scheme + "://" + authority + path + queryStr;
-	}
-
 	public String getStatusCode() {
 		return this.statusCode;
 	}
@@ -304,6 +294,16 @@ public class Http
 			return String.format("%s://%s%s%s", protocol, host, path, query);
 		}
 	}
+
+	private String getURI() {
+		String authority = getFirstHeader("X-PacketProxy-HTTP2-Host");
+		String scheme = "https";
+		String path = getPath();
+		String query = getQueryAsString();
+		String queryStr = (query != null && query.length() > 0) ? "?"+query : "";
+		return scheme + "://" + authority + path + queryStr;
+	}
+
 
 	public byte[] toByteArray() throws Exception{
 		byte[] result = null;

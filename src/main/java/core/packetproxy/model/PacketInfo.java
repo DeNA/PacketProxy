@@ -25,5 +25,6 @@ public interface PacketInfo {
     public int getServerPort();
     public boolean getUseSSL();
     public String getEncoder();
+    public String getAlpn();
     public int getConn();
 }

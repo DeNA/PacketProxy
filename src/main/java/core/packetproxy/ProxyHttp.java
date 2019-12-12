@@ -98,22 +98,10 @@ public class ProxyHttp extends Proxy
 										clientE = es[0];
 										serverE = es[1];
 									}
-
-									DuplexAsync d;
+									String ALPN = clientE.getApplicationProtocol();
 									Server serverSetting = Servers.getInstance().queryByAddress(http.getServerAddr());
-									if (serverSetting != null) {
-										d = DuplexFactory.createDuplexAsync(clientE, serverE, serverSetting.getEncoder());
-									} else {
-										String alpn = clientE.getApplicationProtocol();
-										if (alpn.equals("h2")) {
-											d = DuplexFactory.createDuplexAsync(clientE, serverE, "HTTP2");
-										} else if (alpn.equals("http/1.1") || alpn.equals("http/1.0") || alpn.equals("")) {
-											d = DuplexFactory.createDuplexAsync(clientE, serverE, "HTTP");
-										} else {
-											System.err.println(String.format("unknown ALPN: '%s', use Sample as encode module.", alpn));
-											d = DuplexFactory.createDuplexAsync(clientE, serverE, "Sample");
-										}
-									}
+									String encoderName = (serverSetting != null) ? serverSetting.getEncoder() : "HTTP";
+									DuplexAsync d = DuplexFactory.createDuplexAsync(clientE, serverE, encoderName, ALPN);
 									d.start();
 								}
 
@@ -181,8 +169,8 @@ public class ProxyHttp extends Proxy
 	private byte[] createConnection(Endpoint client, Endpoint server, byte[] input_data) throws Exception {
 		Server s = Servers.getInstance().queryByAddress(server.getAddress());
 		DuplexSync duplex = (s != null) ?
-				DuplexFactory.createDuplexSync(client, server, s.getEncoder()) :
-				DuplexFactory.createDuplexSync(client, server, "HTTP");
+				DuplexFactory.createDuplexSync(client, server, s.getEncoder(), "http/1.1") :
+				DuplexFactory.createDuplexSync(client, server, "HTTP", "http/1.1");
 		duplex.send(input_data);
 		byte[] output_data =  duplex.receive();
 		duplex.close();

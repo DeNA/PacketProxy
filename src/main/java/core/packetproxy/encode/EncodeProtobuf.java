@@ -20,6 +20,10 @@ import packetproxy.http.Http;
 
 public class EncodeProtobuf extends EncodeHTTPBase
 {
+	public EncodeProtobuf(String ALPN) throws Exception {
+		super(ALPN);
+	}
+
 	@Override
 	public String getName() {
 		return "Protocol Buffer over HTTP";

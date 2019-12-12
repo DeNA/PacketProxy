@@ -60,6 +60,8 @@ public class Packet implements PacketInfo
 	@DatabaseField
 	private String encoder_name;
 	@DatabaseField
+	private String alpn;
+	@DatabaseField
 	private boolean modified;
 	@DatabaseField
 	private boolean resend;
@@ -73,15 +75,15 @@ public class Packet implements PacketInfo
 	public Packet() {
 		// ORMLite needs a no-arg constructor 
 	}
-	public Packet(int listen_port, InetSocketAddress client_addr, InetSocketAddress server_addr, String server_name, boolean use_ssl, String encoder, Direction dir, int conn, long group) {
+	public Packet(int listen_port, InetSocketAddress client_addr, InetSocketAddress server_addr, String server_name, boolean use_ssl, String encoder, String alpn, Direction dir, int conn, long group) {
 		initialize(listen_port,
 				client_addr.getAddress().getHostAddress(), client_addr.getPort(),
-				server_addr.getAddress().getHostAddress(), server_addr.getPort(), server_name, use_ssl, encoder, dir, conn, group);
+				server_addr.getAddress().getHostAddress(), server_addr.getPort(), server_name, use_ssl, encoder, alpn, dir, conn, group);
 	}
-	public Packet(int listen_port, String client_ip, int client_port, String server_ip, int server_port, String server_name, boolean use_ssl, String encoder, Direction dir, int conn, long group) {
-		initialize(listen_port, client_ip, client_port, server_ip, server_port, server_name, use_ssl, encoder, dir, conn, group);
+	public Packet(int listen_port, String client_ip, int client_port, String server_ip, int server_port, String server_name, boolean use_ssl, String encoder, String alpn, Direction dir, int conn, long group) {
+		initialize(listen_port, client_ip, client_port, server_ip, server_port, server_name, use_ssl, encoder, alpn, dir, conn, group);
 	}
-	private void initialize(int listen_port, String client_ip, int client_port, String server_ip, int server_port, String server_name, boolean use_ssl, String encoder, Direction dir, int conn, long group)
+	private void initialize(int listen_port, String client_ip, int client_port, String server_ip, int server_port, String server_name, boolean use_ssl, String encoder, String alpn, Direction dir, int conn, long group)
 	{
 		this.listen_port = listen_port;
 		this.client_ip = client_ip;
@@ -92,6 +94,7 @@ public class Packet implements PacketInfo
 		this.content_type = "";
 		this.use_ssl = use_ssl;
 		this.encoder_name = encoder;
+		this.alpn = alpn;
 		this.direction = dir;
 		this.received_data = new byte[]{};
 		this.decoded_data = new byte[]{};
@@ -119,6 +122,7 @@ public class Packet implements PacketInfo
 				getUseSSL(),
 				data,
 				getEncoder(),
+				getAlpn(),
 				getDirection(),
 				getConn(),
 				getGroup());
@@ -140,6 +144,7 @@ public class Packet implements PacketInfo
 				getUseSSL(),
 				getModifiedData(),
 				getEncoder(),
+				getAlpn(),
 				getDirection(),
 				getConn(),
 				getGroup());
@@ -166,6 +171,7 @@ public class Packet implements PacketInfo
 				getUseSSL(),
 				getReceivedData(),
 				getEncoder(),
+				getAlpn(),
 				getDirection(),
 				getConn(),
 				getGroup());
@@ -224,6 +230,9 @@ public class Packet implements PacketInfo
 	public String getEncoder() {
 		return this.encoder_name;
 	}
+	public String getAlpn() {
+		return this.alpn;
+	}
 	public Date getDate() {
 		return this.date;
 	}
@@ -237,18 +246,18 @@ public class Packet implements PacketInfo
 		this.group = group;
 	}
 	public String getSummarizedRequest() throws Exception {
-		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name);
+		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name, null);
 		if (encoder == null) {
 			PacketProxyUtility.getInstance().packetProxyLogErr(String.format("エンコードモジュール: %s が見当たらないので、Sample とみなしました", encoder_name));
-			encoder = EncoderManager.getInstance().createInstance("Sample");
+			encoder = EncoderManager.getInstance().createInstance("Sample", null);
 		}
 		return (getDirection() == Direction.CLIENT) ? encoder.getSummarizedRequest(this) : "";
 	}
 	public String getSummarizedResponse() throws Exception {
-		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name);
+		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name, null);
 		if (encoder == null) {
 			PacketProxyUtility.getInstance().packetProxyLogErr(String.format("エンコードモジュール: %s が見当たらないので、Sample とみなしました", encoder_name));
-			encoder = EncoderManager.getInstance().createInstance("Sample");
+			encoder = EncoderManager.getInstance().createInstance("Sample", null);
 		}
 		return (getDirection() == Direction.SERVER) ? encoder.getSummarizedResponse(this) : "";
 	}

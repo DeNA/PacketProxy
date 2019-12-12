@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy.encode;
+package packetproxy.http2;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayDeque;
@@ -26,7 +26,6 @@ import org.eclipse.jetty.http2.hpack.HpackEncoder;
 
 import packetproxy.common.UniqueID;
 import packetproxy.http.Http;
-import packetproxy.http2.StreamManager;
 import packetproxy.http2.frames.DataFrame;
 import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameUtils;
@@ -34,17 +33,12 @@ import packetproxy.http2.frames.HeadersFrame;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 
-public class EncodeHTTP2StreamingResponse extends EncodeHTTP2FramesBase
+public class StreamingResponse extends FramesBase
 {
 	private StreamManager clientStreamManager = new StreamManager();
 	private StreamManager serverStreamManager = new StreamManager();
 
-	public EncodeHTTP2StreamingResponse() throws Exception {
-	}
-	
-	@Override
-	public String getName() {
-		return "HTTP2 Streaming Response";
+	public StreamingResponse() throws Exception {
 	}
 
 	StreamManager stream = new StreamManager();
@@ -185,7 +179,7 @@ public class EncodeHTTP2StreamingResponse extends EncodeHTTP2FramesBase
 
 	/* key: streamId, value: groupId */
 	private Map<Long,Long> groupMap = new HashMap<>();
-	@Override
+
 	public void setGroupId(Packet packet) throws Exception {
 		byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
 		Http http = new Http(data);
@@ -200,47 +194,5 @@ public class EncodeHTTP2StreamingResponse extends EncodeHTTP2FramesBase
 				packet.setGroup(groupId);
 			}
 		}
-	}
-
-	@Override
-	public String getSummarizedResponse(Packet packet)
-	{
-		String summary = "";
-		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
-		try {
-			byte[] data = (packet.getDecodedData().length > 0) ?
-			packet.getDecodedData() : packet.getModifiedData();
-			Http http = new Http(data);
-			String statusCode = http.getStatusCode();
-			summary = statusCode;
-		} catch (Exception e) {
-			e.printStackTrace();
-			summary = "Headlineを生成できません・・・";
-		}
-		return summary;
-	}
-	
-	@Override
-	public String getSummarizedRequest(Packet packet)
-	{
-		String summary = "";
-		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
-		try {
-			byte[] data = (packet.getDecodedData().length > 0) ?
-			packet.getDecodedData() : packet.getModifiedData();
-			Http http = new Http(data);
-			summary = http.getMethod() + " " + http.getURI();
-		} catch (Exception e) {
-			e.printStackTrace();
-			summary = "Headlineを生成できません・・・";
-		}
-		return summary;
-	}
-
-	@Override
-	public String getContentType(byte[] input_data) throws Exception
-	{
-		Http http = new Http(input_data);
-		return http.getFirstHeader("Content-Type");
 	}
 }
