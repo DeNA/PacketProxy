@@ -19,43 +19,47 @@ import java.io.InputStream;
 
 import packetproxy.http.Http;
 import packetproxy.http2.HTTP2;
+import packetproxy.http2.StreamingResponse;
 import packetproxy.model.Packet;
 
-public abstract class EncodeHTTPBase extends Encoder
+public class EncodeHTTPStreamingResponse extends Encoder
 {
 	public enum HTTPVersion {
 		HTTP1, HTTP2	
 	}
 	private HTTPVersion httpVersion;
-	private HTTP2 http2;
+	private StreamingResponse http2StreamingResponse;
 
-	public EncodeHTTPBase() {
+	public EncodeHTTPStreamingResponse() {
 		super("http/1.1");
 		httpVersion = HTTPVersion.HTTP1;
 	}
 
-	public EncodeHTTPBase(String ALPN) throws Exception {
+	public EncodeHTTPStreamingResponse(String ALPN) throws Exception {
 		super(ALPN);
 		if (ALPN == null) {
 			httpVersion = HTTPVersion.HTTP1;
-		} else if (ALPN.equals("http/1.0") || ALPN.equals("http/1.1")) {
-			httpVersion = HTTPVersion.HTTP1;
 		} else if (ALPN.equals("h2") || ALPN.equals("grpc")) {                                                                                                                                 
 			httpVersion = HTTPVersion.HTTP2;
-			http2 = new HTTP2();
+			http2StreamingResponse = new StreamingResponse();
 		} else {
 			httpVersion = HTTPVersion.HTTP1;
 		}
 	}
 	
 	public HTTPVersion getHttpVersion() { return httpVersion; }
+	
+	@Override
+	public String getName() {
+		return "HTTP Streaming Response";
+	}
 
 	@Override
 	public int checkDelimiter(byte[] data) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			return Http.parseHttpDelimiter(data);
 		} else {
-			return http2.checkDelimiter(data);
+			return http2StreamingResponse.checkDelimiter(data);
 		}
 	}
 
@@ -64,7 +68,7 @@ public abstract class EncodeHTTPBase extends Encoder
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			super.clientRequestArrived(frames);
 		} else {
-			http2.clientRequestArrived(frames);
+			http2StreamingResponse.clientRequestArrived(frames);
 		}
 	}
 
@@ -73,7 +77,7 @@ public abstract class EncodeHTTPBase extends Encoder
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			super.serverResponseArrived(frames);
 		} else {
-			http2.serverResponseArrived(frames);
+			http2StreamingResponse.serverResponseArrived(frames);
 		}
 	}
 
@@ -82,7 +86,7 @@ public abstract class EncodeHTTPBase extends Encoder
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			return super.passThroughClientRequest();
 		} else {
-			return http2.passThroughClientRequest();
+			return http2StreamingResponse.passThroughClientRequest();
 		}
 	}
 
@@ -91,7 +95,7 @@ public abstract class EncodeHTTPBase extends Encoder
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			return super.passThroughServerResponse();
 		} else {
-			return http2.passThroughServerResponse();
+			return http2StreamingResponse.passThroughServerResponse();
 		}
 	}
 
@@ -100,7 +104,7 @@ public abstract class EncodeHTTPBase extends Encoder
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			return super.clientRequestAvailable();
 		} else {
-			return http2.clientRequestAvailable();
+			return http2StreamingResponse.clientRequestAvailable();
 		}
 	}
 
@@ -109,52 +113,43 @@ public abstract class EncodeHTTPBase extends Encoder
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			return super.serverResponseAvailable();
 		} else {
-			return http2.serverResponseAvailable();
+			return http2StreamingResponse.serverResponseAvailable();
 		}
 	}
 
 	@Override
 	final public byte[] decodeServerResponse(byte[] input_data) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			Http http = new Http(input_data);
-			Http modifiedHttp = decodeServerResponseHttp(http);
-			modifiedHttp.isGzipEncoded();
-			return modifiedHttp.toByteArray();
+			return input_data;
 		} else {
-			return http2.decodeServerResponse(input_data);
+			return http2StreamingResponse.decodeServerResponse(input_data);
 		}
 	}
 
 	@Override
 	public byte[] encodeServerResponse(byte[] input_data) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			Http http = new Http(input_data);
-			Http modifiedHttp = encodeServerResponseHttp(http);
-			return modifiedHttp.toByteArray();
+			return input_data;
 		} else {
-			return http2.encodeServerResponse(input_data);
+			return http2StreamingResponse.encodeServerResponse(input_data);
 		}
 	}
 
 	@Override
 	public byte[] decodeClientRequest(byte[] input_data) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			Http http = new Http(input_data);
-			Http modifiedHttp = decodeClientRequestHttp(http);
-			return modifiedHttp.toByteArray();
+			return input_data;
 		} else {
-			return http2.decodeClientRequest(input_data);
+			return http2StreamingResponse.decodeClientRequest(input_data);
 		}
 	}
 
 	@Override
 	public byte[] encodeClientRequest(byte[] input_data) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			Http http = new Http(input_data);
-			Http modifiedHttp = encodeClientRequestHttp(http);
-			return modifiedHttp.toByteArray();
+			return input_data;
 		} else {
-			return http2.encodeClientRequest(input_data);
+			return http2StreamingResponse.encodeClientRequest(input_data);
 		}
 	}
 
@@ -163,7 +158,7 @@ public abstract class EncodeHTTPBase extends Encoder
 		if (this.httpVersion == HTTPVersion.HTTP1) { 
 			super.putToClientFlowControlledQueue(frames);
 		} else {
-			http2.putToClientFlowControlledQueue(frames);
+			http2StreamingResponse.putToClientFlowControlledQueue(frames);
 		}
 	}
 
@@ -172,7 +167,7 @@ public abstract class EncodeHTTPBase extends Encoder
 		if (this.httpVersion == HTTPVersion.HTTP1) { 
 			super.putToServerFlowControlledQueue(frames);
 		} else {
-			http2.putToServerFlowControlledQueue(frames);
+			http2StreamingResponse.putToServerFlowControlledQueue(frames);
 		}
 	}
 
@@ -181,7 +176,7 @@ public abstract class EncodeHTTPBase extends Encoder
 		if (this.httpVersion == HTTPVersion.HTTP1) { 
 			return super.getClientFlowControlledInputStream();
 		} else {
-			return http2.getClientFlowControlledInputStream();
+			return http2StreamingResponse.getClientFlowControlledInputStream();
 		}
 	}
 
@@ -190,7 +185,7 @@ public abstract class EncodeHTTPBase extends Encoder
 		if (this.httpVersion == HTTPVersion.HTTP1) { 
 			return super.getServerFlowControlledInputStream();
 		} else {
-			return http2.getServerFlowControlledInputStream();
+			return http2StreamingResponse.getServerFlowControlledInputStream();
 		}
 	}
 
@@ -238,13 +233,8 @@ public abstract class EncodeHTTPBase extends Encoder
 		if (httpVersion == HTTPVersion.HTTP1) {
 			super.setGroupId(packet);
 		} else {
-			http2.setGroupId(packet);
+			http2StreamingResponse.setGroupId(packet);
 		}
 	}
-
-	abstract protected Http decodeServerResponseHttp(Http inputHttp) throws Exception;
-	abstract protected Http encodeServerResponseHttp(Http inputHttp) throws Exception;
-	abstract protected Http decodeClientRequestHttp(Http inputHttp) throws Exception;
-	abstract protected Http encodeClientRequestHttp(Http inputHttp) throws Exception;
 
 }

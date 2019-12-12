@@ -19,6 +19,10 @@ import packetproxy.http.Http;
 
 public class EncodeSampleHTTP extends EncodeHTTPBase
 {
+	public EncodeSampleHTTP(String ALPN) throws Exception {
+		super(ALPN);
+	}
+
 	@Override
 	public String getName() {
 		return "Sample over HTTP";

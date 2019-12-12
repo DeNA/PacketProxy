@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy.encode;
+package packetproxy.http2;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -22,43 +22,37 @@ import java.util.List;
 import org.eclipse.jetty.http2.hpack.HpackDecoder;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
 
-import packetproxy.http2.FrameManager;
 import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameUtils;
 
-public abstract class EncodeHTTP2FramesBase extends Encoder
+public abstract class FramesBase
 {
 	protected FrameManager clientFrameManager = new FrameManager();
 	protected FrameManager serverFrameManager = new FrameManager();
 	protected boolean alreadySentClientRequestPrologue = false;
 	protected boolean alreadySentClientRequestEpilogue = false;
 	
-	public EncodeHTTP2FramesBase() throws Exception {
+	public FramesBase() throws Exception {
 		clientFrameManager = new FrameManager();
 		serverFrameManager = new FrameManager();
 	}
 
-	@Override
 	public String getName() {
 		return "HTTP2 Frames Base";
 	}
 	
-	@Override
 	public int checkDelimiter(byte[] data) throws Exception {
 		return FrameUtils.checkDelimiter(data);
 	}
 
-	@Override
 	public void clientRequestArrived(byte[] frames) throws Exception {
 		clientFrameManager.write(frames);
 	}
 
-	@Override
 	public void serverResponseArrived(byte[] frames) throws Exception {
 		serverFrameManager.write(frames);
 	}
 	
-	@Override
 	public byte[] passThroughClientRequest() throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		if (alreadySentClientRequestPrologue == false) {
@@ -73,7 +67,6 @@ public abstract class EncodeHTTP2FramesBase extends Encoder
 		return out.toByteArray();
 	}
 
-	@Override
 	public byte[] passThroughServerResponse() throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		if (alreadySentClientRequestEpilogue == false) {
@@ -87,60 +80,50 @@ public abstract class EncodeHTTP2FramesBase extends Encoder
 		return out.toByteArray();
 	}
 	
-	@Override
 	public byte[] clientRequestAvailable() throws Exception {
 		List<Frame> frames = clientFrameManager.readHeadersDataFrames();
 		//frames.stream().forEach(frame -> System.out.println("--> * " + frame));
 		return passFramesToDecodeClientRequest(frames);
 	}
 
-	@Override
 	public byte[] serverResponseAvailable() throws Exception {
 		List<Frame> frames = serverFrameManager.readHeadersDataFrames();
 		//frames.stream().forEach(frame -> System.out.println("* <-- " + frame));
 		return passFramesToDecodeServerResponse(frames);
 	}
 
-	@Override
 	public byte[] decodeClientRequest(byte[] frames) throws Exception {
 		return decodeClientRequestFromFrames(frames);
 	}
 
-	@Override
 	public byte[] encodeClientRequest(byte[] data) throws Exception {
 		byte[] frames = encodeClientRequestToFrames(data);
 		//FrameUtils.parseFrames(frames).stream().forEach(frame -> System.out.println("* --> " + frame));
 		return frames;
 	}
 
-	@Override
 	public byte[] decodeServerResponse(byte[] frames) throws Exception {
 		return decodeServerResponseFromFrames(frames);
 	}
 
-	@Override
 	public byte[] encodeServerResponse(byte[] data) throws Exception {
 		byte[] frames = encodeServerResponseToFrames(data);
 		//FrameUtils.parseFrames(frames).stream().forEach(frame -> System.out.println("<-- * " + frame));
 		return frames;
 	}
 
-	@Override
 	public void putToClientFlowControlledQueue(byte[] frames) throws Exception {
 		clientFrameManager.putToFlowControlledQueue(frames);
 	}
 
-	@Override
 	public void putToServerFlowControlledQueue(byte[] frames) throws Exception {
 		serverFrameManager.putToFlowControlledQueue(frames);
 	}
 	
-	@Override
 	public InputStream getClientFlowControlledInputStream() {
 		return clientFrameManager.getFlowControlledInputStream();
 	}
 
-	@Override
 	public InputStream getServerFlowControlledInputStream() {
 		return serverFrameManager.getFlowControlledInputStream();
 	}

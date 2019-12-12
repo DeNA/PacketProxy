@@ -28,6 +28,10 @@ public class EncodeMQTTWebSocket extends Encoder
 {
 	protected boolean binary_start = false;
 
+	public EncodeMQTTWebSocket(String ALPN) throws Exception {
+		super(ALPN);
+	}
+
 	public EncodeMQTTWebSocket()
 	{
 	}

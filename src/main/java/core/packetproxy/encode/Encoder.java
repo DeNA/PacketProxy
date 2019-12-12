@@ -32,8 +32,19 @@ public abstract class Encoder
 	private PipedInputStream clientInputForFlowControl;
 	private PipedOutputStream serverOutputForFlowControl;
 	private PipedInputStream serverInputForFlowControl;
+	private String ALPN;
+	
+	public Encoder(String alpn) {
+		this.ALPN = alpn;
+		init();
+	}
 	
 	public Encoder() {
+		this.ALPN = null;
+		init();
+	}
+	
+	private void init() {
 		try {
 			clientOutputForFlowControl = new PipedOutputStream();
 			clientInputForFlowControl = new PipedInputStream(clientOutputForFlowControl, PIPE_SIZE);
@@ -44,6 +55,8 @@ public abstract class Encoder
 		}
 	}
 
+	public void setALPN(String ALPN) { this.ALPN = ALPN; }
+	public String getALPN() { return this.ALPN; }
 	public abstract String getName();
 	public abstract int checkDelimiter(byte[] input_data) throws Exception;
 	public int checkRequestDelimiter(byte[] input_data) throws Exception { return checkDelimiter(input_data); }

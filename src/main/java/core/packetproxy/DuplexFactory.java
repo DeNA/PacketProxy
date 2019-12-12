@@ -40,21 +40,26 @@ public class DuplexFactory {
 	// 1MB以上のパケットは最後のタイミングだけHistoryに記録する、それ未満はパケットが更新されるたびにHistoryを更新する
 	static final int SKIP_LENGTH = 1 * 1024 * 1024;
 
-	static public DuplexSync createDuplexSync(Endpoint client_endpoint, Endpoint server_endpoint, String encoder_name) throws Exception
+	static public DuplexSync createDuplexSync(Endpoint client_endpoint, Endpoint server_endpoint, String encoder_name, String ALPN) throws Exception
 	{
 		DuplexSync duplex = new DuplexSync(server_endpoint);
-		prepareDuplex(duplex, client_endpoint, server_endpoint, encoder_name);
+		prepareDuplex(duplex, client_endpoint, server_endpoint, encoder_name, ALPN);
 		return duplex;
 	}
-	
-	static public DuplexAsync createDuplexAsync(Endpoint client_endpoint, Endpoint server_endpoint, String encoder_name) throws Exception
-	{
+
+	static public DuplexAsync createDuplexAsync(Endpoint client_endpoint, Endpoint server_endpoint, String encoder_name) throws Exception {
 		DuplexAsync duplex = new DuplexAsync(client_endpoint, server_endpoint);
-		prepareDuplex(duplex, client_endpoint, server_endpoint, encoder_name);
+		prepareDuplex(duplex, client_endpoint, server_endpoint, encoder_name, null);
 		return duplex;
 	}
 	
-	static private void prepareDuplex(final Duplex duplex, Endpoint client_endpoint, Endpoint server_endpoint, final String encoder_name) throws Exception
+	static public DuplexAsync createDuplexAsync(Endpoint client_endpoint, Endpoint server_endpoint, String encoder_name, String ALPN) throws Exception {
+		DuplexAsync duplex = new DuplexAsync(client_endpoint, server_endpoint);
+		prepareDuplex(duplex, client_endpoint, server_endpoint, encoder_name, ALPN);
+		return duplex;
+	}
+	
+	static private void prepareDuplex(final Duplex duplex, Endpoint client_endpoint, Endpoint server_endpoint, final String encoder_name, String ALPN) throws Exception
 	{
 		final InetSocketAddress client_addr = client_endpoint.getAddress();
 		final InetSocketAddress server_addr = server_endpoint.getAddress();
@@ -70,7 +75,7 @@ public class DuplexFactory {
 		
 		duplex.addDuplexEventListener(new Duplex.DuplexEventListener() {
 			private Packets packets = Packets.getInstance();
-			private Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name);
+			private Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name, ALPN);
 			private Modifications mods = Modifications.getInstance();
 			private Packet client_packet;
 			private Packet server_packet;
@@ -84,7 +89,7 @@ public class DuplexFactory {
 			}
 			@Override
 			public byte[] onClientChunkReceived(byte[] data) throws Exception {
-				client_packet = new Packet(0, client_addr, server_addr, server_endpoint.getName(), use_ssl, encoder_name, Packet.Direction.CLIENT, duplex.hashCode(), UniqueID.getInstance().createId());
+				client_packet = new Packet(0, client_addr, server_addr, server_endpoint.getName(), use_ssl, encoder_name, ALPN, Packet.Direction.CLIENT, duplex.hashCode(), UniqueID.getInstance().createId());
 				packets.update(client_packet);
 				client_packet.setReceivedData(data);
 				if (data.length < SKIP_LENGTH) { packets.update(client_packet); }
@@ -118,7 +123,7 @@ public class DuplexFactory {
 					// サーバから先にレスポンスがあった場合
 					group_id = UniqueID.getInstance().createId();
 				}
-				server_packet = new Packet(0, client_addr, server_addr, server_endpoint.getName(), use_ssl, encoder_name, Packet.Direction.SERVER, duplex.hashCode(), group_id);
+				server_packet = new Packet(0, client_addr, server_addr, server_endpoint.getName(), use_ssl, encoder_name, ALPN, Packet.Direction.SERVER, duplex.hashCode(), group_id);
 				packets.update(server_packet);
 				server_packet.setReceivedData(data);
 				if (data.length < SKIP_LENGTH) { packets.update(server_packet); }
@@ -176,7 +181,7 @@ public class DuplexFactory {
 			}
 			@Override
 			public byte[] onClientChunkSendForced(byte[] data) throws Exception {
-				Packet client_packet = new Packet(0, client_addr, server_addr, server_endpoint.getName(), use_ssl, encoder_name, Packet.Direction.CLIENT, duplex.hashCode(), UniqueID.getInstance().createId());
+				Packet client_packet = new Packet(0, client_addr, server_addr, server_endpoint.getName(), use_ssl, encoder_name, ALPN, Packet.Direction.CLIENT, duplex.hashCode(), UniqueID.getInstance().createId());
 				packets.update(client_packet);
 				client_packet.setDecodedData(data);
 				if (data.length < SKIP_LENGTH) { packets.update(client_packet); }
@@ -197,7 +202,7 @@ public class DuplexFactory {
 					// サーバから先にレスポンスがあった場合
 					group_id = UniqueID.getInstance().createId();
 				}
-				Packet server_packet = new Packet(0, client_addr, server_addr, server_endpoint.getName(), use_ssl, encoder_name, Packet.Direction.SERVER, duplex.hashCode(), group_id);
+				Packet server_packet = new Packet(0, client_addr, server_addr, server_endpoint.getName(), use_ssl, encoder_name, ALPN, Packet.Direction.SERVER, duplex.hashCode(), group_id);
 				packets.update(server_packet);
 				server_packet.setDecodedData(data);
 				if (data.length < SKIP_LENGTH) { packets.update(server_packet); }
@@ -255,7 +260,7 @@ public class DuplexFactory {
 		DuplexSync duplex = new DuplexSync(EndpointFactory.createFromOneShotPacket(oneshot));
 		duplex.addDuplexEventListener(new Duplex.DuplexEventListener() {
 			private Packets packets = Packets.getInstance();
-			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder());
+			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(), oneshot.getAlpn());
 			private Packet client_packet;
 			private Packet server_packet;
 			@Override
@@ -281,7 +286,7 @@ public class DuplexFactory {
 					// サーバから先にレスポンスがあった場合
 					group_id = UniqueID.getInstance().createId();
 				}
-				server_packet = new Packet(0, oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(), oneshot.getUseSSL(), oneshot.getEncoder(), Packet.Direction.SERVER, duplex.hashCode(), group_id);
+				server_packet = new Packet(0, oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(), oneshot.getUseSSL(), oneshot.getEncoder(), oneshot.getAlpn(), Packet.Direction.SERVER, duplex.hashCode(), group_id);
 				packets.update(server_packet);
 				server_packet.setReceivedData(data);
 				if (data.length < SKIP_LENGTH) { packets.update(server_packet); }
@@ -303,7 +308,7 @@ public class DuplexFactory {
 			}
 			@Override
 			public byte[] onClientChunkSend(byte[] data) throws Exception {
-				client_packet = new Packet(0, oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(), oneshot.getUseSSL(), oneshot.getEncoder(), Packet.Direction.CLIENT, duplex.hashCode(), UniqueID.getInstance().createId());
+				client_packet = new Packet(0, oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(), oneshot.getUseSSL(), oneshot.getEncoder(), oneshot.getAlpn(), Packet.Direction.CLIENT, duplex.hashCode(), UniqueID.getInstance().createId());
 				packets.update(client_packet);
 				client_packet.setModified();
 				client_packet.setDecodedData(data);
@@ -375,7 +380,7 @@ public class DuplexFactory {
 		Duplex duplex = original_duplex.crateSameConnectionDuplex();
 		duplex.addDuplexEventListener(new Duplex.DuplexEventListener() {
 			private Packets packets = Packets.getInstance();
-			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder());
+			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(), oneshot.getAlpn());
 			private Packet client_packet;
 			private Packet server_packet;
 			@Override
@@ -401,7 +406,7 @@ public class DuplexFactory {
 					// サーバから先にレスポンスがあった場合
 					group_id = UniqueID.getInstance().createId();
 				}
-				server_packet = new Packet(0, oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(), oneshot.getUseSSL(), oneshot.getEncoder(), Packet.Direction.SERVER, original_duplex.hashCode(), group_id);
+				server_packet = new Packet(0, oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(), oneshot.getUseSSL(), oneshot.getEncoder(), oneshot.getAlpn(), Packet.Direction.SERVER, original_duplex.hashCode(), group_id);
 				packets.update(server_packet);
 				server_packet.setReceivedData(data);
 				if (data.length < SKIP_LENGTH) { packets.update(server_packet); }
@@ -423,7 +428,7 @@ public class DuplexFactory {
 			}
 			@Override
 			public byte[] onClientChunkSend(byte[] data) throws Exception {
-				client_packet = new Packet(0, oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(), oneshot.getUseSSL(), oneshot.getEncoder(), Packet.Direction.CLIENT, original_duplex.hashCode(), UniqueID.getInstance().createId());
+				client_packet = new Packet(0, oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(), oneshot.getUseSSL(), oneshot.getEncoder(), oneshot.getAlpn(), Packet.Direction.CLIENT, original_duplex.hashCode(), UniqueID.getInstance().createId());
 				packets.update(client_packet);
 				client_packet.setModified();
 				client_packet.setDecodedData(data);
