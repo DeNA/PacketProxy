@@ -69,7 +69,6 @@ public class FlowControl {
 				}
 
 				Frame frame = FrameFactory.create(DataFrame.TYPE, flags, streamId, payload);
-				System.out.println(frame);
 
 				stream.write(frame);
 			}

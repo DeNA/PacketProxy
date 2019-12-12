@@ -90,15 +90,13 @@ public class Https {
 				Socket serverSocket;
 				if (proxyAddr != null) {
 					serverSocket = new Socket(proxyAddr.getAddress(), proxyAddr.getPort());
-					String reqTmpl = "CONNECT %s:%d HTTP/1.1\r\nHost: %s\r\n\r\n";
 					OutputStream proxyOut = serverSocket.getOutputStream();
 					InputStream proxyIn = serverSocket.getInputStream();
-					proxyOut.write(String.format(reqTmpl, serverAddr.getHostString(), serverAddr.getPort(), serverAddr.getHostString()).getBytes()); 
+					proxyOut.write(String.format("CONNECT %s:%d HTTP/1.1\r\nHost: %s\r\n\r\n", serverAddr.getHostString(), serverAddr.getPort(), serverAddr.getHostString()).getBytes()); 
 					int length = 0;
 					byte[] input_data = new byte[1024];
 					while ((length = proxyIn.read(input_data, 0, input_data.length)) != -1) {
-						byte[] search_word = new String("\r\n\r\n").getBytes();
-						if ((Utils.indexOf(input_data, 0, length, search_word)) >= 0) {
+						if ((Utils.indexOf(input_data, 0, length, "\r\n\r\n".getBytes())) >= 0) {
 							break;
 						}
 					}
@@ -116,7 +114,33 @@ public class Https {
 			}
 			return serverSSLSocket[0].getApplicationProtocol();
 		});
+
 		clientSSLSocket.startHandshake();
+
+		/* case: ALPN is not supported */
+		if (serverSSLSocket[0] == null) {
+			//System.out.println("ALPN is not supported: " + serverName);
+			Socket serverSocket;
+			if (proxyAddr != null) {
+				serverSocket = new Socket(proxyAddr.getAddress(), proxyAddr.getPort());
+				OutputStream proxyOut = serverSocket.getOutputStream();
+				InputStream proxyIn = serverSocket.getInputStream();
+				proxyOut.write(String.format("CONNECT %s:%d HTTP/1.1\r\nHost: %s\r\n\r\n", serverAddr.getHostString(), serverAddr.getPort(), serverAddr.getHostString()).getBytes()); 
+				int length = 0;
+				byte[] input_data = new byte[1024];
+				while ((length = proxyIn.read(input_data, 0, input_data.length)) != -1) {
+					if ((Utils.indexOf(input_data, 0, length, "\r\n\r\n".getBytes())) >= 0) {
+						break;
+					}
+				}
+			} else {
+				serverSocket = new Socket(serverAddr.getAddress(), serverAddr.getPort());
+			}
+			serverSSLSocket[0] = (SSLSocket) createSSLSocketFactory().createSocket(serverSocket, null, true);
+			serverSSLSocket[0].setUseClientMode(true);
+			serverSSLSocket[0].startHandshake();
+		}
+
 		return new SSLSocket[]{ clientSSLSocket, serverSSLSocket[0] };
 	}
 
