@@ -71,7 +71,7 @@ public class DataFrame extends Frame {
 
 	public byte[] getHttp() throws Exception {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		baos.write("HTTP/2.0 200 OK\r\n".getBytes());
+		baos.write("HTTP/2 200 OK\r\n".getBytes());
 		baos.write(new String("X-PacketProxy-HTTP2-Stream-Id: " + streamId + "\r\n").getBytes());
 		baos.write(new String("X-PacketProxy-HTTP2-Flags: " + flags + "\r\n").getBytes());
 		baos.write("\r\n".getBytes());

@@ -284,7 +284,7 @@ public class Http
 	}
 
 	public String getURL(int port) {
-		if (version.equals("HTTP/2.0")) { /* HTTP/2.0 */
+		if (version.equals("HTTP/2")) { /* HTTP2 */
 			return getURI();
 		} else { /* HTTP/1.1 */
 			String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?"+getQueryAsString() : "";

@@ -105,7 +105,7 @@ public class HeadersFrame extends Frame
 		Http http = new Http(getExtra());
 
 		method = http.getMethod();
-		version = HttpVersion.fromString("HTTP/2.0");
+		version = HttpVersion.fromString("HTTP/2");
 		
 		HttpHeader headers = (originalHttpHeader == true ? http.getOriginalHeader() : http.getHeader());
 		fields = new HttpFields();
@@ -208,10 +208,10 @@ public class HeadersFrame extends Frame
 		if (bRequest) {
 			String queryStr = (query != null && query.length() > 0) ? "?"+query : "";
 			//String fragmentStr = (fragment != null && fragment.length() > 0) ? "#"+fragment : "";
-			String statusLine = String.format("%s %s%s HTTP/2.0\r\n", method, path, queryStr);
+			String statusLine = String.format("%s %s%s HTTP/2\r\n", method, path, queryStr);
 			buf.write(statusLine.getBytes());
 		} else {
-			buf.write(String.format("HTTP/2.0 %d %s\r\n", status, HttpStatus.getMessage(status)).getBytes());
+			buf.write(String.format("HTTP/2 %d %s\r\n", status, HttpStatus.getMessage(status)).getBytes());
 		}
 		for (HttpField field: fields) {
 			buf.write(String.format("%s: %s\r\n", field.getName(), field.getValue()).getBytes());
