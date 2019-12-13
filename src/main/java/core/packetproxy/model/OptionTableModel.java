@@ -17,6 +17,8 @@ package packetproxy.model;
 
 import javax.swing.table.DefaultTableModel;
 
+import org.apache.commons.lang3.ObjectUtils.Null;
+
 public class OptionTableModel extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
 	public OptionTableModel(String[] columnNames, int rowNum) {
@@ -27,6 +29,11 @@ public class OptionTableModel extends DefaultTableModel {
 		if (this.getRowCount() == 0) {
 			return Void.class;
 		}
-		return getValueAt(0,column).getClass();
+		Object obj = getValueAt(0,column);
+		if (obj == null) {
+			return Null.class;
+		} else {
+			return getValueAt(0,column).getClass();
+		}
 	}
 }
