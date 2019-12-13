@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 import javax.swing.SwingWorker;
 
 import packetproxy.Duplex;
+import packetproxy.DuplexAsync;
 import packetproxy.DuplexFactory;
 import packetproxy.DuplexManager;
 import packetproxy.EncoderManager;
@@ -166,6 +167,9 @@ public class ResendController
 						return;
 					}
 					this.duplex = DuplexFactory.createDuplexFromOriginalDuplex(original_duplex, this.oneshot);
+					if (this.duplex instanceof DuplexAsync) {
+						((DuplexAsync) this.duplex).start();
+					}
 					this.isSync = true;
 				}	
 				this.preparedData = this.duplex.prepareFastSend(this.oneshot.getData());
