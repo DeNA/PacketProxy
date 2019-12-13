@@ -906,7 +906,7 @@ TODO: support --data-binary
 		tableModel.setRowCount(0);
 		for(Packet packet : packetList) {
 			tableModel.addRow(new Object[] {
-				packet.getId(),"Loading...","Loading...",0,"Loading...","","Loading...","","00:00:00 1900/01/01 Z",false,false,"","",(long)-1
+				packet.getId(),"Loading...","Loading...",0,"Loading...","","Loading...","","00:00:00 1900/01/01 Z",false,false,"","","",(long)-1
 			});
 			id_row.put(packet.getId(), tableModel.getRowCount() - 1);
 		}
