@@ -115,8 +115,8 @@ public class GUIHistory implements Observer
 		return instance;
 	}
 
-	private String[] columnNames = { "#", "Client Request", "Server Response", "Length", "Client IP", "Client Port", "Server IP", "Server Port", "Time", "Resend", "Modified", "Type", "Encode", "Group"};
-	private int[] columnWidth = { 60, 550, 50, 80, 160, 80, 160, 80, 100, 30, 30, 100, 100, 30 };
+	private String[] columnNames = { "#", "Client Request", "Server Response", "Length", "Client IP", "Client Port", "Server IP", "Server Port", "Time", "Resend", "Modified", "Type", "Encode", "ALPN", "Group"};
+	private int[] columnWidth = { 60, 550, 50, 80, 160, 80, 160, 80, 100, 30, 30, 100, 100, 50, 30 };
 	private JSplitPane split_panel;
 	private JPanel main_panel;
 	private OptionTableModel tableModel;
@@ -360,7 +360,7 @@ public class GUIHistory implements Observer
 		});
 		sorter = new TableRowSorter<OptionTableModel>(tableModel);
 		sorter.setSortsOnUpdates(true);
-		sorter.toggleSortOrder(13); /* 13 is 'group' column */
+		sorter.toggleSortOrder(14); /* 14 is 'group' column */
 		table.setRowSorter(sorter);
 
 		JPopupMenu menu = new JPopupMenu();
@@ -1007,6 +1007,7 @@ TODO: support --data-binary
 				packet.getModified(),
 				packet.getContentType(),
 				packet.getEncoder(),
+				packet.getAlpn(),
 				packet.getGroup()
 		};
 	}

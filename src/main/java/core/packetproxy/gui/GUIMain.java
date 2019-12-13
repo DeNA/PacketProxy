@@ -108,7 +108,7 @@ public class GUIMain extends JFrame implements Observer
 		try {
 			setLookandFeel();
 			setTitle(title);
-			setBounds(10, 10, 1000, 800);
+			setBounds(10, 10, 1100, 850);
 			enableFullScreenForMac(this);
 
 			menu_bar = new GUIMenu(this);
