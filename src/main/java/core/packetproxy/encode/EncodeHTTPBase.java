@@ -114,48 +114,46 @@ public abstract class EncodeHTTPBase extends Encoder
 	}
 
 	@Override
-	final public byte[] decodeServerResponse(byte[] input_data) throws Exception {
-		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			Http http = new Http(input_data);
-			Http modifiedHttp = decodeServerResponseHttp(http);
-			modifiedHttp.isGzipEncoded();
-			return modifiedHttp.toByteArray();
-		} else {
-			return http2.decodeServerResponse(input_data);
-		}
-	}
-
-	@Override
-	public byte[] encodeServerResponse(byte[] input_data) throws Exception {
-		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			Http http = new Http(input_data);
-			Http modifiedHttp = encodeServerResponseHttp(http);
-			return modifiedHttp.toByteArray();
-		} else {
-			return http2.encodeServerResponse(input_data);
-		}
-	}
-
-	@Override
 	public byte[] decodeClientRequest(byte[] input_data) throws Exception {
-		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			Http http = new Http(input_data);
-			Http modifiedHttp = decodeClientRequestHttp(http);
-			return modifiedHttp.toByteArray();
-		} else {
-			return http2.decodeClientRequest(input_data);
+		if (this.httpVersion == HTTPVersion.HTTP2) { 
+			input_data = http2.decodeClientRequest(input_data);
 		}
+		Http http = new Http(input_data);
+		Http decodedHttp = decodeClientRequestHttp(http);
+		return decodedHttp.toByteArray();
 	}
 
 	@Override
 	public byte[] encodeClientRequest(byte[] input_data) throws Exception {
-		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			Http http = new Http(input_data);
-			Http modifiedHttp = encodeClientRequestHttp(http);
-			return modifiedHttp.toByteArray();
-		} else {
-			return http2.encodeClientRequest(input_data);
+		Http http = new Http(input_data);
+		Http encodedHttp = encodeClientRequestHttp(http);
+		byte[] encodedData = encodedHttp.toByteArray();
+		if (this.httpVersion == HTTPVersion.HTTP2) { 
+			encodedData = http2.encodeClientRequest(encodedData);
 		}
+		return encodedData;
+	}
+
+	@Override
+	final public byte[] decodeServerResponse(byte[] input_data) throws Exception {
+		if (this.httpVersion == HTTPVersion.HTTP2) { 
+			input_data = http2.decodeServerResponse(input_data);
+		}
+		Http http = new Http(input_data);
+		Http decodedHttp = decodeServerResponseHttp(http);
+		decodedHttp.isGzipEncoded();
+		return decodedHttp.toByteArray();
+	}
+
+	@Override
+	public byte[] encodeServerResponse(byte[] input_data) throws Exception {
+		Http http = new Http(input_data);
+		Http encodedHttp = encodeServerResponseHttp(http);
+		byte[] encodedData = encodedHttp.toByteArray();
+		if (this.httpVersion == HTTPVersion.HTTP2) { 
+			encodedData = http2.encodeServerResponse(encodedData);
+		}
+		return encodedData;
 	}
 
 	@Override

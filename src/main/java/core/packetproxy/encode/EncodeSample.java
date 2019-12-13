@@ -33,22 +33,22 @@ public class EncodeSample extends Encoder
 	}
 
 	@Override
-	public byte[] decodeServerResponse(byte[] input_data) throws Exception {
-		return input_data;
-	}
-
-	@Override
-	public byte[] encodeServerResponse(byte[] input_data) throws Exception {
-		return input_data;
-	}
-
-	@Override
 	public byte[] decodeClientRequest(byte[] input_data) throws Exception {
 		return input_data;
 	}
 
 	@Override
 	public byte[] encodeClientRequest(byte[] input_data) throws Exception {
+		return input_data;
+	}
+
+	@Override
+	public byte[] decodeServerResponse(byte[] input_data) throws Exception {
+		return input_data;
+	}
+
+	@Override
+	public byte[] encodeServerResponse(byte[] input_data) throws Exception {
 		return input_data;
 	}
 }
