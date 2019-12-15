@@ -150,6 +150,12 @@ public class GUIOption
 
 		panel.add(createSeparator());
 
+		panel.add(createElement("Priority Order of HTTP Versions", I18nString.get("Set order of priority between HTTP1 and HTTP2.")));
+		GUIOptionHttp http = new GUIOptionHttp();
+		panel.add(http.createPanel());
+		
+		panel.add(createSeparator());
+
 		panel.add(createElement("PacketProxy CA Certificates", I18nString.get("Export CA certificate used to view SSL packets. It needs to be registered in trusted CA list of PC/Mac/Linux/Android/iOS")));
 
 		JPanel caPanel = new JPanel();

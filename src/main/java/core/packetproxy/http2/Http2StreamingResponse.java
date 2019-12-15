@@ -16,9 +16,11 @@
 package packetproxy.http2;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
 
@@ -29,25 +31,93 @@ import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameUtils;
 import packetproxy.http2.frames.HeadersFrame;
 import packetproxy.model.Packet;
+import packetproxy.model.Packets;
 
-public class Http2 extends FramesBase
+public class Http2StreamingResponse extends FramesBase
 {
 	private StreamManager clientStreamManager = new StreamManager();
 	private StreamManager serverStreamManager = new StreamManager();
 
-	public Http2() throws Exception {
-		super();
+	public Http2StreamingResponse() throws Exception {
+	}
+
+	StreamManager stream = new StreamManager();
+	private Queue<Frame> frameQueue = new ArrayDeque<>();
+	
+	@Override
+	public byte[] passThroughServerResponse() throws Exception {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		if (super.alreadySentClientRequestEpilogue == false) {
+			out.write(FrameUtils.SETTINGS);
+			out.write(FrameUtils.WINDOW_UPDATE);
+			super.alreadySentClientRequestEpilogue = true;
+		}
+		for (Frame frame: super.serverFrameManager.readControlFrames()) {
+			out.write(frame.toByteArray());
+		}
+		for (Frame frame: super.serverFrameManager.readHeadersDataFrames()) {
+			if (frame instanceof HeadersFrame) {
+				HeadersFrame headersFrame = (HeadersFrame)frame;
+				out.write(headersFrame.toByteArrayWithoutExtra(super.getServerHpackEncoder(), true));
+				frameQueue.add(headersFrame);
+				synchronized (stream) {
+					stream.write(headersFrame);
+				}
+			} else { /* Data Frame */
+				out.write(frame.toByteArray());
+				synchronized (stream) {
+					stream.write(frame);
+				}
+				Thread guiHistoryUpdater = new Thread(new Runnable() {
+					public void run() {
+						try {
+							ByteArrayOutputStream data = new ByteArrayOutputStream();
+							synchronized (stream) {
+								for (Frame frame : stream.read(frame.getStreamId())) {
+									if (frame instanceof HeadersFrame) {
+										data.write(frame.getExtra());
+									} else {
+										data.write(frame.getPayload());
+									}
+								}
+							}
+							
+							Http http = new Http(data.toByteArray());
+
+							if (http.getBody().length > 0) {
+								List<Packet> packets = Packets.getInstance().queryFullText(http.getFirstHeader("X-PacketProxy-HTTP2-UUID"));
+								for (Packet packet: packets) {
+									Packet p = Packets.getInstance().query(packet.getId());
+									p.setDecodedData(http.toByteArray());
+									p.setModifiedData(http.toByteArray());
+									Packets.getInstance().update(p);
+								}
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				});
+				guiHistoryUpdater.start();
+			}
+		}
+		return out.toByteArray();
 	}
 
 	@Override
-	public String getName() {
-		return "HTTP2";
+	protected byte[] passFramesToDecodeClientRequest(List<Frame> frames) throws Exception {
+		return filterFrames(clientStreamManager, frames);
 	}
 
 	@Override
-	protected byte[] passFramesToDecodeClientRequest(List<Frame> frames) throws Exception { return filterFrames(clientStreamManager, frames); }
-	@Override
-	protected byte[] passFramesToDecodeServerResponse(List<Frame> frames) throws Exception { return filterFrames(serverStreamManager, frames); }
+	protected byte[] passFramesToDecodeServerResponse(List<Frame> frames) throws Exception {
+		Frame frame = frameQueue.poll();
+		if (frame != null) {
+			return frame.toByteArray();
+		} else {
+			return filterFrames(serverStreamManager, frames);
+		}
+	}
 	
 	private byte[] filterFrames(StreamManager streamManager, List<Frame> frames) throws Exception {
 		for (Frame frame : frames) {
@@ -91,22 +161,16 @@ public class Http2 extends FramesBase
 	@Override
 	protected byte[] encodeClientRequestToFrames(byte[] http) throws Exception { return encodeToFrames(http, super.getClientHpackEncoder()); }
 	@Override
-	protected byte[] encodeServerResponseToFrames(byte[] http) throws Exception { return encodeToFrames(http, super.getServerHpackEncoder()); }
-	
+	protected byte[] encodeServerResponseToFrames(byte[] http) throws Exception { return null; }
+
 	private byte[] encodeToFrames(byte[] data, HpackEncoder encoder) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		Http http = new Http(data);
-		int flags = Integer.valueOf(http.getFirstHeader("X-PacketProxy-HTTP2-Flags"));
+		HeadersFrame headersFrame = new HeadersFrame(http);
+		out.write(headersFrame.toByteArrayWithoutExtra(encoder));
 		if (http.getBody() != null && http.getBody().length > 0) {
-			http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff & ~HeadersFrame.FLAG_END_STREAM));
-			HeadersFrame headersFrame = new HeadersFrame(http);
-			out.write(headersFrame.toByteArrayWithoutExtra(encoder));
 			DataFrame dataFrame = new DataFrame(http);
 			out.write(dataFrame.toByteArrayWithoutExtra());
-		} else {
-			http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff | HeadersFrame.FLAG_END_STREAM));
-			HeadersFrame headersFrame = new HeadersFrame(http);
-			out.write(headersFrame.toByteArrayWithoutExtra(encoder));
 		}
 		return out.toByteArray();
 	}

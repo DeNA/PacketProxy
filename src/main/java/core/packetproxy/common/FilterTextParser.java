@@ -62,9 +62,10 @@ public class FilterTextParser {
 		{ put("modified", 10); }
 		{ put("type", 11); }
 		{ put("encode", 12); }
-		{ put("group", 13); }
-		{ put("full_text", 14); }
-		{ put("full_text_i", 15); }
+		{ put("alpn", 13); }
+		{ put("group", 14); }
+		{ put("full_text", 15); }
+		{ put("full_text_i", 16); }
 	};
 
 	FilterTextParser(String str) {

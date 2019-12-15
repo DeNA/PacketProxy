@@ -26,6 +26,7 @@ import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.net.ServerSocketFactory;
@@ -49,6 +50,7 @@ import com.google.re2j.Pattern;
 import packetproxy.CertCacheManager;
 import packetproxy.common.ClientKeyManager;
 import packetproxy.common.Utils;
+import packetproxy.model.ConfigString;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
 import packetproxy.model.CAs.CA;
@@ -106,7 +108,16 @@ public class Https {
 				serverSSLSocket[0] = (SSLSocket) createSSLSocketFactory().createSocket(serverSocket, null, true);
 				serverSSLSocket[0].setUseClientMode(true);
 				SSLParameters sp = serverSSLSocket[0].getSSLParameters();
-				sp.setApplicationProtocols(clientProtocols.toArray(new String[clientProtocols.size()]));
+
+				List<String> alpns = new LinkedList<>(clientProtocols);
+				if (new ConfigString("PriorityOrderOfHttpVersions").getString().equals("HTTP1")) {
+					if (alpns.contains("http/1.1") || alpns.contains("http/1.0")) {
+						alpns.remove("h2");
+						alpns.remove("grpc");
+					}
+				}
+				sp.setApplicationProtocols(alpns.toArray(new String[alpns.size()]));
+
 				serverSSLSocket[0].setSSLParameters(sp);
 				serverSSLSocket[0].startHandshake();
 			} catch (Exception e) {
