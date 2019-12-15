@@ -33,12 +33,12 @@ import packetproxy.http2.frames.HeadersFrame;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 
-public class StreamingResponse extends FramesBase
+public class Http2StreamingResponse extends FramesBase
 {
 	private StreamManager clientStreamManager = new StreamManager();
 	private StreamManager serverStreamManager = new StreamManager();
 
-	public StreamingResponse() throws Exception {
+	public Http2StreamingResponse() throws Exception {
 	}
 
 	StreamManager stream = new StreamManager();
@@ -136,7 +136,6 @@ public class StreamingResponse extends FramesBase
 
 	@Override
 	protected byte[] decodeClientRequestFromFrames(byte[] frames) throws Exception { return decodeFromFrames(frames); }
-
 	@Override
 	protected byte[] decodeServerResponseFromFrames(byte[] frames) throws Exception { return decodeFromFrames(frames); }
 
@@ -161,7 +160,6 @@ public class StreamingResponse extends FramesBase
 
 	@Override
 	protected byte[] encodeClientRequestToFrames(byte[] http) throws Exception { return encodeToFrames(http, super.getClientHpackEncoder()); }
-
 	@Override
 	protected byte[] encodeServerResponseToFrames(byte[] http) throws Exception { return null; }
 

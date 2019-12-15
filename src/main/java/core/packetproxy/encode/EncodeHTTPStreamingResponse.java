@@ -18,8 +18,8 @@ package packetproxy.encode;
 import java.io.InputStream;
 
 import packetproxy.http.Http;
-import packetproxy.http2.HTTP2;
-import packetproxy.http2.StreamingResponse;
+import packetproxy.http1.Http1StreamingResponse;
+import packetproxy.http2.Http2StreamingResponse;
 import packetproxy.model.Packet;
 
 public class EncodeHTTPStreamingResponse extends Encoder
@@ -28,7 +28,8 @@ public class EncodeHTTPStreamingResponse extends Encoder
 		HTTP1, HTTP2	
 	}
 	private HTTPVersion httpVersion;
-	private StreamingResponse http2StreamingResponse;
+	private Http1StreamingResponse http1StreamingResponse;
+	private Http2StreamingResponse http2StreamingResponse;
 
 	public EncodeHTTPStreamingResponse() {
 		super("http/1.1");
@@ -39,12 +40,15 @@ public class EncodeHTTPStreamingResponse extends Encoder
 		super(ALPN);
 		if (ALPN == null) {
 			httpVersion = HTTPVersion.HTTP1;
+		} else if (ALPN.equals("http/1.0") || ALPN.equals("http/1.1")) {
+			httpVersion = HTTPVersion.HTTP1;
 		} else if (ALPN.equals("h2") || ALPN.equals("grpc")) {                                                                                                                                 
 			httpVersion = HTTPVersion.HTTP2;
-			http2StreamingResponse = new StreamingResponse();
 		} else {
 			httpVersion = HTTPVersion.HTTP1;
 		}
+		http1StreamingResponse = new Http1StreamingResponse();
+		http2StreamingResponse = new Http2StreamingResponse();
 	}
 	
 	public HTTPVersion getHttpVersion() { return httpVersion; }
@@ -53,47 +57,56 @@ public class EncodeHTTPStreamingResponse extends Encoder
 	public String getName() {
 		return "HTTP Streaming Response";
 	}
-
+	
 	@Override
-	public int checkDelimiter(byte[] data) throws Exception {
+	public int checkRequestDelimiter(byte[] data) throws Exception { 
 		if (this.httpVersion == HTTPVersion.HTTP1) {
-			return Http.parseHttpDelimiter(data);
+			return http1StreamingResponse.checkRequestDelimiter(data);
 		} else {
 			return http2StreamingResponse.checkDelimiter(data);
 		}
 	}
 
 	@Override
-	public void clientRequestArrived(byte[] frames) throws Exception {
+	public int checkResponseDelimiter(byte[] data) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
-			super.clientRequestArrived(frames);
+			return http1StreamingResponse.checkResponseDelimiter(data);
 		} else {
-			http2StreamingResponse.clientRequestArrived(frames);
+			return http2StreamingResponse.checkDelimiter(data);
 		}
 	}
 
 	@Override
-	public void serverResponseArrived(byte[] frames) throws Exception {
+	public void clientRequestArrived(byte[] data) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
-			super.serverResponseArrived(frames);
+			http1StreamingResponse.clientRequestArrived(data);
 		} else {
-			http2StreamingResponse.serverResponseArrived(frames);
+			http2StreamingResponse.clientRequestArrived(data);
+		}
+	}
+
+	@Override
+	public void serverResponseArrived(byte[] data) throws Exception {
+		if (this.httpVersion == HTTPVersion.HTTP1) {
+			http1StreamingResponse.serverResponseArrived(data);
+		} else {
+			http2StreamingResponse.serverResponseArrived(data);
 		}
 	}
 
 	@Override
 	public byte[] passThroughClientRequest() throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
-			return super.passThroughClientRequest();
+			return http1StreamingResponse.passThroughClientRequest();
 		} else {
 			return http2StreamingResponse.passThroughClientRequest();
 		}
 	}
-
+	
 	@Override
 	public byte[] passThroughServerResponse() throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
-			return super.passThroughServerResponse();
+			return http1StreamingResponse.passThroughServerResponse();
 		} else {
 			return http2StreamingResponse.passThroughServerResponse();
 		}
@@ -102,7 +115,7 @@ public class EncodeHTTPStreamingResponse extends Encoder
 	@Override
 	public byte[] clientRequestAvailable() throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
-			return super.clientRequestAvailable();
+			return http1StreamingResponse.clientRequestAvailable();
 		} else {
 			return http2StreamingResponse.clientRequestAvailable();
 		}
@@ -111,7 +124,7 @@ public class EncodeHTTPStreamingResponse extends Encoder
 	@Override
 	public byte[] serverResponseAvailable() throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
-			return super.serverResponseAvailable();
+			return http1StreamingResponse.serverResponseAvailable();
 		} else {
 			return http2StreamingResponse.serverResponseAvailable();
 		}
@@ -120,7 +133,7 @@ public class EncodeHTTPStreamingResponse extends Encoder
 	@Override
 	final public byte[] decodeServerResponse(byte[] input_data) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			return input_data;
+			return http1StreamingResponse.decodeServerResponse(input_data);
 		} else {
 			return http2StreamingResponse.decodeServerResponse(input_data);
 		}
@@ -129,7 +142,7 @@ public class EncodeHTTPStreamingResponse extends Encoder
 	@Override
 	public byte[] encodeServerResponse(byte[] input_data) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			return input_data;
+			return http1StreamingResponse.encodeServerResponse(input_data);
 		} else {
 			return http2StreamingResponse.encodeServerResponse(input_data);
 		}
@@ -138,7 +151,7 @@ public class EncodeHTTPStreamingResponse extends Encoder
 	@Override
 	public byte[] decodeClientRequest(byte[] input_data) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			return input_data;
+			return http1StreamingResponse.decodeClientRequest(input_data);
 		} else {
 			return http2StreamingResponse.decodeClientRequest(input_data);
 		}
@@ -147,7 +160,7 @@ public class EncodeHTTPStreamingResponse extends Encoder
 	@Override
 	public byte[] encodeClientRequest(byte[] input_data) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			return input_data;
+			return http1StreamingResponse.encodeClientRequest(input_data);
 		} else {
 			return http2StreamingResponse.encodeClientRequest(input_data);
 		}
@@ -196,8 +209,7 @@ public class EncodeHTTPStreamingResponse extends Encoder
 	}
 
 	@Override
-	public String getSummarizedResponse(Packet packet)
-	{
+	public String getSummarizedResponse(Packet packet) {
 		String summary = "";
 		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
 		try {
@@ -213,8 +225,7 @@ public class EncodeHTTPStreamingResponse extends Encoder
 	}
 
 	@Override
-	public String getSummarizedRequest(Packet packet)
-	{
+	public String getSummarizedRequest(Packet packet) {
 		String summary = "";
 		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
 		try {
@@ -235,6 +246,11 @@ public class EncodeHTTPStreamingResponse extends Encoder
 		} else {
 			http2StreamingResponse.setGroupId(packet);
 		}
+	}
+
+	@Override
+	public int checkDelimiter(byte[] input_data) throws Exception {
+		return input_data.length;
 	}
 
 }

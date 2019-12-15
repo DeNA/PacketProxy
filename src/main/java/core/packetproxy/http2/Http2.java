@@ -30,12 +30,12 @@ import packetproxy.http2.frames.FrameUtils;
 import packetproxy.http2.frames.HeadersFrame;
 import packetproxy.model.Packet;
 
-public class HTTP2 extends FramesBase
+public class Http2 extends FramesBase
 {
 	private StreamManager clientStreamManager = new StreamManager();
 	private StreamManager serverStreamManager = new StreamManager();
 
-	public HTTP2() throws Exception {
+	public Http2() throws Exception {
 		super();
 	}
 
@@ -45,14 +45,9 @@ public class HTTP2 extends FramesBase
 	}
 
 	@Override
-	protected byte[] passFramesToDecodeClientRequest(List<Frame> frames) throws Exception {
-		return filterFrames(clientStreamManager, frames);
-	}
-
+	protected byte[] passFramesToDecodeClientRequest(List<Frame> frames) throws Exception { return filterFrames(clientStreamManager, frames); }
 	@Override
-	protected byte[] passFramesToDecodeServerResponse(List<Frame> frames) throws Exception {
-		return filterFrames(serverStreamManager, frames);
-	}
+	protected byte[] passFramesToDecodeServerResponse(List<Frame> frames) throws Exception { return filterFrames(serverStreamManager, frames); }
 	
 	private byte[] filterFrames(StreamManager streamManager, List<Frame> frames) throws Exception {
 		for (Frame frame : frames) {

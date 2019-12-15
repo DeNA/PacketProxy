@@ -261,7 +261,7 @@ public class Http
 
 			if (enc.isPresent() && enc.get().equalsIgnoreCase("chunked")) {
 				header.removeAll(headerName);
-				cookedBody = getChankedHttpBody(cookedBody);
+				cookedBody = getChankedHttpBodyFussy(cookedBody);
 				if (cookedBody == null)
 					return null;
 			}
@@ -495,6 +495,31 @@ public class Http
 		return out.toByteArray();
 	}
 
+	private static byte[] getChankedHttpBodyFussy(byte[] input_data) throws Exception
+	{
+		// TODO 改行コードの対応
+		byte[] search_word = new String("\r\n").getBytes();
+		int index = 0;
+		int start_index = 0;
+		byte[] body = new byte[0];
+		while ((index = Utils.indexOf(input_data, start_index, input_data.length, search_word)) >= 0) {
+			try {
+				byte[] chank_header = ArrayUtils.subarray(input_data, start_index, index);
+				String chank_length_str = new String(chank_header, "UTF-8").replaceAll("^0+([^0].*)$", "$1");
+				int chank_length = Integer.parseInt(chank_length_str.trim(), 16);
+				if (chank_length == 0) {
+					return body;
+				}
+				byte[] chank = ArrayUtils.subarray(input_data, index + search_word.length, index + search_word.length + chank_length);
+				body = ArrayUtils.addAll(body, chank);
+				start_index = index + search_word.length*2 + chank_length;
+			} catch (Exception e) {
+				return body;
+			}
+		}
+		return body;
+	}
+
 	private static byte[] getChankedHttpBody(byte[] input_data) throws Exception
 	{
 		// TODO 改行コードの対応
@@ -514,9 +539,7 @@ public class Http
 				body = ArrayUtils.addAll(body, chank);
 				start_index = index + search_word.length*2 + chank_length;
 			} catch (Exception e) {
-				e.printStackTrace();
-				Binary b = new Binary(input_data);
-				PacketProxyUtility.getInstance().packetProxyLog(new String(b.toHexString().toString()));
+				return null;
 			}
 		}
 		return null;
