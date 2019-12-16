@@ -42,7 +42,7 @@ public class EncodeHTTPStreamingResponse extends Encoder
 			httpVersion = HTTPVersion.HTTP1;
 		} else if (ALPN.equals("http/1.0") || ALPN.equals("http/1.1")) {
 			httpVersion = HTTPVersion.HTTP1;
-		} else if (ALPN.equals("h2") || ALPN.equals("grpc")) {                                                                                                                                 
+		} else if (ALPN.equals("h2") || ALPN.startsWith("grpc")) {                                                                                                                                 
 			httpVersion = HTTPVersion.HTTP2;
 		} else {
 			httpVersion = HTTPVersion.HTTP1;
