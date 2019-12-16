@@ -11,6 +11,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import packetproxy.common.I18nString;
 import packetproxy.model.ConfigString;
 
 public class GUIOptionHttp {
@@ -52,7 +53,7 @@ public class GUIOptionHttp {
 		panel.setBackground(Color.WHITE);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 		panel.add(combo);
-		panel.add(new JLabel("has a high priority"));
+		panel.add(new JLabel(I18nString.get("has a high priority")));
 		panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.setMaximumSize(new Dimension(Short.MAX_VALUE, panel.getMaximumSize().height));
 		return panel;
