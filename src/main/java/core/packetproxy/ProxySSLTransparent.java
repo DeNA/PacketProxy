@@ -15,8 +15,6 @@
  */
 package packetproxy;
 
-import com.google.re2j.Matcher;
-import com.google.re2j.Pattern;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -25,18 +23,24 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import javax.net.ssl.SNIServerName;
-import packetproxy.common.Endpoint;
+
+import org.apache.commons.lang3.ArrayUtils;
+
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
+
 import packetproxy.common.EndpointFactory;
 import packetproxy.common.I18nString;
 import packetproxy.common.SSLCapabilities;
 import packetproxy.common.SSLExplorer;
+import packetproxy.common.SSLSocketEndpoint;
 import packetproxy.common.WrapEndpoint;
 import packetproxy.model.ListenPort;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
 import packetproxy.util.PacketProxyUtility;
-import org.apache.commons.lang3.ArrayUtils;
 
 public class ProxySSLTransparent extends Proxy
 {
@@ -60,7 +64,7 @@ public class ProxySSLTransparent extends Proxy
 				Socket client = listen_socket.accept();
 				clients.add(client);
 				PacketProxyUtility.getInstance().packetProxyLog("[ProxySSLTransparent]: accept");
-				checkTransparentSSLProxy(client);
+				checkTransparentSSLProxy(client, listen_socket.getLocalPort());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -74,7 +78,7 @@ public class ProxySSLTransparent extends Proxy
 		}
 	}
 
-	private void checkTransparentSSLProxy(Socket client) throws Exception {
+	private void checkTransparentSSLProxy(Socket client, int proxyPort) throws Exception {
 		InputStream ins = client.getInputStream();
 
 		byte[] buffer = new byte[0xFF];
@@ -116,7 +120,7 @@ public class ProxySSLTransparent extends Proxy
 		if (serverNames.isEmpty()) {
 			ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, position);
 			/* 証明書のチェックルーチンは必ずはずしておいてください！ */
-			Endpoint client_e = EndpointFactory.createClientEndpointFromSNIServerName(client, "packetproxy.com", listen_info.getCA().get(), bais);
+			SSLSocketEndpoint client_e = EndpointFactory.createClientEndpointFromSNIServerName(client, "packetproxy.com", listen_info.getCA().get(), bais);
 			/* 少しだけ先読みし、Hostフィールドから次に接続するべきサーバー名を入手 */
 			InputStream in = client_e.getInputStream();
 			byte[] buff = new byte[2048];
@@ -132,8 +136,9 @@ public class ProxySSLTransparent extends Proxy
 				throw new Exception(I18nString.get("[Error] SNI header was not found in SSL packets."));
 			}
 			WrapEndpoint wep_e = new WrapEndpoint(client_e, ArrayUtils.subarray(buff, 0, length));
-			Server server = Servers.getInstance().queryByAddress(new InetSocketAddress(serverName, 443));
-			Endpoint server_e = server != null ? EndpointFactory.createFromServer(server) : EndpointFactory.createSSLFromName(serverName);
+			InetSocketAddress serverAddr = new InetSocketAddress(serverName, proxyPort);
+			Server server = Servers.getInstance().queryByAddress(serverAddr);
+			SSLSocketEndpoint server_e = new SSLSocketEndpoint(serverAddr, serverName);
 			createConnection(wep_e, server_e, server);
 
 		} else {
@@ -141,21 +146,30 @@ public class ProxySSLTransparent extends Proxy
 				String serverName = new String(serverE.getEncoded()); // 接続先サーバを取得
 				PacketProxyUtility.getInstance().packetProxyLog(String.format("[SSL-forward! using SNI] %s", serverName));
 				ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, position);
-				Endpoint client_e = EndpointFactory.createClientEndpointFromSNIServerName(client, serverName, listen_info.getCA().get(), bais);
-				Server server = Servers.getInstance().queryByHostNameAndPort(serverName, 443);
-				Endpoint server_e = server != null ? EndpointFactory.createFromServer(server) : EndpointFactory.createSSLFromName(serverName);
+				
+				Server server = Servers.getInstance().queryByHostNameAndPort(serverName, proxyPort);
+				InetSocketAddress serverAddr = (server != null ? server.getAddress() : new InetSocketAddress(serverName, proxyPort));
 
-				createConnection(client_e, server_e, server);
+				SSLSocketEndpoint[] eps = EndpointFactory.createBothSideSSLEndpoints(client, bais, serverAddr, null, serverName, listen_info.getCA().get());
+				createConnection(eps[0], eps[1], server);
 			}
 		}
 	}
 
-	public void createConnection(Endpoint client_e, Endpoint server_e, Server server) throws Exception {
+	public void createConnection(SSLSocketEndpoint client_e, SSLSocketEndpoint server_e, Server server) throws Exception {
 		DuplexAsync duplex = null;
-		if (server == null)
-			duplex = DuplexFactory.createDuplexAsync(client_e, server_e, "HTTP");
-		else
-			duplex = DuplexFactory.createDuplexAsync(client_e, server_e, server.getEncoder());
+		if (server == null) {
+			String alpn = client_e.getApplicationProtocol();
+			if (alpn.equals("h2")) {
+				duplex = DuplexFactory.createDuplexAsync(client_e, server_e, "HTTP2");
+			} else if (alpn.equals("http/1.1") || alpn.equals("http/1.0")) {
+				duplex = DuplexFactory.createDuplexAsync(client_e, server_e, "HTTP");
+			} else {
+				duplex = DuplexFactory.createDuplexAsync(client_e, server_e, "Sample");
+			}
+		} else {
+			duplex = DuplexFactory.createDuplexAsync(client_e, server_e, server.getEncoder(), client_e.getApplicationProtocol());
+		}
 		duplex.start();
 		DuplexManager.getInstance().registerDuplex(duplex);
 	}

@@ -17,6 +17,10 @@ package packetproxy.encode;
 
 public class EncodeSample extends Encoder
 {
+	public EncodeSample(String ALPN) {
+		super(ALPN);
+	}
+
 	@Override
 	public String getName() {
 		return "Sample";
@@ -29,22 +33,22 @@ public class EncodeSample extends Encoder
 	}
 
 	@Override
-	public byte[] decodeServerResponse(byte[] input_data) throws Exception {
-		return input_data;
-	}
-
-	@Override
-	public byte[] encodeServerResponse(byte[] input_data) throws Exception {
-		return input_data;
-	}
-
-	@Override
 	public byte[] decodeClientRequest(byte[] input_data) throws Exception {
 		return input_data;
 	}
 
 	@Override
 	public byte[] encodeClientRequest(byte[] input_data) throws Exception {
+		return input_data;
+	}
+
+	@Override
+	public byte[] decodeServerResponse(byte[] input_data) throws Exception {
+		return input_data;
+	}
+
+	@Override
+	public byte[] encodeServerResponse(byte[] input_data) throws Exception {
 		return input_data;
 	}
 }

@@ -7,7 +7,11 @@ import packetproxy.http.Http;
 import java.util.List;
 import java.util.Map;
 
-public class EncodeGRPCWeb extends EncodeHTTPBase {
+public class EncodeGRPCWeb extends EncodeHTTPBase
+{
+	public EncodeGRPCWeb(String ALPN) throws Exception {
+		super(ALPN);
+	}
 
     @Override
     protected Http decodeServerResponseHttp(Http inputHttp) throws Exception {

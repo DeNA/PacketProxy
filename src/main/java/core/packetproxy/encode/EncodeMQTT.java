@@ -26,6 +26,10 @@ import packetproxy.util.PacketProxyUtility;
 
 public class EncodeMQTT extends Encoder {
 
+	public EncodeMQTT(String ALPN) throws Exception {
+		super(ALPN);
+	}
+
 	@Override
 	public String getName() {
 		return "MQTTv3.1";

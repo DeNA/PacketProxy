@@ -15,9 +15,8 @@
  */
 package packetproxy.http;
 
-import com.google.re2j.Matcher;
-import com.google.re2j.Pattern;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -27,18 +26,38 @@ import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+
 import javax.net.ServerSocketFactory;
-import javax.net.ssl.*;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SNIHostName;
+import javax.net.ssl.SNIServerName;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.X509KeyManager;
+import javax.net.ssl.X509TrustManager;
+
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
+
 import packetproxy.CertCacheManager;
 import packetproxy.common.ClientKeyManager;
-import packetproxy.model.CAs.CA;
+import packetproxy.common.Utils;
+import packetproxy.model.ConfigString;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
+import packetproxy.model.CAs.CA;
 
 public class Https {
 	private static final char[] KS_PASS = "testtest".toCharArray();
-
+	
 	private static SSLContext createSSLContext(String commonName, CA ca) throws Exception {
 		SSLContext sslContext = SSLContext.getInstance("TLS");
 		String[] domainNames = Servers.getInstance().queryResolvedByDNS().stream().map(a -> a.getIp()).sorted(String::compareTo).toArray(String[]::new);
@@ -52,15 +71,88 @@ public class Https {
 	public static ServerSocket createServerSSLSocket(int listen_port, String commonName, CA ca) throws Exception {
 		SSLContext sslContext = createSSLContext(commonName, ca);
 		ServerSocketFactory ssf = sslContext.getServerSocketFactory();
-		return ssf.createServerSocket(listen_port);
+		return (SSLServerSocket) ssf.createServerSocket(listen_port);
 	}
 
-	public static Socket convertToServerSSLSocket(Socket socket, String commonName, CA ca) throws Exception {
-		SSLContext sslContext = createSSLContext(commonName, ca);
-		SSLSocketFactory ssf = sslContext.getSocketFactory();
-		SSLSocket ssl_socket  = (SSLSocket)ssf.createSocket(socket, null, socket.getPort(), false);
-		ssl_socket.setUseClientMode(false);
-		return ssl_socket;
+	public static ServerSocket createServerSSLSocket(int listen_port, String commonName, CA ca, String ApplicationProtocol) throws Exception {
+		SSLServerSocket serverSocket = (SSLServerSocket)createServerSSLSocket(listen_port, commonName, ca);
+		SSLParameters sslp = serverSocket.getSSLParameters();
+		String[] serverAPs ={ ApplicationProtocol };
+		sslp.setApplicationProtocols(serverAPs);
+		serverSocket.setSSLParameters(sslp);
+		return serverSocket;
+	}
+
+	public static SSLSocket[] createBothSideSSLSockets(Socket clientSocket, InputStream lookahead, InetSocketAddress serverAddr, InetSocketAddress proxyAddr, String serverName, CA ca) throws Exception {
+		SSLSocket clientSSLSocket = (SSLSocket) createSSLContext(serverName, ca).getSocketFactory().createSocket(clientSocket, lookahead, true);
+		clientSSLSocket.setUseClientMode(false);
+		SSLSocket[] serverSSLSocket = new SSLSocket[1];
+		clientSSLSocket.setHandshakeApplicationProtocolSelector((clientSocketParam, clientProtocols) -> {
+			try {
+				Socket serverSocket;
+				if (proxyAddr != null) {
+					serverSocket = new Socket(proxyAddr.getAddress(), proxyAddr.getPort());
+					OutputStream proxyOut = serverSocket.getOutputStream();
+					InputStream proxyIn = serverSocket.getInputStream();
+					proxyOut.write(String.format("CONNECT %s:%d HTTP/1.1\r\nHost: %s\r\n\r\n", serverAddr.getHostString(), serverAddr.getPort(), serverAddr.getHostString()).getBytes()); 
+					int length = 0;
+					byte[] input_data = new byte[1024];
+					while ((length = proxyIn.read(input_data, 0, input_data.length)) != -1) {
+						if ((Utils.indexOf(input_data, 0, length, "\r\n\r\n".getBytes())) >= 0) {
+							break;
+						}
+					}
+				} else {
+					serverSocket = new Socket(serverAddr.getAddress(), serverAddr.getPort());
+				}
+				serverSSLSocket[0] = (SSLSocket) createSSLSocketFactory().createSocket(serverSocket, null, true);
+				serverSSLSocket[0].setUseClientMode(true);
+				SSLParameters sp = serverSSLSocket[0].getSSLParameters();
+
+				List<String> alpns = new LinkedList<>(clientProtocols);
+				if (new ConfigString("PriorityOrderOfHttpVersions").getString().equals("HTTP1")) {
+					if (alpns.contains("http/1.1") || alpns.contains("http/1.0")) {
+						alpns.remove("h2");
+						alpns.remove("grpc");
+					}
+				}
+				sp.setApplicationProtocols(alpns.toArray(new String[alpns.size()]));
+
+				serverSSLSocket[0].setSSLParameters(sp);
+				serverSSLSocket[0].startHandshake();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return serverSSLSocket[0].getApplicationProtocol();
+		});
+
+		clientSSLSocket.startHandshake();
+
+		/* case: ALPN is not supported */
+		if (serverSSLSocket[0] == null) {
+			//System.out.println("ALPN is not supported: " + serverName);
+			Socket serverSocket;
+			if (proxyAddr != null) {
+				serverSocket = new Socket(proxyAddr.getAddress(), proxyAddr.getPort());
+				OutputStream proxyOut = serverSocket.getOutputStream();
+				InputStream proxyIn = serverSocket.getInputStream();
+				proxyOut.write(String.format("CONNECT %s:%d HTTP/1.1\r\nHost: %s\r\n\r\n", serverAddr.getHostString(), serverAddr.getPort(), serverAddr.getHostString()).getBytes()); 
+				int length = 0;
+				byte[] input_data = new byte[1024];
+				while ((length = proxyIn.read(input_data, 0, input_data.length)) != -1) {
+					if ((Utils.indexOf(input_data, 0, length, "\r\n\r\n".getBytes())) >= 0) {
+						break;
+					}
+				}
+			} else {
+				serverSocket = new Socket(serverAddr.getAddress(), serverAddr.getPort());
+			}
+			serverSSLSocket[0] = (SSLSocket) createSSLSocketFactory().createSocket(serverSocket, null, true);
+			serverSSLSocket[0].setUseClientMode(true);
+			serverSSLSocket[0].startHandshake();
+		}
+
+		return new SSLSocket[]{ clientSSLSocket, serverSSLSocket[0] };
 	}
 
 	public static SSLSocket convertToServerSSLSocket(Socket socket, String commonName, CA ca, InputStream is) throws Exception {
@@ -68,6 +160,13 @@ public class Https {
 		SSLSocketFactory ssf = sslContext.getSocketFactory();
 		SSLSocket ssl_socket  = (SSLSocket)ssf.createSocket(socket, is, true);
 		ssl_socket.setUseClientMode(false);
+
+		SSLParameters sslp = ssl_socket.getSSLParameters();
+		String[] serverAPs ={ "h2", "http/1.1", "http/1.0" };
+		sslp.setApplicationProtocols(serverAPs);
+		ssl_socket.setSSLParameters(sslp);
+
+		ssl_socket.startHandshake();
 		return ssl_socket;
 	}
 
@@ -115,12 +214,24 @@ public class Https {
 
 	public static SSLSocket convertToClientSSLSocket(Socket socket) throws Exception {
 		SSLSocketFactory ssf = createSSLSocketFactory();
-		return (SSLSocket) ssf.createSocket(socket, null, socket.getPort(), false);
+		SSLSocket sock = (SSLSocket) ssf.createSocket(socket, null, socket.getPort(), false);
+		SSLParameters sslp = sock.getSSLParameters();
+		String[] clientAPs ={ "h2", "http/1.1", "http/1.0" };
+		sslp.setApplicationProtocols(clientAPs);
+		sock.setSSLParameters(sslp);
+		sock.startHandshake();
+		return sock;
 	}
 
 	public static SSLSocket createClientSSLSocket(InetSocketAddress addr) throws Exception {
 		SSLSocketFactory ssf = createSSLSocketFactory();
-		return (SSLSocket) ssf.createSocket(addr.getAddress(), addr.getPort());
+		SSLSocket sock = (SSLSocket) ssf.createSocket(addr.getAddress(), addr.getPort());
+		SSLParameters sslp = sock.getSSLParameters();
+		String[] clientAPs ={ "h2", "http/1.1", "http/1.0" };
+		sslp.setApplicationProtocols(clientAPs);
+		sock.setSSLParameters(sslp);
+		sock.startHandshake();
+		return sock;
 	}
 
 	public static SSLSocket createClientSSLSocket(InetSocketAddress addr, String SNIServerName) throws Exception {
@@ -132,11 +243,17 @@ public class Https {
 
 		SSLSocketFactory ssf = createSSLSocketFactory();
 		SSLSocket sock = (SSLSocket) ssf.createSocket(addr.getAddress(), addr.getPort());
+		SSLParameters sslp = sock.getSSLParameters();
+		String[] clientAPs ={ "h2", "http/1.1", "http/1.0" };
+		sslp.setApplicationProtocols(clientAPs);
+
+		sock.setSSLParameters(sslp);
 		List<SNIServerName> serverNames = new ArrayList<>();
 		serverNames.add(serverName);
 		SSLParameters params = sock.getSSLParameters();
 		params.setServerNames(serverNames);
 		sock.setSSLParameters(params);
+		sock.startHandshake();
 		return sock;
 	}
 

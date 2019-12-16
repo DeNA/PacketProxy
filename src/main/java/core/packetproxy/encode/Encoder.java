@@ -15,12 +15,48 @@
  */
 package packetproxy.encode;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+
+import org.apache.commons.lang3.ArrayUtils;
+
 import packetproxy.common.StringUtils;
 import packetproxy.model.Packet;
-import org.apache.commons.lang3.ArrayUtils;
 
 public abstract class Encoder
 {
+	private int PIPE_SIZE = 65536;
+	private PipedOutputStream clientOutputForFlowControl;
+	private PipedInputStream clientInputForFlowControl;
+	private PipedOutputStream serverOutputForFlowControl;
+	private PipedInputStream serverInputForFlowControl;
+	private String ALPN;
+	
+	public Encoder(String alpn) {
+		this.ALPN = alpn;
+		init();
+	}
+	
+	public Encoder() {
+		this.ALPN = null;
+		init();
+	}
+	
+	private void init() {
+		try {
+			clientOutputForFlowControl = new PipedOutputStream();
+			clientInputForFlowControl = new PipedInputStream(clientOutputForFlowControl, PIPE_SIZE);
+			serverOutputForFlowControl = new PipedOutputStream();
+			serverInputForFlowControl = new PipedInputStream(serverOutputForFlowControl, PIPE_SIZE);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void setALPN(String ALPN) { this.ALPN = ALPN; }
+	public String getALPN() { return this.ALPN; }
 	public abstract String getName();
 	public abstract int checkDelimiter(byte[] input_data) throws Exception;
 	public int checkRequestDelimiter(byte[] input_data) throws Exception { return checkDelimiter(input_data); }
@@ -29,6 +65,18 @@ public abstract class Encoder
 	public abstract byte[] encodeServerResponse(byte[] input_data) throws Exception;
 	public abstract byte[] decodeClientRequest(byte[] input_data) throws Exception;
 	public abstract byte[] encodeClientRequest(byte[] input_data) throws Exception;
+	
+	protected ByteArrayOutputStream clientInputData = new ByteArrayOutputStream();
+	protected ByteArrayOutputStream serverInputData = new ByteArrayOutputStream();
+	/* 溜める */
+	public void clientRequestArrived(byte[] input_data) throws Exception { clientInputData.write(input_data); }
+	public void serverResponseArrived(byte[] input_data) throws Exception { serverInputData.write(input_data); }
+	/* 画面に表示せず、送信パターン (画面に表示したくないコントロールデータの送信をしたいとき利用) */
+	public byte[] passThroughClientRequest() throws Exception { return null; }
+	public byte[] passThroughServerResponse() throws Exception { return null; }
+	/* 画面に表示せず、送信しないパターン (まだデータが溜まっていない状態が存在するとき利用) */
+	public byte[] clientRequestAvailable() throws Exception { byte[] ret = clientInputData.toByteArray(); clientInputData.reset(); return ret; }
+	public byte[] serverResponseAvailable() throws Exception { byte[] ret = serverInputData.toByteArray(); serverInputData.reset(); return ret; }
 	
 	/**
 	 * 再送するときに、新しいコネクションを利用するか、それとも既存のコネクションを利用するかの使い分け
@@ -98,5 +146,26 @@ public abstract class Encoder
 	}
 	public String getContentType(byte[] input_data) throws Exception {
 		return "";
+	}
+	/**
+	 * GrouptId 
+	 */
+	public void setGroupId(Packet packet) throws Exception {
+	}
+
+	/**
+	 * Flow Controls 
+	 */
+	public void putToClientFlowControlledQueue(byte[] output_data) throws Exception {
+		clientOutputForFlowControl.write(output_data);
+	}
+	public void putToServerFlowControlledQueue(byte[] output_data) throws Exception {
+		serverOutputForFlowControl.write(output_data);
+	}
+	public InputStream getClientFlowControlledInputStream() {
+		return clientInputForFlowControl;
+	}
+	public InputStream getServerFlowControlledInputStream() {
+		return serverInputForFlowControl;
 	}
 }

@@ -19,7 +19,12 @@ import java.util.Map;
 import packetproxy.model.Packet;
 import net.arnx.jsonic.JSON;
 
-public class EncodeFirebase extends EncodeHTTPWebSocket {
+public class EncodeFirebase extends EncodeHTTPWebSocket
+{
+	public EncodeFirebase(String ALPN) throws Exception {
+		super(ALPN);
+	}
+
 	@Override
 	public String getName()
 	{

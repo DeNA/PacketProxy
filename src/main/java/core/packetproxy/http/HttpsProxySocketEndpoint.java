@@ -18,27 +18,27 @@ package packetproxy.http;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.Socket;
-import packetproxy.common.Endpoint;
+
+import javax.net.ssl.SSLSocket;
+
+import packetproxy.common.SSLSocketEndpoint;
 import packetproxy.common.Utils;
 
-public class HttpsProxySocketEndpoint implements Endpoint {
-	Socket proxySocket;
+public class HttpsProxySocketEndpoint extends SSLSocketEndpoint {
 	InputStream proxyIn;
 	OutputStream proxyOut;
-	String reqTmpl = "CONNECT %s:%d HTTP/1.1\r\nHost: %s\r\n\r\n";
+	String reqTmpl = "CONNECT %s:%d HTTP/1.0\r\nHost: %s\r\n\r\n";
+	
+	public HttpsProxySocketEndpoint(SSLSocket proxySocket, InetSocketAddress serverAddr) throws Exception {
+		super(proxySocket, "proxy");
 
-	public HttpsProxySocketEndpoint(InetSocketAddress proxyAddr, InetSocketAddress serverAddr) throws Exception {
-		proxySocket = new Socket();
-		proxySocket.connect(proxyAddr);
-
-		proxyOut = proxySocket.getOutputStream();
+		proxyOut = socket.getOutputStream();
 		proxyOut.write(String.format(reqTmpl,
 				serverAddr.getHostString(),
 				serverAddr.getPort(),
 				serverAddr.getHostString()).getBytes());
 
-		proxyIn = proxySocket.getInputStream();
+		proxyIn = socket.getInputStream();
 
 		int length = 0;
 		byte[] input_data = new byte[1024];
@@ -48,26 +48,30 @@ public class HttpsProxySocketEndpoint implements Endpoint {
 				break;
 			}
 		}
-		proxySocket = Https.convertToClientSSLSocket(proxySocket);
 	}
 
 	@Override
 	public InetSocketAddress getAddress() {
-		return new InetSocketAddress(proxySocket.getInetAddress(), proxySocket.getPort());
+		return new InetSocketAddress(socket.getInetAddress(), socket.getPort());
 	}
 
 	@Override
 	public InputStream getInputStream() throws Exception {
-		return proxySocket.getInputStream();
+		return socket.getInputStream();
 	}
 
 	@Override
 	public OutputStream getOutputStream() throws Exception {
-		return proxySocket.getOutputStream();
+		return socket.getOutputStream();
 	}
 	
 	@Override
 	public String getName() {
 		return null;
+	}
+
+	@Override
+	public String getApplicationProtocol(){
+		return socket.getApplicationProtocol();
 	}
 }

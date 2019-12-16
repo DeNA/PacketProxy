@@ -79,7 +79,7 @@ public class EncoderManager
 			Class klass = Class.forName(encode_class_path);
 			if(encode_class.isAssignableFrom(klass) && !Modifier.isAbstract(klass.getModifiers())){
                 @SuppressWarnings("unchecked")
-				Encoder encoder = createInstance((Class<Encoder>) klass);
+				Encoder encoder = createInstance((Class<Encoder>)klass, null);
 				module_list.put(encoder.getName(), klass);
 			}
 		}
@@ -125,7 +125,7 @@ public class EncoderManager
 				if (Modifier.isAbstract(klass.getModifiers())) continue;
 
 				@SuppressWarnings("unchecked")
-				Encoder encoder = createInstance((Class<Encoder>) klass);
+				Encoder encoder = createInstance((Class<Encoder>)klass, null);
 				String encoderName = encoder.getName();
 				if(module_list.containsKey(encoderName)){
 					isDuplicated = true;
@@ -149,16 +149,14 @@ public class EncoderManager
 		Arrays.sort(names);
 		return names;
 	}
-	private Encoder createInstance(Class<Encoder> klass) throws Exception
-	{
-		return klass.newInstance();
+	private Encoder createInstance(Class<Encoder> klass, String ALPN) throws Exception {
+		return klass.getConstructor(String.class).newInstance(ALPN);
 	}
-	public Encoder createInstance(String name) throws Exception
-	{
-		Class<Encoder> klass = module_list.get(name);
+	public Encoder createInstance(String encoderName, String ALPN) throws Exception {
+		Class<Encoder> klass = module_list.get(encoderName);
 		if (klass == null) {
 			return null;
 		}
-		return createInstance(klass);
+		return createInstance(klass, ALPN);
 	}
 }

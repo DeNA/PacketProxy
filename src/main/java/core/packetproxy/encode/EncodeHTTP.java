@@ -16,16 +16,13 @@
 package packetproxy.encode;
 
 import packetproxy.http.Http;
-import packetproxy.model.Packet;
 
-public class EncodeHTTP extends Encoder
+public class EncodeHTTP extends EncodeHTTPBase
 {
-	private boolean originalHeaderHasGzip;
-	public EncodeHTTP()
-	{
-		originalHeaderHasGzip = false;
+	public EncodeHTTP(String ALPN) throws Exception {
+		super(ALPN);
 	}
-	
+
 	@Override
 	public String getName()
 	{
@@ -33,85 +30,22 @@ public class EncodeHTTP extends Encoder
 	}
 
 	@Override
-	public String getSummarizedRequest(Packet packet)
-	{
-		String summary = "";
-		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
-		try {
-			byte[] data = (packet.getDecodedData().length > 0) ?
-			packet.getDecodedData() : packet.getModifiedData();
-			Http http = new Http(data);
-			String method = http.getMethod();
-			String url = http.getURL(packet.getServerPort());
-			summary = method + " " + url;
-		} catch (Exception e) {
-			e.printStackTrace();
-			summary = "Headlineを生成できません・・・";
-		}
-		return summary;
+	protected Http decodeServerResponseHttp(Http inputHttp) throws Exception {
+		return inputHttp;
 	}
 
 	@Override
-	public String getSummarizedResponse(Packet packet)
-	{
-		String summary = "";
-		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
-		try {
-			byte[] data = (packet.getDecodedData().length > 0) ?
-			packet.getDecodedData() : packet.getModifiedData();
-			Http http = new Http(data);
-			String statusCode = http.getStatusCode();
-			summary = statusCode;
-		} catch (Exception e) {
-			e.printStackTrace();
-			summary = "Headlineを生成できません・・・";
-		}
-		return summary;
-	}
-
-
-	@Override
-	public int checkDelimiter(byte[] input) throws Exception
-	{
-		return Http.parseHttpDelimiter(input);
+	protected Http encodeServerResponseHttp(Http inputHttp) throws Exception {
+		return inputHttp;
 	}
 
 	@Override
-	public byte[] decodeServerResponse(byte[] input_data) throws Exception
-	{
-		Http http = new Http(input_data);
-		originalHeaderHasGzip = http.isGzipEncoded();
-		return http.toByteArray();
+	protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
+		return inputHttp;
 	}
 
 	@Override
-	public byte[] encodeServerResponse(byte[] input_data) throws Exception
-	{
-		Http http = new Http(input_data);
-		if(originalHeaderHasGzip){
-			http.encodeBodyByGzip();
-		}
-		return http.toByteArray();
-	}
-
-	@Override
-	public byte[] decodeClientRequest(byte[] input_data) throws Exception
-	{
-		Http http = new Http(input_data);
-		return http.toByteArray();
-	}
-	
-	@Override
-	public byte[] encodeClientRequest(byte[] input_data) throws Exception
-	{
-		Http http = new Http(input_data);
-		return http.toByteArray();
-	}
-	
-	@Override
-	public String getContentType(byte[] input_data) throws Exception
-	{
-		Http http = new Http(input_data);
-		return http.getFirstHeader("Content-Type");
+	protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
+		return inputHttp;
 	}
 }

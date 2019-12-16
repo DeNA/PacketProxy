@@ -19,11 +19,14 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+
+import javax.net.ssl.SSLSocket;
+
 import packetproxy.http.Http;
 import packetproxy.http.Https;
-import packetproxy.model.CAs.CA;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.Server;
+import packetproxy.model.CAs.CA;
 
 public class EndpointFactory
 {
@@ -31,19 +34,26 @@ public class EndpointFactory
 		return new SocketEndpoint(socket, lookaheadBuffer);
 	}
 	
-	public static Endpoint createClientEndpointFromHttp(Socket socket, Http http, CA ca) throws Exception {
-		if (http.isProxySsl()) {
-			String proxyHost = http.getProxyHost();
-			Socket ssl_client = Https.convertToServerSSLSocket(socket, proxyHost, ca);
-			return new SocketEndpoint(ssl_client);
+	public static SSLSocketEndpoint[] createBothSideSSLEndpoints(Socket clientSocket, InputStream lookahead, InetSocketAddress serverAddr, InetSocketAddress upstreamProxyAddr, String serverName, CA ca) throws Exception {
+		SSLSocket[] sslSockets = null;
+		SSLSocketEndpoint[] endpoints = null;
+		if (upstreamProxyAddr != null) {
+			sslSockets = Https.createBothSideSSLSockets(clientSocket, lookahead, serverAddr, upstreamProxyAddr, serverName, ca);
+			SSLSocketEndpoint clientEndpoint = new SSLSocketEndpoint(sslSockets[0], serverName);
+			SSLSocketEndpoint serverEndpoint = new SSLSocketEndpoint(sslSockets[1], serverName);
+			endpoints = new SSLSocketEndpoint[] { clientEndpoint, serverEndpoint };
 		} else {
-			return new SocketEndpoint(socket);
+			sslSockets = Https.createBothSideSSLSockets(clientSocket, lookahead, serverAddr, null, serverName, ca);
+			SSLSocketEndpoint clientEndpoint = new SSLSocketEndpoint(sslSockets[0], serverName);
+			SSLSocketEndpoint serverEndpoint = new SSLSocketEndpoint(sslSockets[1], serverName);
+			endpoints = new SSLSocketEndpoint[] { clientEndpoint, serverEndpoint };
 		}
+		return endpoints;
 	}
 	
-	public static Endpoint createClientEndpointFromSNIServerName(Socket socket, String serverName, CA ca, InputStream is) throws Exception {
-		Socket ssl_client = Https.convertToServerSSLSocket(socket, serverName, ca, is);
-		return new SocketEndpoint(ssl_client);
+	public static SSLSocketEndpoint createClientEndpointFromSNIServerName(Socket socket, String serverName, CA ca, InputStream is) throws Exception {
+		SSLSocket ssl_client = Https.convertToServerSSLSocket(socket, serverName, ca, is);
+		return new SSLSocketEndpoint(ssl_client, serverName);
 	}
 	
 	public static Endpoint createFromURI(String uri) throws Exception {
@@ -70,9 +80,9 @@ public class EndpointFactory
 	
 	public static Endpoint createServerEndpointFromHttp(Http http) throws Exception {
 		if (http.isProxySsl()) {
-			return new SSLSocketEndpoint(http.getProxyAddr(), http.getProxyHost());
+			return new SSLSocketEndpoint(http.getServerAddr(), http.getServerName());
 		} else {
-			return new SocketEndpoint(http.getProxyAddr());
+			return new SocketEndpoint(http.getServerAddr());
 		}
 	}
 
@@ -82,10 +92,6 @@ public class EndpointFactory
 		} else {
 			return new SocketEndpoint(server.getAddress());
 		}
-	}
-
-	public static Endpoint createSSLFromName(String name) throws Exception {
-		return new SSLSocketEndpoint(new InetSocketAddress(name, 443), name);
 	}
 
 	public static Endpoint createServerEndpoint(InetSocketAddress addr) throws Exception {

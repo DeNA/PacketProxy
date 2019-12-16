@@ -18,13 +18,25 @@ package packetproxy.common;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+
 import javax.net.ssl.SSLSocket;
+
 import packetproxy.http.Https;
 
 public class SSLSocketEndpoint implements Endpoint
 {
-	SSLSocket socket;
-	String server_name;
+	protected SSLSocket socket;
+	protected String server_name;
+	
+	public SSLSocketEndpoint(SSLSocketEndpoint ep) {
+		this.server_name = ep.server_name;
+		this.socket = ep.socket;
+	}
+	
+	public SSLSocketEndpoint(SSLSocket socket, String SNIServerName) {
+		this.server_name = SNIServerName;
+		this.socket = socket;
+	}
 
 	public SSLSocketEndpoint(InetSocketAddress addr, String SNIServerName) throws Exception {
 		this.server_name = SNIServerName;
@@ -50,4 +62,6 @@ public class SSLSocketEndpoint implements Endpoint
 	public String getName() {
 		return server_name;
 	}
+
+	public String getApplicationProtocol() { return this.socket.getApplicationProtocol();}
 }

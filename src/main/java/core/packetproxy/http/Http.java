@@ -15,10 +15,9 @@
  */
 package packetproxy.http;
 
-import com.google.re2j.Matcher;
-import com.google.re2j.Pattern;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.URL;
@@ -32,13 +31,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import packetproxy.common.Binary;
-import packetproxy.common.Parameter;
-import packetproxy.common.Utils;
+
 import org.apache.commons.collections4.map.MultiValueMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
+
+import packetproxy.common.Binary;
+import packetproxy.common.Parameter;
+import packetproxy.common.Utils;
 import packetproxy.util.PacketProxyUtility;
 
 public class Http
@@ -180,11 +183,11 @@ public class Http
 	//		return flag_https;
 	//	}
 
-	public String getProxyHost() {
+	public String getServerName() {
 		return proxyHost;
 	}
 
-	public int getProxyPort() {
+	public int getServerPort() {
 		return proxyPort;
 	}
 
@@ -231,7 +234,7 @@ public class Http
 	public String getQueryAsString() {
 		return this.queryString.toString();
 	}
-
+	
 	public String getStatusCode() {
 		return this.statusCode;
 	}
@@ -258,7 +261,7 @@ public class Http
 
 			if (enc.isPresent() && enc.get().equalsIgnoreCase("chunked")) {
 				header.removeAll(headerName);
-				cookedBody = getChankedHttpBody(cookedBody);
+				cookedBody = getChankedHttpBodyFussy(cookedBody);
 				if (cookedBody == null)
 					return null;
 			}
@@ -281,12 +284,26 @@ public class Http
 	}
 
 	public String getURL(int port) {
-		String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?"+getQueryAsString() : "";
-		String path = getPath();
-		String host = header.getValue("Host").orElse(null);
-		String protocol = (port == 443 ? "https" : "http"); 
-		return String.format("%s://%s%s%s", protocol, host, path, query);
+		if (version.equals("HTTP/2")) { /* HTTP2 */
+			return getURI();
+		} else { /* HTTP/1.1 */
+			String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?"+getQueryAsString() : "";
+			String path = getPath();
+			String host = header.getValue("Host").orElse(null);
+			String protocol = (port == 443 ? "https" : "http"); 
+			return String.format("%s://%s%s%s", protocol, host, path, query);
+		}
 	}
+
+	private String getURI() {
+		String authority = getFirstHeader("X-PacketProxy-HTTP2-Host");
+		String scheme = "https";
+		String path = getPath();
+		String query = getQueryAsString();
+		String queryStr = (query != null && query.length() > 0) ? "?"+query : "";
+		return scheme + "://" + authority + path + queryStr;
+	}
+
 
 	public byte[] toByteArray() throws Exception{
 		byte[] result = null;
@@ -297,8 +314,8 @@ public class Http
 			//String query = (getQuery() != null && getQuery().length() > 0) ? "?"+URLEncoder.encode(getQuery(),"utf-8") : "";
 			String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?"+getQueryAsString() : "";
 			if (this.isProxy() && this.flag_disable_proxy_format_url == false) {
-				String proxyPort = (getProxyPort() > 0) ? ":"+String.valueOf(getProxyPort()) : "";
-				statusLine = String.format("%s http://%s%s%s%s %s", this.method, getProxyHost(), proxyPort, getPath(), query, this.version);
+				String proxyPort = (getServerPort() > 0) ? ":"+String.valueOf(getServerPort()) : "";
+				statusLine = String.format("%s http://%s%s%s%s %s", this.method, getServerName(), proxyPort, getPath(), query, this.version);
 			} else {
 				statusLine = String.format("%s %s%s %s", this.method, this.path, query, this.version);
 			}
@@ -445,10 +462,28 @@ public class Http
 
 	private static byte[] gunzip(byte[] input_data) throws Exception
 	{
-		if(input_data.length == 0){return input_data;}
-		ByteArrayInputStream in = new ByteArrayInputStream(input_data);
-		GZIPInputStream gzin = new GZIPInputStream(in);
-		return IOUtils.toByteArray(gzin);
+		if (input_data.length == 0) {
+			return input_data;
+		}
+		try {
+			ByteArrayInputStream in = new ByteArrayInputStream(input_data);
+			GZIPInputStream gzin = new GZIPInputStream(in);
+			return IOUtils.toByteArray(gzin);
+		} catch (Exception e) {
+			/* Streaming Responseサポートのため、中途半端なgzipを展開しないといけないケースが多々ある */
+			byte[] zipped = input_data;
+			InputStream in = new GZIPInputStream(new ByteArrayInputStream(zipped));
+			byte[] inflates = new byte[zipped.length * 10];
+			int inflatesLength = 0;
+			ByteArrayOutputStream unzipped = new ByteArrayOutputStream();
+			try {
+				while ((inflatesLength = in.read(inflates, 0, inflates.length)) > 0) {
+					unzipped.write(ArrayUtils.subarray(inflates, 0, inflatesLength));
+				}
+			} catch (Exception e1) {
+			}
+			return unzipped.toByteArray();
+		}
 	}
 
 	private static byte[] gzip(byte[] input_data) throws Exception
@@ -458,6 +493,31 @@ public class Http
 		gout.write(input_data);
 		gout.close();
 		return out.toByteArray();
+	}
+
+	private static byte[] getChankedHttpBodyFussy(byte[] input_data) throws Exception
+	{
+		// TODO 改行コードの対応
+		byte[] search_word = new String("\r\n").getBytes();
+		int index = 0;
+		int start_index = 0;
+		byte[] body = new byte[0];
+		while ((index = Utils.indexOf(input_data, start_index, input_data.length, search_word)) >= 0) {
+			try {
+				byte[] chank_header = ArrayUtils.subarray(input_data, start_index, index);
+				String chank_length_str = new String(chank_header, "UTF-8").replaceAll("^0+([^0].*)$", "$1");
+				int chank_length = Integer.parseInt(chank_length_str.trim(), 16);
+				if (chank_length == 0) {
+					return body;
+				}
+				byte[] chank = ArrayUtils.subarray(input_data, index + search_word.length, index + search_word.length + chank_length);
+				body = ArrayUtils.addAll(body, chank);
+				start_index = index + search_word.length*2 + chank_length;
+			} catch (Exception e) {
+				return body;
+			}
+		}
+		return body;
 	}
 
 	private static byte[] getChankedHttpBody(byte[] input_data) throws Exception
@@ -479,15 +539,13 @@ public class Http
 				body = ArrayUtils.addAll(body, chank);
 				start_index = index + search_word.length*2 + chank_length;
 			} catch (Exception e) {
-				e.printStackTrace();
-				Binary b = new Binary(input_data);
-				PacketProxyUtility.getInstance().packetProxyLog(new String(b.toHexString().toString()));
+				return null;
 			}
 		}
 		return null;
 	}
 
-	public InetSocketAddress getProxyAddr() {
+	public InetSocketAddress getServerAddr() {
 		return new InetSocketAddress(proxyHost, proxyPort);
 	}
 
@@ -553,6 +611,9 @@ public class Http
 	public String getFirstHeader(String key){
 		return header.getValue(key).orElse("");
 	}
+	public void removeHeader(String key) {
+		header.removeAll(key);
+	}
 	public void updateHeader(String key, String value){
 		header.update(key, value);
 	}
@@ -560,5 +621,8 @@ public class Http
 	public List<String> getHeader(String key){
 		return header.getAllValue(key);
 	}
-
+	
+	public boolean isRequest() {
+		return flag_request;
+	}
 }

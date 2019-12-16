@@ -34,6 +34,7 @@ public class OneShotPacket implements PacketInfo, Cloneable
 	private String server_name;
 	private boolean use_ssl;
 	private String encoder_name;
+	private String alpn;
 	private boolean auto_modified;
 	private int conn;
 	private long group;
@@ -41,10 +42,10 @@ public class OneShotPacket implements PacketInfo, Cloneable
 	public OneShotPacket() {
 	}
 
-	public OneShotPacket(int id, int listen_port, InetSocketAddress client_addr, InetSocketAddress server_addr, String server_name, boolean use_ssl, byte[] data, String encoder_name, Packet.Direction dir, int conn, long group) {
+	public OneShotPacket(int id, int listen_port, InetSocketAddress client_addr, InetSocketAddress server_addr, String server_name, boolean use_ssl, byte[] data, String encoder_name, String alpn, Packet.Direction dir, int conn, long group) {
 		initialize(id, listen_port,
 				client_addr.getAddress().getHostAddress(), client_addr.getPort(),
-				server_addr.getAddress().getHostAddress(), server_addr.getPort(), server_name, use_ssl, data, encoder_name, dir, conn, group);
+				server_addr.getAddress().getHostAddress(), server_addr.getPort(), server_name, use_ssl, data, encoder_name, alpn, dir, conn, group);
 	}
 
 	@Override
@@ -52,7 +53,7 @@ public class OneShotPacket implements PacketInfo, Cloneable
 		return super.clone();
 	}
 
-	private void initialize(int id, int listen_port, String client_ip, int client_port, String server_ip, int server_port, String server_name, boolean use_ssl, byte[] data, String encoder_name, Packet.Direction dir, int conn, long group)
+	private void initialize(int id, int listen_port, String client_ip, int client_port, String server_ip, int server_port, String server_name, boolean use_ssl, byte[] data, String encoder_name, String alpn, Packet.Direction dir, int conn, long group)
 	{
 		this.id = id;
 		this.listen_port = listen_port;
@@ -64,6 +65,7 @@ public class OneShotPacket implements PacketInfo, Cloneable
 		this.use_ssl = use_ssl;
 		this.data = data;
 		this.encoder_name = encoder_name;
+		this.alpn = alpn;
 		this.direction = dir;
 		this.auto_modified = false;
 		this.conn = conn;
@@ -120,6 +122,9 @@ public class OneShotPacket implements PacketInfo, Cloneable
 	public String getEncoder() {
 		return this.encoder_name;
 	}
+	public String getAlpn() {
+		return this.alpn;
+	}
 	public int getConn() {
 		return this.conn;
 	}
@@ -129,23 +134,23 @@ public class OneShotPacket implements PacketInfo, Cloneable
 	public void encode(){    	
 	}
 	public Packet toPacket() throws Exception {
-		Packet packet = new Packet(listen_port, client_ip, client_port, server_ip, server_port, server_name, use_ssl, encoder_name, direction, conn, group);
+		Packet packet = new Packet(listen_port, client_ip, client_port, server_ip, server_port, server_name, use_ssl, encoder_name, alpn, direction, conn, group);
 		packet.setDecodedData(getData());
 		return packet;
 	}
 	public String getSummarizedRequest() throws Exception {
-		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name);
+		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name, alpn);
 		if (encoder == null) {
 			PacketProxyUtility.getInstance().packetProxyLogErr(String.format("エンコードモジュール: %s が見当たらないので、Sample とみなしました", encoder_name));
-			encoder = EncoderManager.getInstance().createInstance("Sample");
+			encoder = EncoderManager.getInstance().createInstance("Sample", alpn);
 		}
 		return (getDirection() == Direction.CLIENT) ? encoder.getSummarizedRequest(toPacket()) : "";
 	}
 	public String getSummarizedResponse() throws Exception {
-		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name);
+		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name, alpn);
 		if (encoder == null) {
 			PacketProxyUtility.getInstance().packetProxyLogErr(String.format("エンコードモジュール: %s が見当たらないので、Sample とみなしました", encoder_name));
-			encoder = EncoderManager.getInstance().createInstance("Sample");
+			encoder = EncoderManager.getInstance().createInstance("Sample", alpn);
 		}
 		return (getDirection() == Direction.SERVER) ? encoder.getSummarizedResponse(toPacket()) : "";
 	}
