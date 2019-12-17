@@ -22,7 +22,7 @@ It can be used for development assistance or for risk assessments.
   - Interception
   - Modify and resend
 - **Handling not only HTTP/HTTPS, but also TCP/UDP connection**
-  - Major protocols such as HTTP, HTTPS, WebSOcket, FireBase, MQTT, Protocol Buffers, MessagePack and CBOR are built-in
+  - Major protocols such as HTTP, HTTPS, WebSOcket, FireBase, MQTT, gRPC, Protocol Buffers, MessagePack and CBOR are built-in
   - You can Make a plugin for new protocols easily
 - **Features for a manual application penetration test**
   - Send concurrent multiple packets for a DB transaction test

@@ -618,6 +618,10 @@ public class Http
 		header.update(key, value);
 	}
 
+	public void removeMatches(String regex){
+		header.removeMatches(regex);
+	}
+
 	public List<String> getHeader(String key){
 		return header.getAllValue(key);
 	}

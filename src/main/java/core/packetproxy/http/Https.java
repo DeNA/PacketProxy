@@ -114,6 +114,7 @@ public class Https {
 					if (alpns.contains("http/1.1") || alpns.contains("http/1.0")) {
 						alpns.remove("h2");
 						alpns.remove("grpc");
+						alpns.remove("grpc-exp");
 					}
 				}
 				sp.setApplicationProtocols(alpns.toArray(new String[alpns.size()]));
