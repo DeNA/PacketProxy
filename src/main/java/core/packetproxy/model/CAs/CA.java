@@ -99,7 +99,7 @@ abstract public class CA
 		Date from = new Date();
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(from);
-		cal.add(Calendar.YEAR, 3);
+		cal.add(Calendar.YEAR, 1);
 		Date to = cal.getTime();
 
 		/* Templateの設定 */
