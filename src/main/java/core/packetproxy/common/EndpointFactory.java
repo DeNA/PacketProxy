@@ -22,7 +22,6 @@ import java.net.URI;
 
 import javax.net.ssl.SSLSocket;
 
-import packetproxy.http.Http;
 import packetproxy.http.Https;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.Server;
@@ -61,7 +60,7 @@ public class EndpointFactory
 		String host = u.getHost();
 		int port = u.getPort() > 0 ? u.getPort() : 80;
 		if (u.getScheme().equalsIgnoreCase("https")) {
-			return new SSLSocketEndpoint(new InetSocketAddress(host, port), host);
+			return new SSLSocketEndpoint(new InetSocketAddress(host, port), host, null);
 		} else if (u.getScheme().equalsIgnoreCase("http")) {
 			return new SocketEndpoint(new InetSocketAddress(host, port));
 		} else {
@@ -71,24 +70,16 @@ public class EndpointFactory
 	
 	public static Endpoint createFromOneShotPacket(OneShotPacket packet) throws Exception {
 		if (packet.getUseSSL()) {
-			return new SSLSocketEndpoint(packet.getServer(), packet.getServerName());
+			return new SSLSocketEndpoint(packet.getServer(), packet.getServerName(), packet.getAlpn());
 		} else {
 			// nc など複数同時接続を受け付けないconnection用に10秒でtimeoutする
 			return new SocketEndpoint(packet.getServer(), 10 * 1000);
 		}
 	}
 	
-	public static Endpoint createServerEndpointFromHttp(Http http) throws Exception {
-		if (http.isProxySsl()) {
-			return new SSLSocketEndpoint(http.getServerAddr(), http.getServerName());
-		} else {
-			return new SocketEndpoint(http.getServerAddr());
-		}
-	}
-
 	public static Endpoint createFromServer(Server server) throws Exception {
 		if (server.getUseSSL()) {
-			return new SSLSocketEndpoint(server.getAddress(), server.getIp());
+			return new SSLSocketEndpoint(server.getAddress(), server.getIp(), null);
 		} else {
 			return new SocketEndpoint(server.getAddress());
 		}

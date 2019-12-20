@@ -212,29 +212,39 @@ public class Https {
 		}
 	}};
 
-	public static SSLSocket convertToClientSSLSocket(Socket socket) throws Exception {
+	public static SSLSocket convertToClientSSLSocket(Socket socket, String alpn) throws Exception {
 		SSLSocketFactory ssf = createSSLSocketFactory();
 		SSLSocket sock = (SSLSocket) ssf.createSocket(socket, null, socket.getPort(), false);
 		SSLParameters sslp = sock.getSSLParameters();
-		String[] clientAPs ={ "h2", "http/1.1", "http/1.0" };
+		String[] clientAPs;
+		if (alpn != null && alpn.length() > 0) {
+			clientAPs = new String[]{ alpn };
+		} else {
+			clientAPs = new String[]{ "h2", "http/1.1", "http/1.0" };
+		}
 		sslp.setApplicationProtocols(clientAPs);
 		sock.setSSLParameters(sslp);
 		sock.startHandshake();
 		return sock;
 	}
 
-	public static SSLSocket createClientSSLSocket(InetSocketAddress addr) throws Exception {
+	public static SSLSocket createClientSSLSocket(InetSocketAddress addr, String alpn) throws Exception {
 		SSLSocketFactory ssf = createSSLSocketFactory();
 		SSLSocket sock = (SSLSocket) ssf.createSocket(addr.getAddress(), addr.getPort());
 		SSLParameters sslp = sock.getSSLParameters();
-		String[] clientAPs ={ "h2", "http/1.1", "http/1.0" };
+		String[] clientAPs;
+		if (alpn != null && alpn.length() > 0) {
+			clientAPs = new String[]{ alpn };
+		} else {
+			clientAPs = new String[]{ "h2", "http/1.1", "http/1.0" };
+		}
 		sslp.setApplicationProtocols(clientAPs);
 		sock.setSSLParameters(sslp);
 		sock.startHandshake();
 		return sock;
 	}
 
-	public static SSLSocket createClientSSLSocket(InetSocketAddress addr, String SNIServerName) throws Exception {
+	public static SSLSocket createClientSSLSocket(InetSocketAddress addr, String SNIServerName, String alpn) throws Exception {
 		/* SNI */
 		SNIHostName serverName = new SNIHostName(SNIServerName);
 		/* Fetch Client Certificate from ClientKeyManager */
@@ -244,7 +254,12 @@ public class Https {
 		SSLSocketFactory ssf = createSSLSocketFactory();
 		SSLSocket sock = (SSLSocket) ssf.createSocket(addr.getAddress(), addr.getPort());
 		SSLParameters sslp = sock.getSSLParameters();
-		String[] clientAPs ={ "h2", "http/1.1", "http/1.0" };
+		String[] clientAPs;
+		if (alpn != null && alpn.length() > 0) {
+			clientAPs = new String[]{ alpn };
+		} else {
+			clientAPs = new String[]{ "h2", "http/1.1", "http/1.0" };
+		}
 		sslp.setApplicationProtocols(clientAPs);
 
 		sock.setSSLParameters(sslp);

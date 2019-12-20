@@ -27,20 +27,24 @@ public class SSLSocketEndpoint implements Endpoint
 {
 	protected SSLSocket socket;
 	protected String server_name;
+	protected String alpn;
 	
 	public SSLSocketEndpoint(SSLSocketEndpoint ep) {
 		this.server_name = ep.server_name;
 		this.socket = ep.socket;
+		this.alpn = ep.alpn;
 	}
 	
 	public SSLSocketEndpoint(SSLSocket socket, String SNIServerName) {
 		this.server_name = SNIServerName;
 		this.socket = socket;
+		this.alpn = socket.getApplicationProtocol();
 	}
 
-	public SSLSocketEndpoint(InetSocketAddress addr, String SNIServerName) throws Exception {
+	public SSLSocketEndpoint(InetSocketAddress addr, String SNIServerName, String alpn) throws Exception {
 		this.server_name = SNIServerName;
-		this.socket = Https.createClientSSLSocket(addr, SNIServerName);
+		this.alpn = alpn;
+		this.socket = Https.createClientSSLSocket(addr, SNIServerName, alpn);
 	}
 
 	@Override

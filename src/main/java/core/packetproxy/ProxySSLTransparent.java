@@ -138,7 +138,7 @@ public class ProxySSLTransparent extends Proxy
 			WrapEndpoint wep_e = new WrapEndpoint(client_e, ArrayUtils.subarray(buff, 0, length));
 			InetSocketAddress serverAddr = new InetSocketAddress(serverName, proxyPort);
 			Server server = Servers.getInstance().queryByAddress(serverAddr);
-			SSLSocketEndpoint server_e = new SSLSocketEndpoint(serverAddr, serverName);
+			SSLSocketEndpoint server_e = new SSLSocketEndpoint(serverAddr, serverName, null);
 			createConnection(wep_e, server_e, server);
 
 		} else {
