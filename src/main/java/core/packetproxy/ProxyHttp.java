@@ -99,6 +99,10 @@ public class ProxyHttp extends Proxy
 										serverE = es[1];
 									}
 									String ALPN = clientE.getApplicationProtocol();
+									if (ALPN == null || ALPN.length() == 0) {
+										/* The client does not support ALPN. It seems to be an old HTTP client */
+										ALPN = "http/1.1";
+									}
 									Server serverSetting = Servers.getInstance().queryByAddress(http.getServerAddr());
 									String encoderName = (serverSetting != null) ? serverSetting.getEncoder() : "HTTP";
 									DuplexAsync d = DuplexFactory.createDuplexAsync(clientE, serverE, encoderName, ALPN);

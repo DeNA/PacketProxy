@@ -37,6 +37,8 @@ import packetproxy.common.SSLCapabilities;
 import packetproxy.common.SSLExplorer;
 import packetproxy.common.SSLSocketEndpoint;
 import packetproxy.common.WrapEndpoint;
+import packetproxy.encode.EncodeHTTPBase;
+import packetproxy.encode.Encoder;
 import packetproxy.model.ListenPort;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
@@ -158,17 +160,22 @@ public class ProxySSLTransparent extends Proxy
 
 	public void createConnection(SSLSocketEndpoint client_e, SSLSocketEndpoint server_e, Server server) throws Exception {
 		DuplexAsync duplex = null;
+		String alpn = client_e.getApplicationProtocol();
 		if (server == null) {
-			String alpn = client_e.getApplicationProtocol();
-			if (alpn.equals("h2")) {
-				duplex = DuplexFactory.createDuplexAsync(client_e, server_e, "HTTP2");
-			} else if (alpn.equals("http/1.1") || alpn.equals("http/1.0")) {
-				duplex = DuplexFactory.createDuplexAsync(client_e, server_e, "HTTP");
+			if (alpn.equals("h2") || alpn.equals("http/1.1") || alpn.equals("http/1.0")) {
+				duplex = DuplexFactory.createDuplexAsync(client_e, server_e, "HTTP", alpn);
 			} else {
-				duplex = DuplexFactory.createDuplexAsync(client_e, server_e, "Sample");
+				duplex = DuplexFactory.createDuplexAsync(client_e, server_e, "Sample", alpn);
 			}
 		} else {
-			duplex = DuplexFactory.createDuplexAsync(client_e, server_e, server.getEncoder(), client_e.getApplicationProtocol());
+			if (alpn == null || alpn.length() == 0) {
+				Encoder encoder = EncoderManager.getInstance().createInstance(server.getEncoder(), "");
+				if (encoder instanceof EncodeHTTPBase) {
+					/* The client does not support ALPN. It seems to be an old HTTP client */
+					alpn = "http/1.1";
+				}
+			}
+			duplex = DuplexFactory.createDuplexAsync(client_e, server_e, server.getEncoder(), alpn);
 		}
 		duplex.start();
 		DuplexManager.getInstance().registerDuplex(duplex);
