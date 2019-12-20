@@ -374,7 +374,7 @@ public class GUIHistory implements Observer
 					if (packet == null) {
 						return;
 					}
-					ResendController.getInstance().resend(packet.getOneShotPacket(packet.getSentData()));
+					ResendController.getInstance().resend(packet.getOneShotPacket(data));
 					packet.setResend();
 					Packets.getInstance().update(packet);
 					GUIHistory.getInstance().updateRequestOne(GUIHistory.getInstance().getSelectedPacketId());

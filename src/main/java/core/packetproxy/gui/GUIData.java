@@ -364,7 +364,7 @@ public class GUIData {
 			return new byte[]{};
 		}
 		try {
-			tabs.getData();
+			return tabs.getData();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
