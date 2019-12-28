@@ -393,11 +393,13 @@ public class RawTextPane extends ExtendedTextPane
 		init_count = 0;
 		prev_text_panel = "";
 		raw_data.reset(data);
+		
 		if(charSetUtility.isAuto()){
 			charSetUtility.setGuessedCharSet(getData());
 		}
 		String charSetName = charSetUtility.getCharSet();
-		setText(new String(data, charSetName));
+		
+		super.setText(new String(data, charSetName));
 		undo_manager.discardAllEdits();
 	}
 

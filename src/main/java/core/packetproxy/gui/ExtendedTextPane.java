@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.EventListener;
 
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JTextPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -31,17 +32,20 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoManager;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import packetproxy.common.BinaryBuffer;
 import packetproxy.common.FontManager;
+import packetproxy.common.I18nString;
 import packetproxy.common.SelectedArea;
 import packetproxy.common.Utils;
+import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
 
 abstract class ExtendedTextPane extends JTextPane
 {
 	private static final long serialVersionUID = 3879881178060039018L;
 	private static final int DEFAULT_SHOW_SIZE = 2000;
-	private static final int FONT_SIZE = 12;
 	private WrapEditorKit editor = new WrapEditorKit(new byte[]{});
 	private GUIHistoryPanel parentHistory = null;
 	public String prev_text_panel = "";
@@ -63,18 +67,30 @@ abstract class ExtendedTextPane extends JTextPane
 				try {
 					if (init_flg == true) {
 						init_count += e.getLength();
-						if (init_count == raw_data.getLengthInUTF8()) {
-							init_flg = false;
-							fin_flg = false;
-							init_count = 0;
-							prev_text_panel = e.getDocument().getText(0, e.getDocument().getLength());
+						if (CharSetUtility.getInstance().getCharSet().equals("UTF-8")) {
+							if (init_count == raw_data.getLengthInUTF8()) {
+								init_flg = false;
+								fin_flg = false;
+								init_count = 0;
+								prev_text_panel = e.getDocument().getText(0, e.getDocument().getLength());
+							} 
+						} else if (CharSetUtility.getInstance().getCharSet().equals("ISO-8859-1")) {
+							if (init_count == raw_data.getLength()) {
+								init_flg = false;
+								fin_flg = false;
+								init_count = 0;
+								prev_text_panel = e.getDocument().getText(0, e.getDocument().getLength());
+							}
 						}
 						return;
 					}
-					String str = e.getDocument().getText(e.getOffset(), e.getLength());
+					String insertStr = e.getDocument().getText(e.getOffset(), e.getLength());
 					prev_text_panel = e.getDocument().getText(0, e.getDocument().getLength());
-					String before_string = prev_text_panel.substring(0, e.getOffset());
-					raw_data.insert(before_string.getBytes().length, str.getBytes());
+
+					String charSet = CharSetUtility.getInstance().getCharSet();
+					int insertedPoint = e.getDocument().getText(0, e.getOffset()).getBytes(charSet).length;
+					raw_data.insert(insertedPoint, insertStr.getBytes(charSet));
+
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -86,10 +102,10 @@ abstract class ExtendedTextPane extends JTextPane
 						fin_flg = false;
 						return;
 					}
-					String before_removed_string = prev_text_panel.substring(0, e.getOffset());
 					String removed_string = prev_text_panel.substring(e.getOffset(), e.getOffset() + e.getLength());
-					prev_text_panel = e.getDocument().getText(0, e.getDocument().getLength());
-					raw_data.remove(before_removed_string.getBytes().length, removed_string.getBytes().length);
+					String charSet = CharSetUtility.getInstance().getCharSet();
+					int removePoint = e.getDocument().getText(0, e.getOffset()).getBytes(charSet).length;
+					raw_data.remove(removePoint, removed_string.getBytes(charSet).length);
 					//System.out.println(String.format("remove: <%s> %d %d", removed_string, removed_string.getBytes().length, e.getLength()));
 				} catch (Exception e1) {
 					e1.printStackTrace();
@@ -112,10 +128,32 @@ abstract class ExtendedTextPane extends JTextPane
 			}
 		});
 		addMouseListener(new MouseListener() {
+			private boolean isEncodableData() throws Exception {
+				String userEncoding = CharSetUtility.getInstance().getCharSet();
+				String userEncodedData = new String(data, userEncoding);
+				if (!ArrayUtils.isEquals(data, userEncodedData.getBytes())) {
+					/* 文字コードが間違っている */
+					return false;
+				} else if (!ArrayUtils.isEquals(data, "UTF-16LE")) {
+					/* 当該文字コードがシステム文字コードに変換不可能 */
+					return false;
+				}
+				return true;
+			}
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					if (show_all) { return; }
+					if (show_all) { 
+						if (!isEncodableData()) {
+							int option = JOptionPane.showConfirmDialog(null,
+								I18nString.get("Data is encoded as binary, Is the data handled as ISO-8859-1 to edit?"),
+								I18nString.get("Encoding Error"),
+								JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+							if (option == JOptionPane.YES_OPTION) {
+								CharSetUtility.getInstance().setCharSet("ISO-8859-1");
+							}
+						}
+					}
 					setData(data, false);
 				} catch(Exception e1) {
 					e1.printStackTrace();
