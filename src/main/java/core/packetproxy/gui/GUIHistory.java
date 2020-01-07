@@ -82,7 +82,6 @@ import packetproxy.model.OptionTableModel;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 import packetproxy.util.CharSetUtility;
-import packetproxy.util.PacketProxyUtility;
 
 public class GUIHistory implements Observer
 {
@@ -127,11 +126,11 @@ public class GUIHistory implements Observer
 	TableRowSorter<OptionTableModel> sorter;
 	private HintTextField gui_filter;
 	private int preferedPosition;
-	private boolean flag_auto_scrolling = false;
 	private ExecutorService history_update_service;
 	private HashSet<Integer> update_packet_ids;
 	private Hashtable<Integer, Integer> id_row;
 	private boolean dialogOnce = false;
+	private GUIHistoryAutoScroll autoScroll;
 
 	private GUIHistory(boolean restore) throws Exception {
 		packets = Packets.getInstance(restore);
@@ -142,6 +141,7 @@ public class GUIHistory implements Observer
 		preferedPosition = 0;
 		update_packet_ids = new HashSet<Integer>();
 		id_row = new Hashtable<Integer, Integer>();
+		autoScroll = new GUIHistoryAutoScroll();
 	}
 
 	public DefaultTableModel getTableModel() {
@@ -259,7 +259,7 @@ public class GUIHistory implements Observer
 				}
 			}
 		});
-
+		
 		JPanel filter_panel = new JPanel();
 		filter_panel.setLayout(new BoxLayout(filter_panel, BoxLayout.X_AXIS));
 		filter_panel.add(gui_filter);
@@ -342,15 +342,6 @@ public class GUIHistory implements Observer
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				try {
-					int idx = table.getSelectedRow();
-					if (idx == table.getRowCount()-1) {
-						flag_auto_scrolling = true;
-						PacketProxyUtility.getInstance().packetProxyLogErr("Auto scrolling was turned ON!");
-					} else {
-						if (flag_auto_scrolling == true)
-							PacketProxyUtility.getInstance().packetProxyLogErr("Auto scrolling was turned OFF.");
-						flag_auto_scrolling = false;
-					}
 					preferedPosition = getSelectedPacketId();
 					packets.refresh();
 				} catch (Exception e1) {
@@ -690,6 +681,7 @@ TODO: support --data-binary
 				if (Utils.isWindows() && event.isPopupTrigger()) {
 					menu.show(event.getComponent(), event.getX(), event.getY());
 				}
+				autoScroll.doDisable();
 			}
 			@Override
 			public void mousePressed(MouseEvent event) {
@@ -707,7 +699,7 @@ TODO: support --data-binary
 				int id = 0;
 				Packet packetid = null;
 				try {
-					if (flag_auto_scrolling) {
+					if (autoScroll.isEnabled()) {
 						table.scrollRectToVisible(table.getCellRect(table.getRowCount()-1, 0, true));
 						table.changeSelection(table.getRowCount()-1, 0, false, false);
 						id = getSelectedPacketId();
@@ -723,6 +715,8 @@ TODO: support --data-binary
 		history_update_service = Executors.newSingleThreadExecutor();
 
 		JScrollPane scrollpane = new JScrollPane(table);
+		scrollpane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		scrollpane.setCorner(JScrollPane.UPPER_RIGHT_CORNER, autoScroll); 
 
 		split_panel = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		split_panel.add(scrollpane);
