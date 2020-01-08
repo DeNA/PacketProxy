@@ -696,15 +696,21 @@ TODO: support --data-binary
 		});
 		table.addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent e) {
-				int id = 0;
-				Packet packetid = null;
 				try {
 					if (autoScroll.isEnabled()) {
 						table.scrollRectToVisible(table.getCellRect(table.getRowCount()-1, 0, true));
 						table.changeSelection(table.getRowCount()-1, 0, false, false);
-						id = getSelectedPacketId();
-						packetid = packets.query(id);
-						gui_packet.setPacket(packetid);
+						int packetId = getSelectedPacketId();
+						Packet packet = packets.query(packetId);
+						int retryCount = 10;
+						while (packet.getDecodedData() == null || packet.getDecodedData().length == 0) {
+							if (retryCount-- <= 0) {
+								break;
+							}
+							Thread.sleep(100); 
+							packet = packets.query(packetId);
+						}
+						gui_packet.setPacket(packet);
 					}
 				} catch (Exception e1) {
 					e1.printStackTrace();
