@@ -130,7 +130,7 @@ public class HeadersFrame extends Frame
 		MetaData meta;
 		if (http.isRequest()) {
 			long contentLength = 0;
-			if (method.equals("GET")) {
+			if (method.equals("GET") || method.equals("HEAD")) {
 				contentLength = (http.getBody().length == 0 ? Long.MIN_VALUE : http.getBody().length);
 			} else if (method.equals("POST") || method.equals("PUT")) {
 				contentLength = http.getBody().length;
