@@ -194,6 +194,16 @@ jmh {
 }
 
 jar {
+  doFirst {
+    def serviceDir = file("${buildDir}/META-INF/services")
+    serviceDir.deleteDir()
+    serviceDir.mkdirs()
+    for (file in configurations.runtime) {
+      zipTree(file).matching{ include 'META-INF/services/*' }.each { f ->
+        new File(serviceDir, f.name) << f.getText("UTF-8") << "\n"
+      }
+    }
+  }
   manifest {
     attributes (
       "Main-Class": project.mainClassName,
@@ -205,6 +215,11 @@ jar {
       it.isDirectory() ? it : zipTree(it).matching {
         exclude "META-INF/**"
       }
+    }
+  }
+  from {
+    fileTree(buildDir).matching {
+      include 'META-INF/services/*'
     }
   }
 }
