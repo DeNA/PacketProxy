@@ -132,7 +132,7 @@ public class HeadersFrame extends Frame
 			long contentLength = 0;
 			if (method.equals("GET")) {
 				contentLength = (http.getBody().length == 0 ? Long.MIN_VALUE : http.getBody().length);
-			} else if (method.equals("POST")) {
+			} else if (method.equals("POST") || method.equals("PUT")) {
 				contentLength = http.getBody().length;
 				fields.add("content-length", String.valueOf(contentLength));
 			}
