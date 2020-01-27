@@ -54,6 +54,7 @@ import packetproxy.model.ConfigString;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
 import packetproxy.model.CAs.CA;
+import packetproxy.util.PacketProxyUtility;
 
 public class Https {
 	private static final char[] KS_PASS = "testtest".toCharArray();
@@ -103,7 +104,16 @@ public class Https {
 						}
 					}
 				} else {
-					serverSocket = new Socket(serverAddr.getAddress(), serverAddr.getPort());
+					try {
+						serverSocket = new Socket();
+						serverSocket.connect(serverAddr, 1000);
+					} catch (Exception e) {
+						/* listenポート番号と同じポート番号へアクセスできないので443番にフォールバックする */
+						serverSocket = new Socket();
+						InetSocketAddress serverAddrFB = new InetSocketAddress(serverAddr.getAddress(), 443);
+						PacketProxyUtility.getInstance().packetProxyLog("[Follback port] " + serverAddr.toString() + " --> " + serverAddrFB.toString());
+						serverSocket.connect(serverAddrFB);
+					}
 				}
 				serverSSLSocket[0] = (SSLSocket) createSSLSocketFactory().createSocket(serverSocket, null, true);
 				serverSSLSocket[0].setUseClientMode(true);
@@ -145,7 +155,16 @@ public class Https {
 					}
 				}
 			} else {
-				serverSocket = new Socket(serverAddr.getAddress(), serverAddr.getPort());
+				try {
+					serverSocket = new Socket();
+					serverSocket.connect(serverAddr, 1000);
+				} catch (Exception e) {
+					/* listenポート番号と同じポート番号へアクセスできないので443番にフォールバックする */
+					serverSocket = new Socket();
+					InetSocketAddress serverAddrFB = new InetSocketAddress(serverAddr.getAddress(), 443);
+					PacketProxyUtility.getInstance().packetProxyLog("[Follback port] " + serverAddr.toString() + " --> " + serverAddrFB.toString());
+					serverSocket.connect(serverAddrFB);
+				}
 			}
 			serverSSLSocket[0] = (SSLSocket) createSSLSocketFactory().createSocket(serverSocket, null, true);
 			serverSSLSocket[0].setUseClientMode(true);
