@@ -149,8 +149,20 @@ public class ProxySSLTransparent extends Proxy
 				PacketProxyUtility.getInstance().packetProxyLog(String.format("[SSL-forward! using SNI] %s", serverName));
 				ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, position);
 				
-				Server server = Servers.getInstance().queryByHostNameAndPort(serverName, proxyPort);
-				InetSocketAddress serverAddr = (server != null ? server.getAddress() : new InetSocketAddress(serverName, proxyPort));
+				/* check server connection */
+				InetSocketAddress serverAddr;
+				try {
+					serverAddr = new InetSocketAddress(serverName, proxyPort);
+					Socket s = new Socket();
+					s.connect(serverAddr, 500); /* timeout: 500ms */
+					s.close();
+				} catch (Exception e) {
+					/* listenポート番号と同じポート番号へアクセスできないので443番にフォールバックする */
+					serverAddr = new InetSocketAddress(serverName, 443);
+					PacketProxyUtility.getInstance().packetProxyLog("[Follback port] " + proxyPort + " -> 443");
+				}
+				
+				Server server = Servers.getInstance().queryByAddress(serverAddr);
 
 				SSLSocketEndpoint[] eps = EndpointFactory.createBothSideSSLEndpoints(client, bais, serverAddr, null, serverName, listen_info.getCA().get());
 				createConnection(eps[0], eps[1], server);
