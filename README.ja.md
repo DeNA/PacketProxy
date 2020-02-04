@@ -20,7 +20,7 @@ PacketProxyは、HTTP1/HTTP2/HTTPS通信だけでなく、より低レイヤー�
   - インターセプト
   - 加工して再送
 - **HTTP/HTTPS通信だけでなく、より低レイヤーのTCP/UDP通信にも対応しています**
-  - メジャーなプロトコル（HTTP、HTTPS、HTTPS、WebSocket、FireBase、MQTT、gRPC、Protocol Buffers、MessagePack、CBOR）はビルトイン済み（増やす予定あり）
+  - メジャーなプロトコル（HTTP、HTTP2、HTTPS、WebSocket、FireBase、MQTT、gRPC、Protocol Buffers、MessagePack、CBOR）はビルトイン済み（増やす予定あり）
   - 新しいプロトコル（例：特定ゲームの独自通信プロトコル等）への拡張が簡単
 - **脆弱性診断で利用できる便利な機能を用意しています**
   - パケットを連続して同時に送信する機能（同時複数送信）
