@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 import packetproxy.common.Utils;
 import org.apache.commons.lang3.ArrayUtils;
 
+import javax.annotation.RegEx;
+
 public class HttpHeader {
 	private static final byte[] crLf = new byte[]{13, 10};
 	private static final byte[] cr = new byte[]{13};
@@ -102,6 +104,10 @@ public class HttpHeader {
 	
 	public void removeAll(String name){
 		fields.removeIf(h -> h.getName().equalsIgnoreCase(name));
+	}
+
+	public void removeMatches(String regex){
+		fields.removeIf(h -> h.getName().matches(regex));
 	}
 	
 	public HttpHeader(byte[] rawHttp){
