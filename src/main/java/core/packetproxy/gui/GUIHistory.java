@@ -556,8 +556,8 @@ public class GUIHistory implements Observer
 					for(int i=0;i<table.getRowCount();++i) {
 						Integer id = (Integer) table.getValueAt(i, 0);
 						colorManager.clear(id);
-						packets.delete(packets.query(id));
 					}
+					packets.deleteAll();
 					updateAll();
 				} catch (Exception e2) {
 					e2.printStackTrace();
