@@ -24,6 +24,7 @@ import org.eclipse.jetty.http2.hpack.HpackEncoder;
 
 import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameUtils;
+import packetproxy.model.Packet;
 
 public abstract class FramesBase
 {
@@ -139,4 +140,5 @@ public abstract class FramesBase
 	protected abstract byte[] decodeServerResponseFromFrames(byte[] frames) throws Exception;
 	protected abstract byte[] encodeClientRequestToFrames(byte[] data) throws Exception;
 	protected abstract byte[] encodeServerResponseToFrames(byte[] data) throws Exception;
+	public abstract void setGroupId(Packet packet) throws Exception;
 }

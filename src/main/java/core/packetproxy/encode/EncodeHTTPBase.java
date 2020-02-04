@@ -18,6 +18,8 @@ package packetproxy.encode;
 import java.io.InputStream;
 
 import packetproxy.http.Http;
+import packetproxy.http2.FramesBase;
+import packetproxy.http2.Grpc;
 import packetproxy.http2.Http2;
 import packetproxy.model.Packet;
 
@@ -27,7 +29,7 @@ public abstract class EncodeHTTPBase extends Encoder
 		HTTP1, HTTP2	
 	}
 	private HTTPVersion httpVersion;
-	private Http2 http2;
+	private FramesBase http2;
 
 	public EncodeHTTPBase() {
 		super("http/1.1");
@@ -40,9 +42,12 @@ public abstract class EncodeHTTPBase extends Encoder
 			httpVersion = HTTPVersion.HTTP1;
 		} else if (ALPN.equals("http/1.0") || ALPN.equals("http/1.1")) {
 			httpVersion = HTTPVersion.HTTP1;
-		} else if (ALPN.equals("h2") || ALPN.startsWith("grpc")) {                                                                                                                                 
+		} else if (ALPN.equals("h2")) {
 			httpVersion = HTTPVersion.HTTP2;
 			http2 = new Http2();
+		} else if (ALPN.equals("grpc") || ALPN.equals("grpc-exp")) {
+			httpVersion = HTTPVersion.HTTP2;
+			http2 = new Grpc();
 		} else {
 			httpVersion = HTTPVersion.HTTP1;
 		}

@@ -20,9 +20,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jetty.http.HttpField;
+import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
 
 import packetproxy.common.UniqueID;
+import packetproxy.http.HeaderField;
 import packetproxy.http.Http;
 import packetproxy.http2.frames.DataFrame;
 import packetproxy.http2.frames.Frame;
@@ -30,18 +33,20 @@ import packetproxy.http2.frames.FrameUtils;
 import packetproxy.http2.frames.HeadersFrame;
 import packetproxy.model.Packet;
 
-public class Http2 extends FramesBase
+public class Grpc extends FramesBase
 {
 	private StreamManager clientStreamManager = new StreamManager();
 	private StreamManager serverStreamManager = new StreamManager();
 
-	public Http2() throws Exception {
+	private static String[] GRPC_RESPONSE_2ND_HEADERS = new String[]{"grpc-status","trace-proto-bin"};
+
+	public Grpc() throws Exception {
 		super();
 	}
 
 	@Override
 	public String getName() {
-		return "HTTP2";
+		return "gRPC";
 	}
 
 	@Override
@@ -70,17 +75,31 @@ public class Http2 extends FramesBase
 	protected byte[] decodeServerResponseFromFrames(byte[] frames) throws Exception { return decodeFromFrames(frames); }
 
 	private byte[] decodeFromFrames(byte[] frames) throws Exception {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ByteArrayOutputStream outHeader = new ByteArrayOutputStream();
+		ByteArrayOutputStream outData = new ByteArrayOutputStream();
+		Http httpHeaderSums = null;
+
 		for (Frame frame : FrameUtils.parseFrames(frames)) {
 			if (frame instanceof HeadersFrame) {
 				HeadersFrame headersFrame = (HeadersFrame)frame;
-				out.write(headersFrame.getHttp());
+				Http http = new Http(headersFrame.getHttp());
+				if(null==httpHeaderSums){
+					httpHeaderSums = http;
+				}else{
+					for(HeaderField field: http.getHeader().getFields()){
+						httpHeaderSums.updateHeader(field.getName(), field.getValue());
+					}
+				}
 			} else if (frame instanceof DataFrame) {
 				DataFrame dataFrame = (DataFrame)frame;
-				out.write(dataFrame.getPayload());
+				outData.write(dataFrame.getPayload());
 			}
 		}
-		Http http = new Http(out.toByteArray());
+		outHeader.write(httpHeaderSums.toByteArray());
+		//順序をHeader, Dataにする。本当はStreamIDで管理してencode時に元の順番に戻せるようにしたい。
+		//暫定でgRPC over HTTP2のレスポンスの2つめのヘッダはGRPC_RESPONSE_2ND_HEADERSに従って元の順番に戻す。
+		outData.writeTo(outHeader);
+		Http http = new Http(outHeader.toByteArray());
 		int flags = Integer.valueOf(http.getFirstHeader("X-PacketProxy-HTTP2-Flags"));
 		if (http.getBody() == null || http.getBody().length == 0) {
 			http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff | HeadersFrame.FLAG_END_STREAM));
@@ -99,10 +118,35 @@ public class Http2 extends FramesBase
 		int flags = Integer.valueOf(http.getFirstHeader("X-PacketProxy-HTTP2-Flags"));
 		if (http.getBody() != null && http.getBody().length > 0) {
 			http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff & ~HeadersFrame.FLAG_END_STREAM));
+			HttpFields GRPC2ndHeaderHttpFields = new HttpFields();
+			for(String k:GRPC_RESPONSE_2ND_HEADERS){
+				String v = http.getFirstHeader(k);
+				http.removeHeader(k);
+				if("".equals(v)) continue;
+				GRPC2ndHeaderHttpFields.add(k, v);
+			}
+
 			HeadersFrame headersFrame = new HeadersFrame(http);
 			out.write(headersFrame.toByteArrayWithoutExtra(encoder));
+
 			DataFrame dataFrame = new DataFrame(http);
+			if(GRPC2ndHeaderHttpFields.size()>0){
+				dataFrame.setFlags(dataFrame.getFlags() & 0xff & ~DataFrame.FLAG_END_STREAM);
+			}
 			out.write(dataFrame.toByteArrayWithoutExtra());
+
+			if(GRPC2ndHeaderHttpFields.size()>0) {
+				Http althttp = http;
+				althttp.setBody(new byte[0]);
+				althttp.removeMatches("^(?!X-PacketProxy-HTTP2).*$");
+
+				for (HttpField headerField : GRPC2ndHeaderHttpFields) {
+					althttp.updateHeader(headerField.getName(), headerField.getValue());
+				}
+				althttp.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff | HeadersFrame.FLAG_END_STREAM));
+				HeadersFrame headers2ndFrame = new HeadersFrame(althttp);
+				out.write(headers2ndFrame.toByteArrayWithoutExtra(encoder));
+			}
 		} else {
 			http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff | HeadersFrame.FLAG_END_STREAM));
 			HeadersFrame headersFrame = new HeadersFrame(http);
