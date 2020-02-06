@@ -2,7 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/DeNA/PacketProxy/tree/master.svg?style=svg)](https://circleci.com/gh/DeNA/PacketProxy/tree/master)
 
-[日本語](https://github.com/DeNA/PacketProxy/blob/master/README.ja.md)
+[日本語のREADMEはここ](https://github.com/DeNA/PacketProxy/blob/master/README.ja.md)
 
 # PacketProxy
 
@@ -22,7 +22,7 @@ It can be used for development assistance or for risk assessments.
   - Intercept packets, and modify them before sending them to server
   - Resend packet to server
   - Show differences between any two received packets
-- **Handling not only HTTP/HTTPS, but also TCP/UDP connection**
+- **Many protocols support**
   - Support HTTP1, HTTP2, HTTPS, WebSocket, FireBase, MQTT, gRPC, Protocol Buffers, MessagePack and CBOR as built-in protocols.
   - Develop new protocols easily
 - **Features for application penetration test**
