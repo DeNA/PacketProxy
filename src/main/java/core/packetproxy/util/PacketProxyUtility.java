@@ -87,7 +87,6 @@ public class PacketProxyUtility {
 
 	public String prettyFormatJSON(String data) {
 		try{
-			String ret="";
 			JSONObject tmp_obj;
 			boolean begin_with_left_square_bracket = false; //This variable is true, if json string begin with [
 			int begin = data.length();
