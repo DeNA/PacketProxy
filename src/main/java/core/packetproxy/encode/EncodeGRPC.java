@@ -17,6 +17,7 @@ package packetproxy.encode;
 
 import packetproxy.common.Protobuf3;
 import packetproxy.http.Http;
+import packetproxy.http2.Grpc;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -27,7 +28,7 @@ public class EncodeGRPC extends EncodeHTTPBase
 	private byte compressedFlag;
 
 	public EncodeGRPC(String ALPN) throws Exception {
-		super(ALPN);
+		super(ALPN, new Grpc());
 	}
 
 	@Override
