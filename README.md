@@ -6,7 +6,7 @@
 
 # PacketProxy
 
-PacketProxy is an open source proxy tool that allows TCP/UDP Traffic to be read. It is not limited to just HTTP1 / HTTP2 / HTTPS.
+PacketProxy is an open source proxy tool that allows TCP/UDP Traffic to be read. It is not limited to just HTTP.
 
 It can be used for development assistance or for risk assessments.
  
@@ -17,18 +17,20 @@ It can be used for development assistance or for risk assessments.
 # Features
  
 - **Full featured local proxy tool**
-  - History and filtering of packets
-  - Show, search, modify, and diff packets
-  - Interception
-  - Modify and resend
+  - Show all the received packets
+  - Filter/Search packets by keywords
+  - Intercept packets, and modify them before sending them to server
+  - Resend packet to server
+  - Show differences between any two received packets
 - **Handling not only HTTP/HTTPS, but also TCP/UDP connection**
-  - Major protocols such as HTTP1, HTTP2, HTTPS, WebSocket, FireBase, MQTT, gRPC, Protocol Buffers, MessagePack and CBOR are built-in
-  - You can Make a plugin for new protocols easily
-- **Features for a manual application penetration test**
-  - Send concurrent multiple packets for a DB transaction test
-  - Change server certificate to self signed certificate for a test of client side validation
-  - Built-in DNS server for packet forwarding with modifying DNS responses automatically
-  - Save and load current project data as SQLite
+  - Support HTTP1, HTTP2, HTTPS, WebSocket, FireBase, MQTT, gRPC, Protocol Buffers, MessagePack and CBOR as built-in protocols.
+  - Develop new protocols easily
+- **Features for application penetration test**
+  - Send concurrently multiple packets for a DB transaction test
+  - Replace server certificate with self signed certificate for a client side validation test
+- **Other advantages**
+  - Have a built-in DNS server for easy packet forwarding
+  - Save/Load project data
   - Support Windows and macOS
 
 # Setup
