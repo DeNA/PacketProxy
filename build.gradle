@@ -214,6 +214,7 @@ jar {
     configurations.compile.collect {
       it.isDirectory() ? it : zipTree(it).matching {
         exclude "META-INF/**"
+        exclude "native/**"
       }
     }
   }
@@ -334,7 +335,6 @@ task createMacJPackage(type: Exec, dependsOn: "prepareJPackage") {
   commandLine = [
     "/Library/Java/JavaVirtualMachines/jdk-14-jpackage.jdk/Contents/Home/bin/jpackage",
     "--verbose",
-    "--package-type", "dmg",
     "-d", "${project.ext.pathMacWorkDir}",
     "-n", "PacketProxy",
     "-i", "${buildDir}/libs/",
