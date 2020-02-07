@@ -214,7 +214,6 @@ jar {
     configurations.compile.collect {
       it.isDirectory() ? it : zipTree(it).matching {
         exclude "META-INF/**"
-        exclude "native/**"
       }
     }
   }
@@ -347,7 +346,53 @@ task createMacJPackage(type: Exec, dependsOn: "prepareJPackage") {
   onlyIf { Os.isFamily(Os.FAMILY_MAC) }
 }
 
-task createMacInstaller(type: Exec, dependsOn: "createMacJPackage") {
+task resignMacJPackage(dependsOn: "createMacJPackage") {
+  doFirst {
+    exec {
+      executable "sh"
+      args "-c", "hdiutil convert ${pathMacSignedReleaseJPackage} -format UDRW -o ${project.ext.pathMacWorkDir}/tmp.dmg"
+    }
+    exec {
+      executable "sh"
+      args "-c", "hdiutil mount ${project.ext.pathMacWorkDir}/tmp.dmg"
+    }
+    exec {
+      executable "sh"
+      args "-c", "rm -rf /tmp/packetproxy; mkdir /tmp/packetproxy; cd /tmp/packetproxy; jar xvf /Volumes/PacketProxy/PacketProxy.app/Contents/app/PacketProxy.jar"
+    }
+    exec {
+      executable "sh"
+      args "-c", "cd /tmp/packetproxy/native; for i in \$(find . -type f); do if file \$i | grep Mach-O > /dev/null; then codesign -fv --options=runtime --deep -s \"${project.ext.signedKey}\" \$i; fi; done"
+    }
+    exec {
+      executable "sh"
+      args "-c", "cd /tmp/packetproxy; jar cvfm /Volumes/PacketProxy/PacketProxy.app/Contents/app/hoge.jar META-INF/MANIFEST.MF *"
+    }
+    exec {
+      executable "sh"
+      args "-c", "mv /Volumes/PacketProxy/PacketProxy.app/Contents/app/hoge.jar /Volumes/PacketProxy/PacketProxy.app/Contents/app/PacketProxy.jar"
+    }
+    exec {
+      executable "sh"
+      args "-c", "cd /Volumes/PacketProxy/PacketProxy.app/Contents/; for i in \$(find . -type f); do if file \$i | grep Mach-O > /dev/null; then codesign -fv --options=runtime --deep -s \"${project.ext.signedKey}\" \$i; fi; done"
+    }
+    exec {
+      executable "sh"
+      args "-c", "cd /Volumes/PacketProxy; codesign -fv --options=runtime --deep -s \"${project.ext.signedKey}\" --entitlements ${projectDir}/assets/resign/entitlements.xml PacketProxy.app"
+    }
+    exec {
+      executable "sh"
+      args "-c", "hdiutil detach /Volumes/PacketProxy"
+    }
+    exec {
+      executable "sh"
+      args "-c", "rm ${pathMacSignedReleaseJPackage}; hdiutil convert ${project.ext.pathMacWorkDir}/tmp.dmg -format UDZO -o ${pathMacSignedReleaseJPackage}"
+    }
+  }
+  onlyIf { Os.isFamily(Os.FAMILY_MAC) }
+}
+
+task createMacInstaller(type: Exec, dependsOn: "resignMacJPackage") {
   workingDir "${projectDir}"
   commandLine = [
     "mv", project.ext.pathMacSignedReleaseJPackage, project.ext.pathMacSignedRelease
