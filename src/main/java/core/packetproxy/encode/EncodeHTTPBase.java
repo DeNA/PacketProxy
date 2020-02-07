@@ -19,7 +19,6 @@ import java.io.InputStream;
 
 import packetproxy.http.Http;
 import packetproxy.http2.FramesBase;
-import packetproxy.http2.Grpc;
 import packetproxy.http2.Http2;
 import packetproxy.model.Packet;
 
@@ -45,9 +44,20 @@ public abstract class EncodeHTTPBase extends Encoder
 		} else if (ALPN.equals("h2")) {
 			httpVersion = HTTPVersion.HTTP2;
 			http2 = new Http2();
-		} else if (ALPN.equals("grpc") || ALPN.equals("grpc-exp")) {
+		} else {
+			httpVersion = HTTPVersion.HTTP1;
+		}
+	}
+
+	public EncodeHTTPBase(String ALPN, FramesBase http2CustomFrame) throws Exception {
+		super(ALPN);
+		if (ALPN == null) {
+			httpVersion = HTTPVersion.HTTP1;
+		} else if (ALPN.equals("http/1.0") || ALPN.equals("http/1.1")) {
+			httpVersion = HTTPVersion.HTTP1;
+		} else if (ALPN.equals("h2")) {
 			httpVersion = HTTPVersion.HTTP2;
-			http2 = new Grpc();
+			this.http2 = http2CustomFrame;
 		} else {
 			httpVersion = HTTPVersion.HTTP1;
 		}
