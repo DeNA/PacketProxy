@@ -203,15 +203,15 @@ public class HeadersFrame extends Frame
     		query = uri.getQuery();
 
     	} else {
-    		try{
-				//System.out.println("# meta.response: " + meta);
-				bRequest = false;
-				Response res = (Response)meta;
-				status = res.getStatus();
-			}catch (java.lang.ClassCastException e){
-				bRequest = false;
-				PacketProxyUtility.getInstance().packetProxyLog(String.format("%s", e.getStackTrace()));
-			}
+    		try {
+    			//System.out.println("# meta.response: " + meta);
+    			bRequest = false;
+    			Response res = (Response)meta;
+    			status = res.getStatus();
+    		} catch (java.lang.ClassCastException e){
+    			bRequest = false;
+    			PacketProxyUtility.getInstance().packetProxyLog(String.format("%s", e.getStackTrace().toString()));
+    		}
     	}
     	fields = meta.getFields();
 
