@@ -377,7 +377,7 @@ public class DuplexFactory {
 
 	// original_duplexと接続を共有しているが、イベントリスナーは再送用のものに差し替えたDuplexを返す
 	public static Duplex createDuplexFromOriginalDuplex(Duplex original_duplex, OneShotPacket oneshot) throws Exception {
-		Duplex duplex = original_duplex.crateSameConnectionDuplex();
+		Duplex duplex = original_duplex.createSameConnectionDuplex();
 		duplex.addDuplexEventListener(new Duplex.DuplexEventListener() {
 			private Packets packets = Packets.getInstance();
 			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(), oneshot.getAlpn());

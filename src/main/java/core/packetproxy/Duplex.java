@@ -257,7 +257,10 @@ public abstract class Duplex {
 	protected void sendToServerImpl(byte[] data) throws Exception {}
 	public void close() throws Exception {}
 
-	public Duplex crateSameConnectionDuplex() throws Exception { return null; }
+	public Duplex createSameConnectionDuplex() throws Exception { return null; }
 	public byte[] prepareFastSend(byte[] data) throws Exception { return null; }
 	public void execFastSend(byte[] data) throws Exception {}
+	
+	public boolean isListenPort(int listenPort) { return false; }
+
 }

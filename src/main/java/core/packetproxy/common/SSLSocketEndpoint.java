@@ -61,6 +61,11 @@ public class SSLSocketEndpoint implements Endpoint
 	public InetSocketAddress getAddress() {
 		return new InetSocketAddress(socket.getInetAddress(), socket.getPort());
 	}
+
+	@Override
+	public int getLocalPort() {
+		return socket.getLocalPort();
+	}
 	
 	@Override
 	public String getName() {

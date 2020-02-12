@@ -23,5 +23,6 @@ public interface Endpoint {
 	public InputStream getInputStream() throws Exception;
 	public OutputStream getOutputStream() throws Exception;
 	public InetSocketAddress getAddress();
+	public int getLocalPort();
 	public String getName();
 }

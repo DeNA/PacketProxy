@@ -80,6 +80,11 @@ public class UDPSocketEndpoint implements Endpoint {
 		executor.submit(sendTask);
 		executor.submit(recvTask);
 	}
+
+	@Override
+	public int getLocalPort() {
+		return socket.getLocalPort();
+	}
 	
 	@Override
 	public String getName() {

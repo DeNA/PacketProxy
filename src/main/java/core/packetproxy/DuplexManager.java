@@ -35,6 +35,16 @@ public class DuplexManager
 		duplex_list = new HashMap<Integer,Duplex>();
 	}
 	
+	public void closeAndClearDuplex(int listenPort) throws Exception {
+		for (int key : duplex_list.keySet()) {
+			Duplex d = duplex_list.get(key);
+			if (d.isListenPort(listenPort)) {
+				d.close();
+				duplex_list.remove(key);
+			}
+		}
+	}
+	
 	public int registerDuplex(Duplex duplex) {
 		duplex_list.put(duplex.hashCode(), duplex);
 		return duplex.hashCode();

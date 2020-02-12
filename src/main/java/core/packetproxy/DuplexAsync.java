@@ -63,9 +63,12 @@ public class DuplexAsync extends Duplex
 		
 		disableDuplexEventListener();
 	}
-
 	@Override
-	public Duplex crateSameConnectionDuplex() throws Exception {
+	public boolean isListenPort(int listenPort) {
+		return this.client.getLocalPort() == listenPort;
+	}
+	@Override
+	public Duplex createSameConnectionDuplex() throws Exception {
 		return new DuplexAsync(this.client, this.server);
 	}
 	public byte[] prepareFastSend(byte[] data) throws Exception {
@@ -166,6 +169,10 @@ public class DuplexAsync extends Duplex
 	public void close() throws Exception {
 		client_to_server.close();
 		server_to_client.close();
+		client_input.close();
+		server_output.close();
+		server_input.close();
+		client_output.close();
 	}
 	private Simplex createClientToServerSimplex(final InputStream in, final OutputStream out) throws Exception
 	{

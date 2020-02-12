@@ -41,7 +41,12 @@ public class DuplexSync extends Duplex
 	}
 
 	@Override
-	public Duplex crateSameConnectionDuplex() throws Exception {
+	public boolean isListenPort(int listenPort) {
+		return false;
+	}
+
+	@Override
+	public Duplex createSameConnectionDuplex() throws Exception {
 		return new DuplexSync(this.server);
 	}
 	public byte[] prepareFastSend(byte[] data) throws Exception {

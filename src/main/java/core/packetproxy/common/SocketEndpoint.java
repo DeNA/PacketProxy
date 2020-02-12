@@ -62,6 +62,11 @@ public class SocketEndpoint implements Endpoint
 	public OutputStream getOutputStream() throws Exception {
 		return socket.getOutputStream();
 	}
+
+	@Override
+	public int getLocalPort() {
+		return socket.getLocalPort();
+	}
 	
 	@Override
 	public String getName() {

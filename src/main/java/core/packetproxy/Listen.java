@@ -26,8 +26,10 @@ public class Listen
 		return listen_info;
 	}
 	public void close() throws Exception {
-		if (proxy != null)
+		if (proxy != null) {
 			proxy.close();
+			DuplexManager.getInstance().closeAndClearDuplex(listen_info.getPort());
+		}
 	}
 	public Listen(ListenPort listen_info) throws Exception {
 		this.listen_info = listen_info;

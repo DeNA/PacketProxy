@@ -45,6 +45,11 @@ public class RawEndpoint implements Endpoint
 	public OutputStream getOutputStream() throws Exception {
 		return output;
 	}
+
+	@Override
+	public int getLocalPort() {
+		return 0;
+	}
 	
 	@Override
 	public String getName() {
