@@ -107,6 +107,7 @@ public class Database extends Observable
 		createTable(Modification.class, Modifications.getInstance());
 		createTable(SSLPassThrough.class, SSLPassThroughs.getInstance());
 		createTable(CharSet.class, CharSets.getInstance());
+		createTable(MockResponse.class, MockResponses.getInstance());
 		notifyObservers(DatabaseMessage.RECREATE);
 
 		migrateTableWithoutHistory(src, dst);
@@ -142,6 +143,7 @@ public class Database extends Observable
 					"INSERT OR REPLACE INTO dstDB.modifications (id, enabled, server_id, direction, pattern, method, replaced) SELECT id, enabled, server_id, direction, pattern, method, replaced FROM srcDB.modifications",
 					"INSERT OR REPLACE INTO dstDB.sslpassthroughs (id, enabled, server_name, listen_port) SELECT id, enabled, server_name, listen_port FROM srcDB.sslpassthroughs",
 					"INSERT OR REPLACE INTO dstDB.charsets (id, charsetname) SELECT id, charsetname FROM srcDB.charsets",
+					"INSERT OR REPLACE INTO dstDB.mock_responses (id, enabled, ip, port, path, mockResponse, comment) SELECT id, enabled, ip, port, path, mockResponse, comment FROM srcDB.mock_responses",
 			};
 			for (String query : querys){
 				try {

@@ -107,6 +107,15 @@ public class GUIOption
 
 		panel.add(createSeparator());
 
+		panel.add(createElement("Mock Responses", I18nString.get("Set pattern for mock responses.")));
+		GUIOptionMockResponses mocks = new GUIOptionMockResponses(owner);
+		panel.add(mocks.createPanel());
+
+		panel.add(new JLabel(I18nString.get("Hex calculator for binary pattern")));
+		panel.add(new GUIHexCalc().create());
+
+		panel.add(createSeparator());
+
 		panel.add(createElement("Intercept Rules", ""));
 		GUIOptionIntercepts intercepts = new GUIOptionIntercepts(owner);
 		JComponent interceptPanel = intercepts.createPanel();

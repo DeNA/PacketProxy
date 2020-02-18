@@ -68,19 +68,19 @@ import javax.swing.table.TableRowSorter;
 
 import org.apache.commons.io.FileUtils;
 
+import packetproxy.EncoderManager;
 import packetproxy.common.FilterTextParser;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
 import packetproxy.common.Utils;
 import packetproxy.controller.ResendController;
+import packetproxy.encode.EncodeHTTP;
+import packetproxy.encode.EncodeHTTPBase;
+import packetproxy.encode.Encoder;
 import packetproxy.http.HeaderField;
 import packetproxy.http.Http;
-import packetproxy.model.Database;
+import packetproxy.model.*;
 import packetproxy.model.Database.DatabaseMessage;
-import packetproxy.model.Filters;
-import packetproxy.model.OptionTableModel;
-import packetproxy.model.Packet;
-import packetproxy.model.Packets;
 import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
 
@@ -670,6 +670,37 @@ TODO: support --data-binary
 			}
 		});
 
+		JMenuItem add_mock_response = createMenuItem ("Add mock response", -1, null, new ActionListener() {
+			public void actionPerformed(ActionEvent actionEvent) {
+				try {
+					Packet packet = gui_packet.getPacket();
+					MockResponses mock_responses = MockResponses.getInstance();
+
+					Encoder encoder = EncoderManager.getInstance().createInstance(packet.getEncoder(), null);
+					String hostname = packet.getServerIP();
+					String path = "";
+					if(encoder instanceof EncodeHTTPBase || encoder instanceof EncodeHTTP){
+						byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
+						Http http = new Http(data);
+						hostname = packet.getDirection()== Packet.Direction.CLIENT ? http.getHost(): packet.getServerIP();
+						int portInHostname = hostname.indexOf(String.format(":%d", packet.getServerPort()));
+						if(portInHostname>=0){
+							hostname = hostname.substring(0,portInHostname);
+						}
+						path = packet.getDirection()== Packet.Direction.CLIENT ? http.getPath(): "";
+					}
+
+					GUIOptionMockResponseDialog dlg = new GUIOptionMockResponseDialog(owner, hostname, packet.getServerPort() , path, "", "");
+					MockResponse mockResponse = dlg.showDialog();
+					if(null==mockResponse) return;
+					mock_responses.create(mockResponse);
+					updateAll();
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
+			}
+		});
+
 		menu.add(send);
 		menu.add(sendRepeater);
 		menu.add(copyAll);
@@ -684,6 +715,7 @@ TODO: support --data-binary
 		menu.add(copyAsCurl);
 		menu.add(delete_selected_items);
 		menu.add(delete_all);
+		menu.add(add_mock_response);
 
 		
 		table.addKeyListener(new KeyAdapter() {
