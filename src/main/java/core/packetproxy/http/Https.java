@@ -156,19 +156,29 @@ public class Https {
 		return new SSLSocket[]{ clientSSLSocket, serverSSLSocket[0] };
 	}
 
-	public static SSLSocket convertToServerSSLSocket(Socket socket, String commonName, CA ca, InputStream is) throws Exception {
+	public static SSLSocket convertToServerSSLSocket(Socket socket, String commonName, CA ca, InputStream is, String[] alpns) throws Exception {
 		SSLContext sslContext = createSSLContext(commonName, ca);
 		SSLSocketFactory ssf = sslContext.getSocketFactory();
 		SSLSocket ssl_socket  = (SSLSocket)ssf.createSocket(socket, is, true);
 		ssl_socket.setUseClientMode(false);
 
 		SSLParameters sslp = ssl_socket.getSSLParameters();
-		String[] serverAPs ={ "h2", "http/1.1", "http/1.0" };
+		String[] serverAPs;
+		if(alpns.length>0) {
+			serverAPs = alpns;
+		}else{
+			serverAPs = new String[]{"h2", "http/1.1", "http/1.0"};
+		}
 		sslp.setApplicationProtocols(serverAPs);
 		ssl_socket.setSSLParameters(sslp);
 
 		ssl_socket.startHandshake();
 		return ssl_socket;
+	}
+
+	public static SSLSocket convertToServerSSLSocket(Socket socket, String commonName, CA ca, InputStream is) throws Exception {
+		String[] serverAPs ={ "h2", "http/1.1", "http/1.0" };
+		return convertToServerSSLSocket(socket, commonName, ca, is, serverAPs);
 	}
 
 	private static SSLSocketFactory createSSLSocketFactory() throws Exception {

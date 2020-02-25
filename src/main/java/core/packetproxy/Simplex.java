@@ -216,9 +216,10 @@ class Simplex extends Thread
 				util.packetProxyLogErrWithStackTrace(e);
 			}
 		} catch (SSLException e) {
-			//System.err.println(String.format("SSLException: %s", e.getMessage()));
+			System.err.println(String.format("SSLException: %s", e.getMessage()));
 		} catch (SocketException e) {
-			//System.err.println(String.format("SocketException: %s", e.getMessage()));
+			e.printStackTrace();
+			System.err.println(String.format("SocketException: %s", e.getMessage()));
 		} catch (Exception e) {
 			e.printStackTrace();
 			util.packetProxyLogErrWithStackTrace(e);

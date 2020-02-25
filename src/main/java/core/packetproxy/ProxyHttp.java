@@ -15,22 +15,17 @@
  */
 package packetproxy;
 
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
 import packetproxy.Simplex.SimplexEventAdapter;
-import packetproxy.common.Endpoint;
-import packetproxy.common.EndpointFactory;
-import packetproxy.common.SSLSocketEndpoint;
-import packetproxy.common.SocketEndpoint;
+import packetproxy.common.*;
 import packetproxy.http.Http;
 import packetproxy.http.Https;
-import packetproxy.model.ListenPort;
-import packetproxy.model.SSLPassThroughs;
-import packetproxy.model.Server;
-import packetproxy.model.Servers;
+import packetproxy.model.*;
 import packetproxy.util.PacketProxyUtility;
 
 public class ProxyHttp extends Proxy
@@ -66,9 +61,11 @@ public class ProxyHttp extends Proxy
 						synchronized (client_loopback) {
 
 							Http http = new Http(data);
+							MockResponse mockResponse;
 							//System.out.println(String.format("%s: %s:%s", http.getMethod(), http.getServerName(), http.getServerPort()));
 
 							if (http.getMethod().equals("CONNECT")) {
+								mockResponse = MockResponses.getInstance().queryByAddress(http.getServerAddr());
 
 								// HTTP2対応の都合上、ALPNを早期に確定する必要がある。
 								// そのため、早めに「connection established」を返すことで、早めにSSLハンドシェイクを実施できるよう準備する。
@@ -81,15 +78,25 @@ public class ProxyHttp extends Proxy
 								}
 
 								if (SSLPassThroughs.getInstance().includes(serverName, listen_info.getPort())) {
-									SocketEndpoint server_e = new SocketEndpoint(http.getServerAddr());
+									Endpoint server_e = (null!=mockResponse && mockResponse.isEnabled())
+											? new MockEndPoint(http.getServerAddr(), mockResponse.getMockResponse().getBytes())
+											: new SocketEndpoint(http.getServerAddr());
 									SocketEndpoint client_e = new SocketEndpoint(client);
 									DuplexAsync d = new DuplexAsync(client_e, server_e);
 									d.start();
 
 								} else {
 									SSLSocketEndpoint clientE;
-									SSLSocketEndpoint serverE;
-									if (listen_info.getServer() != null) { // upstream proxyに接続する時
+									Endpoint serverE;
+									if(null!=mockResponse && mockResponse.isEnabled()){ // mock responseが指定されているとき
+										/*
+										TODO: MockResponseのHTTP/2対応
+										現時点ではMockResponseがHTTP/2で動かすとレスポンスが帰ってこない。
+										暫定でALPNにHTTP/1.0, HTTP/1.1を指定して回避している。
+										 */
+										clientE = EndpointFactory.createClientEndpointFromSNIServerName(client, http.getServerName(), listen_info.getCA().get(), null, new String[]{"http/1.1", "http/1.0"});
+										serverE = new MockEndPoint(http.getServerAddr(), mockResponse.getMockResponse().getBytes());
+									}else if (listen_info.getServer() != null) { // upstream proxyに接続する時
 										SSLSocketEndpoint[] es = EndpointFactory.createBothSideSSLEndpoints(client, null, http.getServerAddr(), listen_info.getServer().getAddress(), http.getServerName(), listen_info.getCA().get());
 										clientE = es[0];
 										serverE = es[1];
@@ -112,20 +119,24 @@ public class ProxyHttp extends Proxy
 								client_loopback.finishWithoutClose();
 
 							} else if (http.isProxy()) {
+								mockResponse = MockResponses.getInstance().queryByAddressAndPath(http.getServerAddr(), http.getPath());
 
 								SocketEndpoint client_e = new SocketEndpoint(client);
 								Server next = listen_info.getServer();
 								Endpoint server_e = null;
-
-								if (next != null) { // connect to upstream proxy
-									server_e = new SocketEndpoint(next.getAddress());
-								} else {
-									http.disableProxyFormatUrl(); // direct connect!
-									Server s = Servers.getInstance().queryByAddress(http.getServerAddr());
-									if (s != null) {
-										server_e = EndpointFactory.createFromServer(s);
+								if(null!=mockResponse && mockResponse.isEnabled()){ // mock responseが指定されているとき
+									server_e = new MockEndPoint(http.getServerAddr(), mockResponse.getMockResponse().getBytes());
+								}else {
+									if (next != null) { // connect to upstream proxy
+										server_e = new SocketEndpoint(next.getAddress());
 									} else {
-										server_e = new SocketEndpoint(http.getServerAddr());
+										http.disableProxyFormatUrl(); // direct connect!
+										Server s = Servers.getInstance().queryByAddress(http.getServerAddr());
+										if (s != null) {
+											server_e = EndpointFactory.createFromServer(s);
+										} else {
+											server_e = new SocketEndpoint(http.getServerAddr());
+										}
 									}
 								}
 

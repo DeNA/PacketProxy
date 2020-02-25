@@ -50,6 +50,11 @@ public class EndpointFactory
 		return endpoints;
 	}
 	
+	public static SSLSocketEndpoint createClientEndpointFromSNIServerName(Socket socket, String serverName, CA ca, InputStream is, String[] alpns) throws Exception {
+		SSLSocket ssl_client = Https.convertToServerSSLSocket(socket, serverName, ca, is, alpns);
+		return new SSLSocketEndpoint(ssl_client, serverName);
+	}
+
 	public static SSLSocketEndpoint createClientEndpointFromSNIServerName(Socket socket, String serverName, CA ca, InputStream is) throws Exception {
 		SSLSocket ssl_client = Https.convertToServerSSLSocket(socket, serverName, ca, is);
 		return new SSLSocketEndpoint(ssl_client, serverName);

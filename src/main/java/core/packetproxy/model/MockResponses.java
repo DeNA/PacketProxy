@@ -18,6 +18,8 @@ package packetproxy.model;
 import com.j256.ormlite.dao.Dao;
 import packetproxy.model.Database.DatabaseMessage;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -41,6 +43,9 @@ public class MockResponses extends Observable implements Observer {
 		dao = database.createTable(MockResponse.class, this);
 	}
 	public void create(MockResponse mockResponse) throws Exception {
+		if(null==mockResponse){
+			return;
+		}
 		if (isAlreadyEnabled(mockResponse) == true) {
 			mockResponse.setDisabled();
 		} else {
@@ -63,7 +68,53 @@ public class MockResponses extends Observable implements Observer {
 	public List<MockResponse> queryEnabled() throws Exception {
 		return dao.queryBuilder().where().eq("enabled", true).query();
 	}
+	public MockResponse queryByAddress(InetSocketAddress addr) throws Exception {
+		List<MockResponse> all = this.queryAll();
+		if (addr.getAddress() == null) {
+			throw new Exception(String.format("cannot resolv hostname: %s", addr.getHostName()));
+		}
+		if (addr.getPort() == 0) {
+			throw new Exception(String.format("cannot resolv portnumber: %s", addr.getPort()));
+		}
+		String target = addr.getAddress().getHostAddress();
+		for (MockResponse server : all) {
+			List<InetAddress> ips = server.getIps();
+			for ( InetAddress ip : ips) {
+				if (ip.getHostAddress().equals(target) && server.getPort()==addr.getPort()){
+					return server;
+				}
+			}
+		}
+		return null;
+	}
+	public MockResponse queryByAddressAndPath(InetSocketAddress addr, String path) throws Exception {
+		List<MockResponse> all = this.queryAll();
+		if (addr.getAddress() == null) {
+			throw new Exception(String.format("cannot resolv hostname: %s", addr.getHostName()));
+		}
+		if (addr.getPort() == 0) {
+			throw new Exception(String.format("cannot resolv portnumber: %s", addr.getPort()));
+		}
+		String target = addr.getAddress().getHostAddress();
+		for (MockResponse server : all) {
+			if(!server.isEnabled()){
+				continue;
+			}
+			List<InetAddress> ips = server.getIps();
+			for ( InetAddress ip : ips) {
+				if (ip.getHostAddress().equals(target) && server.getPort()==addr.getPort() && path.matches(server.getPath())){
+					return server;
+				}
+			}
+		}
+		return null;
+	}
+	public MockResponse queryByHostName(String hostname) throws Exception {
+		return dao.queryBuilder().where().eq("ip", hostname).queryForFirst();
+	}
 	public boolean isAlreadyEnabled(MockResponse port) throws Exception {
+		if(null==port)
+			return false;
 		return (dao.queryBuilder().where()
 				.ne("id", port.getId())
 				.and()
@@ -72,6 +123,8 @@ public class MockResponses extends Observable implements Observer {
 				.eq("enabled", true).countOf() > 0) ? true : false;
 	}
 	public void update(MockResponse mockResponse) throws Exception {
+		if(null==mockResponse)
+			return;
 		if (mockResponse.isEnabled() && isAlreadyEnabled(mockResponse))
 			return;
 		dao.update(mockResponse);

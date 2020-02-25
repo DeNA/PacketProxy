@@ -26,12 +26,13 @@ import java.awt.event.ActionListener;
 public class GUIOptionMockResponseDialog extends JDialog
 {
 	private static final long serialVersionUID = 1L;
+	private static final String DEFAULT_MOCK_RESPONSE = "HTTP/1.0 200 OK\nServer: MockServer\nContent-type: text/html\n\nMock response\n";
 	private JButton button_cancel = new JButton(I18nString.get("Cancel"));
 	private JButton button_set = new JButton(I18nString.get("Save"));
 	private HintTextField text_ip = new HintTextField("(ex.) aaa.bbb.ccc.com or 1.2.3.4");
 	private HintTextField text_port = new HintTextField("(ex.) 80");
-	private HintTextField text_path = new HintTextField("(ex.) /testpath");
-	private HintTextField text_mock_response = new HintTextField("(ex.) {'test':'hello'}");
+	private HintTextField text_path = new HintTextField("(ex.) \\/sample\\/.*");
+	private HintTextArea text_mock_response = new HintTextArea("(ex.) "+DEFAULT_MOCK_RESPONSE, 600, 300);
 	private HintTextField text_comment = new HintTextField("(ex.) game server for test");
 	private int height = 500;
 	private int width = 700;
@@ -47,6 +48,17 @@ public class GUIOptionMockResponseDialog extends JDialog
 	    panel.add(object);
 		return panel;
 	}
+
+	private JComponent label_and_object_no_set_maximumsize(String label_name, JComponent object) {
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+		JLabel label = new JLabel(label_name);
+		label.setPreferredSize(new Dimension(150, label.getMaximumSize().height));
+		panel.add(label);
+		panel.add(object);
+		return panel;
+	}
+
 	private JComponent buttons() {
 	    JPanel panel_button = new JPanel();
 	    panel_button.setLayout(new BoxLayout(panel_button, BoxLayout.X_AXIS));
@@ -82,6 +94,7 @@ public class GUIOptionMockResponseDialog extends JDialog
 				button_cancel.requestFocusInWindow();
 			}
 		});
+		text_mock_response.setText(DEFAULT_MOCK_RESPONSE);
 		setModal(true);
 		setVisible(true);
 		return mockResponse;
@@ -94,10 +107,10 @@ public class GUIOptionMockResponseDialog extends JDialog
 	    return label_and_object(I18nString.get("Server port:"), text_port);
 	}
 	private JComponent createPathSetting() {
-		return label_and_object(I18nString.get("Path:"), text_path);
+		return label_and_object(I18nString.get("Path(regex):"), text_path);
 	}
 	private JComponent createMockResponseSetting() {
-		return label_and_object(I18nString.get("Mock response:"), text_mock_response);
+		return label_and_object_no_set_maximumsize(I18nString.get("Mock response:"), text_mock_response);
 	}
 	private JComponent createCommentSetting() {
 	    return label_and_object(I18nString.get("Comments:"), text_comment);
