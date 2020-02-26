@@ -141,16 +141,18 @@ public class PrivateDNS
 
 		public void run() {
 			util.packetProxyLog("Private DNS Server started.");
-			String lastSpoofingIp = "";
 			while (true) {
 				try {
-					if(!lastSpoofingIp.equals(spoofingIp.get())){
-						lastSpoofingIp = spoofingIp.get();
-						util.packetProxyLog("spoofing IP: " + lastSpoofingIp);
-					}
 					soc.receive(recvPacket);
 					cAddr = recvPacket.getAddress();
 					cPort = recvPacket.getPort();
+
+					String spoofingIpStr = "";
+					if (spoofingIp.isAuto()) {
+						spoofingIpStr = cAddr.getHostAddress();
+					} else {
+						spoofingIpStr = spoofingIp.get();
+					}
 
 					byte[] requestData = recvPacket.getData();
 
@@ -164,7 +166,8 @@ public class PrivateDNS
 						util.packetProxyLog(String.format("[DNS Query] '%s'", queryHostName));
 						String ip = Inet4Address.getByName(queryHostName).getHostAddress();
 						if (isTargetHost(queryHostName)) {
-							ip = spoofingIp.get();
+							ip = spoofingIpStr;
+							util.packetProxyLog("Replaced to " + spoofingIpStr);
 						}
 						jnamed jn = new jnamed(ip);
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
@@ -197,7 +200,6 @@ public class PrivateDNS
 			List<Server> server_list = servers.queryResolvedByDNS();
 			for (Server server : server_list) {
 				if (hostName.equals(server.getIp())) {
-					util.packetProxyLog("Replaced to " + spoofingIp.get());
 					return true;
 				}
 			}

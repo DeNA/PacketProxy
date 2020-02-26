@@ -114,6 +114,10 @@ public class GUIOptionPrivateDNS implements Observer
 	private void radioButtonChangeHandler(ActionEvent e){
 		textField.setEnabled(manual.isSelected());
 	}
+	
+	public boolean isAutoSpoofing() {
+		return auto.isSelected();
+	}
 
 	public String getSpoofingIP(){
 		if(auto.isSelected()){
