@@ -32,12 +32,9 @@ public class ProxyFactory {
 			proxy = new ProxyHttp(listen_socket, listen_info);
 
 		} else if (listen_info.getType() == ListenPort.TYPE.SSL_FORWARDER) {
-			String commonName = listen_info.getServer().getIp();
-			if (listen_info.getCA().isPresent()) {
-				CA ca = listen_info.getCA().get();
-				ServerSocket listen_socket = Https.createServerSSLSocket(listen_info.getPort(), commonName, ca);
-				proxy = new ProxyForward(listen_socket, listen_info);
-			}
+			PacketProxyUtility.getInstance().packetProxyLog("type is SSL_FORWARDER");
+			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
+			proxy = new ProxySSLForward(listen_socket, listen_info);
 
 		} else if (listen_info.getType() == ListenPort.TYPE.HTTP_TRANSPARENT_PROXY) {
 			PacketProxyUtility.getInstance().packetProxyLog("type is HTTP_TRANSPARENT_PROXY");
@@ -52,7 +49,7 @@ public class ProxyFactory {
 		} else if (listen_info.getType() == ListenPort.TYPE.UDP_FORWARDER) {
 			proxy = new ProxyUDPForward(listen_info);
 
-		} else {
+		} else { /* FORWARDER */
 			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
 			listen_socket.setReuseAddress(true);
 			proxy = new ProxyForward(listen_socket, listen_info);
