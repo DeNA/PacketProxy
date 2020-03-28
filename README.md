@@ -37,6 +37,10 @@ It can be used for development assistance or for risk assessments.
   
 [Download](https://github.com/DeNA/PacketProxy/releases) the version corresponding to your OS and run the installer. 
 
+Or
+
+Just type `$ brew cask install packetproxy` if you use MacOS.
+
 # Usage
 
 Please see this page: [For Users](https://github.com/DeNA/PacketProxy/wiki/Using-PacketProxy)
