@@ -34,6 +34,11 @@ PacketProxyは、HTTP1/HTTP2/HTTPS通信だけでなく、より低レイヤー�
   
 [ダウンロードページ](https://github.com/DeNA/PacketProxy/releases)より、各OS用のイメージをダウンロードしてインストールしてください。
 
+あるいは、
+
+MacOSでHomebrew-caskを利用しているなら `$ brew cask install packetproxy` コマンドで簡単にインストールすることもできます。
+（有志の方、caskへの登録ありがとうございました！）
+
 # 使ってみる
 
 [利用者のページ](https://github.com/DeNA/PacketProxy/wiki/%E4%BD%BF%E3%81%A3%E3%81%A6%E3%81%BF%E3%82%8B)をみてください。
