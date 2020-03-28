@@ -39,7 +39,7 @@ It can be used for development assistance or for risk assessments.
 
 Or
 
-Just type `$ brew cask install packetproxy` if you use MacOS.
+Just type `$ brew cask install packetproxy` if you use Homebrew-cask on MacOS.
 
 # Usage
 
