@@ -88,6 +88,15 @@ public abstract class Encoder
 	}
 
 	/**
+	 * 再送するときに、新しいエンコーダーを利用するか、それとも既存のエンコーダーを利用するかの使い分け
+	 * true: 新しいエンコーダーを利用する (Default)
+	 * false: 既存のエンコーダーを利用する
+	 */
+	public boolean useNewEncoderForResend() {
+		return true;
+	}
+
+	/**
 	 * パケットのheadlineを返す。履歴ウィンドウで利用されます。
 	 * 文字化けすると重たくなるのでデフォルトではASCIIで表示可能な部分のみ表示する
 	 */
