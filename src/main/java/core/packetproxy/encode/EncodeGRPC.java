@@ -15,12 +15,12 @@
  */
 package packetproxy.encode;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+
 import packetproxy.common.Protobuf3;
 import packetproxy.http.Http;
 import packetproxy.http2.Grpc;
-
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 public class EncodeGRPC extends EncodeHTTPBase
 {
@@ -72,6 +72,9 @@ public class EncodeGRPC extends EncodeHTTPBase
 	@Override
 	protected Http decodeServerResponseHttp(Http inputHttp) throws Exception {
 		byte[] raw = inputHttp.getBody();
+		if (raw.length == 0) {
+			return inputHttp;
+		}
 		compressedFlag = raw[0];
 		int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, 1, 5)).getInt();
 		byte[] byteBasedMsg = Arrays.copyOfRange(raw, 5, 5+messageLength);
@@ -82,6 +85,9 @@ public class EncodeGRPC extends EncodeHTTPBase
 
 	@Override
 	protected Http encodeServerResponseHttp(Http inputHttp) throws Exception {
+		if (inputHttp.getBody().length == 0) {
+			return inputHttp;
+		}
 		byte[] encodeBytes = Protobuf3.encode(new String(inputHttp.getBody(),"UTF-8"));
 		int messageLength = encodeBytes.length;
 		byte[] raw = new byte[5+messageLength];

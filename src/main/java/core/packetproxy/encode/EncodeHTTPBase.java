@@ -41,7 +41,7 @@ public abstract class EncodeHTTPBase extends Encoder
 			httpVersion = HTTPVersion.HTTP1;
 		} else if (ALPN.equals("http/1.0") || ALPN.equals("http/1.1")) {
 			httpVersion = HTTPVersion.HTTP1;
-		} else if (ALPN.equals("h2")) {
+		} else if (ALPN.equals("h2") || ALPN.equals("grpc") || ALPN.equals("grpc-exp")) {
 			httpVersion = HTTPVersion.HTTP2;
 			http2 = new Http2();
 		} else {
@@ -55,7 +55,7 @@ public abstract class EncodeHTTPBase extends Encoder
 			httpVersion = HTTPVersion.HTTP1;
 		} else if (ALPN.equals("http/1.0") || ALPN.equals("http/1.1")) {
 			httpVersion = HTTPVersion.HTTP1;
-		} else if (ALPN.equals("h2")) {
+		} else if (ALPN.equals("h2") || ALPN.equals("grpc") || ALPN.equals("grpc-exp")) {
 			httpVersion = HTTPVersion.HTTP2;
 			this.http2 = http2CustomFrame;
 		} else {
