@@ -51,16 +51,8 @@ public abstract class EncodeHTTPBase extends Encoder
 
 	public EncodeHTTPBase(String ALPN, FramesBase http2CustomFrame) throws Exception {
 		super(ALPN);
-		if (ALPN == null) {
-			httpVersion = HTTPVersion.HTTP1;
-		} else if (ALPN.equals("http/1.0") || ALPN.equals("http/1.1")) {
-			httpVersion = HTTPVersion.HTTP1;
-		} else if (ALPN.equals("h2") || ALPN.equals("grpc") || ALPN.equals("grpc-exp")) {
-			httpVersion = HTTPVersion.HTTP2;
-			this.http2 = http2CustomFrame;
-		} else {
-			httpVersion = HTTPVersion.HTTP1;
-		}
+		httpVersion = HTTPVersion.HTTP2;
+		this.http2 = http2CustomFrame;
 	}
 	
 	public HTTPVersion getHttpVersion() { return httpVersion; }
