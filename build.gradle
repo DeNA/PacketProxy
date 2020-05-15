@@ -332,7 +332,7 @@ task izpackWin64 (type: CreateInstallerTask, dependsOn: ['createWin64Target', 'p
 task createMacJPackage(type: Exec, dependsOn: "prepareJPackage") {
   workingDir "${projectDir}"
   commandLine = [
-    "/Library/Java/JavaVirtualMachines/jdk-14-jpackage.jdk/Contents/Home/bin/jpackage",
+    "/Library/Java/JavaVirtualMachines/jdk-15.jdk/Contents/Home/bin/jpackage",
     "--verbose",
     "-d", "${project.ext.pathMacWorkDir}",
     "-n", "PacketProxy",
