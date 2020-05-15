@@ -393,7 +393,7 @@ public class GUIHistory implements Observer
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					Packet packet = gui_packet.getPacket();
-					Http http = new Http(packet.getSentData());
+					Http http = new Http(packet.getDecodedData());
 					CharSetUtility charsetutil = CharSetUtility.getInstance();
 					if(charsetutil.isAuto()){
 						charsetutil.setGuessedCharSet(http.getBody());
@@ -415,7 +415,7 @@ public class GUIHistory implements Observer
 				try {
 					int id = GUIHistory.getInstance().getSelectedPacketId();
 					Packet packet = Packets.getInstance().query(id);
-					Http http = new Http(packet.getSentData());
+					Http http = new Http(packet.getDecodedData());
 					String url = http.getURL(packet.getServerPort());
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(url);
