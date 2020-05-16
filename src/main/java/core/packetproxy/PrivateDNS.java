@@ -16,15 +16,22 @@
 package packetproxy;
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.InterfaceAddress;
+import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.net.BindException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 
+import org.apache.commons.net.util.SubnetUtils;
+import org.apache.commons.net.util.SubnetUtils.SubnetInfo;
 import org.xbill.DNS.DNSSpoofingIPGetter;
 import org.xbill.DNS.Message;
 import org.xbill.DNS.jnamed;
@@ -32,7 +39,6 @@ import org.xbill.DNS.jnamed;
 import packetproxy.model.ConfigBoolean;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
-
 import packetproxy.util.PacketProxyUtility;
 
 public class PrivateDNS
@@ -46,6 +52,39 @@ public class PrivateDNS
 	private Servers servers;
 	private Object lock;
 	private PacketProxyUtility util;
+	private SpoofAddrFactory spoofAddrFactry = new SpoofAddrFactory();
+	
+	class SpoofAddrFactory {
+		private List<SubnetInfo> subnets = new ArrayList<SubnetInfo>();
+		private String defaultAddr = null;
+
+		SpoofAddrFactory() throws Exception {
+			Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
+			for (NetworkInterface netint : Collections.list(nets)) {
+				for (InterfaceAddress intAddress : netint.getInterfaceAddresses()) {
+					InetAddress addr = intAddress.getAddress();
+					if (addr instanceof Inet4Address) {
+						String cidr = String.format("%s/%d", addr.getHostAddress(), intAddress.getNetworkPrefixLength());
+						SubnetUtils subnet = new SubnetUtils(cidr);
+						subnets.add(subnet.getInfo());
+						if (defaultAddr == null) {
+							defaultAddr = addr.getHostAddress();
+						} else if (defaultAddr.equals("127.0.0.1")) {
+							defaultAddr = addr.getHostAddress();
+						}
+					}
+				}
+			}
+		}
+		String getSpoofAddr(String addr) {
+			for (SubnetInfo info : subnets) {
+				if (info.isInRange(addr)) {
+					return info.getAddress();
+				}
+			}
+			return defaultAddr;
+		}
+	}
 
 	public static PrivateDNS getInstance() throws Exception {
 		if (instance == null) {
@@ -149,7 +188,7 @@ public class PrivateDNS
 
 					String spoofingIpStr = "";
 					if (spoofingIp.isAuto()) {
-						spoofingIpStr = cAddr.getHostAddress();
+						spoofingIpStr = spoofAddrFactry.getSpoofAddr(cAddr.getHostAddress());
 					} else {
 						spoofingIpStr = spoofingIp.get();
 					}
