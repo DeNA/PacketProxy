@@ -8,6 +8,10 @@ public class DNSSpoofingIPGetter {
 		this.gui = gui;
 	}
 	
+	public boolean isAuto(){
+		return gui.isAutoSpoofing();
+	}
+	
 	public String get(){
 		return gui.getSpoofingIP();
 	}
