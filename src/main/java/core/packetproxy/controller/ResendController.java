@@ -93,7 +93,6 @@ public class ResendController
 		int count;
 		OneShotPacket oneshot;
 		OneShotPacket[] oneshots;
-		boolean isDirectSend = false;
 
 		// 同じパケットを複数再送
 		public ResendWorker(OneShotPacket oneshot, int count) {
@@ -112,10 +111,6 @@ public class ResendController
 		@Override
 		protected Object doInBackground() throws Exception {
 			try {
-				Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(), oneshot.getAlpn());
-				if (encoder.useNewConnectionForResend() == false && encoder.useNewEncoderForResend() == false) {
-					isDirectSend = true;
-				}
 				ArrayList<DataToBeSend> list = new ArrayList<DataToBeSend>();
 				if (this.oneshot != null && this.count > 0) {
 					for (int i = 0; i < this.count; i++) {
@@ -135,23 +130,22 @@ public class ResendController
 					util.packetProxyLogErr("Resend packet is wrong!");
 					return null;
 				}
-				if (isDirectSend) {
-					list.stream().forEach(sendData -> {
-						try {
-							sendData.send();
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					});
-				} else {
-					list.stream().parallel().forEach(sendData -> {
-						try {
-							sendData.send();
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					});
-				}
+				
+				list.stream().filter(o -> o.isDirectSend()).forEach(sendData -> {
+					try {
+						sendData.send();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				});
+				list.stream().filter(o -> !o.isDirectSend()).parallel().forEach(sendData -> {
+					try {
+						sendData.send();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				});
+
 			} catch (SocketTimeoutException e) {
 				PacketProxyUtility.getInstance().packetProxyLogErr("Resend Connection is timeout!");
 				PacketProxyUtility.getInstance().packetProxyLogErr("All resend packets are dropped.");
@@ -167,12 +161,14 @@ public class ResendController
 			private byte[] preparedData;
 			private Consumer<OneShotPacket> onReceived;
 			private boolean isSync;
+			private boolean isDirectSend = false;
 
 			public DataToBeSend(OneShotPacket oneshot, Consumer<OneShotPacket> onReceived) throws Exception {
 				this.oneshot = oneshot;
 				this.onReceived = onReceived;
 				Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(), oneshot.getAlpn());
-				if (isDirectSend) {
+				if (encoder.useNewConnectionForResend() == false && encoder.useNewEncoderForResend() == false) {
+					this.isDirectSend = true;
 					this.duplex = DuplexManager.getInstance().getDuplex(oneshot.getConn());
 					this.preparedData = this.oneshot.getData();
 					return;
@@ -194,12 +190,16 @@ public class ResendController
 				}	
 				this.preparedData = this.duplex.prepareFastSend(this.oneshot.getData());
 			}
+			
+			public boolean isDirectSend() {
+				return this.isDirectSend;
+			}
 
 			public void send() throws Exception {
 				if (duplex == null)
 					return;
 				
-				if (isDirectSend) {
+				if (this.isDirectSend) {
 					this.duplex.sendToServer(this.preparedData);
 					OneShotPacket result = new OneShotPacket(
 						oneshot.getId(),
