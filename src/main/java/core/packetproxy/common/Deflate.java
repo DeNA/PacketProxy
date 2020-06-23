@@ -15,11 +15,10 @@
  */
 package packetproxy.common;
 
+import java.io.ByteArrayOutputStream;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 
 public class Deflate {
     public byte[] decompress(byte[] data){
