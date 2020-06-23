@@ -27,6 +27,10 @@ public class EncodeGRPC extends EncodeHTTPBase
 
 	private byte compressedFlag;
 
+	public EncodeGRPC() throws Exception {
+		super();
+	}
+
 	public EncodeGRPC(String ALPN) throws Exception {
 		super(ALPN, new Grpc());
 	}
@@ -42,6 +46,7 @@ public class EncodeGRPC extends EncodeHTTPBase
 		compressedFlag = raw[0];
 		int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, 1, 5)).getInt();
 		byte[] byteBasedMsg = Arrays.copyOfRange(raw, 5, 5+messageLength);
+		byteBasedMsg = decodeGrpcClientPayload(byteBasedMsg);
 		String json = Protobuf3.decode(byteBasedMsg);
 		inputHttp.setBody(json.getBytes("UTF-8"));
 		return inputHttp;
@@ -50,6 +55,7 @@ public class EncodeGRPC extends EncodeHTTPBase
 	@Override
 	protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
 		byte[] encodeBytes = Protobuf3.encode(new String(inputHttp.getBody(),"UTF-8"));
+		encodeBytes = encodeGrpcClientPayload(encodeBytes);
 		int messageLength = encodeBytes.length;
 		byte[] raw = new byte[5+messageLength];
 
@@ -78,6 +84,7 @@ public class EncodeGRPC extends EncodeHTTPBase
 		compressedFlag = raw[0];
 		int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, 1, 5)).getInt();
 		byte[] byteBasedMsg = Arrays.copyOfRange(raw, 5, 5+messageLength);
+		byteBasedMsg = decodeGrpcServerPayload(byteBasedMsg);
 		String json = Protobuf3.decode(byteBasedMsg);
 		inputHttp.setBody(json.getBytes("UTF-8"));
 		return inputHttp;
@@ -89,6 +96,7 @@ public class EncodeGRPC extends EncodeHTTPBase
 			return inputHttp;
 		}
 		byte[] encodeBytes = Protobuf3.encode(new String(inputHttp.getBody(),"UTF-8"));
+		encodeBytes = encodeGrpcServerPayload(encodeBytes);
 		int messageLength = encodeBytes.length;
 		byte[] raw = new byte[5+messageLength];
 
@@ -107,4 +115,9 @@ public class EncodeGRPC extends EncodeHTTPBase
 		inputHttp.setBody(raw);
 		return inputHttp;
 	}
+
+	public byte[] decodeGrpcClientPayload(byte[] payload) throws Exception { return payload; }
+	public byte[] encodeGrpcClientPayload(byte[] payload) throws Exception { return payload; }
+	public byte[] decodeGrpcServerPayload(byte[] payload) throws Exception { return payload; }
+	public byte[] encodeGrpcServerPayload(byte[] payload) throws Exception { return payload; }
 }

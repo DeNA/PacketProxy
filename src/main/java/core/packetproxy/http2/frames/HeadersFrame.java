@@ -54,7 +54,9 @@ public class HeadersFrame extends Frame
 	private String query;
 	private String uriString;
 	private HttpFields fields;
-	private boolean bRequest;
+	private boolean bRequest = false;
+	private boolean bResponse = false;
+	private boolean bTrailer = false;
 	private boolean isGRPC2ndResponseHeader;
 	private int status;
 	private HttpVersion version;
@@ -201,21 +203,19 @@ public class HeadersFrame extends Frame
     		authority = uri.getAuthority();
     		path = uri.getPath();
     		query = uri.getQuery();
-
+    		
+    	} else if (meta instanceof Response) {
+    		//System.out.println("# meta.response: " + meta);
+    		bResponse = true;
+    		Response res = (Response)meta;
+    		status = res.getStatus();
     	} else {
-    		try {
-    			//System.out.println("# meta.response: " + meta);
-    			bRequest = false;
-    			Response res = (Response)meta;
-    			status = res.getStatus();
-    		} catch (java.lang.ClassCastException e){
-    			bRequest = false;
-    			PacketProxyUtility.getInstance().packetProxyLog(String.format("%s", e.getStackTrace().toString()));
-    		}
+    		//gRPC Trailer Frame
+   			bTrailer = true;
     	}
     	fields = meta.getFields();
 
-    	if(!bRequest){
+    	if(bTrailer){
     		for(HttpField i:fields){
     			if(i.getName().contains("grpc-status")){
     				isGRPC2ndResponseHeader = true;
