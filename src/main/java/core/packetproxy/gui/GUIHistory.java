@@ -304,13 +304,40 @@ public class GUIHistory implements Observer
 			public Component prepareRenderer(TableCellRenderer tcr, int row, int column) {
 				Component c = super.prepareRenderer(tcr, row, column);
 				try {
-					boolean selected = (table.getSelectedRow() == row);
+					int[] selected_rows = table.getSelectedRows();
+					boolean selected = false;
+					boolean first_selected = false;
+					if(selected_rows.length>=2)
+					{
+						for (int i = 0; i < selected_rows.length; i++)
+				   		{
+							if(selected_rows[i]==row)
+							{
+								selected=true;
+								first_selected = (table.getSelectedRow() == row);
+								break;
+							}
+						}
+					}
+					else
+					{
+						selected = (table.getSelectedRow() == row);
+						first_selected = selected;
+					}
 					int packetId = (int)table.getValueAt(row, 0);
 					boolean modified = (boolean)table.getValueAt(row, table.getColumnModel().getColumnIndex("Modified"));
 					boolean resend = (boolean)table.getValueAt(row, table.getColumnModel().getColumnIndex("Resend"));
 					if (selected) {
-						c.setForeground(new Color(0xff, 0xff, 0xff));
-						c.setBackground(new Color(0x80, 0x80, 0xff));
+						if(first_selected)
+						{
+							c.setForeground(new Color(0xff, 0xff, 0xff));
+							c.setBackground(new Color(0x80, 0x80, 0xff));
+						}
+						else
+						{
+							c.setForeground(new Color(0xff, 0xff, 0xff));
+							c.setBackground(new Color(0xc0, 0xc0, 0xff));
+						}
 					} else if (colorManager.contains(packetId)) {
 						c.setForeground(new Color(0x00, 0x00, 0x00));
 						c.setBackground(colorManager.getColor(packetId));
@@ -550,6 +577,23 @@ public class GUIHistory implements Observer
 			}
 		});
 
+		JMenuItem delete_select_items = createMenuItem ("delete select items", -1, null, new ActionListener() {
+			public void actionPerformed(ActionEvent actionEvent) {
+				try {		
+					int[] selected_rows = table.getSelectedRows();
+					for (int i = 0; i < selected_rows.length; i++)
+					{
+						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
+						colorManager.clear(id);
+						packets.delete(packets.query(id));
+					}
+					updateAll();
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
+			}
+		});
+
 		JMenuItem delete_all = createMenuItem ("delete all items", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
@@ -626,6 +670,7 @@ TODO: support --data-binary
 		menu.add(clearColor);
 		menu.add(copyAsCurl);
 		menu.add(delete_item);
+		menu.add(delete_select_items);
 		menu.add(delete_all);
 
 		table.addKeyListener(new KeyAdapter() {
