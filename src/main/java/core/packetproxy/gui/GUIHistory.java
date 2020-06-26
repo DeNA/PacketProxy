@@ -564,20 +564,7 @@ public class GUIHistory implements Observer
 			}
 		});
 
-		JMenuItem delete_item = createMenuItem ("delete this item", -1, null, new ActionListener() {
-			public void actionPerformed(ActionEvent actionEvent) {
-				try {
-					Packet packet = gui_packet.getPacket();
-					colorManager.clear(packet.getId());
-					packets.delete(packet);
-					updateAll();
-				} catch (Exception e2) {
-					e2.printStackTrace();
-				}
-			}
-		});
-
-		JMenuItem delete_select_items = createMenuItem ("delete select items", -1, null, new ActionListener() {
+		JMenuItem delete_selected_items = createMenuItem ("delete selected items", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {		
 					int[] selected_rows = table.getSelectedRows();
@@ -669,8 +656,7 @@ TODO: support --data-binary
 		menu.add(addColorY);
 		menu.add(clearColor);
 		menu.add(copyAsCurl);
-		menu.add(delete_item);
-		menu.add(delete_select_items);
+		menu.add(delete_selected_items);
 		menu.add(delete_all);
 
 		table.addKeyListener(new KeyAdapter() {
