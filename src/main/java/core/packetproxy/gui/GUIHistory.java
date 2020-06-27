@@ -525,7 +525,13 @@ public class GUIHistory implements Observer
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					Color color = new Color(0x7f, 0xff, 0xd4);
-					colorManager.add(getSelectedPacketId(), color);
+					int[] selected_rows = table.getSelectedRows();
+					for (int i = 0; i < selected_rows.length; i++)
+					{
+						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
+						colorManager.add(id, color);
+					}
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -536,7 +542,12 @@ public class GUIHistory implements Observer
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					Color color = new Color(0xd2, 0x69, 0x1e);
-					colorManager.add(getSelectedPacketId(), color);
+					int[] selected_rows = table.getSelectedRows();
+					for (int i = 0; i < selected_rows.length; i++)
+					{
+						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
+						colorManager.add(id, color);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -547,7 +558,12 @@ public class GUIHistory implements Observer
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					Color color = new Color(0xff, 0xd7, 0x00);
-					colorManager.add(getSelectedPacketId(), color);
+					int[] selected_rows = table.getSelectedRows();
+					for (int i = 0; i < selected_rows.length; i++)
+					{
+						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
+						colorManager.add(id, color);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -557,7 +573,12 @@ public class GUIHistory implements Observer
 		JMenuItem clearColor = createMenuItem ("clear color", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					colorManager.clear(getSelectedPacketId());
+					int[] selected_rows = table.getSelectedRows();
+					for (int i = 0; i < selected_rows.length; i++)
+					{
+						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
+						colorManager.clear(id);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
