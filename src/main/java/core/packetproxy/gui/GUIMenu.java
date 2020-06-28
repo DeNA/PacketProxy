@@ -32,12 +32,14 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import packetproxy.common.I18nString;
 import packetproxy.model.Database;
 import packetproxy.model.Packets;
+import packetproxy.util.PacketProxyUtility;
 
 @SuppressWarnings("serial")
 public class GUIMenu extends JMenuBar {
 	final static private String defaultDir = System.getProperty("user.home");
 	GUIMenu self;
 	JFrame owner;
+	private enum Panes {HISTORY, INTERCEPT, REPEATER, BULKSENDER, OPTIONS, LOG};
 	public GUIMenu(JFrame owner) {
 		self = this;
 		this.owner = owner;
@@ -120,6 +122,88 @@ public class GUIMenu extends JMenuBar {
 				} catch (Exception e1) {
 					e1.printStackTrace();
 					JOptionPane.showMessageDialog(null, I18nString.get("Data can't be loaded with error"));
+				}
+			}
+		});
+
+		String cmd_key = "⌘ ^ ";
+		if (!PacketProxyUtility.getInstance().isMac()) {
+			cmd_key="Ctrl + ";
+		}
+		JMenu view_menu = new JMenu(I18nString.get("View"));
+		this.add(view_menu);
+		JMenuItem view_history = new JMenuItem(I18nString.get("View History")+"  "+cmd_key+"H");
+		view_menu.add(view_history);
+		view_history.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					GUIMain.getInstance().getTabbedPane().setSelectedIndex(Panes.HISTORY.ordinal());
+
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		JMenuItem view_intercept = new JMenuItem(I18nString.get("View Interceptor")+"  "+cmd_key+"I");
+		view_menu.add(view_intercept);
+		view_intercept.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					GUIMain.getInstance().getTabbedPane().setSelectedIndex(Panes.INTERCEPT.ordinal());
+
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});		
+		JMenuItem view_repeater = new JMenuItem(I18nString.get("View Resender")+"  "+cmd_key+"R");
+		view_menu.add(view_repeater);
+		view_repeater.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					GUIMain.getInstance().getTabbedPane().setSelectedIndex(Panes.REPEATER.ordinal());
+
+				} catch (Exception e1) {
+					e1.printStackTrace();	
+				}
+			}
+		});		
+		JMenuItem view_bulk_sender = new JMenuItem(I18nString.get("View BulkSender")+"  "+cmd_key+"B");
+		view_menu.add(view_bulk_sender);
+		view_bulk_sender.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					GUIMain.getInstance().getTabbedPane().setSelectedIndex(Panes.BULKSENDER.ordinal());
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});		
+		JMenuItem view_options = new JMenuItem(I18nString.get("View Options")+"  "+cmd_key+"O");
+		view_menu.add(view_options);
+		view_options.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					GUIMain.getInstance().getTabbedPane().setSelectedIndex(Panes.OPTIONS.ordinal());
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+		JMenuItem view_log = new JMenuItem(I18nString.get("View Log")+"  "+cmd_key+"L");
+		view_menu.add(view_log);
+		view_log.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					GUIMain.getInstance().getTabbedPane().setSelectedIndex(Panes.LOG.ordinal());
+				} catch (Exception e1) {
+					e1.printStackTrace();
 				}
 			}
 		});

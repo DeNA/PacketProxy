@@ -38,6 +38,7 @@ import javax.swing.KeyStroke;
 import packetproxy.controller.InterceptController;
 import packetproxy.model.InterceptModel;
 import packetproxy.model.Packet;
+import packetproxy.util.PacketProxyUtility;
 
 public class GUIIntercept implements Observer
 {
@@ -72,7 +73,11 @@ public class GUIIntercept implements Observer
 				}
 			}
 		});
-		forward_button = new JButton("forward ⌘F");
+		String cmd_key = "⌘";
+		if (!PacketProxyUtility.getInstance().isMac()) {
+			cmd_key="Ctrl+";
+		}
+		forward_button = new JButton("forward "+cmd_key+"F");
 		forward_button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
@@ -86,7 +91,7 @@ public class GUIIntercept implements Observer
 				try { intercept_controller.forward_multiple(getInterceptData()); } catch (Exception e1) { e1.printStackTrace(); }
 			}
 		});
-		drop_button = new JButton("drop ⌘D");
+		drop_button = new JButton("drop "+cmd_key+"D");
 		drop_button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -112,8 +117,12 @@ public class GUIIntercept implements Observer
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
 		int condition = JComponent.WHEN_IN_FOCUSED_WINDOW;
+		int mask_key = KeyEvent.META_MASK;
+		if (!PacketProxyUtility.getInstance().isMac()) {
+			mask_key = KeyEvent.CTRL_MASK;
+		}
 
-		KeyStroke keyStroke_forward = KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.META_MASK);
+		KeyStroke keyStroke_forward = KeyStroke.getKeyStroke(KeyEvent.VK_F, mask_key);
 		InputMap inputMap_forward = forward_button.getInputMap(condition);
 		ActionMap actionMap_forward = forward_button.getActionMap();
 		inputMap_forward.put(keyStroke_forward, keyStroke_forward.toString());
@@ -124,7 +133,7 @@ public class GUIIntercept implements Observer
 			}
 		});
 
-		KeyStroke keyStroke_drop = KeyStroke.getKeyStroke(KeyEvent.VK_D, KeyEvent.META_MASK);
+		KeyStroke keyStroke_drop = KeyStroke.getKeyStroke(KeyEvent.VK_D, mask_key);
 		InputMap inputMap_drop = forward_button.getInputMap(condition);
 		ActionMap actionMap_drop = forward_button.getActionMap();
 		inputMap_drop.put(keyStroke_drop, keyStroke_drop.toString());

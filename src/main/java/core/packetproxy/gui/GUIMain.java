@@ -86,7 +86,29 @@ public class GUIMain extends JFrame implements Observer
 		return instance;
 	}
 
+	public JTabbedPane getTabbedPane()
+	{
+		return this.tabbedpane;
+	}
+	
 	private String getPaneString(Panes num) {
+		if (!PacketProxyUtility.getInstance().isMac()) {
+			switch (num) {
+				case HISTORY:
+					return "History";
+				case INTERCEPT:
+					return "Interceptor";
+				case REPEATER:
+					return "Resender";
+				case BULKSENDER:
+					return "Bulk Sender";
+				case OPTIONS:
+					return "Options";
+				case LOG:
+					return "Log";
+			}
+			return null;
+		}
 		switch (num) {
 			case HISTORY:
 				return "History ⌘^H";
@@ -186,6 +208,7 @@ public class GUIMain extends JFrame implements Observer
 		JOptionPane.setDefaultLocale(I18nString.getLocale());
 
 		setIconForWindows();
+		addShortcutForWindows();
 		addShortcutForMac();
 		addDockIconForMac();
 	}
@@ -256,6 +279,22 @@ public class GUIMain extends JFrame implements Observer
 		JTextArea component_ta = new JTextArea();
 		Keymap keymap_ta = component_ta.getKeymap();
 		JTextComponent.loadKeymap(keymap_ta, bindings1, component_ta.getActions());
+	}
+
+	private void addShortcutForWindows() {
+		if (PacketProxyUtility.getInstance().isMac()) {
+			return;
+		}
+		JPanel p = (JPanel) getContentPane();
+		InputMap im = p.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		ActionMap am = p.getActionMap();
+		int hotkey = (KeyEvent.CTRL_MASK);
+		registerTabShortcut(KeyEvent.VK_H, hotkey, im, am, Panes.HISTORY.ordinal());
+		registerTabShortcut(KeyEvent.VK_I, hotkey, im, am, Panes.INTERCEPT.ordinal());
+		registerTabShortcut(KeyEvent.VK_R, hotkey, im, am, Panes.REPEATER.ordinal());
+		registerTabShortcut(KeyEvent.VK_B, hotkey, im, am, Panes.BULKSENDER.ordinal());
+		registerTabShortcut(KeyEvent.VK_O, hotkey, im, am, Panes.OPTIONS.ordinal());
+		registerTabShortcut(KeyEvent.VK_L, hotkey, im, am, Panes.LOG.ordinal());
 	}
 
 	private void registerTabShortcut(int k, int m, InputMap im, ActionMap am, int index) {
