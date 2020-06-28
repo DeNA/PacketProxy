@@ -92,36 +92,19 @@ public class GUIMain extends JFrame implements Observer
 	}
 	
 	private String getPaneString(Panes num) {
-		if (!PacketProxyUtility.getInstance().isMac()) {
-			switch (num) {
-				case HISTORY:
-					return "History";
-				case INTERCEPT:
-					return "Interceptor";
-				case REPEATER:
-					return "Resender";
-				case BULKSENDER:
-					return "Bulk Sender";
-				case OPTIONS:
-					return "Options";
-				case LOG:
-					return "Log";
-			}
-			return null;
-		}
 		switch (num) {
-			case HISTORY:
-				return "History ⌘^H";
-			case INTERCEPT:
-				return "Intercepter ⌘^I";
-			case REPEATER:
-				return "Resender ⌘^R";
-			case BULKSENDER:
-				return "Bulk Sender ⌘^B";
-			case OPTIONS:
-				return "Options ⌘^O";
-			case LOG:
-				return "Log ⌘^L";
+		case HISTORY:
+			return "History";
+		case INTERCEPT:
+			return "Interceptor";
+		case REPEATER:
+			return "Resender";
+		case BULKSENDER:
+			return "Bulk Sender";
+		case OPTIONS:
+			return "Options";
+		case LOG:
+			return "Log";
 		}
 		return null;
 	}
