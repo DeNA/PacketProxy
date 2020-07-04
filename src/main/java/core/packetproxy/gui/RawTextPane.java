@@ -43,6 +43,7 @@ import packetproxy.controller.ResendController;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 import packetproxy.util.CharSetUtility;
+import packetproxy.util.PacketProxyUtility;
 
 public class RawTextPane extends ExtendedTextPane
 {
@@ -50,11 +51,16 @@ public class RawTextPane extends ExtendedTextPane
 
 	public RawTextPane() throws Exception {
 		charSetUtility = CharSetUtility.getInstance();
+		
+		int mask_key = ActionEvent.META_MASK;
+		if (!PacketProxyUtility.getInstance().isMac()) {
+			mask_key = ActionEvent.CTRL_MASK;
+		}
 		JPopupMenu menu = new JPopupMenu();
 
 		JMenuItem send = new JMenuItem("send");
 		send.setMnemonic(KeyEvent.VK_S);
-		send.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.META_MASK));
+		send.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, mask_key));
 		send.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
@@ -92,7 +98,7 @@ public class RawTextPane extends ExtendedTextPane
 
 		JMenuItem sendRepeater = new JMenuItem("send to Resender");
 		sendRepeater.setMnemonic(KeyEvent.VK_R);
-		sendRepeater.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.META_MASK));
+		sendRepeater.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, mask_key));
 		sendRepeater.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
@@ -110,6 +116,10 @@ public class RawTextPane extends ExtendedTextPane
 
 		addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent e) {
+				int mask_key = KeyEvent.META_MASK;
+				if (!PacketProxyUtility.getInstance().isMac()) {
+					mask_key = KeyEvent.CTRL_MASK;
+				}
 				switch (e.getKeyCode()) {
 					case KeyEvent.VK_Z:
 						if ((Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() & e.getModifiers()) > 0) { /* Command key */
@@ -131,12 +141,12 @@ public class RawTextPane extends ExtendedTextPane
 						}
 						break;
 					case KeyEvent.VK_S:
-						if ((e.getModifiers() & KeyEvent.META_MASK) == KeyEvent.META_MASK) {
+						if ((e.getModifiers() & mask_key) == mask_key) {
 							send.doClick();
 						}
 						break;
 					case KeyEvent.VK_R:
-						if ((e.getModifiers() & KeyEvent.META_MASK) == KeyEvent.META_MASK) {
+						if ((e.getModifiers() & mask_key) == mask_key) {
 							sendRepeater.doClick();
 						}
 						break;
