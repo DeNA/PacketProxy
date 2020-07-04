@@ -82,6 +82,7 @@ import packetproxy.model.OptionTableModel;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 import packetproxy.util.CharSetUtility;
+import packetproxy.util.PacketProxyUtility;
 
 public class GUIHistory implements Observer
 {
@@ -381,9 +382,13 @@ public class GUIHistory implements Observer
 		sorter.toggleSortOrder(14); /* 14 is 'group' column */
 		table.setRowSorter(sorter);
 
+		int mask_key = ActionEvent.META_MASK;
+		if (!PacketProxyUtility.getInstance().isMac()) {
+			mask_key = ActionEvent.CTRL_MASK;
+		}
 		JPopupMenu menu = new JPopupMenu();
 
-		JMenuItem send = createMenuItem ("send", KeyEvent.VK_S, KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.META_MASK), new ActionListener() {
+		JMenuItem send = createMenuItem ("send", KeyEvent.VK_S, KeyStroke.getKeyStroke(KeyEvent.VK_S, mask_key), new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					int id = GUIHistory.getInstance().getSelectedPacketId();
@@ -402,7 +407,7 @@ public class GUIHistory implements Observer
 			}
 		});
 
-		JMenuItem sendRepeater = createMenuItem ("send to Resender", KeyEvent.VK_R, KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.META_MASK), new ActionListener() {
+		JMenuItem sendRepeater = createMenuItem ("send to Resender", KeyEvent.VK_R, KeyStroke.getKeyStroke(KeyEvent.VK_R, mask_key), new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					Packet packet = gui_packet.getPacket();
@@ -416,7 +421,7 @@ public class GUIHistory implements Observer
 			}
 		});
 
-		JMenuItem copyAll = createMenuItem ("copy Method + URL + Body", KeyEvent.VK_M, KeyStroke.getKeyStroke(KeyEvent.VK_M, ActionEvent.META_MASK), new ActionListener() {
+		JMenuItem copyAll = createMenuItem ("copy Method + URL + Body", KeyEvent.VK_M, KeyStroke.getKeyStroke(KeyEvent.VK_M, mask_key), new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					Packet packet = gui_packet.getPacket();
@@ -437,7 +442,7 @@ public class GUIHistory implements Observer
 			}
 		});
 
-		JMenuItem copy = createMenuItem ("copy URL", KeyEvent.VK_Y, KeyStroke.getKeyStroke(KeyEvent.VK_Y, ActionEvent.META_MASK), new ActionListener() {
+		JMenuItem copy = createMenuItem ("copy URL", KeyEvent.VK_Y, KeyStroke.getKeyStroke(KeyEvent.VK_Y, mask_key), new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					int id = GUIHistory.getInstance().getSelectedPacketId();
@@ -680,9 +685,14 @@ TODO: support --data-binary
 		menu.add(delete_selected_items);
 		menu.add(delete_all);
 
+		
 		table.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent e) {
 				try {
+					int mask_key = KeyEvent.META_MASK;
+					if (!PacketProxyUtility.getInstance().isMac()) {
+						mask_key = KeyEvent.CTRL_MASK;
+					}
 					int p;
 					Packet packet;
 					Http http;
@@ -700,22 +710,22 @@ TODO: support --data-binary
 							table.changeSelection(p, 0, false, false);
 							break;
 						case KeyEvent.VK_Y:
-							if ((e.getModifiers() & KeyEvent.META_MASK) == KeyEvent.META_MASK) {
+							if ((e.getModifiers() & mask_key) == mask_key) {
 								copy.doClick();
 								break;
 							}
 						case KeyEvent.VK_S:
-							if ((e.getModifiers() & KeyEvent.META_MASK) == KeyEvent.META_MASK) {
+							if ((e.getModifiers() & mask_key) == mask_key) {
 								send.doClick();
 							}
 							break;
 						case KeyEvent.VK_R:
-							if ((e.getModifiers() & KeyEvent.META_MASK) == KeyEvent.META_MASK) {
+							if ((e.getModifiers() & mask_key) == mask_key) {
 								sendRepeater.doClick();
 							}
 							break;
 						case KeyEvent.VK_M:
-							if ((e.getModifiers() & KeyEvent.META_MASK) == KeyEvent.META_MASK) {
+							if ((e.getModifiers() & mask_key) == mask_key) {
 								copyAll.doClick();
 							}
 					}
