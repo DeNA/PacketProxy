@@ -84,6 +84,13 @@ public class PacketProxyCAPerUser extends CA {
 		}
 	}
 
+	@Override
+	public void regenerateCA() throws Exception {
+	    new File(ksPath).delete();
+	    generateKeyStore(ksPath);
+	    super.load(ksPath);
+	}
+
 	private void generateKeyStore(String ksPath) throws Exception {
 		KeyStore ks;
 		KeyPair CAKeyPair = super.genRSAKeyPair();

@@ -40,6 +40,7 @@ import packetproxy.common.I18nString;
 import packetproxy.model.CAFactory;
 import packetproxy.model.InterceptOptions;
 import packetproxy.model.CAs.CA;
+import packetproxy.util.PacketProxyUtility;
 
 public class GUIOption
 {
@@ -208,8 +209,32 @@ public class GUIOption
 				}
 			}
 		});
+
+		JButton regenerateCertButton = new JButton(I18nString.get("Regenerate"));
+		regenerateCertButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				PacketProxyUtility util = PacketProxyUtility.getInstance();
+				try {
+					String name = ca_combo.getSelectedItem().toString();
+					CA ca = CAFactory.find(name).orElseThrow();
+					int option = JOptionPane.showConfirmDialog(null,
+							String.format(I18nString.get("Regenerate %s?"), name),
+							String.format(I18nString.get("Regenerate CA certificate"), name),
+							JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+					if (option == JOptionPane.YES_OPTION) {
+						util.packetProxyLog("regenerate " + name);
+						ca.regenerateCA();
+					}
+				}catch(Exception exp){
+					util.packetProxyLogErr("RegenerateCertButton Action Error: "+ exp.getMessage());
+				}
+			}
+		});
+
 		caPanel.add(ca_combo);
 		caPanel.add(b);
+		caPanel.add(regenerateCertButton);
 		caPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, caPanel.getMaximumSize().height));
 		caPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
