@@ -186,4 +186,8 @@ abstract public class CA
 	public byte[] getCACertificate() {
 		return null;
 	}
+
+	public void regenerateCA() throws Exception {
+		throw new RuntimeException("Not Implemented.");
+	}
 }
