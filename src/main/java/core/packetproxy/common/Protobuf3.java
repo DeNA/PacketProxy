@@ -42,7 +42,8 @@ public class Protobuf3
 			StartGroup,
 			EndGroup,
 			Bit32,
-			None
+			None,
+			Reserved
 		}
 
 		long fieldNumber = 0;
