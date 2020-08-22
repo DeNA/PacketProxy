@@ -17,8 +17,6 @@ package packetproxy.http2.frames;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jetty.http.HttpField;
@@ -36,7 +34,6 @@ import packetproxy.common.StringUtils;
 import packetproxy.http.HeaderField;
 import packetproxy.http.Http;
 import packetproxy.http.HttpHeader;
-import packetproxy.util.PacketProxyUtility;
 
 public class HeadersFrame extends Frame
 {
@@ -89,11 +86,10 @@ public class HeadersFrame extends Frame
 	
 	public byte[] getHttp() throws Exception { return super.getExtra(); }
 	
-	
-	@Override
-	public byte[] toByteArrayWithoutExtra() throws Exception {
-		throw new Exception("[HeadersFrame] use toByteArrayWithoutExtra(HpackEncoder encoder) rather than toByteArrayWithoutExtra().");
-	}
+	//@Override
+	//public byte[] toByteArrayWithoutExtra() throws Exception {
+	//	throw new Exception("[HeadersFrame] use toByteArrayWithoutExtra(HpackEncoder encoder) rather than toByteArrayWithoutExtra().");
+	//}
 
 	public byte[] toByteArrayWithoutExtra(HpackEncoder encoder) throws Exception {
 		return toByteArrayWithoutExtra(encoder, false);
@@ -244,6 +240,7 @@ public class HeadersFrame extends Frame
 				buf.write(String.format("X-PacketProxy-HTTP2-Dependency: %d\r\n", dependency).getBytes());
 				buf.write(String.format("X-PacketProxy-HTTP2-Weight: %d\r\n", weight & 0xff).getBytes());
 			}
+			buf.write(String.format("X-PacketProxy-HTTP2-Type: %d\r\n", TYPE.ordinal()).getBytes());
 			buf.write(String.format("X-PacketProxy-HTTP2-Stream-Id: %d\r\n", streamId).getBytes());
 			buf.write(String.format("X-PacketProxy-HTTP2-Flags: %d\r\n", flags).getBytes());
 			buf.write(String.format("X-PacketProxy-HTTP2-UUID: %s\r\n", StringUtils.randomUUID()).getBytes());

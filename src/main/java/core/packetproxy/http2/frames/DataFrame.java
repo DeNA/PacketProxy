@@ -47,7 +47,12 @@ public class DataFrame extends Frame {
 
 		HttpHeader headers = http.getHeader();
 		super.streamId = Integer.parseInt(headers.getValue("X-PacketProxy-HTTP2-Stream-Id").orElse("0"));
-		super.flags = FLAG_END_STREAM;
+
+		if (TYPE.ordinal() == Integer.parseInt(headers.getValue("X-PacketProxy-HTTP2-Type").orElse("0"))) {
+			super.flags = Integer.parseInt(headers.getValue("X-PacketProxy-HTTP2-Flags").orElse("1"));
+		} else {
+			super.flags = FLAG_END_STREAM;
+		}
 		super.payload = http.getBody();
 		super.origPayload = http.getBody(); 
 		super.extra = new byte[]{};
@@ -72,8 +77,9 @@ public class DataFrame extends Frame {
 	public byte[] getHttp() throws Exception {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		baos.write("HTTP/2 200 OK\r\n".getBytes());
-		baos.write(new String("X-PacketProxy-HTTP2-Stream-Id: " + streamId + "\r\n").getBytes());
-		baos.write(new String("X-PacketProxy-HTTP2-Flags: " + flags + "\r\n").getBytes());
+		baos.write(new String("X-PacketProxy-HTTP2-Type: " + TYPE.ordinal() + "\r\n").getBytes());
+		baos.write(new String("X-PacketProxy-HTTP2-Stream-Id: " + super.streamId + "\r\n").getBytes());
+		baos.write(new String("X-PacketProxy-HTTP2-Flags: " + super.flags + "\r\n").getBytes());
 		baos.write("\r\n".getBytes());
 		baos.write(payload);
 		return baos.toByteArray();
