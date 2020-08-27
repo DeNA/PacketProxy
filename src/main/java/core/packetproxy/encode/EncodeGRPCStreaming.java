@@ -113,14 +113,20 @@ public class EncodeGRPCStreaming extends Encoder
 	public String getSummarizedRequest(Packet packet)
 	{
 		String summary = "";
+		String statusCode = "";
 		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
 		try {
 			byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();                                                                                                                                                              
 			Http http = new Http(data);
+			statusCode = http.getStatusCode();
 			summary = http.getMethod() + " " + http.getURL(packet.getServerPort());
 		} catch (Exception e) { 
-			e.printStackTrace();
-			summary = "Headlineを生成できません・・・";
+			if (statusCode != null && statusCode.length() > 0) {
+				summary = statusCode;
+			} else {
+				e.printStackTrace();
+				summary = "Headlineを生成できません・・・";
+			}
 		}
 		return summary;
 	}
