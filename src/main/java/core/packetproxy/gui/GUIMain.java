@@ -178,6 +178,12 @@ public class GUIMain extends JFrame implements Observer
 	}
 
 	private void setLookandFeel() throws Exception {
+		
+		if (PacketProxyUtility.getInstance().isUnix()) {	
+			System.setProperty("awt.useSystemAAFontSettings", "on");
+			System.setProperty("swing.aatext", "true");
+		}
+		
 		for (LookAndFeelInfo clInfo : UIManager.getInstalledLookAndFeels()) {
 			if ("Nimbus".equals(clInfo.getName())) {
 				UIManager.setLookAndFeel(clInfo.getClassName());
