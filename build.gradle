@@ -94,6 +94,8 @@ task setName(dependsOn: "setVersion") {
   project.ext.nameMacSignedRelease = "PacketProxy-${project.ext.version}-Installer-Mac-Signed.dmg" 
   project.ext.nameWin32Release = "PacketProxy-${project.ext.version}-Installer-Win32.jar" 
   project.ext.nameWin64Release = "PacketProxy-${project.ext.version}-Installer-Win64.jar" 
+  project.ext.nameLinuxReleaseDir = "PacketProxy-${project.ext.version}-Linux" 
+  project.ext.nameLinuxRelease = "PacketProxy-${project.ext.version}-Linux.tar.gz" 
 }
 
 task setPath(dependsOn: "setName") {
@@ -117,6 +119,12 @@ task setPath(dependsOn: "setName") {
   project.ext.pathWin64Target    = "${project.ext.pathWin64WorkDir}/target"
   project.ext.pathWin64Installer = "${project.ext.pathWin64WorkDir}/${project.ext.nameInstaller}"
   project.ext.pathWin64Release   = "${project.ext.pathWin64WorkDir}/${project.ext.nameWin64Release}"
+  // Linux
+  project.ext.pathLinuxWorkDir   = "${buildDir}/distributions/Linux"
+  project.ext.pathLinuxTarget    = "${project.ext.pathLinuxWorkDir}/target"
+  project.ext.pathLinuxInstaller = "${project.ext.pathLinuxWorkDir}/${project.ext.nameInstaller}"
+  project.ext.pathLinuxReleaseDir = "${project.ext.pathLinuxWorkDir}/${project.ext.nameLinuxReleaseDir}"
+  project.ext.pathLinuxRelease   = "${project.ext.pathLinuxWorkDir}/${project.ext.nameLinuxRelease}"
 }
 
 task setAppleSignInfo {
@@ -303,6 +311,50 @@ task createWin64Target(type: CreateWinTarget, dependsOn: ['jar', 'downloadLicens
   jdkUrl    = 'https://d3pxv6yz143wms.cloudfront.net/11.0.5.10.1/amazon-corretto-11.0.5.10.1-windows-x64.zip'
 }
 
+task createLinuxTarget(dependsOn: ['jar', 'downloadLicenses']) {
+  doFirst {
+    def workDir   = project.ext.pathLinuxWorkDir
+    def targetDir = project.ext.pathLinuxTarget
+    def jdkUrl    = 'https://corretto.aws/downloads/resources/11.0.8.10.1/amazon-corretto-11.0.8.10.1-linux-x64.tar.gz'
+
+    delete {
+      delete "${workDir}"
+    }
+    new File("${workDir}").mkdirs()
+    new File("${targetDir}").mkdirs()
+    copy {
+      from "${project.buildDir}/reports/license/dependency-license.html"
+      from "${project.projectDir}/LICENSES"
+      into "${targetDir}/share/packetproxy/licenses"
+    }
+    copy {
+      from "${project.projectDir}/src/main/resources/gui/icon.ico"
+      into "${targetDir}/share/packetproxy"
+      rename('icon.ico', 'PacketProxy.ico')
+    }
+    copy {
+      from "${project.buildDir}/libs/PacketProxy.jar"
+      into "${targetDir}/share/packetproxy"
+    }
+    download {
+      src "${jdkUrl}"
+      dest "${workDir}/OpenJDK11.tar.gz"
+    }
+    copy {
+      from tarTree(resources.gzip("${workDir}/OpenJDK11.tar.gz"))
+      into file("${workDir}/OpenJDK11")
+    }
+    copy {
+      from file("${workDir}/OpenJDK11/amazon-corretto-11.0.8.10.1-linux-x64")
+      into file("${targetDir}/share/packetproxy/OpenJDK11")
+    }
+    copy {
+      from "${projectDir}/installer/izpack/packetproxy"
+      into "${targetDir}/bin/"
+    }
+  }
+}
+
 task preIzpack {
   doFirst {
     copy {
@@ -324,6 +376,16 @@ task izpackWin64 (type: CreateInstallerTask, dependsOn: ['createWin64Target', 'p
   baseDir = file(project.ext.pathWin64Target)
   installFile = file("${projectDir}/installer/izpack/installer.xml")
   outputFile = file(project.ext.pathWin64Installer)
+  compression = 'deflate'
+  compressionLevel = 9
+  appProperties = ['app.group': 'PacketProxy', 'app.name': 'PacketProxy', 'app.title': 'PacketProxy',
+                   'app.version': project.ext.version, 'app.subpath': "PacketProxy-${project.ext.version}"]
+}
+
+task izpackLinux (type: CreateInstallerTask, dependsOn: ['createLinuxTarget', 'preIzpack']) {
+  baseDir = file(project.ext.pathLinuxTarget)
+  installFile = file("${projectDir}/installer/izpack/installer.xml")
+  outputFile = file(project.ext.pathLinuxInstaller)
   compression = 'deflate'
   compressionLevel = 9
   appProperties = ['app.group': 'PacketProxy', 'app.name': 'PacketProxy', 'app.title': 'PacketProxy',
@@ -421,6 +483,12 @@ task createWin64Release(type: Copy, dependsOn: 'izpackWin64') {
   rename("${project.ext.nameInstaller}", "${project.ext.nameWin64Release}")
 }
 
+task createLinuxInstaller(type: Copy, dependsOn: 'izpackLinux') {
+  from "${project.ext.pathLinuxInstaller}"
+  into "${project.ext.pathLinuxWorkDir}"
+  rename("${project.ext.nameInstaller}", "${project.ext.nameLinuxRelease}")
+}
+
 task createMacRelease(dependsOn: 'createMacInstaller') {
   /* do nothing */
 }
@@ -429,5 +497,23 @@ task createWinRelease(dependsOn: 'createWin64Release') {
   /* do nothing */
 }
 
-task release(dependsOn: ['createMacRelease', 'createWinRelease']) {
+task createLinuxRelease(dependsOn: 'createLinuxInstaller') {
+  doFirst {
+    exec {
+      executable "sh"
+      args "-c", "mkdir ${project.ext.pathLinuxReleaseDir}"
+    }
+    copy {
+      from "${projectDir}/installer/izpack/installer.sh"
+      from "${project.ext.pathLinuxInstaller}"
+      into "${project.ext.pathLinuxReleaseDir}"
+    }
+    exec {
+      executable "sh"
+      args "-c", "cd ${project.ext.pathLinuxWorkDir}; tar czvf ${project.ext.nameLinuxRelease} ${project.ext.nameLinuxReleaseDir}"
+    }
+  }
+}
+
+task release(dependsOn: ['createMacRelease', 'createWinRelease', 'createLinuxRelease']) {
 }

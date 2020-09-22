@@ -1,0 +1,8 @@
+#!/bin/sh
+
+bindir=$(dirname $(readlink -f $0))
+javabin=${bindir}/../share/packetproxy/OpenJDK11/bin/java
+mainjar=${bindir}/../share/packetproxy/PacketProxy.jar
+
+exec ${javabin} -jar ${mainjar}
+

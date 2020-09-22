@@ -9,6 +9,7 @@
         <appversion>1.0</appversion>
         <appsubpath>packetproxy</appsubpath>
         <javaversion>1.6</javaversion>
+	<uninstaller path="$INSTALL_PATH/share/packetproxy" name="PacketProxyUninstaller.jar" write="yes" os="linux"/>
         <uninstaller path="$INSTALL_PATH/PacketProxyUninstaller/" name="uninstaller.jar" write="yes" os="mac"/>
     </info>
 
@@ -36,7 +37,7 @@
 
     <variables>
         <variable name="TargetPanel.dir.windows" value="C:/Program Files/PacketProxy"/>
-        <variable name="TargetPanel.dir.unix" value="/usr/local/myapp"/>
+        <variable name="TargetPanel.dir.linux" value="/usr/local"/>
         <variable name="TargetPanel.dir.mac" value="/Applications/"/>
     </variables>
 
@@ -62,6 +63,10 @@
             <fileset dir="./" targetdir="${INSTALL_PATH}" override="true"/>
             <executable targetfile="$INSTALL_PATH/PacketProxy.app/Contents/MacOS/PacketProxyLauncher.sh" os="mac" stage="never" failure="warn" keep="true"/>
             <executable targetfile="$INSTALL_PATH/PacketProxy.exe" os="windows" stage="never" failure="warn" keep="true"/>
+	    <executable targetfile="$INSTALL_PATH/bin/packetproxy" os="linux" stage="never" failure="warn" keep="true"/>
+            <executable os="linux" stage="never" failure="warn" keep="true">
+		<fileset targetdir="$INSTALL_PATH/share/packetproxy/OpenJDK11/bin" includes="*" />
+            </executable>
         </pack>
     </packs>
 
