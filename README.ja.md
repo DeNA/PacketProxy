@@ -28,7 +28,7 @@ PacketProxyは、HTTP1/HTTP2/HTTPS通信だけでなく、より低レイヤー�
   - 自己署名証明書によるHTTPS通信をMITMできてしまうかチェックする機能
   - DNSサーバが内蔵されており、DNS書き換えによるパケットのフォワード機能
   - SQLiteで現在のプロジェクトの保存・読込する機能
-  - WindowsとmacOSに対応
+  - Windows、macOS、Linuxに対応
 
 # インストール
   

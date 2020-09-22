@@ -31,7 +31,7 @@ It can be used for development assistance or for risk assessments.
 - **Other advantages**
   - Have a built-in DNS server for easy packet forwarding
   - Save/Load project data
-  - Support Windows and macOS
+  - Support Windows, macOS, and Linux
 
 # Setup
   
