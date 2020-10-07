@@ -64,7 +64,9 @@ public class PrivateDNS
 				for (InterfaceAddress intAddress : netint.getInterfaceAddresses()) {
 					InetAddress addr = intAddress.getAddress();
 					if (addr instanceof Inet4Address) {
-						String cidr = String.format("%s/%d", addr.getHostAddress(), intAddress.getNetworkPrefixLength());
+						short length = intAddress.getNetworkPrefixLength();
+						if(length<0)continue;
+						String cidr = String.format("%s/%d", addr.getHostAddress(),length);
 						SubnetUtils subnet = new SubnetUtils(cidr);
 						subnets.add(subnet.getInfo());
 						if (defaultAddr == null) {
