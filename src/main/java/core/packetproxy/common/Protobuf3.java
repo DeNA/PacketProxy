@@ -92,6 +92,8 @@ public class Protobuf3
 			long nextB = input[i] & 0xff;
 			var = var | ((nextB & 0x7f) << (7*i));
 			i++;
+			if (i >= 2 && ((nextB & 0xff) == 0)) // 0xf4 00 のように 00で終わるケース。これは、0x74になるべき
+				return false;
 			if ((nextB & 0x80) == 0)
 				break;
 			if (i > 9) // max 64bit (long size)
@@ -215,7 +217,7 @@ public class Protobuf3
 					return false;
 				}
 				long variant = decodeVar(data);
-	            messages.put(String.format("%02x:%02x:Varint", key.getFieldNumber(), ordinary), variant);
+	            messages.put(String.format("%04x:%04x:Varint", key.getFieldNumber(), ordinary), variant);
 				break;
 			}
 			case Bit32: {
@@ -223,7 +225,7 @@ public class Protobuf3
 					return false;
 				}
 				int bit32 = decodeBit32(data);
-	            messages.put(String.format("%02x:%02x:32-bit", key.getFieldNumber(), ordinary), bit32);
+	            messages.put(String.format("%04x:%04x:32-bit", key.getFieldNumber(), ordinary), bit32);
 				break;
 			}
 			case Bit64: {
@@ -231,7 +233,7 @@ public class Protobuf3
 					return false;
 				}
 				long bit64 = decodeBit64(data);
-	            messages.put(String.format("%02x:%02x:64-bit", key.getFieldNumber(), ordinary), bit64);
+	            messages.put(String.format("%04x:%04x:64-bit", key.getFieldNumber(), ordinary), bit64);
 				break;
 			}
 			case LengthDelimited: {
@@ -248,27 +250,27 @@ public class Protobuf3
 
 				/* String */
 				if (StringUtils.validatePrintableUTF8(rawSubData)) {
-					messages.put(String.format("%02x:%02x:String", key.getFieldNumber(), ordinary), new String(rawSubData, "UTF-8"));
+					messages.put(String.format("%04x:%04x:String", key.getFieldNumber(), ordinary), new String(rawSubData, "UTF-8"));
 					break;
 				}
 				
 				/* Data */
 				Map<String,Object> subMsg = new TreeMap<>();
 				if (decodeData(new ByteArrayInputStream(rawSubData), subMsg) == true) {
-					messages.put(String.format("%02x:%02x:embedded message", key.getFieldNumber(), ordinary), subMsg); 
+					messages.put(String.format("%04x:%04x:embedded message", key.getFieldNumber(), ordinary), subMsg); 
 					break;
 				}
 				
 				/* Repeated */
 				if (validateRepeatedStrictly(rawSubData) == true) {
 					List<Object> list = decodeRepeated(new ByteArrayInputStream(rawSubData));
-					messages.put(String.format("%02x:%02x:repeated", key.getFieldNumber(), ordinary), list);
+					messages.put(String.format("%04x:%04x:repeated", key.getFieldNumber(), ordinary), list);
 					break;
 				}
 
 				/* Bytes */
 				String result = decodeBytes(rawSubData);
-				messages.put(String.format("%02x:%02x:bytes", key.getFieldNumber(), ordinary), result);
+				messages.put(String.format("%04x:%04x:bytes", key.getFieldNumber(), ordinary), result);
 				break;
 			}
 			default:
