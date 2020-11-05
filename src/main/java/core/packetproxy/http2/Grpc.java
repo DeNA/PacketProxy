@@ -16,6 +16,7 @@
 package packetproxy.http2;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,8 +38,6 @@ public class Grpc extends FramesBase
 {
 	private StreamManager clientStreamManager = new StreamManager();
 	private StreamManager serverStreamManager = new StreamManager();
-
-	private static String[] GRPC_RESPONSE_2ND_HEADERS = new String[]{"grpc-status","trace-proto-bin"};
 
 	public Grpc() throws Exception {
 		super();
@@ -83,11 +82,11 @@ public class Grpc extends FramesBase
 			if (frame instanceof HeadersFrame) {
 				HeadersFrame headersFrame = (HeadersFrame)frame;
 				Http http = new Http(headersFrame.getHttp());
-				if(null==httpHeaderSums){
+				if(null==httpHeaderSums){ // Main Header Frame
 					httpHeaderSums = http;
-				}else{
+				}else{ // Trailer Header Frame
 					for(HeaderField field: http.getHeader().getFields()){
-						httpHeaderSums.updateHeader(field.getName(), field.getValue());
+						httpHeaderSums.updateHeader("x-trailer-" + field.getName(), field.getValue());
 					}
 				}
 			} else if (frame instanceof DataFrame) {
@@ -97,7 +96,7 @@ public class Grpc extends FramesBase
 		}
 		outHeader.write(httpHeaderSums.toByteArray());
 		//順序をHeader, Dataにする。本当はStreamIDで管理してencode時に元の順番に戻せるようにしたい。
-		//暫定でgRPC over HTTP2のレスポンスの2つめのヘッダはGRPC_RESPONSE_2ND_HEADERSに従って元の順番に戻す。
+		//暫定でgRPC over HTTP2のレスポンスの2つめのヘッダは"x-trailer-"から始まるヘッダに従って元の順番に戻す。
 		outData.writeTo(outHeader);
 		Http http = new Http(outHeader.toByteArray());
 		int flags = Integer.valueOf(http.getFirstHeader("X-PacketProxy-HTTP2-Flags"));
@@ -119,13 +118,19 @@ public class Grpc extends FramesBase
 		if (http.getBody() != null && http.getBody().length > 0) {
 			http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff & ~HeadersFrame.FLAG_END_STREAM));
 			HttpFields GRPC2ndHeaderHttpFields = new HttpFields();
-			for(String k:GRPC_RESPONSE_2ND_HEADERS){
-				String v = http.getFirstHeader(k);
-				http.removeHeader(k);
-				if("".equals(v)) continue;
-				GRPC2ndHeaderHttpFields.add(k, v);
-			}
 
+			List<String> unusedHeaders = new ArrayList<>();
+			for (HeaderField field : http.getHeader().getFields()) {
+				if (field.getName().startsWith("x-trailer-")) {
+					unusedHeaders.add(field.getName());
+					GRPC2ndHeaderHttpFields.add(field.getName().substring(10), field.getValue());
+				}
+			}
+			
+			for (String name: unusedHeaders) {
+				http.removeHeader(name);
+			}
+			
 			HeadersFrame headersFrame = new HeadersFrame(http);
 			out.write(headersFrame.toByteArrayWithoutExtra(encoder));
 
