@@ -139,7 +139,7 @@ public class ProxySSLTransparent extends Proxy
 			}
 			WrapEndpoint wep_e = new WrapEndpoint(client_e, ArrayUtils.subarray(buff, 0, length));
 			InetSocketAddress serverAddr = new InetSocketAddress(serverName, proxyPort);
-			Server server = Servers.getInstance().queryByAddress(serverAddr);
+			Server server = Servers.getInstance().queryByHostNameAndPort(serverName, proxyPort);
 			SSLSocketEndpoint server_e = new SSLSocketEndpoint(serverAddr, serverName, null);
 			createConnection(wep_e, server_e, server);
 
@@ -162,7 +162,7 @@ public class ProxySSLTransparent extends Proxy
 					PacketProxyUtility.getInstance().packetProxyLog("[Follback port] " + proxyPort + " -> 443");
 				}
 				
-				Server server = Servers.getInstance().queryByAddress(serverAddr);
+				Server server = Servers.getInstance().queryByHostNameAndPort(serverName, serverAddr.getPort());
 
 				SSLSocketEndpoint[] eps = EndpointFactory.createBothSideSSLEndpoints(client, bais, serverAddr, null, serverName, listen_info.getCA().get());
 				createConnection(eps[0], eps[1], server);
