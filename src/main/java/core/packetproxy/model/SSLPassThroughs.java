@@ -51,7 +51,6 @@ public class SSLPassThroughs extends Observable implements Observer
 		}
 	}
 	public void create(SSLPassThrough sslPassThrough) throws Exception {
-		sslPassThrough.setEnabled();
 		dao.createIfNotExists(sslPassThrough);
 		notifyObservers();
 	}

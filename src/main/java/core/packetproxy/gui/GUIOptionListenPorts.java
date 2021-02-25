@@ -69,6 +69,7 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort>
 					dlg = new GUIOptionListenPortDialog(owner);
 					ListenPort listenPort = dlg.showDialog();
 					if (listenPort != null) {
+						listenPort.setEnabled();
 						listenPorts.create(listenPort);
 					}
 				} catch (Exception e1) {
@@ -85,6 +86,7 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort>
 					ListenPort new_port = dlg.showDialog(old_port);
 					if (new_port != null) {
 						listenPorts.delete(old_port);
+						new_port.setEnabled();
 						listenPorts.create(new_port);
 					}
 				} catch (Exception e1) {

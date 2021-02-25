@@ -17,6 +17,7 @@ package packetproxy.model;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -82,6 +83,9 @@ public class Server
     }
     public int getId() {
     	return this.id;
+    }
+    public void setId(int id) {
+         this.id = id;
     }
     public String getIp() {
         return this.ip;

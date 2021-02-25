@@ -46,7 +46,6 @@ public class Modifications extends Observable implements Observer
 		}
 	}
 	public void create(Modification modification) throws Exception {
-		modification.setEnabled();
 		dao.createIfNotExists(modification);
 		notifyObservers();
 	}

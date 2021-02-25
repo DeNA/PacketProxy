@@ -77,6 +77,7 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 					dlg = new GUIOptionModificationDialog(owner);
 					Modification mod = dlg.showDialog();
 					if (mod != null) {
+						mod.setEnabled();
 						modifications.create(mod);
 					}
 					PacketProxyUtility.getInstance().packetProxyLog("Modification button is pressed.");
@@ -94,6 +95,7 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 					Modification new_mod = dlg.showDialog(old_mod);
 					if (new_mod != null) {
 						modifications.delete(old_mod);
+						new_mod.setEnabled();
 						modifications.create(new_mod);
 					}
 				} catch (Exception e1) {

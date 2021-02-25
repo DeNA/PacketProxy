@@ -68,7 +68,7 @@ public class GUIMain extends JFrame implements Observer
 	private GUIBulkSender gui_bulksender;
 	private GUILog gui_log;
 	private InterceptModel interceptModel;
-	private enum Panes {HISTORY, INTERCEPT, REPEATER, BULKSENDER, OPTIONS, LOG};
+	public enum Panes {HISTORY, INTERCEPT, REPEATER, BULKSENDER, OPTIONS, LOG};
 
 	public static GUIMain getInstance(String title) throws Exception
 	{

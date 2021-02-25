@@ -79,6 +79,7 @@ public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrou
 					dlg = new GUIOptionSSLPassThroughDialog(owner);
 					SSLPassThrough ssl = dlg.showDialog();
 					if (ssl != null) {
+						ssl.setEnabled();
 						SSLPassThroughs.getInstance().create(ssl);
 					}
 				} catch (Exception e1) {
@@ -95,6 +96,7 @@ public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrou
 					SSLPassThrough new_ssl = dlg.showDialog(old_ssl);
 					if (new_ssl != null) {
 						SSLPassThroughs.getInstance().delete(old_ssl);
+						new_ssl.setEnabled();
 						SSLPassThroughs.getInstance().create(new_ssl);
 					}
 				} catch (Exception e1) {

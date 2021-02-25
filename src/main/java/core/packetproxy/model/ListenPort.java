@@ -94,11 +94,14 @@ public class ListenPort
     public int getId() {
     	return id;
     }
+    public void setId(int id) {
+        this.id = id;
+    }
     @Override
 	public int hashCode() {
     	return this.getId();
     }
     public boolean equals(ListenPort obj) {
-    	return this.getId() == obj.getId() ? true : false;
+    	return this.getId() == obj.getId();
     }
 }

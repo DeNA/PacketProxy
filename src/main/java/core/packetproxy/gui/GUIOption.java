@@ -15,13 +15,12 @@
  */
 package packetproxy.gui;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.URI;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -251,7 +250,11 @@ public class GUIOption
 		panel.add(createElement("Fonts", ""));
 		GUIOptionFonts fontsGUI = new GUIOptionFonts(owner);
 		panel.add(fontsGUI.createPanel());
-		
+
+		panel.add(createSeparator());
+		panel.add(createElement("Import/Export configs (Experimental)", I18nString.get("Import/Export configs by GET/POST http://localhost:32349/config with 'Authorization: [AccessToken]' header")));
+		panel.add(new GUIOptionHubServer(owner).createPanel());
+
 		panel.setMaximumSize(new Dimension(panel.getPreferredSize().width, panel.getMinimumSize().height));
 		panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, panel.getMinimumSize().height));
 		JScrollPane sc = new JScrollPane(panel);

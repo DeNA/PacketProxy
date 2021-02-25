@@ -86,6 +86,26 @@ public class Database extends Observable
 		return dao;
 	}
 
+	public void dropConfigs() throws Exception {
+		setChanged();
+		notifyObservers(DatabaseMessage.DISCONNECT_NOW);
+		clearChanged();
+
+		dropTable(ListenPort.class);
+		dropTable(Server.class);
+		dropTable(Modification.class);
+		dropTable(SSLPassThrough.class);
+
+		createTable(ListenPort.class, ListenPorts.getInstance());
+		createTable(Server.class, Servers.getInstance());
+		createTable(Modification.class, Modifications.getInstance());
+		createTable(SSLPassThrough.class, SSLPassThroughs.getInstance());
+
+		setChanged();
+		notifyObservers(DatabaseMessage.RECONNECT);
+		clearChanged();
+	}
+
 	public void dropPacketTableFaster()throws Exception{
 		Path src = Paths.get(instance.databasePath.getParent().toAbsolutePath().toString()+"/tmp.sqlite3");
 		Path dst = instance.databasePath.toAbsolutePath();

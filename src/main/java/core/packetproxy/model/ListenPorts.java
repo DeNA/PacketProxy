@@ -42,10 +42,8 @@ public class ListenPorts extends Observable implements Observer
 		dao = database.createTable(ListenPort.class, this);
 	}
 	public void create(ListenPort listen) throws Exception {
-		if (isAlreadyEnabled(listen) == true) {
+		if (isAlreadyEnabled(listen)) { // 他ポートが既にListenしていたら、Enableにさせない
 			listen.setDisabled();
-		} else {
-			listen.setEnabled();
 		}
 		dao.createIfNotExists(listen);
 		notifyObservers();

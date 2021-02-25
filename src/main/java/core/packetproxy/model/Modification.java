@@ -28,6 +28,7 @@ import org.apache.commons.lang3.ArrayUtils;
 public class Modification
 {
 	public static final int ALL_SERVER = -1;
+
 	public enum Direction { CLIENT_REQUEST, SERVER_RESPONSE, ALL };
 	public enum Method { SIMPLE, REGEX, BINARY };
 
@@ -106,6 +107,9 @@ public class Modification
 	}
 	public int getId() {
 		return id;
+	}
+	public void setId(int id) {
+	    this.id = id;
 	}
 	public byte[] replace(byte[] data, Packet packet) throws Exception {
 		if (method == Method.SIMPLE) {
