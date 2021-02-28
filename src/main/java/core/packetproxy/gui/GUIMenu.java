@@ -33,6 +33,8 @@ import packetproxy.common.I18nString;
 import packetproxy.model.Database;
 import packetproxy.model.Packets;
 import packetproxy.util.PacketProxyUtility;
+import packetproxy.common.ConfigIO;
+import packetproxy.common.Utils;
 
 @SuppressWarnings("serial")
 public class GUIMenu extends JMenuBar {
@@ -203,6 +205,69 @@ public class GUIMenu extends JMenuBar {
 				try {
 					GUIMain.getInstance().getTabbedPane().setSelectedIndex(Panes.LOG.ordinal());
 				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+
+		JMenu config_menu = new JMenu(I18nString.get("Options"));
+		this.add(config_menu);
+		JMenuItem import_configs = new JMenuItem(I18nString.get("Import Configs"));
+		config_menu.add(import_configs);
+		import_configs.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					JFileChooser filechooser = new JFileChooser();
+					filechooser.setCurrentDirectory(new File(defaultDir));
+					filechooser.setFileFilter(new FileNameExtensionFilter("*.json", "json"));
+					filechooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+					int selected = filechooser.showOpenDialog(SwingUtilities.getRoot(self));
+					if (selected == JFileChooser.APPROVE_OPTION) {
+						File file = filechooser.getSelectedFile();
+						byte[] jbytes = Utils.readfile(file.getAbsolutePath());
+						String json = new String(jbytes);
+						ConfigIO io = new ConfigIO();
+						io.setOptions(json);
+						JOptionPane.showMessageDialog(null, I18nString.get("Config loaded successfully"));
+					}
+				} catch (Exception e1) {
+					e1.printStackTrace();
+					JOptionPane.showMessageDialog(null, I18nString.get("Config can't be loaded with error"));
+				}
+			}
+		});
+		JMenuItem export_configs = new JMenuItem(I18nString.get("Export Configs"));
+		config_menu.add(export_configs);
+		export_configs.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "json");
+					filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
+					@Override
+					public void onApproved(File file, String extension) {
+						try {
+							ConfigIO io = new ConfigIO();
+							String json = io.getOptions();
+							Utils.writefile(file.getAbsolutePath(),json.getBytes());
+							JOptionPane.showMessageDialog(null, I18nString.get("Config saved successfully"));
+						}catch (Exception e1) {
+							e1.printStackTrace();
+							JOptionPane.showMessageDialog(null, I18nString.get("Config can't be saved with error"));
+						}
+					}
+
+					@Override
+					public void onCanceled() {}
+
+					@Override
+					public void onError() {
+						JOptionPane.showMessageDialog(null, I18nString.get("Config can't be saved with error"));
+					}
+				});
+				filechooser.showSaveDialog();
+				}catch (Exception e1) {
 					e1.printStackTrace();
 				}
 			}
