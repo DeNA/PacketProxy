@@ -25,6 +25,7 @@ import java.util.List;
 import javax.swing.JFrame;
 
 import packetproxy.model.ListenPort;
+import packetproxy.model.ListenPort.TYPE;
 import packetproxy.model.ListenPorts;
 
 public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort>
@@ -112,12 +113,16 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort>
 	protected void addTableContent(ListenPort listenPort) {
 		table_ext_list.add(listenPort);
 		try {
+			String serverNullStr = "";
+			TYPE type = listenPort.getType();
+			if(type==TYPE.FORWARDER || type==TYPE.SSL_FORWARDER || type==TYPE.UDP_FORWARDER)
+				serverNullStr = "Deleted";
 			option_model.addRow(new Object[] {
 				listenPort.isEnabled(),
 					listenPort.getPort(),
 					listenPort.getType(),
 					listenPort.getCA().map(ca -> ca.getName()).orElse("Error"),
-					listenPort.getServer() != null ? listenPort.getServer().toString() : ""});
+					listenPort.getServer() != null ? listenPort.getServer().toString() : serverNullStr});
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

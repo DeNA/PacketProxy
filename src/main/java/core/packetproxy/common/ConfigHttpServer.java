@@ -42,7 +42,12 @@ public class ConfigHttpServer extends NanoHTTPD {
     private void fixUpListenPortList(Map<Integer,Integer> serverMap, List<ListenPort> listenPortList) {
         int i = 1;
         for (ListenPort listenPort : listenPortList) {
-            listenPort.setServerId(serverMap.get(listenPort.getServerId()));
+            int id = listenPort.getServerId();
+            if(serverMap.containsKey(id)){
+                listenPort.setServerId(serverMap.get(id));
+            }else{
+                listenPort.setServerId(-1);
+            }
             listenPort.setId(i);
             i++;
         }
