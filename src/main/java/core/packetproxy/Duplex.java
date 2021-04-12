@@ -210,6 +210,7 @@ public abstract class Duplex {
 	public void callOnClientChunkFlowControl(byte[] data) throws Exception {
 		if (isEnabledDuplexEventListener() == false) {
 			clientOutputForFlowControl.write(data);
+			clientOutputForFlowControl.flush();
 		}
 		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
 			listener.onClientChunkFlowControl(data);
@@ -227,6 +228,7 @@ public abstract class Duplex {
 	public void callOnServerChunkFlowControl(byte[] data) throws Exception {
 		if (isEnabledDuplexEventListener() == false) {
 			serverOutputForFlowControl.write(data);
+			serverOutputForFlowControl.flush();
 		}
 		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
 			listener.onServerChunkFlowControl(data);

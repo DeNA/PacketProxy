@@ -95,6 +95,7 @@ public class Https {
 					OutputStream proxyOut = serverSocket.getOutputStream();
 					InputStream proxyIn = serverSocket.getInputStream();
 					proxyOut.write(String.format("CONNECT %s:%d HTTP/1.1\r\nHost: %s\r\n\r\n", serverAddr.getHostString(), serverAddr.getPort(), serverAddr.getHostString()).getBytes()); 
+					proxyOut.flush();
 					int length = 0;
 					byte[] input_data = new byte[1024];
 					while ((length = proxyIn.read(input_data, 0, input_data.length)) != -1) {
@@ -138,6 +139,7 @@ public class Https {
 				OutputStream proxyOut = serverSocket.getOutputStream();
 				InputStream proxyIn = serverSocket.getInputStream();
 				proxyOut.write(String.format("CONNECT %s:%d HTTP/1.1\r\nHost: %s\r\n\r\n", serverAddr.getHostString(), serverAddr.getPort(), serverAddr.getHostString()).getBytes()); 
+				proxyOut.flush();
 				int length = 0;
 				byte[] input_data = new byte[1024];
 				while ((length = proxyIn.read(input_data, 0, input_data.length)) != -1) {
