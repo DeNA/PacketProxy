@@ -167,9 +167,11 @@ public abstract class Encoder
 	 */
 	public void putToClientFlowControlledQueue(byte[] output_data) throws Exception {
 		clientOutputForFlowControl.write(output_data);
+		clientOutputForFlowControl.flush();
 	}
 	public void putToServerFlowControlledQueue(byte[] output_data) throws Exception {
 		serverOutputForFlowControl.write(output_data);
+		serverOutputForFlowControl.flush();
 	}
 	public InputStream getClientFlowControlledInputStream() {
 		return clientInputForFlowControl;

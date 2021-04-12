@@ -121,6 +121,7 @@ public class DuplexAsync extends Duplex
 					int inputLen = 0;
 					while ((inputLen = getClientChunkFlowControlSink().read(inputBuf)) > 0) {
 						client_output.write(inputBuf, 0, inputLen);
+						client_output.flush();
 					}
 					flow_controlled_client_input.close();
 					client_output.close();
@@ -143,6 +144,7 @@ public class DuplexAsync extends Duplex
 					int inputLen = 0;
 					while ((inputLen = getServerChunkFlowControlSink().read(inputBuf)) > 0) {
 						server_output.write(inputBuf, 0, inputLen);
+						server_output.flush();
 					}
 					flow_controlled_server_input.close();
 					server_output.close();

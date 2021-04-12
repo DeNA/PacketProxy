@@ -57,6 +57,7 @@ public class FlowControlManager
 		if (stream != null) {
 			connectionWindowSize -= stream.payloadSize();
 			outputForFlowControl.write(stream.toByteArray());
+			outputForFlowControl.flush();
 		}
 	}
 	

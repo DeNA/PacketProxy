@@ -37,6 +37,7 @@ public class HttpsProxySocketEndpoint extends SSLSocketEndpoint {
 				serverAddr.getHostString(),
 				serverAddr.getPort(),
 				serverAddr.getHostString()).getBytes());
+		proxyOut.flush();
 
 		proxyIn = socket.getInputStream();
 

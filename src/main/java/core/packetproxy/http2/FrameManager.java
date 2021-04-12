@@ -84,6 +84,7 @@ public class FrameManager {
 				flag_receive_peer_settings = true;
 				if (flag_send_end_settings == false && flag_send_settings == true) {
 					flowControlManager.getOutputStream().write(FrameUtils.END_SETTINGS);
+					flowControlManager.getOutputStream().flush();
 					flag_send_end_settings = true;
 				}
 			}
@@ -129,14 +130,17 @@ public class FrameManager {
 	ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	public void putToFlowControlledQueue(byte[] frameData) throws Exception {
 		baos.write(frameData);
+		baos.flush();
 		int length = 0;
 		while ((length = FrameUtils.checkDelimiter(baos.toByteArray())) > 0) {
 			byte[] frame = ArrayUtils.subarray(baos.toByteArray(), 0, length);
 			byte[] remaining = ArrayUtils.subarray(baos.toByteArray(), length, baos.size());
 			baos.reset();
 			baos.write(remaining);
+			baos.flush();
 			if (FrameUtils.isPreface(frame)) {
 				flowControlManager.getOutputStream().write(frame);
+				flowControlManager.getOutputStream().flush();
 			} else {
 				Frame f = new Frame(frame);
 				flowControlManager.write(f);
@@ -144,6 +148,7 @@ public class FrameManager {
 					flag_send_settings = true;
 					if (flag_send_end_settings == false && flag_receive_peer_settings == true) {
 						flowControlManager.getOutputStream().write(FrameUtils.END_SETTINGS);
+						flowControlManager.getOutputStream().flush();
 						flag_send_end_settings = true;
 					}
 				}
