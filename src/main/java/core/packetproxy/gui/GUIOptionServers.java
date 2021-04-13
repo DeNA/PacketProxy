@@ -104,7 +104,7 @@ public class GUIOptionServers extends GUIOptionComponentBase<Server>
 				}
 			}
 		};
-		jcomponent = createComponent(menu, menuWidth, tableAction, addAction, editAction, removeAction);
+		jcomponent = createComponentForServers(menu, menuWidth, tableAction, addAction, editAction, removeAction);
 		updateImpl();
 	}
 
