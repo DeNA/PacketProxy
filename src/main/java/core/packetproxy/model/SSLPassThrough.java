@@ -36,6 +36,7 @@ public class SSLPassThrough
 		// ORMLite needs a no-arg constructor 
 	}
 	public SSLPassThrough(String server_name, int listen_port) throws Exception {
+		setEnabled();
 		setServerName(server_name);
 		setListenPort(listen_port);
 	}

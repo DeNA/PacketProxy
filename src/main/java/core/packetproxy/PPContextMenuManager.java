@@ -31,16 +31,16 @@ import javax.tools.ToolProvider;
 import packetproxy.ppcontextmenu.PPContextMenu;
 
 public class PPContextMenuManager {
-	private static PPContextMenuManager incetance;
+	private static PPContextMenuManager instance;
 	private List<PPContextMenu> module_list;
 	private static final String item_package = "packetproxy.ppcontextmenu";
 	private static final Class<PPContextMenu> item_class = packetproxy.ppcontextmenu.PPContextMenu.class;
 	
 	public static PPContextMenuManager getInstance() throws Exception {
-		if (incetance == null) {
-			incetance = new PPContextMenuManager();
+		if (instance == null) {
+			instance = new PPContextMenuManager();
 		}
-		return incetance;
+		return instance;
 	}
 	
 	public List<PPContextMenu> getMenuItemList(){

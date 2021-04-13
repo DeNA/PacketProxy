@@ -41,14 +41,14 @@ import packetproxy.encode.Encoder;
 
 public class EncoderManager
 {
-	private static EncoderManager incetance;
+	private static EncoderManager instance;
 	private boolean isDuplicated = false;
 	
 	public static EncoderManager getInstance() throws Exception {
-		if (incetance == null) {
-			incetance = new EncoderManager();
+		if (instance == null) {
+			instance = new EncoderManager();
 		}
-		return incetance;
+		return instance;
 	}
 
 	final static private String DEFAULT_PLUGIN_DIR = System.getProperty("user.home")+"/.packetproxy/plugins";

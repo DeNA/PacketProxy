@@ -29,13 +29,13 @@ import packetproxy.model.InterceptOption.Direction;
 
 public class InterceptOptions extends Observable implements Observer
 {
-	private static InterceptOptions incetance;
+	private static InterceptOptions instance;
 	
 	public static InterceptOptions getInstance() throws Exception {
-		if (incetance == null) {
-			incetance = new InterceptOptions();
+		if (instance == null) {
+			instance = new InterceptOptions();
 		}
-		return incetance;
+		return instance;
 	}
 	
 	private Database database;
