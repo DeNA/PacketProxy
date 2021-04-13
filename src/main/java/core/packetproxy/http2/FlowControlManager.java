@@ -100,12 +100,14 @@ public class FlowControlManager
 		if (frame.getType() == Frame.Type.HEADERS) {
 			/* TODO: maximum concurrent streams is not implemented yet */
 			outputForFlowControl.write(frame.toByteArray());
+			outputForFlowControl.flush();
 		} else if (frame.getType() == Frame.Type.DATA) {
 			FlowControl flow = getFlow(frame.getStreamId());
 			flow.enqueue(frame);
 			writeData(flow);
 		} else {
 			outputForFlowControl.write(frame.toByteArray());
+			outputForFlowControl.flush();
 		}
 	}
 	
