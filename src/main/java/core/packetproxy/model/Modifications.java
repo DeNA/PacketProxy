@@ -24,13 +24,13 @@ import packetproxy.model.Database.DatabaseMessage;
 
 public class Modifications extends Observable implements Observer
 {
-	private static Modifications incetance;
+	private static Modifications instance;
 	
 	public static Modifications getInstance() throws Exception {
-		if (incetance == null) {
-			incetance = new Modifications();
+		if (instance == null) {
+			instance = new Modifications();
 		}
-		return incetance;
+		return instance;
 	}
 	
 	private Database database;

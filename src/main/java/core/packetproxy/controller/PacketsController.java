@@ -19,13 +19,13 @@ import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 
 public class PacketsController {
-	private static PacketsController incetance;
+	private static PacketsController instance;
 	
-	public static PacketsController getIncetance() throws Exception {
-		if (incetance == null) {
-			incetance = new PacketsController();
+	public static PacketsController getinstance() throws Exception {
+		if (instance == null) {
+			instance = new PacketsController();
 		}
-		return incetance;
+		return instance;
 	}
 	
 	private Packets packets;

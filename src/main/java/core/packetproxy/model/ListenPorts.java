@@ -23,13 +23,13 @@ import packetproxy.model.Database.DatabaseMessage;
 
 public class ListenPorts extends Observable implements Observer
 {
-	private static ListenPorts incetance;
+	private static ListenPorts instance;
 	
 	public static ListenPorts getInstance() throws Exception {
-		if (incetance == null) {
-			incetance = new ListenPorts();
+		if (instance == null) {
+			instance = new ListenPorts();
 		}
-		return incetance;
+		return instance;
 	}
 	
 	private Database database;

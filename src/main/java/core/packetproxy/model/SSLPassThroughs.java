@@ -25,13 +25,13 @@ import packetproxy.model.Database.DatabaseMessage;
 
 public class SSLPassThroughs extends Observable implements Observer
 {
-	private static SSLPassThroughs incetance;
+	private static SSLPassThroughs instance;
 	
 	public static SSLPassThroughs getInstance() throws Exception {
-		if (incetance == null) {
-			incetance = new SSLPassThroughs();
+		if (instance == null) {
+			instance = new SSLPassThroughs();
 		}
-		return incetance;
+		return instance;
 	}
 	
 	private Database database;

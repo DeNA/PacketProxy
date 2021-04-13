@@ -31,13 +31,13 @@ public class ListenPortManager implements Observer
 	private ListenPorts listenPorts;
 	private Map<Integer,Listen> listen_map;
 
-	private static ListenPortManager incetance;
+	private static ListenPortManager instance;
 	
 	public static ListenPortManager getInstance() throws Exception {
-		if (incetance == null) {
-			incetance = new ListenPortManager();
+		if (instance == null) {
+			instance = new ListenPortManager();
 		}
-		return incetance;
+		return instance;
 	}
 	private ListenPortManager() throws Exception {
 		listen_map = new HashMap<Integer,Listen>();
