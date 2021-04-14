@@ -104,6 +104,10 @@ public class Http
 	}
 	*/
 
+	static final Pattern CONTINUE_PATTERN = Pattern.compile("HTTP/1.1 100 Continue\r?\n\r?\n", Pattern.CASE_INSENSITIVE);
+	static final Pattern PLAIN_PATTERN = Pattern.compile("\nContent-Length *: *([0-9]+)", Pattern.CASE_INSENSITIVE);
+	static final Pattern CHUNKED_PATTERN = Pattern.compile("\nTransfer-Encoding *: *chunked", Pattern.CASE_INSENSITIVE);
+	static final Pattern GZIP_PATTERN = Pattern.compile("\nContent-Encoding *: *gzip", Pattern.CASE_INSENSITIVE);
 	// TODO header系作業をHttpHeaderに分離
 	public static int parseHttpDelimiter(byte[] data) throws Exception
 	{
@@ -113,17 +117,13 @@ public class Http
 		byte[] header = ArrayUtils.subarray(data, 0, header_size);
 		String header_str = new String(header, "UTF-8");
 
-		Pattern continue_pattern = Pattern.compile("HTTP/1.1 100 Continue\r?\n\r?\n", Pattern.CASE_INSENSITIVE);
-		Matcher continue_matcher = continue_pattern.matcher(header_str);
-
+		Matcher continue_matcher = CONTINUE_PATTERN.matcher(header_str);
 		if (continue_matcher.find()) {
 			header_size = continue_matcher.end();
 			return header_size;
 		}
 
-		Pattern plain_pattern = Pattern.compile("\nContent-Length *: *([0-9]+)", Pattern.CASE_INSENSITIVE);
-		Matcher plain_matcher = plain_pattern.matcher(header_str);
-
+		Matcher plain_matcher = PLAIN_PATTERN.matcher(header_str);
 		int content_length;
 		if (plain_matcher.find()) {
 			content_length = Integer.parseInt(plain_matcher.group(1));
@@ -131,8 +131,7 @@ public class Http
 			content_length = 0;
 		}
 
-		Pattern pattern = Pattern.compile("\nTransfer-Encoding *: *chunked", Pattern.CASE_INSENSITIVE);
-		Matcher matcher = pattern.matcher(header_str);
+		Matcher matcher = CHUNKED_PATTERN.matcher(header_str);
 		if (matcher.find()) {
 			// TODO subarrayを何度もして遅くなるので末尾が0でなかったらreturn -1する
 			byte[] body = ArrayUtils.subarray(data, header_size, data.length);
@@ -140,8 +139,7 @@ public class Http
 			if (body == null)
 				return -1;
 		} else if (content_length == 0) {
-			Pattern pat = Pattern.compile("\nContent-Encoding *: *gzip", Pattern.CASE_INSENSITIVE);
-			Matcher mat = pat.matcher(header_str);
+			Matcher mat = GZIP_PATTERN.matcher(header_str);
 			if (mat.find()) {
 				byte[] body = ArrayUtils.subarray(data, header_size, data.length);
 				try {
@@ -363,10 +361,10 @@ public class Http
 		header.update("Content-Encoding", "gzip");
 	}
 
+	static final Pattern STATUS_LINE_PATTERN = Pattern.compile("([^ ]+) +([^ ]+) +([^ ]+)$");
 	private void analyzeRequestStatusLine(String status_line) throws Exception
 	{
-		Pattern pattern = Pattern.compile("([^ ]+) +([^ ]+) +([^ ]+)$");
-		Matcher matcher = pattern.matcher(status_line);
+		Matcher matcher = STATUS_LINE_PATTERN.matcher(status_line);
 		if (matcher.find()) {
 			this.method = matcher.group(1).trim();
 			this.version = matcher.group(3).trim();
@@ -407,22 +405,22 @@ public class Http
 		}
 	}
 
+	static final Pattern HTTP_URL_PATTERN = Pattern.compile("http://[^/]+");
 	@SuppressWarnings("unused")
 	private String replaceStatusLineToNonProxyStyte(String status_line) throws Exception
 	{
 		String result = status_line;
-		Pattern pattern = Pattern.compile("http://[^/]+");
-		Matcher matcher = pattern.matcher(status_line);
+		Matcher matcher = HTTP_URL_PATTERN.matcher(status_line);
 		if (matcher.find()) {
 			result = matcher.replaceAll("");
 		}
 		return result;
 	}
 
+	static final Pattern STATUS_LINE_PATTERN2 = Pattern.compile("([^ ]+) +([^ ]+) +([^ ]+)$");
 	private void analyzeResponseStatusLine(String status_line) throws Exception
 	{
-		Pattern pattern = Pattern.compile("[^ ]+ +([^ ]+) +([a-z0-9A-Z ]+)$");
-		Matcher matcher = pattern.matcher(status_line);
+		Matcher matcher = STATUS_LINE_PATTERN2.matcher(status_line);
 		if (matcher.find()) {
 			this.statusCode = matcher.group(1).trim();
 			//			if (matcher.group(2).trim().equals("Connection established")) {
@@ -432,10 +430,10 @@ public class Http
 		}
 	}
 
+	static final Pattern STATUS_LINE_PATTERN3 = Pattern.compile("^([^ ]+)");
 	private void analyzeStatusLine(String status_line) throws Exception
 	{
-		Pattern pattern = Pattern.compile("^([^ ]+)");
-		Matcher matcher = pattern.matcher(status_line);
+		Matcher matcher = STATUS_LINE_PATTERN3.matcher(status_line);
 		if (matcher.find()) {
 			if (matcher.group(1).trim().startsWith("HTTP")) {
 				analyzeResponseStatusLine(status_line);
