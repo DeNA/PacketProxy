@@ -15,6 +15,7 @@
  */
 package packetproxy;
 
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,11 +37,12 @@ public class DuplexManager
 	}
 	
 	public void closeAndClearDuplex(int listenPort) throws Exception {
-		for (int key : duplex_list.keySet()) {
+		for(Iterator<Integer> i = duplex_list.keySet().iterator();i.hasNext();){
+			int key = i.next();
 			Duplex d = duplex_list.get(key);
 			if (d.isListenPort(listenPort)) {
 				d.close();
-				duplex_list.remove(key);
+				i.remove();
 			}
 		}
 	}
