@@ -417,7 +417,7 @@ public class Http
 		return result;
 	}
 
-	static final Pattern STATUS_LINE_PATTERN2 = Pattern.compile("([^ ]+) +([^ ]+) +([^ ]+)$");
+	static final Pattern STATUS_LINE_PATTERN2 = Pattern.compile("[^ ]+ +([^ ]+) +([a-z0-9A-Z ]+)$");
 	private void analyzeResponseStatusLine(String status_line) throws Exception
 	{
 		Matcher matcher = STATUS_LINE_PATTERN2.matcher(status_line);
