@@ -16,6 +16,8 @@
 package packetproxy.model;
 
 import com.j256.ormlite.dao.Dao;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -45,6 +47,7 @@ public class Packets extends Observable implements Observer {
 	private PacketProxyUtility util;
 	private Database database;
 	private Dao<Packet,Integer> dao;
+	private ExecutorService executor;
 
 	private Packets(boolean restore) throws Exception {
 		util = PacketProxyUtility.getInstance();
@@ -61,6 +64,7 @@ public class Packets extends Observable implements Observer {
 			util.packetProxyLog("load history...");
 			util.packetProxyLog("load" + dao.countOf() + " records.");
 		}
+		executor = Executors.newSingleThreadExecutor();
 	}
 	// TODO できれば非同期でやる（大きいデータのときに数秒止まってしまうので）
 	public void create(Packet packet) throws Exception {
@@ -72,7 +76,7 @@ public class Packets extends Observable implements Observer {
 	public void refresh() {
 		notifyObservers();
 	}
-	public void update(Packet packet) throws Exception {
+	public void updateSync(Packet packet) throws Exception {
 		if(database.isAlertFileSize()){
 			notifyObservers(true);
 		}
@@ -85,6 +89,18 @@ public class Packets extends Observable implements Observer {
 		} else {
 			notifyObservers(packet.getId());
 		}
+	}
+	public void update(Packet packet) throws Exception {
+		Runnable task = new Runnable() {
+			public void run() {
+				try {
+					updateSync(packet);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		executor.execute(task);
 	}
 	public void deleteAll() throws Exception {
 		synchronized (dao) {
