@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.JOptionPane;
+import packetproxy.model.DaoQueryCache;
 import packetproxy.model.Database.DatabaseMessage;
 
 public class Modifications extends Observable implements Observer
@@ -36,51 +37,76 @@ public class Modifications extends Observable implements Observer
 	private Database database;
 	private Dao<Modification,Integer> dao;
 	private Servers servers;
+	private DaoQueryCache<Modification> cache;
 	
 	private Modifications() throws Exception {
 		database = Database.getInstance();
 		servers = Servers.getInstance();
 		dao = database.createTable(Modification.class, this);
+		cache = new DaoQueryCache<Modification>();
 		if (!isLatestVersion()) {
 			RecreateTable();
 		}
 	}
 	public void create(Modification modification) throws Exception {
 		dao.createIfNotExists(modification);
+		cache.clear();
 		notifyObservers();
 	}
 	public void delete(int id) throws Exception {
 		dao.deleteById(id);
+		cache.clear();
 		notifyObservers();
 	}
 	public void delete(Modification modification) throws Exception {
 		dao.delete(modification);
+		cache.clear();
 		notifyObservers();
 	}
 	public void update(Modification modification) throws Exception {
 		dao.update(modification);
+		cache.clear();
 		notifyObservers();
 	}
 	public void refresh() {
 		notifyObservers();
 	}
 	public Modification query(int id) throws Exception {
-		return dao.queryForId(id);
+		List<Modification> ret = cache.query("query", 0);
+		if (ret != null) { return ret.get(0); }
+
+		Modification modification = dao.queryForId(id);
+
+		cache.set("query", id, modification);
+		return modification;
 	}
 	public List<Modification> queryAll() throws Exception {
-		return dao.queryBuilder().query();
+		List<Modification> ret = cache.query("queryAll", 0);
+		if (ret != null) { return ret; }
+
+		ret = dao.queryBuilder().query();
+
+		cache.set("queryAll", 0, ret);
+		return ret;
 	}
 
 	public List<Modification> queryEnabled(Server server) throws Exception {
 		int server_id = Modification.ALL_SERVER;
 		if (server != null) { server_id = server.getId(); }
-		return dao.queryBuilder().where()
+
+		List<Modification> ret = cache.query("queryEnabled", server_id);
+		if (ret != null) { return ret; }
+
+		ret = dao.queryBuilder().where()
 				.eq("server_id",  server_id)
 				.or()
 				.eq("server_id",  Modification.ALL_SERVER)
 				.and()
 				.eq("enabled", true)
 				.query();
+
+		cache.set("queryEnabled", server_id, ret);
+		return ret;
 	}
 	public byte[] replaceOnRequest(byte[] data, Server server, Packet client_packet) throws Exception {
 		for (Modification mod : queryEnabled(server)) {
@@ -123,11 +149,13 @@ public class Modifications extends Observable implements Observer
 			case RECONNECT:
 				database = Database.getInstance();
 				dao = database.createTable(Modification.class, this);
+				cache.clear();
 				notifyObservers(arg);
 				break;
 			case RECREATE:
 				database = Database.getInstance();
 				dao = database.createTable(Modification.class, this);
+				cache.clear();
 				break;
 			default:
 				break;
@@ -149,6 +177,7 @@ public class Modifications extends Observable implements Observer
 		if (option == JOptionPane.YES_OPTION) {
 			database.dropTable(Modification.class);
 			dao = database.createTable(Modification.class, this);
+			cache.clear();
 		}
 	}
 }

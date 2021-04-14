@@ -21,6 +21,7 @@ import java.util.Observable;
 import java.util.Observer;
 import javax.swing.JOptionPane;
 import packetproxy.ListenPortManager;
+import packetproxy.model.DaoQueryCache;
 import packetproxy.model.Database.DatabaseMessage;
 
 public class SSLPassThroughs extends Observable implements Observer
@@ -36,12 +37,14 @@ public class SSLPassThroughs extends Observable implements Observer
 	
 	private Database database;
 	private Dao<SSLPassThrough,Integer> dao;
+	private DaoQueryCache<SSLPassThrough> cache;
 	private ListenPorts listenPorts;
 	
 	private SSLPassThroughs() throws Exception {
 		database = Database.getInstance();
 		listenPorts = ListenPorts.getInstance();
 		dao = database.createTable(SSLPassThrough.class, this);
+		cache = new DaoQueryCache();
 		if (!isLatestVersion()) {
 			RecreateTable();
 		}
@@ -52,10 +55,12 @@ public class SSLPassThroughs extends Observable implements Observer
 	}
 	public void create(SSLPassThrough sslPassThrough) throws Exception {
 		dao.createIfNotExists(sslPassThrough);
+		cache.clear();
 		notifyObservers();
 	}
 	public void delete(int id) throws Exception {
 		dao.deleteById(id);
+		cache.clear();
 		notifyObservers();
 	}
 	public void delete(SSLPassThrough sslPassThrough) throws Exception {
@@ -64,40 +69,71 @@ public class SSLPassThroughs extends Observable implements Observer
 	}
 	public void update(SSLPassThrough sslPassThrough) throws Exception {
 		dao.update(sslPassThrough);
+		cache.clear();
 		notifyObservers();
 	}
 	public void refresh() {
 		notifyObservers();
 	}
 	public SSLPassThrough query(int id) throws Exception {
-		return dao.queryForId(id);
+		List<SSLPassThrough> ret = cache.query("query", id);
+		if (ret != null) { return ret.get(0); }
+
+		SSLPassThrough ssl_pass_through = dao.queryForId(id);
+
+		cache.set("query", id, ssl_pass_through);
+		return ssl_pass_through;
 	}
 	public List<SSLPassThrough> queryAll() throws Exception {
-		return dao.queryBuilder().query();
+		List<SSLPassThrough> ret = cache.query("queryAll", 0);
+		if (ret != null) { return ret; }
+
+		ret = dao.queryBuilder().query();
+
+		cache.set("queryAll", 0, ret);
+		return ret;
 	}
 	public List<SSLPassThrough> queryEnabled(String serverName) throws Exception {
-		return dao.queryBuilder().where()
+		List<SSLPassThrough> ret = cache.query("queryEnabled", serverName);
+		if (ret != null) { return ret; }
+
+		ret = dao.queryBuilder().where()
 				.eq("server_name",  serverName)
 				.and()
 				.eq("enabled", true)
 				.query();
+
+		cache.set("queryEnabled", serverName, ret);
+		return ret;
 	}
 	public List<SSLPassThrough> queryEnabled(String serverName, ListenPort listenPort) throws Exception {
-		return dao.queryBuilder().where()
+		String cache_key = serverName + String.valueOf(listenPort.hashCode());
+		List<SSLPassThrough> ret = cache.query("queryEnabled2", cache_key);
+		if (ret != null) { return ret; }
+
+		ret = dao.queryBuilder().where()
 				.eq("server_name",  serverName)
 				.or()
 				.eq("listen_port",  listenPort)
 				.and()
 				.eq("enabled", true)
 				.query();
+
+		cache.set("queryEnabled2", cache_key, ret);
+		return ret;
 	}
 	public boolean includes(String serverName, int listenPort) throws Exception {
-		List<SSLPassThrough> spts = dao.queryBuilder().where()
-						.eq("listen_port", listenPort)
-						.or()
-						.eq("listen_port", SSLPassThrough.ALL_PORTS)
-						.and()
-						.eq("enabled", true).query();
+		String cache_key = serverName + String.valueOf(listenPort);
+		List<SSLPassThrough> spts = cache.query("includes", cache_key);
+		if (spts == null) {
+			spts = dao.queryBuilder().where()
+							.eq("listen_port", listenPort)
+							.or()
+							.eq("listen_port", SSLPassThrough.ALL_PORTS)
+							.and()
+							.eq("enabled", true).query();
+			cache.set("includes", cache_key, spts);
+		}
 		for (SSLPassThrough spt : spts) {
 			if (serverName.matches(spt.getServerName())) {
 				return true;
@@ -138,11 +174,13 @@ public class SSLPassThroughs extends Observable implements Observer
 			case RECONNECT:
 				database = Database.getInstance();
 				dao = database.createTable(SSLPassThrough.class, this);
+				cache.clear();
 				notifyObservers(arg);
 				break;
 			case RECREATE:
 				database = Database.getInstance();
 				dao = database.createTable(SSLPassThrough.class, this);
+				cache.clear();
 				break;
 			default:
 				break;
