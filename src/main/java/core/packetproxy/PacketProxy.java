@@ -29,6 +29,7 @@ import packetproxy.common.Utils;
 import packetproxy.gui.GUIMain;
 import packetproxy.gui.Splash;
 import packetproxy.model.Database;
+import packetproxy.EncoderManager;
 
 public class PacketProxy
 {
@@ -84,6 +85,8 @@ public class PacketProxy
 	public void start() throws Exception {
 		startGUI();
 		listenPortManager = ListenPortManager.getInstance();
+		// encoderのロードに1,2秒かかるのでここでロードをしておく（ここでしておかないと通信がacceptされたタイミングでロードする）
+		EncoderManager.getInstance();
 	}
 
 	private void startGUI() throws Exception {
