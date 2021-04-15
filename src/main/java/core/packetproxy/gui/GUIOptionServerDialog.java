@@ -32,10 +32,14 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JOptionPane;
+
+import java.util.regex.*;
 
 import packetproxy.EncoderManager;
 import packetproxy.common.I18nString;
 import packetproxy.model.Server;
+
 
 public class GUIOptionServerDialog extends JDialog
 {
@@ -193,7 +197,7 @@ public class GUIOptionServerDialog extends JDialog
 
 	    button_cancel.addActionListener(new ActionListener() {
 	    	@Override
-			public void actionPerformed(ActionEvent e) {
+		public void actionPerformed(ActionEvent e) {
 	    		server = null;
 	    		dispose();
 	    	}
@@ -201,7 +205,15 @@ public class GUIOptionServerDialog extends JDialog
 
 	    button_set.addActionListener(new ActionListener() {
 	    	@Override
-			public void actionPerformed(ActionEvent e) {
+		public void actionPerformed(ActionEvent e) {
+			String hostname = text_ip.getText();
+			String regex = "[^\\x21-\\x7E]";
+			Pattern p = Pattern.compile(regex);
+			Matcher m = p.matcher(hostname);
+			if(m.find()){
+				JOptionPane.showMessageDialog(null,I18nString.get("The ServerName contains invalid characters."));
+				return;
+			}
 	    		server = new Server(text_ip.getText(),
 	    				Integer.parseInt(text_port.getText()),
 	    				checkbox_ssl.isSelected(),
