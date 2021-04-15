@@ -65,6 +65,7 @@ public class SSLPassThroughs extends Observable implements Observer
 	}
 	public void delete(SSLPassThrough sslPassThrough) throws Exception {
 		dao.delete(sslPassThrough);
+		cache.clear();
 		notifyObservers();
 	}
 	public void update(SSLPassThrough sslPassThrough) throws Exception {

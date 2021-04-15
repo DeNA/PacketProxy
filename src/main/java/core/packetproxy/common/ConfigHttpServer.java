@@ -20,7 +20,7 @@ public class ConfigHttpServer extends NanoHTTPD {
         @SerializedName(value="listenPorts") List<ListenPort> listenPortList;
         @SerializedName(value="servers") List<Server> serverList;
         @SerializedName(value="modifications") List<Modification> modificationList;
-        @SerializedName(value="sslPathThroughs") List<SSLPassThrough> sslPassThroughList;
+        @SerializedName(value="sslPassThroughs") List<SSLPassThrough> sslPassThroughList;
     }
 
     public ConfigHttpServer(String hostname, int port, String allowedAccessToken) {
