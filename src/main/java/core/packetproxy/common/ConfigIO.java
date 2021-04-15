@@ -18,7 +18,7 @@ public class ConfigIO{
         @SerializedName(value="listenPorts") List<ListenPort> listenPortList;
         @SerializedName(value="servers") List<Server> serverList;
         @SerializedName(value="modifications") List<Modification> modificationList;
-        @SerializedName(value="sslPathThroughs") List<SSLPassThrough> sslPassThroughList;
+        @SerializedName(value="sslPassThroughs") List<SSLPassThrough> sslPassThroughList;
     }
 
     public ConfigIO() {
@@ -66,48 +66,38 @@ public class ConfigIO{
         fixUpModificationList(serverMap, daoHub.modificationList);
     }
 
-    public String getOptions() {
-            try {
-                DaoHub daoHub = new DaoHub();
+    public String getOptions() throws Exception {
+		DaoHub daoHub = new DaoHub();
 
-                daoHub.listenPortList = ListenPorts.getInstance().queryAll();
-                daoHub.serverList = Servers.getInstance().queryAll();
-                daoHub.modificationList = Modifications.getInstance().queryAll();
-                daoHub.sslPassThroughList = SSLPassThroughs.getInstance().queryAll();
+		daoHub.listenPortList = ListenPorts.getInstance().queryAll();
+		daoHub.serverList = Servers.getInstance().queryAll();
+		daoHub.modificationList = Modifications.getInstance().queryAll();
+		daoHub.sslPassThroughList = SSLPassThroughs.getInstance().queryAll();
 
-                fixUp(daoHub);
+		fixUp(daoHub);
 
-                Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                String json = gson.toJson(daoHub);
-                
-                return json;
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		String json = gson.toJson(daoHub);
+		
+		return json;
     }
 
-    public void setOptions(String json){
-            try{
-                DaoHub daoHub = new Gson().fromJson(json, DaoHub.class);
+    public void setOptions(String json) throws Exception {
+		DaoHub daoHub = new Gson().fromJson(json, DaoHub.class);
 
-                Database.getInstance().dropConfigs();
+		Database.getInstance().dropConfigs();
 
-                for (ListenPort listenPort : daoHub.listenPortList) {
-                    ListenPorts.getInstance().create(listenPort);
-                }
-                for (Server server : daoHub.serverList) {
-                    Servers.getInstance().create(server);
-                }
-                for (Modification mod : daoHub.modificationList) {
-                    Modifications.getInstance().create(mod);
-                }
-                for (SSLPassThrough passThrough : daoHub.sslPassThroughList) {
-                    SSLPassThroughs.getInstance().create(passThrough);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+		for (ListenPort listenPort : daoHub.listenPortList) {
+			ListenPorts.getInstance().create(listenPort);
+		}
+		for (Server server : daoHub.serverList) {
+			Servers.getInstance().create(server);
+		}
+		for (Modification mod : daoHub.modificationList) {
+			Modifications.getInstance().create(mod);
+		}
+		for (SSLPassThrough passThrough : daoHub.sslPassThroughList) {
+			SSLPassThroughs.getInstance().create(passThrough);
+		}
+	}
 }
