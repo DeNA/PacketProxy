@@ -18,9 +18,12 @@ package packetproxy.model;
 import com.j256.ormlite.dao.Dao;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import packetproxy.model.DaoQueryCache;
 import packetproxy.model.Database.DatabaseMessage;
 
 public class Servers extends Observable implements Observer {
@@ -36,17 +39,21 @@ public class Servers extends Observable implements Observer {
 	
 	private Database database;
 	private Dao<Server,Integer> dao;
+	private DaoQueryCache<Server> cache;
 	
 	private Servers() throws Exception {
 		database = Database.getInstance();
 		dao = database.createTable(Server.class, this);
+		cache = new DaoQueryCache();
 	}
 	public void create(Server server) throws Exception {
 		dao.createIfNotExists(server);
+		cache.clear();
 		notifyObservers();
 	}
 	public void delete(Server server) throws Exception {
 		dao.delete(server);
+		cache.clear();
 		notifyObservers();
 	}
 	public Server queryByString(String str) throws Exception {
@@ -59,11 +66,20 @@ public class Servers extends Observable implements Observer {
 		return null;
 	}
 	public Server queryByHostNameAndPort(String hostname, int port) throws Exception {
+		String cache_key = hostname + String.valueOf(port);
+		List<Server> ret = cache.query("queryByHostNameAndPort", cache_key);
+		if (ret != null) { return ret.get(0); }
+
 		List<Server> servers = dao.queryBuilder().where().eq("ip", hostname).and().eq("port", port).query();
+		Server server = null;
 		if (servers.isEmpty()) {
-			return queryByHostName(hostname);
+			server = queryByHostName(hostname);
+		} else {
+			server = servers.get(0);
 		}
-		return servers.get(0);
+
+		cache.set("queryByHostNameAndPort", cache_key, server);
+		return server;
 	}
 	public Server queryByAddress(InetSocketAddress addr) throws Exception {
 		List<Server> all = this.queryAll();
@@ -85,25 +101,62 @@ public class Servers extends Observable implements Observer {
 		return null;
 	}
 	public Server queryByHostName(String hostname) throws Exception {
-		return dao.queryBuilder().where().eq("ip", hostname).queryForFirst();
+		List<Server> ret = cache.query("queryByHostName", hostname);
+		if (ret != null) { return ret.get(0); }
+
+		Server server = dao.queryBuilder().where().eq("ip", hostname).queryForFirst();
+
+		cache.set("queryByHostName", hostname, server);
+		return server;
 	}
 	public Server query(int id) throws Exception {
-		return dao.queryForId(id);
+		List<Server> ret = cache.query("query", id);
+		if (ret != null) { return ret.get(0); }
+
+		Server server = dao.queryForId(id);
+
+		cache.set("query", id, server);
+		return server;
 	}
 	public List<Server> queryAll() throws Exception {
-		return dao.queryBuilder().orderBy("ip", true).query();
+		List<Server> ret = cache.query("queryAll", 0);
+		if (ret != null) { return ret; }
+
+		ret = dao.queryBuilder().orderBy("ip", true).query();
+
+		cache.set("queryAll", 0, ret);
+		return ret;
 	}
 	public List<Server> queryNonHttpProxies() throws Exception {
-		return dao.queryBuilder().orderBy("ip", true).where().eq("http_proxy", false).query();
+		List<Server> ret = cache.query("queryNonHttpProxies", 0);
+		if (ret != null) { return ret; }
+
+		ret = dao.queryBuilder().orderBy("ip", true).where().eq("http_proxy", false).query();
+
+		cache.set("queryNonHttpProxies", 0, ret);
+		return ret;
 	}
 	public List<Server> queryHttpProxies() throws Exception {
-		return dao.queryBuilder().orderBy("ip", true).where().eq("http_proxy", true).query();
+		List<Server> ret = cache.query("queryHttpProxies", 0);
+		if (ret != null) { return ret; }
+
+		ret = dao.queryBuilder().orderBy("ip", true).where().eq("http_proxy", true).query();
+
+		cache.set("queryHttpProxies", 0, ret);
+		return ret;
 	}
 	public List<Server> queryResolvedByDNS() throws Exception {
-		return dao.queryBuilder().where().eq("resolved_by_dns", true).query();
+		List<Server> ret = cache.query("queryResolvedByDNS", 0);
+		if (ret != null) { return ret; }
+
+		ret = dao.queryBuilder().where().eq("resolved_by_dns", true).query();
+
+		cache.set("queryResolvedByDNS", 0, ret);
+		return ret;
 	}
 	public void update(Server server) throws Exception {
 		dao.update(server);
+		cache.clear();
 		notifyObservers();
 	}
 	@Override
@@ -128,11 +181,13 @@ public class Servers extends Observable implements Observer {
 			case RECONNECT:
 				database = Database.getInstance();
 				dao = database.createTable(Server.class, this);
+				cache.clear();
 				notifyObservers(arg);
 				break;
 			case RECREATE:
 				database = Database.getInstance();
 				dao = database.createTable(Server.class, this);
+				cache.clear();
 				break;
 			default:
 				break;

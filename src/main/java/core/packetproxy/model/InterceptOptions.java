@@ -42,6 +42,7 @@ public class InterceptOptions extends Observable implements Observer
 	private Dao<InterceptOption,Integer> dao;
 	private Servers servers;
 	private ConfigBoolean enabled;
+	private DaoQueryCache<InterceptOption> cache;
 	
 	private void setDefaultRulesIfNotFound() throws Exception {
 		int i1Num = dao.queryBuilder().where().eq("Direction",  InterceptOption.Direction.ALL_THE_OTHER_REQUESTS).query().size();
@@ -56,6 +57,7 @@ public class InterceptOptions extends Observable implements Observer
 			);
 			i1.setEnabled();
 			dao.create(i1);
+			cache.clear();
 		}
 		int i2Num = dao.queryBuilder().where().eq("Direction",  InterceptOption.Direction.ALL_THE_OTHER_RESPONSES).query().size();
 		if (i2Num == 0) {
@@ -69,6 +71,7 @@ public class InterceptOptions extends Observable implements Observer
 			);
 			i2.setEnabled();
 			dao.create(i2);
+			cache.clear();
 		}
 	}
 	
@@ -76,6 +79,7 @@ public class InterceptOptions extends Observable implements Observer
 		database = Database.getInstance();
 		servers = Servers.getInstance();
 		dao = database.createTable(InterceptOption.class, this);
+		cache = new DaoQueryCache<InterceptOption>();
 		enabled = new ConfigBoolean("InterceptOptions");
 		if (!isLatestVersion()) {
 			RecreateTable();
@@ -84,18 +88,22 @@ public class InterceptOptions extends Observable implements Observer
 	public void create(InterceptOption intercept_option) throws Exception {
 		intercept_option.setEnabled();
 		dao.createIfNotExists(intercept_option);
+		cache.clear();
 		notifyObservers();
 	}
 	public void delete(int id) throws Exception {
 		dao.deleteById(id);
+		cache.clear();
 		notifyObservers();
 	}
 	public void delete(InterceptOption intercept_option) throws Exception {
 		dao.delete(intercept_option);
+		cache.clear();
 		notifyObservers();
 	}
 	public void update(InterceptOption intercept_option) throws Exception {
 		dao.update(intercept_option);
+		cache.clear();
 		notifyObservers();
 	}
 	public void refresh() {
@@ -130,9 +138,15 @@ public class InterceptOptions extends Observable implements Observer
 	}
 	public List<InterceptOption> queryAll() throws Exception {
 		try {
+			List<InterceptOption> ret = cache.query("queryAll", 0);
+			if (ret != null) { return ret; }
+
 			setDefaultRulesIfNotFound();
 			List<InterceptOption> list = dao.queryBuilder().query();
-			return sort(list);
+			ret = sort(list);
+
+			cache.set("queryAll", 0, ret);
+			return ret;
 		} catch (Exception e) {
 			database.dropTable(InterceptOption.class);
 			dao = database.createTable(InterceptOption.class, this);
@@ -143,6 +157,10 @@ public class InterceptOptions extends Observable implements Observer
 	public List<InterceptOption> queryEnabled(Server server) throws Exception {
 		int server_id = InterceptOption.ALL_SERVER;
 		if (server != null) { server_id = server.getId(); }
+
+		List<InterceptOption> ret = cache.query("queryEnabled", server_id);
+		if (ret != null) { return ret; }
+
 		setDefaultRulesIfNotFound();
 		List<InterceptOption> list = dao.queryBuilder().where()
 				.eq("server_id",  server_id)
@@ -151,7 +169,10 @@ public class InterceptOptions extends Observable implements Observer
 				.and()
 				.eq("enabled", true)
 				.query();
-		return sort(list);
+		ret = sort(list);
+
+		cache.set("queryEnabled", server_id, ret);
+		return ret;
 	}
 	public boolean interceptOnRequest(Server server, Packet client_packet) throws Exception {
 		for (InterceptOption intercept : queryEnabled(server)) {
@@ -246,11 +267,13 @@ public class InterceptOptions extends Observable implements Observer
 			case RECONNECT:
 				database = Database.getInstance();
 				dao = database.createTable(InterceptOption.class, this);
+				cache.clear();
 				notifyObservers(arg);
 				break;
 			case RECREATE:
 				database = Database.getInstance();
 				dao = database.createTable(InterceptOption.class, this);
+				cache.clear();
 				break;
 			default:
 				break;

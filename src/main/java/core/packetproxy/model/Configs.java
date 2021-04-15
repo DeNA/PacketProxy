@@ -19,6 +19,7 @@ import com.j256.ormlite.dao.Dao;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import packetproxy.model.DaoQueryCache;
 import packetproxy.model.Database.DatabaseMessage;
 
 public class Configs extends Observable implements Observer {
@@ -34,27 +35,44 @@ public class Configs extends Observable implements Observer {
 	
 	private Database database;
 	private Dao<Config,String> dao;
+	private DaoQueryCache<Config> cache;
 	
 	private Configs() throws Exception {
 		database = Database.getInstance();
 		dao = database.createTable(Config.class, this);
+		cache = new DaoQueryCache();
 	}
 	public void create(Config config) throws Exception {
 		dao.createIfNotExists(config);
+		cache.clear();
 		notifyObservers();
 	}
 	public void delete(Config config) throws Exception {
 		dao.delete(config);
+		cache.clear();
 		notifyObservers();
 	}
 	public Config query(String key) throws Exception {
-		return dao.queryForId(key);
+		List<Config> ret = cache.query("query", key);
+		if (ret != null) { return ret.get(0); }
+
+		Config config = dao.queryForId(key);
+
+		cache.set("query", key, config);
+		return config;
 	}
 	public List<Config> queryAll() throws Exception {
-		return dao.queryForAll();
+		List<Config> ret = cache.query("queryAll", 0);
+		if (ret != null) { return ret; }
+
+		ret = dao.queryForAll();
+
+		cache.set("queryAll", 0, ret);
+		return ret;
 	}
 	public void update(Config config) throws Exception {
 		dao.update(config);
+		cache.clear();
 		notifyObservers();
 	}
 	@Override
@@ -80,11 +98,13 @@ public class Configs extends Observable implements Observer {
 			case RECONNECT:
 				database = Database.getInstance();
 				dao = database.createTable(Config.class, this);
+				cache.clear();
 				notifyObservers(arg);
 				break;
 			case RECREATE:
 				database = Database.getInstance();
 				dao = database.createTable(Config.class, this);
+				cache.clear();
 				break;
 			default:
 				break;
