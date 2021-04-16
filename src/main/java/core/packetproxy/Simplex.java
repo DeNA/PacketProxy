@@ -227,6 +227,7 @@ class Simplex extends Thread
 			if (flag_close) {
 				try {
 					if (in != null) in.close();
+					if (out != null) out.close();
 				} catch (Exception e1) {
 					e1.printStackTrace();
 					util.packetProxyLogErrWithStackTrace(e1);
@@ -275,6 +276,7 @@ class Simplex extends Thread
 		flag_break_loop = true;
 		flag_close = true;
 		in.close();
+		out.close();
 	}
 	
 	public void finishWithoutClose() {

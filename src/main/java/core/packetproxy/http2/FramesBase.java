@@ -120,6 +120,14 @@ public abstract class FramesBase
 	public void putToServerFlowControlledQueue(byte[] frames) throws Exception {
 		serverFrameManager.putToFlowControlledQueue(frames);
 	}
+
+	public void closeClientFlowControlledQueue() throws Exception {
+		clientFrameManager.closeFlowControlledQueue();
+	}
+
+	public void closeServerFlowControlledQueue() throws Exception {
+		serverFrameManager.closeFlowControlledQueue();
+	}
 	
 	public InputStream getClientFlowControlledInputStream() {
 		return clientFrameManager.getFlowControlledInputStream();

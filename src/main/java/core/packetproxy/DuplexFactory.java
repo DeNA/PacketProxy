@@ -248,6 +248,14 @@ public class DuplexFactory {
 				encoder.putToServerFlowControlledQueue(data);
 			}
 			@Override
+			public void closeClientChunkFlowControl() throws Exception {
+				encoder.closeClientFlowControlledQueue();
+			}
+			@Override
+			public void closeServerChunkFlowControl() throws Exception {
+				encoder.closeServerFlowControlledQueue();
+			}
+			@Override
 			public InputStream getClientChunkFlowControlSink() throws Exception {
 				return encoder.getClientFlowControlledInputStream();
 			}
@@ -363,6 +371,14 @@ public class DuplexFactory {
 			@Override
 			public void onServerChunkFlowControl(byte[] data) throws Exception {
 				encoder.putToServerFlowControlledQueue(data);
+			}
+			@Override
+			public void closeClientChunkFlowControl() throws Exception {
+				encoder.closeClientFlowControlledQueue();
+			}
+			@Override
+			public void closeServerChunkFlowControl() throws Exception {
+				encoder.closeServerFlowControlledQueue();
 			}
 			@Override
 			public InputStream getClientChunkFlowControlSink() throws Exception {
@@ -483,6 +499,14 @@ public class DuplexFactory {
 			@Override
 			public void onServerChunkFlowControl(byte[] data) throws Exception {
 				encoder.putToServerFlowControlledQueue(data);
+			}
+			@Override
+			public void closeClientChunkFlowControl() throws Exception {
+				encoder.closeClientFlowControlledQueue();
+			}
+			@Override
+			public void closeServerChunkFlowControl() throws Exception {
+				encoder.closeServerFlowControlledQueue();
 			}
 			@Override
 			public InputStream getClientChunkFlowControlSink() throws Exception {

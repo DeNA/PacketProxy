@@ -155,6 +155,9 @@ public class FrameManager {
 			}
 		}
 	}
+	public void closeFlowControlledQueue() throws Exception {
+		flowControlManager.getOutputStream().close();
+	}
 	public InputStream getFlowControlledInputStream() {
 		return flowControlManager.getInputStream();
 	}
