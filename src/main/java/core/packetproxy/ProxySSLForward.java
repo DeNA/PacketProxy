@@ -23,10 +23,12 @@ import java.util.List;
 
 import packetproxy.common.EndpointFactory;
 import packetproxy.common.SSLSocketEndpoint;
+import packetproxy.common.SocketEndpoint;
 import packetproxy.encode.EncodeHTTPBase;
 import packetproxy.encode.Encoder;
 import packetproxy.model.ListenPort;
 import packetproxy.model.Server;
+import packetproxy.model.SSLPassThroughs;
 import packetproxy.util.PacketProxyUtility;
 
 public class ProxySSLForward extends Proxy
@@ -62,9 +64,17 @@ public class ProxySSLForward extends Proxy
 	}
 
 	private void checkSSLForward(Socket client) throws Exception {
-		InetSocketAddress serverAddr = listen_info.getServer().getAddress();
-		SSLSocketEndpoint[] eps = EndpointFactory.createBothSideSSLEndpoints(client, null, serverAddr, null, listen_info.getServer().getIp(), listen_info.getCA().get());
-		createConnection(eps[0], eps[1], listen_info.getServer());
+		Server server = listen_info.getServer();
+		InetSocketAddress serverAddr = server.getAddress();
+		if (SSLPassThroughs.getInstance().includes(server.getIp(), listen_info.getPort())) {
+			SocketEndpoint server_e = new SocketEndpoint(serverAddr);
+			SocketEndpoint client_e = new SocketEndpoint(client);
+			DuplexAsync duplex = new DuplexAsync(client_e, server_e);
+			duplex.start();
+		} else {
+			SSLSocketEndpoint[] eps = EndpointFactory.createBothSideSSLEndpoints(client, null, serverAddr, null, listen_info.getServer().getIp(), listen_info.getCA().get());
+			createConnection(eps[0], eps[1], listen_info.getServer());
+		}
 	}
 
 	public void createConnection(SSLSocketEndpoint client_e, SSLSocketEndpoint server_e, Server server) throws Exception {

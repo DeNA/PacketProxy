@@ -33,6 +33,7 @@ import com.google.re2j.Pattern;
 
 import packetproxy.common.EndpointFactory;
 import packetproxy.common.I18nString;
+import packetproxy.common.SocketEndpoint;
 import packetproxy.common.SSLCapabilities;
 import packetproxy.common.SSLExplorer;
 import packetproxy.common.SSLSocketEndpoint;
@@ -42,6 +43,7 @@ import packetproxy.encode.Encoder;
 import packetproxy.model.ListenPort;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
+import packetproxy.model.SSLPassThroughs;
 import packetproxy.util.PacketProxyUtility;
 
 public class ProxySSLTransparent extends Proxy
@@ -139,6 +141,7 @@ public class ProxySSLTransparent extends Proxy
 			}
 			WrapEndpoint wep_e = new WrapEndpoint(client_e, ArrayUtils.subarray(buff, 0, length));
 			InetSocketAddress serverAddr = new InetSocketAddress(serverName, proxyPort);
+			// SNIヘッダが無い場合、SSLPassThroughは使えない
 			Server server = Servers.getInstance().queryByHostNameAndPort(serverName, proxyPort);
 			SSLSocketEndpoint server_e = new SSLSocketEndpoint(serverAddr, serverName, null);
 			createConnection(wep_e, server_e, server);
@@ -163,9 +166,15 @@ public class ProxySSLTransparent extends Proxy
 				}
 				
 				Server server = Servers.getInstance().queryByHostNameAndPort(serverName, serverAddr.getPort());
-
-				SSLSocketEndpoint[] eps = EndpointFactory.createBothSideSSLEndpoints(client, bais, serverAddr, null, serverName, listen_info.getCA().get());
-				createConnection(eps[0], eps[1], server);
+				if (SSLPassThroughs.getInstance().includes(server.getIp(), listen_info.getPort())) {
+					SocketEndpoint server_e = new SocketEndpoint(server.getAddress());
+					SocketEndpoint client_e = new SocketEndpoint(client, bais);
+					DuplexAsync duplex = new DuplexAsync(client_e, server_e);
+					duplex.start();
+				} else {
+					SSLSocketEndpoint[] eps = EndpointFactory.createBothSideSSLEndpoints(client, bais, serverAddr, null, serverName, listen_info.getCA().get());
+					createConnection(eps[0], eps[1], server);
+				}
 			}
 		}
 	}
