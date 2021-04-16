@@ -173,6 +173,12 @@ public abstract class Encoder
 		serverOutputForFlowControl.write(output_data);
 		serverOutputForFlowControl.flush();
 	}
+	public void closeClientFlowControlledQueue() throws Exception {
+		clientOutputForFlowControl.close();
+	}
+	public void closeServerFlowControlledQueue() throws Exception {
+		serverOutputForFlowControl.close();
+	}
 	public InputStream getClientFlowControlledInputStream() {
 		return clientInputForFlowControl;
 	}

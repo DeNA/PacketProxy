@@ -94,6 +94,8 @@ public class DuplexAsync extends Duplex
 					while ((inputLen = flow_controlled_client_input.read(inputBuf)) > 0) {
 						callOnClientChunkFlowControl(ArrayUtils.subarray(inputBuf, 0, inputLen));
 					}
+					flow_controlled_client_input.close();
+					closeOnClientChunkFlowControl();
 				} catch (Exception e) {
 					//e.printStackTrace();
 				}
@@ -108,6 +110,8 @@ public class DuplexAsync extends Duplex
 					while ((inputLen = flow_controlled_server_input.read(inputBuf)) > 0) {
 						callOnServerChunkFlowControl(ArrayUtils.subarray(inputBuf, 0, inputLen));
 					}
+					flow_controlled_server_input.close();
+					closeOnServerChunkFlowControl();
 				} catch (Exception e) {
 					//e.printStackTrace();
 				}

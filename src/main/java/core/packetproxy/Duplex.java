@@ -45,6 +45,8 @@ public abstract class Duplex {
 		public byte[] onServerChunkSendForced(byte[] data) throws Exception;
 		public void onClientChunkFlowControl(byte[] data) throws Exception;
 		public void onServerChunkFlowControl(byte[] data) throws Exception;
+		public void closeClientChunkFlowControl() throws Exception;
+		public void closeServerChunkFlowControl() throws Exception;
 		public InputStream getClientChunkFlowControlSink() throws Exception;
 		public InputStream getServerChunkFlowControlSink() throws Exception;
 	}
@@ -216,6 +218,14 @@ public abstract class Duplex {
 			listener.onClientChunkFlowControl(data);
 		}
 	}
+	public void closeOnClientChunkFlowControl() throws Exception {
+		if (isEnabledDuplexEventListener() == false) {
+			clientOutputForFlowControl.close();
+		}
+		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+			listener.closeClientChunkFlowControl();
+		}
+	}
 	public InputStream getClientChunkFlowControlSink() throws Exception {
 		if (isEnabledDuplexEventListener() == false) {
 			return clientInputForFlowControl;
@@ -232,6 +242,14 @@ public abstract class Duplex {
 		}
 		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
 			listener.onServerChunkFlowControl(data);
+		}
+	}
+	public void closeOnServerChunkFlowControl() throws Exception {
+		if (isEnabledDuplexEventListener() == false) {
+			serverOutputForFlowControl.close();
+		}
+		for (DuplexEventListener listener: duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+			listener.closeServerChunkFlowControl();
 		}
 	}
 	public InputStream getServerChunkFlowControlSink() throws Exception {
