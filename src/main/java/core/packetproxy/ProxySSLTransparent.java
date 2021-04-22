@@ -165,13 +165,13 @@ public class ProxySSLTransparent extends Proxy
 					PacketProxyUtility.getInstance().packetProxyLog("[Follback port] " + proxyPort + " -> 443");
 				}
 				
-				Server server = Servers.getInstance().queryByHostNameAndPort(serverName, serverAddr.getPort());
-				if (SSLPassThroughs.getInstance().includes(server.getIp(), listen_info.getPort())) {
-					SocketEndpoint server_e = new SocketEndpoint(server.getAddress());
+				if (SSLPassThroughs.getInstance().includes(serverName, listen_info.getPort())) {
+					SocketEndpoint server_e = new SocketEndpoint(serverAddr);
 					SocketEndpoint client_e = new SocketEndpoint(client, bais);
 					DuplexAsync duplex = new DuplexAsync(client_e, server_e);
 					duplex.start();
 				} else {
+					Server server = Servers.getInstance().queryByHostNameAndPort(serverName, serverAddr.getPort());
 					SSLSocketEndpoint[] eps = EndpointFactory.createBothSideSSLEndpoints(client, bais, serverAddr, null, serverName, listen_info.getCA().get());
 					createConnection(eps[0], eps[1], server);
 				}
