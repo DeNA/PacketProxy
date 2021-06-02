@@ -73,14 +73,18 @@ public class EncoderManager
 
 		Set<JavaFileObject.Kind> kind = Sets.newHashSet(JavaFileObject.Kind.CLASS);
 		for (JavaFileObject f : fm.list(StandardLocation.CLASS_PATH, encode_package, kind, false)) {
-			Path encode_file_path = Paths.get(f.getName());
-			Path encode_file_name = encode_file_path.getFileName();
-			String encode_class_path = encode_package + "." + encode_file_name.toString().replaceAll("\\.class.*$", "");
-			Class klass = Class.forName(encode_class_path);
-			if(encode_class.isAssignableFrom(klass) && !Modifier.isAbstract(klass.getModifiers())){
-                @SuppressWarnings("unchecked")
-				Encoder encoder = createInstance((Class<Encoder>)klass, null);
-				module_list.put(encoder.getName(), klass);
+			try {
+				Path encode_file_path = Paths.get(f.getName());
+				Path encode_file_name = encode_file_path.getFileName();
+				String encode_class_path = encode_package + "." + encode_file_name.toString().replaceAll("\\.class.*$", "");
+				Class klass = Class.forName(encode_class_path);
+				if(encode_class.isAssignableFrom(klass) && !Modifier.isAbstract(klass.getModifiers())){
+					@SuppressWarnings("unchecked")
+					Encoder encoder = createInstance((Class<Encoder>)klass, null);
+					module_list.put(encoder.getName(), klass);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 		loadModulesFromJar(module_list);
