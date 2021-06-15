@@ -129,9 +129,15 @@ public class Modification
 		Pattern pattern = Pattern.compile(this.pattern, Pattern.MULTILINE);
 		Matcher matcher = pattern.matcher(new String(data));
 		String result = new String(data);
+		boolean matched = false;
 		while (matcher.find()) {
+			matched = true;
 			result = matcher.replaceAll(this.replaced);
 			packet.setModified();
+		}
+		if (!matched) {
+			// バイナリデータが壊れる可能性があるので、マッチしなかった場合はそのまま返す
+			return data;
 		}
 		return result.getBytes();
 	}
