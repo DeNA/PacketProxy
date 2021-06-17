@@ -14,3 +14,7 @@ PackerProxyのソースコードへの修正ができた場合は、forkして�
 PacketProxyは `Apache License 2.0` ライセンスを利用しています。PRしていただいたソースコードは `Apache License 2.0` として公開されることにご同意していただいたということになりますので、よろしくお願いします。
 他プロジェクトのソースを利用する場合には、PR時に教えていただけると助かります。PacketProxyに取り込んでも問題ないライセンスか確認します。
 
+### CLAについて
+
+PR時に [Contribution License Agreement](https://dena.github.io/cla/) への同意をお願いいたします。
+
