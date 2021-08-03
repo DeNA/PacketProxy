@@ -16,8 +16,8 @@
 package packetproxy.http2;
 
 import org.apache.commons.codec.binary.Hex;
-import org.junit.Test;
 
+import org.junit.jupiter.api.Test;
 import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameUtils;
 

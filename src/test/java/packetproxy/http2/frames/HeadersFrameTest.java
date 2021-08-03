@@ -21,8 +21,8 @@ import org.apache.commons.codec.binary.Hex;
 import org.eclipse.jetty.http.MetaData;
 import org.eclipse.jetty.http2.hpack.HpackDecoder;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
-import org.junit.Test;
 
+import org.junit.jupiter.api.Test;
 import packetproxy.http.Http;
 
 public class HeadersFrameTest {
