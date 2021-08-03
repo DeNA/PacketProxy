@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 DeNA Co., Ltd.
+ * Copyright 2021 DeNA Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy.http2.frames;
+package packetproxy.vulchecker.generator;
 
-import org.apache.commons.codec.binary.Hex;
-import org.junit.jupiter.api.Test;
-
-public class SettingsFrameTest {
-
-	@Test
-	public void smoke() throws Exception {
-		byte[] data = Hex.decodeHex("000012040000000000000300000064000400100000000600004000".toCharArray());
-		SettingsFrame sf = new SettingsFrame(data);
-		System.out.println(sf);
-	}
-
+abstract public class Generator {
+    abstract public String getName();
+    abstract public boolean generateOnStart();
+    abstract public String generate(String inputData) throws Exception;
 }

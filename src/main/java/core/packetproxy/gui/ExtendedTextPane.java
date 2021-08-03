@@ -33,7 +33,7 @@ import javax.swing.undo.UndoManager;
 
 import packetproxy.common.BinaryBuffer;
 import packetproxy.common.FontManager;
-import packetproxy.common.SelectedArea;
+import packetproxy.common.Range;
 import packetproxy.common.Utils;
 import packetproxy.util.PacketProxyUtility;
 
@@ -177,7 +177,7 @@ abstract class ExtendedTextPane extends JTextPane
 	private void notifySelectedText(){
 		int position_start = getSelectionStart();
 		int position_end   = getSelectionEnd();
-		SelectedArea area = new SelectedArea(position_start, position_end);
+		Range area = Range.of(position_start, position_end);
 		if (area.getLength() == 0 || area.getLength() > 1000) {
 			return;
 		}
@@ -187,7 +187,7 @@ abstract class ExtendedTextPane extends JTextPane
 	private void showDecodedTooltipOnSelectedText(){
 		int position_start = getSelectionStart();
 		int position_end   = getSelectionEnd();
-		SelectedArea area = new SelectedArea(position_start, position_end);
+		Range area = Range.of(position_start, position_end);
 
 		if (area.getLength() == 0) {
 			return;

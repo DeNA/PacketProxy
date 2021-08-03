@@ -15,14 +15,11 @@
  */
 package packetproxy.common;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import packetproxy.util.CharSetUtility;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(JUnit4.class)
 public class CharSetUtilityTest {
     @Test
     public void testCountChar() {

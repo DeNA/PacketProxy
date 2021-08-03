@@ -24,6 +24,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import packetproxy.common.Range;
 import packetproxy.util.PacketProxyUtility;
 import packetproxy.util.SearchBox;
 
@@ -40,6 +41,7 @@ public class TabSet extends Observable {
 	private JButton parentSend = null;
 	private JButton parentSendRepeater = null;
 	private byte[] data;
+	private Range emphasis;
 
 	//Options
 	private SearchBox searchBox = null;
@@ -122,8 +124,15 @@ public class TabSet extends Observable {
 		}
 	}
 
+	public void setData(byte[] data, Range emphasis) {
+		this.data = data;
+		this.emphasis = emphasis;
+		update();
+	}
+
 	public void setData(byte[] data) {
 		this.data = data;
+		this.emphasis = null;
 		update();
 	}
 
@@ -157,7 +166,7 @@ public class TabSet extends Observable {
 			switch (getSelectedIndex()) {
 				case 0:
 					searchBox.setVisible(true);
-					searchBox.setBaseText(raw_panel.getTextPane());
+					searchBox.setBaseText(raw_panel.getTextPane(), emphasis);
 					break;
 				case 1:
 					searchBox.setVisible(false);
@@ -165,7 +174,7 @@ public class TabSet extends Observable {
 					break;
 				case 2:
 					searchBox.setVisible(true);
-					searchBox.setBaseText(json_panel.getTextPane());
+					searchBox.setBaseText(json_panel.getTextPane(), emphasis);
 					break;
 				default:
 					PacketProxyUtility.getInstance().packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");

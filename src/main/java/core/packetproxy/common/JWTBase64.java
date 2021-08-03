@@ -34,8 +34,11 @@ public class JWTBase64 extends JWT
 		sb.append(".");
 		sb.append(createPayload(this.payload));
 		String header_payload = sb.toString();
-		sb.append(".");
-		sb.append(createSignature(header_payload));
+		String signature = createSignature(header_payload);
+		if (!signature.isEmpty()) {
+			sb.append(".");
+			sb.append(signature);
+		}
 		return sb.toString();
 	}
 	@Override

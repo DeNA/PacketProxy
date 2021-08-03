@@ -61,9 +61,9 @@ public class Utils {
 	public enum Platform { WINDOWS, MAC, LINUX };
 	public static Platform checkOS() {
 		String osname = System.getProperty("os.name");
-		if (osname.indexOf("Windows") >= 0) {
+		if (osname.contains("Windows")) {
 			return Platform.WINDOWS;
-		} else if (osname.indexOf("Mac") >= 0) {
+		} else if (osname.contains("Mac")) {
 			return Platform.MAC;
 		} else {
 			return Platform.LINUX;
@@ -233,6 +233,10 @@ public class Utils {
 		return out.toByteArray();
 	}
 
+	public static byte[] replaceArray(byte[] src, Range area, byte[] replacer) {
+		return replaceArray(src, area.getPositionStart(), area.getPositionEnd(), replacer);
+	}
+
 	public static byte[] replaceArray(byte[] src, int start_idx, int end_idx, byte[] replacer) {
 		byte[] head = ArrayUtils.subarray(src, 0, start_idx);
 		byte[] tail = ArrayUtils.subarray(src, end_idx, src.length);
@@ -252,26 +256,17 @@ public class Utils {
 	}
 	
 	public static boolean supportedJava() {
-		if (executedByJDK() == true) {
-			return true;
-		}
-		return false;
+		return executedByJDK();
 	}
 	
 	public static boolean executedByJDK() {
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-		if (compiler != null) {
-			return true;
-		}
-		return false;
+		return compiler != null;
 	}
 	
 	public static boolean javaVersionIs1_8() {
 		String version = System.getProperty("java.version");
-		if (version.matches("1\\.8\\..*")) {
-			return true;
-		}
-		return false;
+		return version.matches("1\\.8\\..*");
 	}
 
 }

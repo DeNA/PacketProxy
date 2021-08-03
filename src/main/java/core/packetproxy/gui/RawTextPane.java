@@ -36,14 +36,17 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import packetproxy.VulCheckerManager;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
+import packetproxy.common.Range;
 import packetproxy.common.Utils;
 import packetproxy.controller.ResendController;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
+import packetproxy.vulchecker.VulChecker;
 
 public class RawTextPane extends ExtendedTextPane
 {
@@ -153,6 +156,27 @@ public class RawTextPane extends ExtendedTextPane
 				}
 			}
 		});
+
+		menu.addSeparator();
+		JMenuItem vulCheckers = new JMenuItem(I18nString.get("VulCheck Helpers"));
+		vulCheckers.setFont(FontManager.getInstance().getUICaptionFont());
+		vulCheckers.setEnabled(false);
+		menu.add(vulCheckers);
+
+		for (String vulCheckerName : VulCheckerManager.getInstance().getAllVulCheckers().keySet()) {
+		    VulChecker vulChecker = VulCheckerManager.getInstance().createInstance(vulCheckerName);
+			JMenuItem vulCheckerItem = new JMenuItem(vulChecker.getName());
+			vulCheckerItem.addActionListener(actionEvent -> {
+				try {
+					Range range = Range.of(getSelectionStart(), getSelectionEnd());
+					Packet packet = GUIPacket.getInstance().getPacket();
+					GUIVulCheckHelper.getInstance().addVulCheck(vulChecker, packet.getOneShotPacket(getData()), range);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
+			menu.add(vulCheckerItem);
+		}
 
 		menu.addSeparator();
 		JMenuItem title_decoders = new JMenuItem(I18nString.get("Decoders"));

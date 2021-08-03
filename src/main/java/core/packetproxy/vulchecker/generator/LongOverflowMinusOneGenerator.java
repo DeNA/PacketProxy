@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 DeNA Co., Ltd.
+ * Copyright 2021 DeNA Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy.http2.frames;
+package packetproxy.vulchecker.generator;
 
-import org.apache.commons.codec.binary.Hex;
-import org.junit.jupiter.api.Test;
+public class LongOverflowMinusOneGenerator extends Generator {
+    @Override
+    public String getName() {
+        return "2^64-1: -1 as long, 18446744073709551615 as ulong";
+    }
 
-public class SettingsFrameTest {
+    @Override
+    public boolean generateOnStart() {
+        return true;
+    }
 
-	@Test
-	public void smoke() throws Exception {
-		byte[] data = Hex.decodeHex("000012040000000000000300000064000400100000000600004000".toCharArray());
-		SettingsFrame sf = new SettingsFrame(data);
-		System.out.println(sf);
-	}
-
+    @Override
+    public String generate(String inputData) {
+        return "18446744073709551615";
+    }
 }

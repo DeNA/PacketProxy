@@ -15,14 +15,17 @@
  */
 package packetproxy.gui;
 
-import static javax.swing.JOptionPane.YES_NO_OPTION;
+import packetproxy.common.FontManager;
+import packetproxy.common.I18nString;
+import packetproxy.model.InterceptModel;
+import packetproxy.util.PacketProxyUtility;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Container;
-import java.awt.Taskbar;
-import java.awt.Toolkit;
-import java.awt.Window;
+import javax.swing.*;
+import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.Keymap;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
@@ -30,30 +33,7 @@ import java.awt.event.WindowEvent;
 import java.util.Observable;
 import java.util.Observer;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.ImageIcon;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
-import javax.swing.KeyStroke;
-import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
-import javax.swing.text.DefaultEditorKit;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.Keymap;
-
-import packetproxy.common.FontManager;
-import packetproxy.common.I18nString;
-import packetproxy.model.InterceptModel;
-import packetproxy.util.PacketProxyUtility;
+import static javax.swing.JOptionPane.YES_NO_OPTION;
 
 public class GUIMain extends JFrame implements Observer
 {
@@ -66,9 +46,10 @@ public class GUIMain extends JFrame implements Observer
 	private GUIIntercept gui_intercept;
 	private GUIRepeater gui_repeater;
 	private GUIBulkSender gui_bulksender;
+	private GUIVulCheckHelper gui_vulcheckhelper;
 	private GUILog gui_log;
 	private InterceptModel interceptModel;
-	public enum Panes {HISTORY, INTERCEPT, REPEATER, BULKSENDER, OPTIONS, LOG};
+	public enum Panes {HISTORY, INTERCEPT, REPEATER, VULCHECKHELPER, BULKSENDER, OPTIONS, LOG};
 
 	public static GUIMain getInstance(String title) throws Exception
 	{
@@ -99,6 +80,8 @@ public class GUIMain extends JFrame implements Observer
 			return "Interceptor";
 		case REPEATER:
 			return "Resender";
+		case VULCHECKHELPER:
+			return "VulCheck Helper";
 		case BULKSENDER:
 			return "Bulk Sender";
 		case OPTIONS:
@@ -124,12 +107,14 @@ public class GUIMain extends JFrame implements Observer
 			gui_intercept = new GUIIntercept(this);
 			gui_repeater = GUIRepeater.getInstance();
 			gui_bulksender = GUIBulkSender.getInstance();
+			gui_vulcheckhelper = GUIVulCheckHelper.getInstance();
 			gui_log = GUILog.getInstance();
 
 			tabbedpane = new JTabbedPane();
 			tabbedpane.addTab(getPaneString(Panes.HISTORY), gui_history.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.INTERCEPT), gui_intercept.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.REPEATER), gui_repeater.createPanel());
+			tabbedpane.addTab(getPaneString(Panes.VULCHECKHELPER), gui_vulcheckhelper.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.BULKSENDER), gui_bulksender.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.OPTIONS), gui_option.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.LOG), gui_log.createPanel());

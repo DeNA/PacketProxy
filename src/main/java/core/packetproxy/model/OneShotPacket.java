@@ -16,7 +16,11 @@
 package packetproxy.model;
 
 import java.net.InetSocketAddress;
+
+import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.EncoderManager;
+import packetproxy.common.Range;
+import packetproxy.common.Utils;
 import packetproxy.encode.Encoder;
 import packetproxy.model.Packet.Direction;
 import packetproxy.util.PacketProxyUtility;
@@ -83,6 +87,12 @@ public class OneShotPacket implements PacketInfo, Cloneable
 	public void setData(byte[] data) {
 		this.data = data;
 	}
+	public void replaceData(Range area, byte[] replacer) {
+		this.data = Utils.replaceArray(this.data, area, replacer);
+	}
+	public byte[] getData(Range area) {
+		return ArrayUtils.subarray(this.data, area.getPositionStart(), area.getPositionEnd());
+	}
 	public byte[] getData() {
 		return this.data == null ? new byte[]{} : this.data;
 	}
@@ -122,8 +132,14 @@ public class OneShotPacket implements PacketInfo, Cloneable
 	public String getEncoder() {
 		return this.encoder_name;
 	}
+	public void setEncoder(String encoder_name) {
+		this.encoder_name = encoder_name;
+	}
 	public String getAlpn() {
 		return this.alpn;
+	}
+	public void setAlpn(String alpn) {
+		this.alpn = alpn;
 	}
 	public int getConn() {
 		return this.conn;

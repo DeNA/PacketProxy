@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 DeNA Co., Ltd.
+ * Copyright 2021 DeNA Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy.common;
+package packetproxy.vulchecker.generator;
 
-public class SelectedArea
-{
-	private int position_start;
-	private int position_end;
-	
-	public SelectedArea(int position_start, int position_end) {
-		this.position_start = position_start;
-		this.position_end   = position_end;
-	}
-	
-	public int getPositionStart() {
-		return position_start;
-	}
+public class IntegerOverflowGenerator extends Generator {
+    @Override
+    public String getName() {
+        return "2^32: 0 as int, 0 as uint";
+    }
 
-	public int getPositionEnd() {
-		return position_end;
-	}
-	
-	public int getLength() {
-		return position_end - position_start;
-	}
+    @Override
+    public boolean generateOnStart() {
+        return true;
+    }
+
+    @Override
+    public String generate(String inputData) {
+        return "4294967296";
+    }
 }

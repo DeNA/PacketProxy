@@ -87,6 +87,7 @@ public class PacketProxy
 		listenPortManager = ListenPortManager.getInstance();
 		// encoderのロードに1,2秒かかるのでここでロードをしておく（ここでしておかないと通信がacceptされたタイミングでロードする）
 		EncoderManager.getInstance();
+		VulCheckerManager.getInstance();
 	}
 
 	private void startGUI() throws Exception {

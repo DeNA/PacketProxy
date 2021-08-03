@@ -27,16 +27,23 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 
 import packetproxy.common.FontManager;
+import packetproxy.common.Range;
 
 @SuppressWarnings("serial")
 public class SearchBox extends JPanel
 {
 	private JTextPane baseText;
-	public void setBaseText (JTextPane textPane) {
-		baseText = textPane;
-	}
-
+	private Range emphasisArea = null;
 	private JTextField search_text;
+
+	public void setBaseText (JTextPane textPane) {
+		this.baseText = textPane;
+		this.emphasisArea = null;
+	}
+	public void setBaseText(JTextPane textPane, Range emphasisArea) {
+		this.baseText = textPane;
+		this.emphasisArea = emphasisArea;
+	}
 	public void setText(String text) {
 		search_text.setText(text);
 	}
@@ -57,8 +64,7 @@ public class SearchBox extends JPanel
 				try {
 					// テキストの色変更
 					search_text.setFont(FontManager.getInstance().getFont());
-					int count = coloringSearchText();
-					updateSearchCount(count);
+					updateSearchText();
 
 					// returnキーの時は、そこへ移動してハイライト
 					if (arg0.getKeyChar() == '\n') {
@@ -122,12 +128,9 @@ public class SearchBox extends JPanel
 			//System.err.println("[Warning] coloringSearchText: too long string. Skipping Highlight");
 			return -1;
 		}
-
-		// 色を元に戻す
-		javax.swing.text.MutableAttributeSet attributes = new javax.swing.text.SimpleAttributeSet();
-		javax.swing.text.StyleConstants.setBackground(attributes, java.awt.Color.white);
-		document.setCharacterAttributes(0, str.length(), attributes, false);
 		if (str.length() == 0 || search_string.length() == 0) { return 0; }
+
+		javax.swing.text.MutableAttributeSet attributes = new javax.swing.text.SimpleAttributeSet();
 
 		// 色を変える
 		int cnt = 0;
@@ -141,6 +144,37 @@ public class SearchBox extends JPanel
 		return cnt;
 	}
 
+	public void coloringEmphasis() {
+		if (emphasisArea == null) {
+			return;
+		}
+		javax.swing.text.StyledDocument document = baseText.getStyledDocument();
+		javax.swing.text.MutableAttributeSet attributes = new javax.swing.text.SimpleAttributeSet();
+		javax.swing.text.StyleConstants.setForeground(attributes, new Color(0, 200, 0));
+		javax.swing.text.StyleConstants.setBold(attributes, true);
+		int start = emphasisArea.getPositionStart();
+		int end = emphasisArea.getPositionEnd();
+		document.setCharacterAttributes(start, end-start, attributes, false);
+	}
+
+	public void coloringClear() {
+		javax.swing.text.StyledDocument document = baseText.getStyledDocument();
+		String str = baseText.getText();
+		javax.swing.text.MutableAttributeSet attributes = new javax.swing.text.SimpleAttributeSet();
+		javax.swing.text.StyleConstants.setForeground(attributes, java.awt.Color.black);
+		javax.swing.text.StyleConstants.setBackground(attributes, java.awt.Color.white);
+		javax.swing.text.StyleConstants.setBold(attributes, false);
+		document.setCharacterAttributes(0, str.length(), attributes, false);
+	}
+
+	public void coloringBackgroundClear() {
+		javax.swing.text.StyledDocument document = baseText.getStyledDocument();
+		String str = baseText.getText();
+		javax.swing.text.MutableAttributeSet attributes = new javax.swing.text.SimpleAttributeSet();
+		javax.swing.text.StyleConstants.setBackground(attributes, java.awt.Color.white);
+		document.setCharacterAttributes(0, str.length(), attributes, false);
+	}
+
 	/**
 	 * TODO HTTPの構造を解釈して、明らかにパラメータではない所を除外する
 	 */
@@ -152,11 +186,7 @@ public class SearchBox extends JPanel
 			return;
 		}
 
-		// 色を元に戻す
 		javax.swing.text.MutableAttributeSet attributes = new javax.swing.text.SimpleAttributeSet();
-		javax.swing.text.StyleConstants.setForeground(attributes, java.awt.Color.black);
-		document.setCharacterAttributes(0, str.length(), attributes, false);
-
 		// 色を変える
 		com.google.re2j.Pattern pattern = com.google.re2j.Pattern.compile("([a-zA-Z0-9%.,/*_+-]+)=([a-zA-Z0-9%.,/*_+-]+)", com.google.re2j.Pattern.MULTILINE);
 		com.google.re2j.Matcher matcher = pattern.matcher(str);
@@ -174,6 +204,18 @@ public class SearchBox extends JPanel
 		}
 	}
 
+	private void updateAll() {
+		coloringClear();
+		coloringHTTPText();
+		coloringEmphasis();
+		updateSearchCount(coloringSearchText());
+	}
+
+	private void updateSearchText() {
+		coloringBackgroundClear();
+		updateSearchCount(coloringSearchText());
+	}
+
 	private void updateSearchCount(int count) {
 		String countLabel = "Not found";
 		Color countColor = Color.GRAY;
@@ -189,8 +231,7 @@ public class SearchBox extends JPanel
 	}
 
 	public void textChanged() {
-		coloringHTTPText();
-		updateSearchCount(coloringSearchText());
+	    updateAll();
 	}
 }
 

@@ -15,14 +15,11 @@
  */
 package packetproxy.common;
 
-import static org.junit.Assert.assertTrue;
-
 import org.apache.commons.lang3.ArrayUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Test;
 
-@RunWith(JUnit4.class)
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class Protobuf3Test {
 	@Test
 	public void testVarint150() throws Exception {
