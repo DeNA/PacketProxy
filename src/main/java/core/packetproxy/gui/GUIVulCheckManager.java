@@ -82,7 +82,7 @@ public class GUIVulCheckManager {
         return generators;
     }
 
-    public ImmutableList<VulCheckPattern> getAllVulCheckPattern() {
+    public ImmutableList<VulCheckPattern> getAllVulCheckPattern() throws Exception {
         var builder = ImmutableList.<VulCheckPattern>builder();
         for (Generator generator : generators) {
             builder.add(findVulCheckPattern(generator.getName()));
@@ -90,7 +90,7 @@ public class GUIVulCheckManager {
         return builder.build();
     }
 
-    public ImmutableList<VulCheckPattern> getAllEnabledVulCheckPattern() {
+    public ImmutableList<VulCheckPattern> getAllEnabledVulCheckPattern() throws Exception {
         var builder = ImmutableList.<VulCheckPattern>builder();
         for (Generator generator : generators) {
             if (enableMap.get(generator.getName())) {
@@ -100,8 +100,8 @@ public class GUIVulCheckManager {
         return builder.build();
     }
 
-    public VulCheckPattern findVulCheckPattern(String name) {
-        return isEnabled(name) ? patternMap.get(name) : emptyPattern;
+    public VulCheckPattern findVulCheckPattern(String name) throws Exception {
+        return isEnabled(name) ? patternMap.get(name) : createEmptyPattern(origPacket);
     }
 
     public boolean isEnabled(String name) {
