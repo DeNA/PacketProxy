@@ -93,18 +93,21 @@ public class GUIVulCheckTab
 	private JComponent createSendPanel() throws Exception {
 		sendData = new TabSet(true, false);
 		sendTable = new GUIVulCheckSendTable(generatorName -> { // onSelected
-			if (!selectedGeneratorName.isEmpty() && !selectedGeneratorName.equals(generatorName)) {
-				VulCheckPattern vulCheckPattern = manager.findVulCheckPattern(selectedGeneratorName);
-				OneShotPacket packet = vulCheckPattern.getPacket();
-				if (Arrays.compare(packet.getData(), sendData.getData()) != 0) {
-					packet.setData(sendData.getData());
-					manager.saveVulCheckPattern(selectedGeneratorName, new VulCheckPattern(vulCheckPattern.getName(), packet, null));
-                }
-			}
-			selectedGeneratorName = generatorName;
-			VulCheckPattern v = manager.findVulCheckPattern(generatorName);
-			if (v != null) {
-				sendData.setData(v.getPacket().getData(), v.getRange());
+			try {
+				if (!selectedGeneratorName.isEmpty() && !selectedGeneratorName.equals(generatorName)) {
+					VulCheckPattern vulCheckPattern = manager.findVulCheckPattern(selectedGeneratorName);
+					OneShotPacket packet = vulCheckPattern.getPacket();
+					if (Arrays.compare(packet.getData(), sendData.getData()) != 0) {
+						packet.setData(sendData.getData());
+						manager.saveVulCheckPattern(selectedGeneratorName, new VulCheckPattern(vulCheckPattern.getName(), packet, null));
+					}
+				}
+				selectedGeneratorName = generatorName;
+				VulCheckPattern v = manager.findVulCheckPattern(generatorName);
+				if (v != null) {
+					sendData.setData(v.getPacket().getData(), v.getRange());
+				}
+			} catch (Exception e) {
 			}
 		}, generatorName -> { // onEnabled
 		    try {
