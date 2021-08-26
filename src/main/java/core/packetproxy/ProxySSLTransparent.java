@@ -162,7 +162,7 @@ public class ProxySSLTransparent extends Proxy
 				} catch (Exception e) {
 					/* listenポート番号と同じポート番号へアクセスできないので443番にフォールバックする */
 					serverAddr = new InetSocketAddress(serverName, 443);
-					PacketProxyUtility.getInstance().packetProxyLog("[Follback port] " + proxyPort + " -> 443");
+					PacketProxyUtility.getInstance().packetProxyLog("[Fallback port] " + proxyPort + " -> 443");
 				}
 				
 				if (SSLPassThroughs.getInstance().includes(serverName, listen_info.getPort())) {
