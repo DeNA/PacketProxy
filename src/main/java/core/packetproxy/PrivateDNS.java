@@ -213,10 +213,12 @@ public class PrivateDNS
 
 					byte[] res = null;
 					try {
-						util.packetProxyLog(String.format("[DNS Query] '%s'", queryHostName));
 						if (smsg.getQuestion().getType() != Type.A) {
 							throw new UnsupportedOperationException();
 						}
+
+						util.packetProxyLog(String.format("[DNS Query] '%s'", queryHostName));
+
 						String ip = PrivateDNSClient.getByName(queryHostName).getHostAddress();
 						if (isTargetHost(queryHostName)) {
 							ip = spoofingIpStr;
@@ -224,14 +226,22 @@ public class PrivateDNS
 						}
 						jnamed jn = new jnamed(ip);
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
+
 					} catch(UnknownHostException e) {
 						util.packetProxyLogErr(String.format("[DNS Query] Unknown Host: '%s'", queryHostName));
 						jnamed jn = new jnamed();
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
+
+					} catch(UnsupportedOperationException e) {
+						// Not implemented yet
+						jnamed jn = new jnamed();
+						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
+
 					} catch(Exception e) {
 						util.packetProxyLogErr(String.format("[DNS Query] Unknown Error: '%s'", queryHostName));
 						jnamed jn = new jnamed();
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
+
 					}
 					sendPacket = new DatagramPacket(res, res.length, cAddr, cPort);
 					soc.send(sendPacket);
