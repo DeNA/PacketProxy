@@ -17,6 +17,7 @@ package packetproxy.model;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import packetproxy.PrivateDNSClient;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -78,8 +79,8 @@ public class Server
 	public String toString() {
     	return String.format("%s:%d(%s)", ip, port, encoder);
     }
-    public InetSocketAddress getAddress() {
-    	return new InetSocketAddress(ip, port);
+    public InetSocketAddress getAddress() throws UnknownHostException {
+    	return new InetSocketAddress(PrivateDNSClient.getByName(ip), port);
     }
     public int getId() {
     	return this.id;
@@ -139,7 +140,7 @@ public class Server
     public List<InetAddress> getIps(){
     	try {
     		if(specifiedByHostName){
-    			List<InetAddress> ips = Arrays.asList(InetAddress.getAllByName(getAddress().getHostName()));
+    			List<InetAddress> ips = Arrays.asList(PrivateDNSClient.getAllByName(ip));
     			return ips;
     		}else{
     			List<InetAddress> ips = new ArrayList<InetAddress>();

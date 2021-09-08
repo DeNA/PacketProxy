@@ -17,6 +17,7 @@ package packetproxy;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -140,7 +141,7 @@ public class ProxySSLTransparent extends Proxy
 				throw new Exception(I18nString.get("[Error] SNI header was not found in SSL packets."));
 			}
 			WrapEndpoint wep_e = new WrapEndpoint(client_e, ArrayUtils.subarray(buff, 0, length));
-			InetSocketAddress serverAddr = new InetSocketAddress(serverName, proxyPort);
+			InetSocketAddress serverAddr = new InetSocketAddress(PrivateDNSClient.getByName(serverName), proxyPort);
 			// SNIヘッダが無い場合、SSLPassThroughは使えない
 			Server server = Servers.getInstance().queryByHostNameAndPort(serverName, proxyPort);
 			SSLSocketEndpoint server_e = new SSLSocketEndpoint(serverAddr, serverName, null);
@@ -151,17 +152,17 @@ public class ProxySSLTransparent extends Proxy
 				String serverName = new String(serverE.getEncoded()); // 接続先サーバを取得
 				PacketProxyUtility.getInstance().packetProxyLog(String.format("[SSL-forward! using SNI] %s", serverName));
 				ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, position);
-				
+
 				/* check server connection */
 				InetSocketAddress serverAddr;
 				try {
-					serverAddr = new InetSocketAddress(serverName, proxyPort);
+					serverAddr = new InetSocketAddress(PrivateDNSClient.getByName(serverName), proxyPort);
 					Socket s = new Socket();
 					s.connect(serverAddr, 500); /* timeout: 500ms */
 					s.close();
 				} catch (Exception e) {
 					/* listenポート番号と同じポート番号へアクセスできないので443番にフォールバックする */
-					serverAddr = new InetSocketAddress(serverName, 443);
+					serverAddr = new InetSocketAddress(PrivateDNSClient.getByName(serverName), 443);
 					PacketProxyUtility.getInstance().packetProxyLog("[Fallback port] " + proxyPort + " -> 443");
 				}
 				

@@ -20,10 +20,9 @@ import com.google.re2j.Pattern;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.net.ConnectException;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
+
+import lombok.Value;
 import packetproxy.common.Endpoint;
 import packetproxy.common.EndpointFactory;
 import packetproxy.common.StringUtils;
@@ -62,16 +61,13 @@ public class ProxyHttpTransparent extends Proxy
 		} 	
 	}
 
-	class HostPort {
+	@Value
+	static class HostPort {
 		String hostName;
 		int port;
-		public HostPort(String hostName, int port) {
-			this.hostName = hostName;
-			this.port = port;
+		InetSocketAddress getInetSocketAddress() throws UnknownHostException {
+			return new InetSocketAddress(PrivateDNSClient.getByName(this.hostName), this.port);
 		}
-		String getHostName() { return this.hostName; }
-		int getPort() { return port; }
-		InetSocketAddress getInetSocketAddress() { return new InetSocketAddress(this.hostName, this.port); }
 	}
 
 	private HostPort parseHostName(byte[] buffer) throws Exception {

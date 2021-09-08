@@ -15,17 +15,17 @@
  */
 package packetproxy.common;
 
+import packetproxy.PrivateDNSClient;
+import packetproxy.http.Https;
+import packetproxy.model.CAs.CA;
+import packetproxy.model.OneShotPacket;
+import packetproxy.model.Server;
+
+import javax.net.ssl.SSLSocket;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
-
-import javax.net.ssl.SSLSocket;
-
-import packetproxy.http.Https;
-import packetproxy.model.OneShotPacket;
-import packetproxy.model.Server;
-import packetproxy.model.CAs.CA;
 
 public class EndpointFactory
 {
@@ -60,9 +60,9 @@ public class EndpointFactory
 		String host = u.getHost();
 		int port = u.getPort() > 0 ? u.getPort() : 80;
 		if (u.getScheme().equalsIgnoreCase("https")) {
-			return new SSLSocketEndpoint(new InetSocketAddress(host, port), host, null);
+			return new SSLSocketEndpoint(new InetSocketAddress(PrivateDNSClient.getByName(host), port), host, null);
 		} else if (u.getScheme().equalsIgnoreCase("http")) {
-			return new SocketEndpoint(new InetSocketAddress(host, port));
+			return new SocketEndpoint(new InetSocketAddress(PrivateDNSClient.getByName(host), port));
 		} else {
 			throw new Exception(String.format("[Error] Unknown scheme!%s", u.getScheme()));
 		}
