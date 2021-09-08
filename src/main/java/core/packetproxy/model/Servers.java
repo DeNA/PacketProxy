@@ -87,7 +87,7 @@ public class Servers extends Observable implements Observer {
 			throw new Exception(String.format("cannot resolv hostname: %s", addr.getHostName()));
 		}
 		if (addr.getPort() == 0) {
-			throw new Exception(String.format("cannot resolv portnumber: %s", addr.getPort()));
+			throw new Exception("cannot resolv portnumber: 0");
 		}
 		String target = addr.getAddress().getHostAddress();
 		for (Server server : all) {

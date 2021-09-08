@@ -3,59 +3,23 @@
 package org.xbill.DNS;
 
 import java.io.*;
-import java.lang.reflect.*;
+import java.lang.reflect.Method;
 import java.util.*;
 
-/**
- * A class that tries to locate name servers and the search path to
- * be appended to unqualified names.
- *
- * The following are attempted, in order, until one succeeds.
- * <UL>
- *   <LI>The properties 'dns.server' and 'dns.search' (comma delimited lists)
- *       are checked.  The servers can either be IP addresses or hostnames
- *       (which are resolved using Java's built in DNS support).
- *   <LI>The sun.net.dns.ResolverConfiguration class is queried.
- *   <LI>On Unix, /etc/resolv.conf is parsed.
- *   <LI>On Windows, ipconfig/winipcfg is called and its output parsed.  This
- *       may fail for non-English versions on Windows.
- *   <LI>"localhost" is used as the nameserver, and the search path is empty.
- * </UL>
- *
- * These routines will be called internally when creating Resolvers/Lookups
- * without explicitly specifying server names, and can also be called
- * directly if desired.
- *
- * @author Brian Wellington
- * @author <a href="mailto:yannick@meudal.net">Yannick Meudal</a>
- * @author <a href="mailto:arnt@gulbrandsen.priv.no">Arnt Gulbrandsen</a>
- */
-
-public class ResolverConfig {
+public class SystemResolverConfig {
 
 private String [] servers = null;
 private Name [] searchlist = null;
 private int ndots = -1;
 
-private static ResolverConfig currentConfig;
-
-static {
-	refresh();
-}
-
-public
-ResolverConfig() {
-	if (findProperty())
-		return;
-	//if (findSunJVM())
-	//	return;
+public SystemResolverConfig() {
 	if (servers == null || searchlist == null) {
 		String OS = System.getProperty("os.name");
 		String vendor = System.getProperty("java.vendor");
 		if (OS.indexOf("Windows") != -1) {
 			if (OS.indexOf("95") != -1 ||
-			    OS.indexOf("98") != -1 ||
-			    OS.indexOf("ME") != -1)
+					OS.indexOf("98") != -1 ||
+					OS.indexOf("ME") != -1)
 				find95();
 			else
 				findNT();
@@ -73,16 +37,12 @@ private void
 addServer(String server, List list) {
 	if (list.contains(server))
 		return;
-	if (Options.check("verbose"))
-		System.out.println("adding server " + server);
 	list.add(server);
 }
 
 private void
 addSearch(String search, List list) {
 	Name name;
-	if (Options.check("verbose"))
-		System.out.println("adding search " + search);
 	try {
 		name = Name.fromString(search, Name.root);
 	}
@@ -100,8 +60,6 @@ parseNdots(String token) {
 	try {
 		int ndots = Integer.parseInt(token);
 		if (ndots >= 0) {
-			if (Options.check("verbose"))
-				System.out.println("setting ndots " + token);
 			return ndots;
 		}
 	}
@@ -122,92 +80,6 @@ private void
 configureNdots(int lndots) {
 	if (ndots < 0 && lndots > 0)
 		ndots = lndots;
-}
-
-/**
- * Looks in the system properties to find servers and a search path.
- * Servers are defined by dns.server=server1,server2...
- * The search path is defined by dns.search=domain1,domain2...
- */
-private boolean
-findProperty() {
-	String prop;
-	List lserver = new ArrayList(0);
-	List lsearch = new ArrayList(0);
-
-	// add dns server in Google
-	addServer("8.8.8.8", lserver);
-	//StringTokenizer st;
-
-	//prop = System.getProperty("dns.server");
-	//if (prop != null) {
-	//	st = new StringTokenizer(prop, ",");
-	//	while (st.hasMoreTokens())
-	//		addServer(st.nextToken(), lserver);
-	//}
-
-	//prop = System.getProperty("dns.search");
-	//if (prop != null) {
-	//	st = new StringTokenizer(prop, ",");
-	//	while (st.hasMoreTokens())
-	//		addSearch(st.nextToken(), lsearch);
-	//}
-	configureFromLists(lserver, lsearch);
-	return (servers != null && searchlist != null);
-}
-
-/**
- * Uses the undocumented Sun DNS implementation to determine the configuration.
- * This doesn't work or even compile with all JVMs (gcj, for example).
- */
-private boolean
-findSunJVM() {
-	List lserver = new ArrayList(0);
-	List lserver_tmp;
-	List lsearch = new ArrayList(0);
-	List lsearch_tmp;
-
-	try {
-		Class [] noClasses = new Class[0];
-		Object [] noObjects = new Object[0];
-		String resConfName = "sun.net.dns.ResolverConfiguration";
-		Class resConfClass = Class.forName(resConfName);
-		Object resConf;
-
-		// ResolverConfiguration resConf = ResolverConfiguration.open();
-		Method open = resConfClass.getDeclaredMethod("open", noClasses);
-		resConf = open.invoke(null, noObjects);
-
-		// lserver_tmp = resConf.nameservers();
-		Method nameservers = resConfClass.getMethod("nameservers",
-							    noClasses);
-		lserver_tmp = (List) nameservers.invoke(resConf, noObjects);
-
-		// lsearch_tmp = resConf.searchlist();
-		Method searchlist = resConfClass.getMethod("searchlist",
-							    noClasses);
-		lsearch_tmp = (List) searchlist.invoke(resConf, noObjects);
-	}
-	catch (Exception e) {
-		return false;
-	}
-
-	if (lserver_tmp.size() == 0)
-		return false;
-
-	if (lserver_tmp.size() > 0) {
-		Iterator it = lserver_tmp.iterator();
-		while (it.hasNext())
-			addServer((String) it.next(), lserver);
-	}
-
-	if (lsearch_tmp.size() > 0) {
-		Iterator it = lsearch_tmp.iterator();
-		while (it.hasNext())
-			addSearch((String) it.next(), lsearch);
-	}
-	configureFromLists(lserver, lsearch);
-	return true;
 }
 
 /**
@@ -288,7 +160,7 @@ findNetware() {
  */
 private void
 findWin(InputStream in, Locale locale) {
-	String packageName = ResolverConfig.class.getPackage().getName();
+	String packageName = SystemResolverConfig.class.getPackage().getName();
 	String resPackageName = packageName + ".windows.DNSServer";
 	ResourceBundle res;
 	if (locale != null)
@@ -491,21 +363,6 @@ ndots() {
 	if (ndots < 0)
 		return 1;
 	return ndots;
-}
-
-/** Gets the current configuration */
-public static synchronized ResolverConfig
-getCurrentConfig() {
-	return currentConfig;
-}
-
-/** Gets the current configuration */
-public static void
-refresh() {
-	ResolverConfig newConfig = new ResolverConfig();
-	synchronized (ResolverConfig.class) {
-		currentConfig = newConfig;
-	}
 }
 
 }

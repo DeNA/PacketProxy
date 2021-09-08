@@ -34,6 +34,7 @@ import org.apache.commons.net.util.SubnetUtils;
 import org.apache.commons.net.util.SubnetUtils.SubnetInfo;
 import org.xbill.DNS.DNSSpoofingIPGetter;
 import org.xbill.DNS.Message;
+import org.xbill.DNS.Type;
 import org.xbill.DNS.jnamed;
 
 import packetproxy.model.ConfigBoolean;
@@ -79,9 +80,9 @@ public class PrivateDNS
 			}
 		}
 		String getSpoofAddr(String addr) {
-			for (SubnetInfo info : subnets) {
-				if (info.isInRange(addr)) {
-					return info.getAddress();
+			for (SubnetInfo subnet : subnets) {
+				if (subnet.isInRange(addr)) {
+					return subnet.getAddress();
 				}
 			}
 			return defaultAddr;
@@ -101,6 +102,10 @@ public class PrivateDNS
 		util = PacketProxyUtility.getInstance();
 		servers = Servers.getInstance();
 		dns = null;
+	}
+
+	public boolean isRunning() throws Exception {
+		return state.getState();
 	}
 
 	public void start(DNSSpoofingIPGetter dnsSpoofingIPGetter){
@@ -190,7 +195,11 @@ public class PrivateDNS
 
 					String spoofingIpStr = "";
 					if (spoofingIp.isAuto()) {
-						spoofingIpStr = spoofAddrFactry.getSpoofAddr(cAddr.getHostAddress());
+						String hostAddrStr = cAddr.getHostAddress();
+						if (hostAddrStr.equals("0:0:0:0:0:0:0:1")) {
+							hostAddrStr = "127.0.0.1";
+						}
+						spoofingIpStr = spoofAddrFactry.getSpoofAddr(hostAddrStr);
 					} else {
 						spoofingIpStr = spoofingIp.get();
 					}
@@ -205,7 +214,10 @@ public class PrivateDNS
 					byte[] res = null;
 					try {
 						util.packetProxyLog(String.format("[DNS Query] '%s'", queryHostName));
-						String ip = Inet4Address.getByName(queryHostName).getHostAddress();
+						if (smsg.getQuestion().getType() != Type.A) {
+							throw new UnsupportedOperationException();
+						}
+						String ip = PrivateDNSClient.getByName(queryHostName).getHostAddress();
 						if (isTargetHost(queryHostName)) {
 							ip = spoofingIpStr;
 							util.packetProxyLog("Replaced to " + spoofingIpStr);
