@@ -12,7 +12,7 @@ plugins {
   id 'java'
   id 'application'
   id 'eclipse'
-  id 'me.champeau.gradle.jmh' version '0.4.5'
+  id 'me.champeau.jmh' version '0.6.6'
   id 'com.bmuschko.izpack' version '3.0'
   id "com.github.hierynomus.license" version"0.15.0"
   id "de.undercouch.download" version "4.0.0"
@@ -62,7 +62,7 @@ dependencies {
     def libs = file(dir + 'libraries.gradle')
     if (libs.exists()) {
       Eval.me(libs.text).each { def lib ->
-        compile lib
+        implementation lib
       }
     }
   }
@@ -212,11 +212,12 @@ jmh {
 }
 
 jar {
+  duplicatesStrategy = DuplicatesStrategy.INCLUDE
   doFirst {
     def serviceDir = file("${buildDir}/META-INF/services")
     serviceDir.deleteDir()
     serviceDir.mkdirs()
-    for (file in configurations.runtime) {
+    for (file in configurations.runtimeClasspath) {
       zipTree(file).matching{ include 'META-INF/services/*' }.each { f ->
         new File(serviceDir, f.name) << f.getText("UTF-8") << "\n"
       }
@@ -225,11 +226,11 @@ jar {
   manifest {
     attributes (
       "Main-Class": project.mainClassName,
-      "Class-Path": configurations.compile.collect { it.getName() }.join(' ')
+      "Class-Path": configurations.runtimeClasspath.collect { it.getName() }.join(' ')
     )
   }
   from {
-    configurations.compile.collect {
+    configurations.runtimeClasspath.collect {
       it.isDirectory() ? it : zipTree(it).matching {
         exclude "META-INF/**"
       }
