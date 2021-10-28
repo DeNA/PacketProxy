@@ -35,7 +35,7 @@ PacketProxy is designed for testing web applications for internal use, which hel
 
 # Install
 
-The recommended way to install PacketProxy is to download installers for your platform from the PacketProxy's [release](https://github.com/DeNA/PacketProxy/releases) page and execute it.
+The recommended way to install PacketProxy is to download an installer for your platform from the PacketProxy's [release](https://github.com/DeNA/PacketProxy/releases) page and execute it.
 
 You may also use Homebrew-Cask to install PacketProxy if your platform is macOS. In that case, installation is done by just typing `$ brew cask install packetproxy`
 
