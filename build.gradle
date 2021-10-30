@@ -13,8 +13,8 @@ plugins {
   id 'application'
   id 'eclipse'
   id 'me.champeau.jmh' version '0.6.6'
-  id 'com.bmuschko.izpack' version '3.0'
-  id "com.github.hierynomus.license" version"0.15.0"
+  id 'com.bmuschko.izpack' version '3.2'
+  id "com.github.hierynomus.license" version "0.16.1"
   id "de.undercouch.download" version "4.0.0"
 }
 
@@ -275,8 +275,11 @@ task prepareJPackage(dependsOn: "jar") {
 
 
 class CreateWinTarget extends DefaultTask {
+  @Input
   String workDir = ''
+  @Input
   String targetDir = ''
+  @Input
   String jdkUrl = ''
 
   @TaskAction
