@@ -36,7 +36,7 @@ PacketProxyは、HTTP1/HTTP2/HTTPS通信だけでなく、より低レイヤー�
 
 あるいは、
 
-MacOSでHomebrew-caskを利用しているなら `$ brew cask install packetproxy` コマンドで簡単にインストールすることもできます。
+MacOSでHomebrewを利用しているなら `$ brew install packetproxy` コマンドで簡単にインストールすることもできます。
 （有志の方、caskへの登録ありがとうございました！）
 
 # 使ってみる
