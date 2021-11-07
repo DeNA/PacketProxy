@@ -36,7 +36,7 @@ public abstract class PPContextMenu {
 					action();
 				}
 				catch(Exception e){
-					PacketProxyUtility.getInstance().packetProxyLog("Error: "+getLabelName()+" module somthing happend.");
+					PacketProxyUtility.getInstance().packetProxyLog("Error: "+getLabelName()+" module something happened.");
 					e.printStackTrace();
 				}
 			}

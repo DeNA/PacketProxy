@@ -150,7 +150,7 @@ public class Database extends Observable
 			DatabaseConnection conn = source.getReadWriteConnection();
 			conn.executeStatement("attach database '" + dstDBPath.toAbsolutePath() + "' as 'dstDB'", DatabaseConnection.DEFAULT_RESULT_FLAGS);
 			conn.executeStatement("attach database '" + srcDBPath.toAbsolutePath() + "' as 'srcDB'", DatabaseConnection.DEFAULT_RESULT_FLAGS);
-			String querys[] = {
+			String queries[] = {
 					"DELETE FROM dstDB.interceptOptions",
 					"DELETE FROM dstDB.charsets",
 					"INSERT OR REPLACE INTO dstDB.filters (id, name, filter) SELECT id, name, filter FROM srcDB.filters",
@@ -163,7 +163,7 @@ public class Database extends Observable
 					"INSERT OR REPLACE INTO dstDB.sslpassthroughs (id, enabled, server_name, listen_port) SELECT id, enabled, server_name, listen_port FROM srcDB.sslpassthroughs",
 					"INSERT OR REPLACE INTO dstDB.charsets (id, charsetname) SELECT id, charsetname FROM srcDB.charsets",
 			};
-			for (String query : querys){
+			for (String query : queries){
 				try {
 					conn.executeStatement(query, DatabaseConnection.DEFAULT_RESULT_FLAGS);
 				} catch (Exception e) {
