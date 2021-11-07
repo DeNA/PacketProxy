@@ -124,7 +124,7 @@ public class GUIOptionListenPortDialog extends JDialog
 		List<Server> servers = null;
 		if (item.equals("HTTP_PROXY")) {
 			servers = Servers.getInstance().queryHttpProxies();
-			combo.addItem(I18nString.get("Forward to server directly without upsteam proxy"));
+			combo.addItem(I18nString.get("Forward to server directly without upstream proxy"));
 		} else if (item.equals("SSL_TRANSPARENT_PROXY")) {
 			servers = new ArrayList<Server>();
 			combo.addItem(I18nString.get("Forward to server specified in SNI header"));
