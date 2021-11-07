@@ -42,7 +42,7 @@ public class BoyerMooreTest {
     }
 
     @Test
-    public void testFirstOccurence() {
+    public void testFirstOccurrence() {
         String testString = "hell hello hello world";
         BoyerMoore bm = new BoyerMoore("hello".getBytes());
         assertTrue(testString.substring(bm.searchIn(testString.getBytes())).startsWith("hello h"));
