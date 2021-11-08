@@ -126,7 +126,7 @@ public class GUIHistory implements Observer
 	private GUIPacket gui_packet;
 	TableRowSorter<OptionTableModel> sorter;
 	private HintTextField gui_filter;
-	private int preferedPosition;
+	private int preferredPosition;
 	private ExecutorService history_update_service;
 	private HashSet<Integer> update_packet_ids;
 	private Hashtable<Integer, Integer> id_row;
@@ -139,7 +139,7 @@ public class GUIHistory implements Observer
 		Filters.getInstance().addObserver(this);
 		gui_packet = GUIPacket.getInstance();
 		colorManager = new TableCustomColorManager();
-		preferedPosition = 0;
+		preferredPosition = 0;
 		update_packet_ids = new HashSet<Integer>();
 		id_row = new Hashtable<Integer, Integer>();
 		autoScroll = new GUIHistoryAutoScroll();
@@ -154,7 +154,7 @@ public class GUIHistory implements Observer
 		if (result == true) {
 			for (int i = 0; i < table.getRowCount(); i++) {
 				int id = (int)table.getValueAt(i, 0);
-				if (id == preferedPosition) {
+				if (id == preferredPosition) {
 					table.changeSelection(i, 0, false, false);
 					int rowsVisible = table.getParent().getHeight()/table.getRowHeight()/2;
 					Rectangle cellRect = table.getCellRect(i+rowsVisible, 0, true);
@@ -370,7 +370,7 @@ public class GUIHistory implements Observer
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				try {
-					preferedPosition = getSelectedPacketId();
+					preferredPosition = getSelectedPacketId();
 					packets.refresh();
 				} catch (Exception e1) {
 					// Nothing to do
@@ -729,7 +729,7 @@ TODO: support --data-binary
 								copyAll.doClick();
 							}
 					}
-					preferedPosition = getSelectedPacketId();
+					preferredPosition = getSelectedPacketId();
 				} catch (Exception e1) {
 					// Nothing to do
 				}

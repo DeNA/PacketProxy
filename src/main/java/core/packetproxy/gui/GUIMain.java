@@ -292,7 +292,7 @@ public class GUIMain extends JFrame implements Observer
 		getRootPane().putClientProperty("apple.awt.fullscreenable", true);
 	}
 
-	// Nimbusのバグでjava1.6系列ではsetForgroundAt, setBackgroundAtが効かない
+	// Nimbusのバグでjava1.6系列ではsetForegroundAt, setBackgroundAtが効かない
 	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6939001
 	private void setInterceptHighLight()
 	{

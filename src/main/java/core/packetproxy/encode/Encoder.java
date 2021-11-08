@@ -157,7 +157,7 @@ public abstract class Encoder
 		return "";
 	}
 	/**
-	 * GrouptId 
+	 * GroupId 
 	 */
 	public void setGroupId(Packet packet) throws Exception {
 	}

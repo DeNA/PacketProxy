@@ -241,7 +241,7 @@ public class GUIOption
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("Charactor encodings", I18nString.get("Add/Remove charactor encodings to be used to dispaly contents of packet.")));
+		panel.add(createElement("Character encodings", I18nString.get("Add/Remove character encodings to be used to display contents of packet.")));
 		GUIOptionCharSets charsetsGUI = new GUIOptionCharSets(owner);
 		panel.add(charsetsGUI.createPanel());
 

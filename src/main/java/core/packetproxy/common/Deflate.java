@@ -22,14 +22,14 @@ import java.util.zip.Inflater;
 
 public class Deflate {
     public byte[] decompress(byte[] data){
-        Inflater decompresser = new Inflater();
-        decompresser.setInput(data);
+        Inflater decompressor = new Inflater();
+        decompressor.setInput(data);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         byte[] result = new byte[100000];
         int length = 0;
         try {
-            while (!decompresser.finished()) {
-                length = decompresser.inflate(result);
+            while (!decompressor.finished()) {
+                length = decompressor.inflate(result);
                 if (length > 0) {
                     os.write(result, 0, length);
                 } else {
@@ -43,14 +43,14 @@ public class Deflate {
     }
 
     public byte[] compress(byte[] data){
-        Deflater compresser = new Deflater();
-        compresser.setInput(data);
-        compresser.finish();
+        Deflater compressor = new Deflater();
+        compressor.setInput(data);
+        compressor.finish();
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         byte[] result = new byte[100000];
         int length = 0;
-        while(!compresser.finished()) {
-            length = compresser.deflate(result);
+        while(!compressor.finished()) {
+            length = compressor.deflate(result);
             os.write(result, 0, length);
         }
         return os.toByteArray();
