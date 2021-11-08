@@ -140,11 +140,11 @@ public class GUIVulCheckTab
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					String generaterName = sendTable.getSelectedGeneraterName();
-					if (!manager.isEnabled(generaterName)) {
+					String generatorName = sendTable.getSelectedGeneratorName();
+					if (!manager.isEnabled(generatorName)) {
 						return;
 					}
-					VulCheckPattern pattern = manager.findVulCheckPattern(generaterName);
+					VulCheckPattern pattern = manager.findVulCheckPattern(generatorName);
 					OneShotPacket packet = pattern.getPacket();
 					byte[] data = sendData.getData();
 					if (data == null || data.length == 0) {
