@@ -81,7 +81,7 @@ public class Utils {
 	}
 
 	/**
-	 * ExcecuteExe関数で利用される。Macの場合monoを追加する
+	 * ExecuteExe関数で利用される。Macの場合monoを追加する
 	 */
 	private static String[] addMonoPath(String... args) {
 		List<String> cmd_array = new ArrayList<String>();
