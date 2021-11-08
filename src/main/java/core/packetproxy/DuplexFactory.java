@@ -274,7 +274,7 @@ public class DuplexFactory {
 			private Packet server_packet;
 			@Override
 			public int onClientPacketReceived(byte[] data) throws Exception {
-				//return encoder.checkDelimitor(data);
+				//return encoder.checkDelimiter(data);
 				return data.length;
 			}
 			@Override
@@ -402,7 +402,7 @@ public class DuplexFactory {
 			private Packet server_packet;
 			@Override
 			public int onClientPacketReceived(byte[] data) throws Exception {
-				//return encoder.checkDelimitor(data);
+				//return encoder.checkDelimiter(data);
 				return data.length;
 			}
 			@Override
