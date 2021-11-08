@@ -108,7 +108,7 @@ public class GUIVulCheckSendTable
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					String generatorName = getSelectedGeneraterName();
+					String generatorName = getSelectedGeneratorName();
 					int columnIndex= table.columnAtPoint(e.getPoint());
 					int rowIndex= table.rowAtPoint(e.getPoint());
 					if (columnIndex == 0) { /* check box area */
@@ -134,7 +134,7 @@ public class GUIVulCheckSendTable
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				try {
-					String generatorName = getSelectedGeneraterName();
+					String generatorName = getSelectedGeneratorName();
 					onSelected.accept(generatorName);
 				} catch (Exception e1) {
 					e1.printStackTrace();
@@ -145,7 +145,7 @@ public class GUIVulCheckSendTable
 		return new JScrollPane(table);
 	}
 
-	public String getSelectedGeneraterName() {
+	public String getSelectedGeneratorName() {
 		int idx = table.getSelectedRow();
 		if (0 <= idx && idx < table.getRowCount())
 			return (String)table.getValueAt(idx, 1);
