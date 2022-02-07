@@ -86,6 +86,20 @@ public class Database extends Observable
 		return dao;
 	}
 
+	public void dropFilters() throws Exception{
+		setChanged();
+		notifyObservers(DatabaseMessage.DISCONNECT_NOW);
+		clearChanged();
+
+		dropTable(Filter.class);
+
+		createTable(Filter.class, Filters.getInstance());
+
+		setChanged();
+		notifyObservers(DatabaseMessage.RECONNECT);
+		clearChanged();	
+	}
+
 	public void dropConfigs() throws Exception {
 		setChanged();
 		notifyObservers(DatabaseMessage.DISCONNECT_NOW);

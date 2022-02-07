@@ -20,6 +20,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 
+import java.io.File;
+
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -33,13 +35,19 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.SwingUtilities;
 
 import packetproxy.common.I18nString;
 import packetproxy.model.Filter;
 import packetproxy.model.Filters;
+import packetproxy.common.FilterIO;
+import packetproxy.common.Utils;
 
 public class GUIFilterConfig
 {
+	final static private String defaultDir = System.getProperty("user.home");
 	private JFrame owner;
 	private ProjectTableModel project_model;
 	private JTable table;
@@ -154,17 +162,23 @@ public class GUIFilterConfig
 		JButton button_add = new JButton("Add");
 		JButton button_update = new JButton("Edit");
 		JButton button_remove = new JButton("Remove");
+		JButton button_import = new JButton("Import");
+		JButton button_export = new JButton("Export");
 
 		int height = button_add.getMaximumSize().height;
 
 		button_add.setMaximumSize(new Dimension(115,height));
 		button_update.setMaximumSize(new Dimension(115,height));
 		button_remove.setMaximumSize(new Dimension(115,height));
+		button_import.setMaximumSize(new Dimension(115,height));
+		button_export.setMaximumSize(new Dimension(115,height));
 
 		JPanel panel = new JPanel();
 		panel.add(button_add);
 		panel.add(button_update);
 		panel.add(button_remove);
+		panel.add(button_import);
+		panel.add(button_export);
 
 		button_add.addMouseListener(new java.awt.event.MouseAdapter() {
 			@Override
@@ -208,6 +222,65 @@ public class GUIFilterConfig
 							Filters.getInstance().delete(filter);
 							updateImpl();
 						}
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+
+		button_import.addMouseListener(new java.awt.event.MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				try {
+					JFileChooser filechooser = new JFileChooser();
+					filechooser.setCurrentDirectory(new File(defaultDir));
+					filechooser.setFileFilter(new FileNameExtensionFilter("*.json", "json"));
+					filechooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+					int selected = filechooser.showOpenDialog(SwingUtilities.getRoot(owner));
+					if (selected == JFileChooser.APPROVE_OPTION) {
+						File file = filechooser.getSelectedFile();
+						byte[] jbytes = Utils.readfile(file.getAbsolutePath());
+						String json = new String(jbytes);
+						FilterIO io = new FilterIO();
+						io.setOptions(json);
+						JOptionPane.showMessageDialog(null, I18nString.get("Config loaded successfully"));
+						updateImpl();
+					}
+				} catch (Exception e1) {
+					e1.printStackTrace();
+					JOptionPane.showMessageDialog(null, I18nString.get("Config can't be loaded with error"));
+				}
+			}
+		});
+
+		button_export.addMouseListener(new java.awt.event.MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				try {
+						WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "json");
+						filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
+						@Override
+						public void onApproved(File file, String extension) {
+							try {
+								FilterIO io = new FilterIO();
+								String json = io.getOptions();
+								Utils.writefile(file.getAbsolutePath(),json.getBytes());
+								JOptionPane.showMessageDialog(null, I18nString.get("Config saved successfully"));
+							}catch (Exception e1) {
+								e1.printStackTrace();
+								JOptionPane.showMessageDialog(null, I18nString.get("Config can't be saved with error"));
+							}
+						}
+	
+						@Override
+						public void onCanceled() {}
+	
+						@Override
+						public void onError() {
+							JOptionPane.showMessageDialog(null, I18nString.get("Config can't be saved with error"));
+						}
+					});
+					filechooser.showSaveDialog();
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
