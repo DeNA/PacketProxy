@@ -29,6 +29,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -151,13 +152,15 @@ public class GUIVulCheckTab
 						return;
 					}
 					packet.setData(data);
+					Date sentTime = new Date();
 					ResendController.getInstance().resend(new ResendWorker(packet,1) {
 						@Override
 						protected void process(List<OneShotPacket> oneshots) {
+							Date recvTime = new Date();
 							try {
 								for (OneShotPacket oneshot: oneshots) {
 									recvPackets.put(recvPacketId, oneshot);
-									recvTable.add(recvPacketId, pattern.getName(), oneshot);
+									recvTable.add(recvPacketId, pattern.getName(), oneshot, recvTime.getTime() - sentTime.getTime());
 									recvPacketId++;
 								}
 							} catch (Exception e) {
@@ -181,13 +184,15 @@ public class GUIVulCheckTab
 					for (VulCheckPattern pattern: manager.getAllEnabledVulCheckPattern()) {
 						future = future.thenApplyAsync(arg -> {
 							try {
+								Date sentTime = new Date();
 								ResendController.getInstance().resend(new ResendWorker(pattern.getPacket(), 1) {
 									@Override
 									protected void process(List<OneShotPacket> oneshots) {
+										Date recvTime = new Date();
 										try {
 											for (OneShotPacket res : oneshots) {
 												recvPackets.put(recvPacketId, res);
-												recvTable.add(recvPacketId, pattern.getName(), res);
+												recvTable.add(recvPacketId, pattern.getName(), res, recvTime.getTime() - sentTime.getTime());
 												recvPacketId++;
 											}
 										} catch (Exception e) {
