@@ -431,7 +431,7 @@ public final class SSLExplorer {
 
         int length = getInt16(input);           // length of extensions
         while (length > 0) {
-            int extType = getInt16(input);      // extenson type
+            int extType = getInt16(input);      // extension type
             int extLen = getInt16(input);       // length of extension data
 
             if (extType == 0x00) {      // 0x00: type of server name indication

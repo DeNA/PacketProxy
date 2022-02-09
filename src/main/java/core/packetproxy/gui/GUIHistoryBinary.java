@@ -168,7 +168,7 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 	public void setData(byte[] data) {
 		setData(data, true);
 	}
-	private void setData(byte[] data, boolean triming) {
+	private void setData(byte[] data, boolean trimming) {
 		try {
 			hex_text.setFont(FontManager.getInstance().getFont());
 			ascii_text.setFont(FontManager.getInstance().getFont());
@@ -176,7 +176,7 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 			hex_text.setData(data, false);
 			this.data = data;
 			// データが多いと遅いので長いデータをリミングする
-			if (triming && data.length > DEFAULT_SHOW_SIZE) {
+			if (trimming && data.length > DEFAULT_SHOW_SIZE) {
 				show_all = false;
 				byte[] head = ArrayUtils.subarray(data, 0, DEFAULT_SHOW_SIZE);
 				Binary b = new Binary(head);

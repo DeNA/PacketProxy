@@ -28,7 +28,7 @@ public abstract class PPContextMenu {
 	public abstract String getLabelName();
 	public abstract void action() throws Exception;
 	
-	public void registItem(){
+	public void registerItem(){
 		menuItem = new JMenuItem(getLabelName());
 		menuItem.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent actionEvent){
@@ -36,7 +36,7 @@ public abstract class PPContextMenu {
 					action();
 				}
 				catch(Exception e){
-					PacketProxyUtility.getInstance().packetProxyLog("Error: "+getLabelName()+" module somthing happend.");
+					PacketProxyUtility.getInstance().packetProxyLog("Error: "+getLabelName()+" module something happened.");
 					e.printStackTrace();
 				}
 			}

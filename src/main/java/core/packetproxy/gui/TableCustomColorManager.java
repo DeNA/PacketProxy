@@ -79,7 +79,7 @@ public class TableCustomColorManager {
 		} else if (clearedLines.containsKey(packetId)) {
 			return Color.WHITE;
 		}
-		throw new Exception("line color is not registerd.");
+		throw new Exception("line color is not registered.");
 	}
 
 	@Override

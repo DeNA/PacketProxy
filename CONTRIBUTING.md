@@ -1,20 +1,25 @@
-### このプロジェクトについて
+Contribution Guide
+======================
 
-このプロジェクトは、ガチガチに決まりきった手順で慎重に進めるのではなく、気軽に誰でも参加できるプロジェクトにしたいと思っています。
+PacketProxy is an open-source project and welcomes contributors to take part in the development, hopefully with comfort. To achieve this, contributing to this project currently requires no strict and uncomfortable rules.
 
-疑問・質問・提案等がございましたら、お気軽にissueに書き込んでください。どんな些細なものでも問題ありません。
-ちなみに、メーリングリストやIRCチャットは用意できてません。用意するかどうかもわかりません。すみません。
+Any question or suggestion will, even if you feel it trivial, be appreciated and feel free to submit it as an `issue`.
 
-### ソースコードの修正
+Currently no mailing list, IRC, slack, nor Gitter channel for this project exists, and we don't have a plan to have one. Sorry for the inconvenience.
 
-PackerProxyのソースコードへの修正ができた場合は、forkして、ぜひお気軽にPRしてください。お待ちしております！コードスタイルなど特に気にしなくても全く問題ありません！
+Fixing bugs or improving PacketProxy
+--------------------------------------
 
-### ライセンス
+If you'd like to merge changes you made on your fork to fix bugs or improve PacketProxy in any form, feel free to send pull requests.
 
-PacketProxyは `Apache License 2.0` ライセンスを利用しています。PRしていただいたソースコードは `Apache License 2.0` として公開されることにご同意していただいたということになりますので、よろしくお願いします。
-他プロジェクトのソースを利用する場合には、PR時に教えていただけると助かります。PacketProxyに取り込んでも問題ないライセンスか確認します。
+Currently we don't have any coding style guidelines and don't have any intension to require contributors to comply conding conventions.
 
-### CLAについて
+License
+-----------
 
-PR時に [Contribution License Agreement](https://dena.github.io/cla/) への同意をお願いいたします。
+PacketProxy is an open-source project and its source code is distributed under Apache License 2.0. Therefore sending pull requests to this repository means you agreed the code you wrote is also distributed under the license. To avoid license violations, if your pull request contains any part of other software, please inform us.
 
+Contributioin License Agreement (CLA)
+-----------------------------------------
+
+All contributors must consent to a contribution licennse agreement (CLA) before contributions is accepted. Before sending a pull requests, take a look at [the CLA](https://dena.github.io/cla/).

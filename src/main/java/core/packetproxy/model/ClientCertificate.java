@@ -70,7 +70,7 @@ public class ClientCertificate {
      * Convert from Client Certificate file into this model
      * @param type: Certificate Type (e.g. PKCS#12, JKS)
      * @param server: Applied Server
-     * @param path: Certificate Path on File Sytem
+     * @param path: Certificate Path on File System
      * @param storePassword: Password for Certificate
      * @param keyPassword: Password for Private Key
      * @return Model for Client Certificate

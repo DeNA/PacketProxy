@@ -51,7 +51,7 @@ public class GUIOptionServerDialog extends JDialog
 	private HintTextField text_comment = new HintTextField("(ex.) game server for test");
 	private JCheckBox checkbox_ssl = new JCheckBox(I18nString.get("Need a SSL/TLS to connect"));
 	private JCheckBox checkbox_dns = new JCheckBox(I18nString.get("Private DNS server needs to resolve the server name to local machine IP"));
-	private JCheckBox checkbox_upstream_http_proxy = new JCheckBox(I18nString.get("Need to be defined as an Upsteam Http Proxy"));
+	private JCheckBox checkbox_upstream_http_proxy = new JCheckBox(I18nString.get("Need to be defined as an Upstream Http Proxy"));
 	JComboBox<String> combo = new JComboBox<String>();
 	private int height = 500;
 	private int width = 700;

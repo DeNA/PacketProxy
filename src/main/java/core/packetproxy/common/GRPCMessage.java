@@ -23,7 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.*;
-
+import java.util.function.Function;
 
 public class GRPCMessage {
     private static final int GRPC_WEB_FH_DATA = 0b0;
@@ -32,8 +32,12 @@ public class GRPCMessage {
     public int type;
     public Map<String, Object> message;
 
-    static public List<GRPCMessage> decodeMessages(String base64Str) throws Exception {
-        ByteArrayInputStream bio = new ByteArrayInputStream(base64.fromString(base64Str));
+    static public List<GRPCMessage> decodeTextMessages(String base64Str) throws Exception {
+        return decodeMessages(base64.fromString(base64Str));
+    }
+
+    static public List<GRPCMessage> decodeMessages(byte[] bytes) throws Exception {
+        ByteArrayInputStream bio = new ByteArrayInputStream(bytes);
         List<GRPCMessage> ret = new ArrayList<>();
         while (bio.available() > 0) {
             ret.add(new GRPCMessage(bio));
@@ -41,12 +45,36 @@ public class GRPCMessage {
         return ret;
     }
 
-    static public String encodeMessages(List<Map<String, Object>> messages) throws Exception {
-        StringBuilder sb = new StringBuilder();
-        for (Map<String, Object> msg : messages) {
-            sb.append(base64.toString(new GRPCMessage(msg).toBytes()));
+    static public String encodeTextMessages(List<Map<String, Object>> messages) throws Exception {
+        return new String(encodeMessages(messages, (grpcMessage) -> {
+            try {
+                return base64.toString(grpcMessage.toBytes()).getBytes();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return new byte[0];
+            }
+        }));
+    }
+
+    static public byte[] encodeMessages(List<Map<String, Object>> messages) throws Exception {
+        return encodeMessages(messages, (grpcMessage) -> {
+            try {
+                return grpcMessage.toBytes();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return new byte[0];
+            }
+        });
+    }
+
+    static private byte[] encodeMessages(List<Map<String, Object>> messages, Function<GRPCMessage, byte[]> f) throws Exception {
+        var buf = new ByteArrayOutputStream();
+        for (var message : messages) {
+            var grpcMessage = new GRPCMessage(message);
+            var encodedMessage = f.apply(grpcMessage);
+            buf.writeBytes(encodedMessage);
         }
-        return sb.toString();
+        return buf.toByteArray();
     }
 
     public GRPCMessage(InputStream bio) throws Exception {
