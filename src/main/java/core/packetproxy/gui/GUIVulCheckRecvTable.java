@@ -41,7 +41,7 @@ public class GUIVulCheckRecvTable
 	}
 
 	public JComponent createPanel() throws Exception {
-		columnNames = new String[]{ "#", "Name", "Server Response", "Length", "Time", "Encode", "ALPN" };
+		columnNames = new String[]{ "#", "Name", "Server Response", "Length", "Time[msec]", "Encode", "ALPN" };
 		tableModel = new OptionTableModel(columnNames, 0) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -119,21 +119,21 @@ public class GUIVulCheckRecvTable
 			return 0;
 	}
 
-	public void add(int id, String name, OneShotPacket oneshot) throws Exception {
-		tableModel.addRow(makeRowDataFromPacket(id, name, oneshot));
+	public void add(int id, String name, OneShotPacket oneshot, long rtt) throws Exception {
+		tableModel.addRow(makeRowDataFromPacket(id, name, oneshot, rtt));
 	}
 
 	public void clear() {
 		tableModel.setRowCount(0);
 	}
 
-	private Object[] makeRowDataFromPacket(int id, String name, OneShotPacket oneshot) throws Exception {
+	private Object[] makeRowDataFromPacket(int id, String name, OneShotPacket oneshot, long rtt) throws Exception {
 		return new Object[] {
 				id,
 				name,
 				oneshot.getSummarizedResponse(),
 				oneshot.getData().length,
-				new SimpleDateFormat("HH:mm:ss yyyy/MM/dd Z").format(new Date()),
+				rtt,
 				oneshot.getEncoder(),
 				oneshot.getAlpn()
 		};
