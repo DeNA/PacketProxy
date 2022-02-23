@@ -17,6 +17,8 @@ package packetproxy.gui;
 
 import java.awt.Color;
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.text.Position;
 import javax.swing.text.Document;
 import javax.swing.text.Highlighter;
@@ -28,7 +30,8 @@ import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.JPanel;
-
+import javax.swing.JButton;
+import javax.swing.BoxLayout;
 public class GUILog
 {
 	private JTextPane text;
@@ -50,7 +53,29 @@ public class GUILog
 		scrollPane = new JScrollPane(text);
 		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 		mainPanel = new JPanel(new BorderLayout());
+
+		JButton clearButton = new JButton("Log Clear");
+		clearButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					text.setText("");
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.add(clearButton);
+		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
+
+		JPanel bottomHalf = new JPanel();
+		bottomHalf.add(buttonPanel);
+		bottomHalf.setLayout(new BoxLayout(bottomHalf, BoxLayout.Y_AXIS));
+
 		mainPanel.add(scrollPane, BorderLayout.CENTER);
+		mainPanel.add(bottomHalf, BorderLayout.SOUTH);
 		thread_lock = new Object();
 	}
 
