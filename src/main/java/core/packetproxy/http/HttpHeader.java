@@ -120,7 +120,7 @@ public class HttpHeader {
 		byte[] headerDelim = (newLineStr + newLineStr).getBytes(StandardCharsets.UTF_8);
 		int headerPos = Utils.indexOf(rawHttp, 0, rawHttp.length, headerDelim);
 		if (headerPos < 0) {
-			return;
+			headerPos = rawHttp.length;
 		}
 		String header = toUTF8(ArrayUtils.subarray(rawHttp, 0, headerPos));
 		List<String> lines = Arrays.asList(header.split(newLineStr));
