@@ -148,6 +148,7 @@ public class GUIVulCheckTab
 					VulCheckPattern pattern = manager.findVulCheckPattern(generatorName);
 					OneShotPacket packet = pattern.getPacket();
 					byte[] data = sendData.getData();
+					data = manager.extractMacro(generatorName, data);
 					if (data == null || data.length == 0) {
 						return;
 					}
@@ -185,7 +186,9 @@ public class GUIVulCheckTab
 						future = future.thenApplyAsync(arg -> {
 							try {
 								Date sentTime = new Date();
-								ResendController.getInstance().resend(new ResendWorker(pattern.getPacket(), 1) {
+								OneShotPacket packet =  pattern.getPacket();
+								packet.setData(manager.extractMacro(pattern.getName(), packet.getData()));
+								ResendController.getInstance().resend(new ResendWorker(packet, 1) {
 									@Override
 									protected void process(List<OneShotPacket> oneshots) {
 										Date recvTime = new Date();

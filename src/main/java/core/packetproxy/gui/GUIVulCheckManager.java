@@ -72,6 +72,11 @@ public class GUIVulCheckManager {
         return generateFromOrig(generator);
     }
 
+    public byte[] extractMacro(String generatorName, byte[] data) throws Exception {
+        Generator generator = findGenerator(generatorName);
+        return generator.extractMacro(data);
+    }
+
     public void saveVulCheckPattern(String name, VulCheckPattern pattern) {
         if (enableMap.get(name)) {
             patternMap.put(name, pattern);

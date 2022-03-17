@@ -15,26 +15,17 @@
  */
 package packetproxy.common;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.ArrayUtils;
+import packetproxy.util.PacketProxyUtility;
+
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.ArrayUtils;
-
-import packetproxy.util.PacketProxyUtility;
 
 public class Utils {
 
@@ -241,6 +232,21 @@ public class Utils {
 		byte[] head = ArrayUtils.subarray(src, 0, start_idx);
 		byte[] tail = ArrayUtils.subarray(src, end_idx, src.length);
 		return ArrayUtils.addAll(head, ArrayUtils.addAll(replacer, tail));
+	}
+
+	public static byte[] replaceBinary(byte[] data, byte[] binPattern, byte[] binReplaced) {
+		int idx = 0;
+		while (idx < data.length) {
+			if ((idx = Utils.indexOf(data, idx, data.length, binPattern)) < 0) {
+				return data;
+			}
+			byte[] front_data = ArrayUtils.subarray(data, 0, idx);
+			byte[] back_data = ArrayUtils.subarray(data, idx + binPattern.length, data.length);
+			data = ArrayUtils.addAll(front_data, binReplaced);
+			data = ArrayUtils.addAll(data, back_data);
+			idx = idx + binReplaced.length;
+		}
+		return data;
 	}
 
 	public static byte[] getSelectedCharacters(byte[] src, int start_idx, int end_idx){

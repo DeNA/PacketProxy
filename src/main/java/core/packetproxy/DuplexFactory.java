@@ -17,6 +17,7 @@ package packetproxy;
 
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import packetproxy.common.CryptUtils;
@@ -39,6 +40,8 @@ public class DuplexFactory {
 
 	// 1MB以上のパケットは最後のタイミングだけHistoryに記録する、それ未満はパケットが更新されるたびにHistoryを更新する
 	static final int SKIP_LENGTH = 1 * 1024 * 1024;
+	// 10MB以上のパケットはHistoryには記録しない
+	static final int TOO_LARGE_LENGTH = 10 * 1024 * 1024;
 
 	static public DuplexSync createDuplexSync(Endpoint client_endpoint, Endpoint server_endpoint, String encoder_name, String ALPN) throws Exception
 	{
@@ -318,13 +321,23 @@ public class DuplexFactory {
 			@Override
 			public byte[] onClientChunkSend(byte[] data) throws Exception {
 				client_packet = new Packet(0, oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(), oneshot.getUseSSL(), oneshot.getEncoder(), oneshot.getAlpn(), Packet.Direction.CLIENT, duplex.hashCode(), UniqueID.getInstance().createId());
-				packets.update(client_packet);
 				client_packet.setModified();
 				client_packet.setDecodedData(data);
 				client_packet.setModifiedData(data);
 				if (data.length < SKIP_LENGTH) { packets.update(client_packet); }
 				byte[] encoded_data = encoder.encodeClientRequest(client_packet);
 				client_packet.setSentData(encoded_data);
+				if (data.length > TOO_LARGE_LENGTH) {
+					byte[] omitData = String.format("*** Data cannot be displayed (reason: Data too large: %d) ***", data.length).getBytes(StandardCharsets.UTF_8);
+					if (oneshot.getEncoder().equals("HTTP")) {
+						Http http = new Http(data);
+						http.setBody(omitData);
+						omitData = http.toByteArray();
+					}
+					client_packet.setDecodedData(omitData);
+					client_packet.setModifiedData(omitData);
+					client_packet.setSentData(omitData);
+				}
 				packets.update(client_packet);
 				return encoded_data;
 			}

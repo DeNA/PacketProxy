@@ -19,4 +19,7 @@ abstract public class Generator {
     abstract public String getName();
     abstract public boolean generateOnStart();
     abstract public String generate(String inputData) throws Exception;
+    public byte[] extractMacro(byte[] inputData) throws Exception {
+        return inputData;
+    }
 }

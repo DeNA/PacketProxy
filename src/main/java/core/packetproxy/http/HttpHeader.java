@@ -15,15 +15,15 @@
  */
 package packetproxy.http;
 
+import org.apache.commons.lang3.ArrayUtils;
+import packetproxy.common.Utils;
+
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import packetproxy.common.Utils;
-import org.apache.commons.lang3.ArrayUtils;
-
-import javax.annotation.RegEx;
 
 public class HttpHeader {
 	private static final byte[] crLf = new byte[]{13, 10};
@@ -117,7 +117,12 @@ public class HttpHeader {
 		if (Utils.indexOf(rawHttp, 0, newLineSymbol.length(), newLineSymbol.getBytes()) >= 0) {
 			rawHttp = ArrayUtils.subarray(rawHttp, newLineSymbol.length(), rawHttp.length);
 		}
-		String header = toUTF8(rawHttp).split(newLineStr+newLineStr)[0];
+		byte[] headerDelim = (newLineStr + newLineStr).getBytes(StandardCharsets.UTF_8);
+		int headerPos = Utils.indexOf(rawHttp, 0, rawHttp.length, headerDelim);
+		if (headerPos < 0) {
+			return;
+		}
+		String header = toUTF8(ArrayUtils.subarray(rawHttp, 0, headerPos));
 		List<String> lines = Arrays.asList(header.split(newLineStr));
 		statusLine = lines.get(0);
 		fields = lines.subList(1, lines.size()).stream().map(HeaderField::new).collect(Collectors.toList());
