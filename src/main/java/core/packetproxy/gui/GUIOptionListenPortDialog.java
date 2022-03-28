@@ -149,6 +149,12 @@ public class GUIOptionListenPortDialog extends JDialog
 				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect into 'Servers setting' first."));
 				dispose();
 			}
+		} else if (item.equals("XMPP_SSL_FORWARDER")) {
+			servers = Servers.getInstance().queryNonHttpProxies();
+			if (servers.isEmpty()) {
+				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect into 'Servers setting' first."));
+				dispose();
+			}
 		} else {
 			servers = Servers.getInstance().queryNonHttpProxies();
 		}
@@ -168,6 +174,7 @@ public class GUIOptionListenPortDialog extends JDialog
 		type_combo.addItem("SSL_TRANSPARENT_PROXY");
 		type_combo.addItem("HTTP_TRANSPARENT_PROXY");
 		type_combo.addItem("UDP_FORWARDER");
+		type_combo.addItem("XMPP_SSL_FORWARDER");
 		type_combo.setEnabled(true);
 		type_combo.setMaximumRowCount(6);
 		type_combo.addItemListener(new ItemListener(){
@@ -237,6 +244,8 @@ public class GUIOptionListenPortDialog extends JDialog
 					} else if (type_combo.getSelectedItem().toString().equals("HTTP_TRANSPARENT_PROXY")) {
 						PacketProxyUtility.getInstance().packetProxyLog("HTTP_TRANSPARENT_PROXY created");
 						type = ListenPort.TYPE.HTTP_TRANSPARENT_PROXY;
+					} else if (type_combo.getSelectedItem().toString().equals("XMPP_SSL_FORWARDER")) {
+						type = ListenPort.TYPE.XMPP_SSL_FORWARDER;
 					} else {
 						type = ListenPort.TYPE.SSL_FORWARDER;
 					}

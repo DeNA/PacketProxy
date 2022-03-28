@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 DeNA Co., Ltd.
+ * Copyright 2019,2022 DeNA Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import packetproxy.model.CAs.CA;
 @DatabaseTable(tableName = "listenports")
 public class ListenPort
 {
-	public enum TYPE { HTTP_PROXY, FORWARDER, SSL_FORWARDER, UDP_FORWARDER, SSL_TRANSPARENT_PROXY, HTTP_TRANSPARENT_PROXY };
+	public enum TYPE { HTTP_PROXY, FORWARDER, SSL_FORWARDER, UDP_FORWARDER, SSL_TRANSPARENT_PROXY, HTTP_TRANSPARENT_PROXY, XMPP_SSL_FORWARDER };
 	
     @DatabaseField(generatedId = true)
     private int id;

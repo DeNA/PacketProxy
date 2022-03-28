@@ -58,7 +58,7 @@ import packetproxy.model.CAs.CA;
 public class Https {
 	private static final char[] KS_PASS = "testtest".toCharArray();
 	
-	private static SSLContext createSSLContext(String commonName, CA ca) throws Exception {
+	public static SSLContext createSSLContext(String commonName, CA ca) throws Exception {
 		SSLContext sslContext = SSLContext.getInstance("TLS");
 		String[] domainNames = Servers.getInstance().queryResolvedByDNS().stream().map(a -> a.getIp()).sorted(String::compareTo).toArray(String[]::new);
 		KeyStore ks = CertCacheManager.getInstance().getKeyStore(commonName, domainNames, ca);
@@ -173,7 +173,7 @@ public class Https {
 		return ssl_socket;
 	}
 
-	private static SSLSocketFactory createSSLSocketFactory() throws Exception {
+	public static SSLSocketFactory createSSLSocketFactory() throws Exception {
 		SSLContext sslContext = SSLContext.getInstance("TLS");
 		X509TrustManager[] trustManagers = { new X509TrustManager() {
 			public void checkClientTrusted(X509Certificate[] arg0, String arg1) {

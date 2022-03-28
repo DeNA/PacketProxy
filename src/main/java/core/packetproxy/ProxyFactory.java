@@ -49,6 +49,12 @@ public class ProxyFactory {
 		} else if (listen_info.getType() == ListenPort.TYPE.UDP_FORWARDER) {
 			proxy = new ProxyUDPForward(listen_info);
 
+		} else if (listen_info.getType() == ListenPort.TYPE.XMPP_SSL_FORWARDER) {
+			PacketProxyUtility.getInstance().packetProxyLog("type is XMPP_SSL_FORWARDER");
+			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
+			listen_socket.setReuseAddress(true);
+			proxy = new ProxyXmppSSLForward(listen_socket, listen_info);
+
 		} else { /* FORWARDER */
 			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
 			listen_socket.setReuseAddress(true);
