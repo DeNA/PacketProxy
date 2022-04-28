@@ -86,6 +86,9 @@ public class Https {
 	public static SSLSocket[] createBothSideSSLSockets(Socket clientSocket, InputStream lookahead, InetSocketAddress serverAddr, InetSocketAddress proxyAddr, String serverName, CA ca) throws Exception {
 		SSLSocket clientSSLSocket = (SSLSocket) createSSLContext(serverName, ca).getSocketFactory().createSocket(clientSocket, lookahead, true);
 		clientSSLSocket.setUseClientMode(false);
+
+		Server server = Servers.getInstance().queryByAddress(serverAddr);
+		clientKeyManagers = ClientKeyManager.getKeyManagers(server);
 		SSLSocket[] serverSSLSocket = new SSLSocket[1];
 		clientSSLSocket.setHandshakeApplicationProtocolSelector((clientSocketParam, clientProtocols) -> {
 			try {
