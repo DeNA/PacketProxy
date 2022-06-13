@@ -54,6 +54,9 @@ dependencies {
   implementation 'commons-net:commons-net:3.6'
   implementation 'org.nanohttpd:nanohttpd:2.3.1'
   implementation 'com.google.code.gson:gson:2.8.6'
+  implementation 'org.apache.commons:commons-math3:3.0'
+  implementation 'org.jfree:jfreechart:1.5.3'
+  implementation 'org.ejml:ejml-all:0.41'
 
   izpack 'org.codehaus.izpack:izpack-dist:5.1.3'
 
