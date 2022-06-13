@@ -46,10 +46,11 @@ public class GUIMain extends JFrame implements Observer
 	private GUIIntercept gui_intercept;
 	private GUIRepeater gui_repeater;
 	private GUIBulkSender gui_bulksender;
+	private GUIRandomness gui_randomness;
 	private GUIVulCheckHelper gui_vulcheckhelper;
 	private GUILog gui_log;
 	private InterceptModel interceptModel;
-	public enum Panes {HISTORY, INTERCEPT, REPEATER, VULCHECKHELPER, BULKSENDER, OPTIONS, LOG};
+	public enum Panes {HISTORY, INTERCEPT, REPEATER, VULCHECKHELPER, BULKSENDER, RANDOMNESS, OPTIONS, LOG};
 
 	public static GUIMain getInstance(String title) throws Exception
 	{
@@ -84,6 +85,8 @@ public class GUIMain extends JFrame implements Observer
 			return "VulCheck Helper";
 		case BULKSENDER:
 			return "Bulk Sender";
+		case RANDOMNESS:
+			return "Randomness Checker";
 		case OPTIONS:
 			return "Options";
 		case LOG:
@@ -107,6 +110,7 @@ public class GUIMain extends JFrame implements Observer
 			gui_intercept = new GUIIntercept(this);
 			gui_repeater = GUIRepeater.getInstance();
 			gui_bulksender = GUIBulkSender.getInstance();
+			gui_randomness = GUIRandomness.getInstance();
 			gui_vulcheckhelper = GUIVulCheckHelper.getInstance();
 			gui_log = GUILog.getInstance();
 
@@ -116,6 +120,7 @@ public class GUIMain extends JFrame implements Observer
 			tabbedpane.addTab(getPaneString(Panes.REPEATER), gui_repeater.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.VULCHECKHELPER), gui_vulcheckhelper.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.BULKSENDER), gui_bulksender.createPanel());
+			tabbedpane.addTab(getPaneString(Panes.RANDOMNESS), gui_randomness.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.OPTIONS), gui_option.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.LOG), gui_log.createPanel());
 

@@ -469,6 +469,16 @@ public class GUIHistory implements Observer
 			}
 		});
 
+		JMenuItem randomness = createMenuItem ("send to Randomness Checker", -1, null, new ActionListener() {
+			public void actionPerformed(ActionEvent actionEvent) {
+				try {
+					GUIRandomness.getInstance().add(gui_packet.getPacket().getOneShotFromModifiedData(), gui_packet.getPacket().getId());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+
 		JMenuItem saveAll = createMenuItem ("save all data to file", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "dat", "packet.dat");
@@ -675,6 +685,7 @@ TODO: support --data-binary
 		menu.add(copyAll);
 		menu.add(copy);
 		menu.add(bulkSender);
+		menu.add(randomness);
 		menu.add(saveAll);
 		menu.add(saveHttpBody);
 		menu.add(addColorG);
