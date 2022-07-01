@@ -24,6 +24,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
 
 import packetproxy.common.Protobuf3;
+import packetproxy.common.StringUtils;
 import packetproxy.http.Http;
 import packetproxy.http2.frames.DataFrame;
 import packetproxy.http2.frames.Frame;
@@ -71,6 +72,16 @@ public class GrpcStreaming extends FramesBase
 		for (Frame frame : FrameUtils.parseFrames(frames)) {
 			if (frame instanceof HeadersFrame) {
 				HeadersFrame headersFrame = (HeadersFrame)frame;
+				Http http = new Http(headersFrame.getHttp());
+				if(!http.getFirstHeader("grpc-status").equals("")){
+					// Trailer Header Frame doesn't have headers below.(ref: HeadersFrame.java)
+					http.updateHeader("X-PacketProxy-HTTP2-UUID", StringUtils.randomUUID());
+					http.updateHeader("X-PacketProxy-HTTP2-Type", String.valueOf(Frame.Type.HEADERS.ordinal()));
+					http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(headersFrame.getFlags()));
+					http.updateHeader("X-PacketProxy-HTTP2-Stream-Id", String.valueOf(headersFrame.getStreamId()));
+					// reconstruct HeaderFrame
+					headersFrame = new HeadersFrame(http);
+				}
 				baos.write(headersFrame.getHttp());
 
 			} else if (frame instanceof DataFrame) {
