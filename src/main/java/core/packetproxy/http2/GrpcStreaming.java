@@ -77,8 +77,12 @@ public class GrpcStreaming extends FramesBase
 				DataFrame dataFrame = (DataFrame)frame;
 				Http http = new Http(dataFrame.getHttp());
 				byte[] payload = http.getBody();
-				byte[] data = ArrayUtils.subarray(payload, 5, payload.length);
-				http.setBody(Protobuf3.decode(data).getBytes());
+				if(payload.length!=0) {
+					byte[] data = ArrayUtils.subarray(payload, 5, payload.length);
+					http.setBody(Protobuf3.decode(data).getBytes());
+				}else{
+					http.setBody(null);
+				}
 				baos.write(http.toByteArray());
 			}
 		}
@@ -100,20 +104,21 @@ public class GrpcStreaming extends FramesBase
 			out.write(frame.toByteArrayWithoutExtra(encoder));
 
 		} else if (Frame.Type.values()[type] == Frame.Type.DATA) {
-			byte[] encodeBytes = Protobuf3.encode(new String(http.getBody(),"UTF-8"));
-			byte[] raw = new byte[5+encodeBytes.length];
+			if(http.getBody().length!=0) {
+				byte[] encodeBytes = Protobuf3.encode(new String(http.getBody(), "UTF-8"));
+				byte[] raw = new byte[5 + encodeBytes.length];
 
-			for(int i=0;i<encodeBytes.length;++i){
-				raw[5+i] = encodeBytes[i];
+				for (int i = 0; i < encodeBytes.length; ++i) {
+					raw[5 + i] = encodeBytes[i];
+				}
+
+				byte[] msgLength = ByteBuffer.allocate(4).putInt(encodeBytes.length).array();
+				raw[1] = msgLength[0];
+				raw[2] = msgLength[1];
+				raw[3] = msgLength[2];
+				raw[4] = msgLength[3];
+				http.setBody(raw);
 			}
-
-			byte[] msgLength = ByteBuffer.allocate(4).putInt(encodeBytes.length).array();
-			raw[1] = msgLength[0];
-			raw[2] = msgLength[1];
-			raw[3] = msgLength[2];
-			raw[4] = msgLength[3];
-
-			http.setBody(raw);
 			DataFrame data = new DataFrame(http);
 			out.write(data.toByteArray());
 		}
