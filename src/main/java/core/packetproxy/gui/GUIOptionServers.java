@@ -145,7 +145,8 @@ public class GUIOptionServers extends GUIOptionComponentBase<Server>
 
 	@Override
 	protected Server getSelectedTableContent() {
-		return getTableContent(table.getSelectedRow());
+		int index = table.getSelectedRow();
+		return getTableContent(table.getRowSorter().convertRowIndexToModel(index));
 	}
 
 	@Override
