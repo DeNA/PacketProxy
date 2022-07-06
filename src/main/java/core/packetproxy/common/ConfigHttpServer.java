@@ -80,6 +80,7 @@ public class ConfigHttpServer extends NanoHTTPD {
             res.addHeader("Access-Control-Allow-Origin", "*");
             res.addHeader("Access-Control-Allow-Headers", "Authorization,Content-Type");
             res.addHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+            res.addHeader("Access-Control-Allow-Private-Network", "true");
             res.addHeader("Access-Control-Max-Age", "86400");
             return res;
         }
