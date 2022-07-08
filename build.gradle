@@ -141,8 +141,9 @@ task setPath(dependsOn: "setName") {
 
 task setAppleSignInfo {
   project.ext.appleId      = "xxxx@gmail.com"
-  project.ext.applePasswd  = "@keychain:AC_PASSWORD" // read from keychain
+  project.ext.applePasswd  = "aaaa-bbbb-cccc-dddd"
   project.ext.signedKey    = "YOURNAME (123456ABCD)"
+  project.ext.teamId       = "123456ABCD"
 }
 
 eclipse {
@@ -482,13 +483,11 @@ task createMacInstaller(type: Exec, dependsOn: "resignMacJPackage") {
 task notaryMacInstaller(type: Exec) {
   workingDir "${projectDir}"
   commandLine = [
-    "xcrun",
-    "altool",
-    "--notarize-app",
-    "--primary-bundle-id", "packetproxy.PacketProxy",
-    "--username", "${project.ext.appleId}",
+    "xcrun", "notarytool", "submit", "${project.ext.pathMacSignedRelease}",
+    "--apple-id", "${project.ext.appleId}",
     "--password", "${project.ext.applePasswd}",
-    "--file", "${project.ext.pathMacSignedRelease}"
+    "--team-id", "${project.ext.teamId}",
+    "--wait"
   ]
   onlyIf { Os.isFamily(Os.FAMILY_MAC) }
 }
