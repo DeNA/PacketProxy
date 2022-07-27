@@ -110,7 +110,7 @@ public class GUIBulkSender {
 					OneShotPacket[] oneshots = (OneShotPacket[]) sendPackets.values().toArray(new OneShotPacket[0]);
 
 					if (regexParams.size() == 0) { // parallel
-						ResendController.getInstance().resend(new ResendWorker(oneshots, 100) {
+						ResendController.getInstance().resend(new ResendWorker(oneshots) {
 							@Override
 							protected void process(List<OneShotPacket> oneshots) {
 								try {

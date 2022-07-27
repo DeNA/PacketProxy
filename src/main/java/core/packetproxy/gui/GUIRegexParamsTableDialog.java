@@ -178,7 +178,6 @@ public class GUIRegexParamsTableDialog extends JDialog {
 
         main_panel.add(createTableButton(addAction, editAction, removeAction));
         main_panel.add(scrollpane1);
-        main_panel.setBackground(Color.WHITE);
         main_panel.setMaximumSize(new Dimension(Short.MAX_VALUE, main_panel.getMinimumSize().height));
 
         return main_panel;
@@ -211,7 +210,6 @@ public class GUIRegexParamsTableDialog extends JDialog {
         }
 
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(Color.WHITE);
         panel.setMaximumSize(new Dimension(100, panel.getMinimumSize().height));
         panel.setAlignmentY(Component.TOP_ALIGNMENT);
         return panel;
