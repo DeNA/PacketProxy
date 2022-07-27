@@ -21,6 +21,8 @@ import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -33,9 +35,9 @@ import packetproxy.controller.ResendController.ResendWorker;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
+import packetproxy.model.RegexParam;
 
-public class GUIBulkSender
-{
+public class GUIBulkSender {
 	private static GUIBulkSender instance;
 	private static JFrame owner;
 
@@ -43,13 +45,13 @@ public class GUIBulkSender
 		return owner;
 	}
 
-	public static GUIBulkSender getInstance() throws Exception
-	{
+	public static GUIBulkSender getInstance() throws Exception {
 		if (instance == null) {
 			instance = new GUIBulkSender();
 		}
 		return instance;
 	}
+
 	private Map<Integer, OneShotPacket> sendPackets;
 	private Map<Integer, Integer> sendPacketIds;
 	private Map<Integer, OneShotPacket> recvPackets;
@@ -102,25 +104,76 @@ public class GUIBulkSender
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+					List<RegexParam> regexParams = sendTable.getRegexParams();
 					recvTable.clear();
 					recvPackets.clear();
 					OneShotPacket[] oneshots = (OneShotPacket[]) sendPackets.values().toArray(new OneShotPacket[0]);
-					ResendController.getInstance().resend(new ResendWorker(oneshots) {
-						@Override
-						protected void process(List<OneShotPacket> oneshots) {
-							try {
-								for (OneShotPacket oneshot: oneshots) {
-									recvPackets.put(oneshot.getId(), oneshot);
-									recvTable.add(oneshot);
-									Packet packet = Packets.getInstance().query(sendPacketIds.get(oneshot.getId()));
-									packet.setResend();
-									Packets.getInstance().update(packet);
+
+					if (regexParams.size() == 0) { // parallel
+						ResendController.getInstance().resend(new ResendWorker(oneshots, 100) {
+							@Override
+							protected void process(List<OneShotPacket> oneshots) {
+								try {
+									for (OneShotPacket oneshot : oneshots) {
+										recvPackets.put(oneshot.getId(), oneshot);
+										recvTable.add(oneshot);
+										Packet packet = Packets.getInstance().query(sendPacketIds.get(oneshot.getId()));
+										packet.setResend();
+										Packets.getInstance().update(packet);
+									}
+								} catch (Exception e) {
+									e.printStackTrace();
 								}
-							} catch (Exception e) {
-								e.printStackTrace();
 							}
-						}
-					});
+						});
+					} else { // sequential
+						new Thread() {
+							public void run() {
+								try {
+									for (int i = 0; i < oneshots.length; i++) {
+										int idx = i;
+										OneShotPacket oneshot = oneshots[i];
+										CountDownLatch latch = new CountDownLatch(1);
+										// modify packet
+										for (RegexParam regexParam : regexParams) {
+											if (regexParam.getValue() != "") {
+												oneshot = regexParam.applyToPacket(oneshot);
+											}
+										}
+										final OneShotPacket sendOneshot = oneshot;
+										ResendController.getInstance().resend(new ResendWorker(sendOneshot, 1) {
+											@Override
+											protected void process(List<OneShotPacket> oneshots) {
+												try {
+													for (OneShotPacket oneshot : oneshots) {
+														recvPackets.put(oneshot.getId(), oneshot);
+														recvTable.add(oneshot);
+														Packet packet = Packets.getInstance()
+																.query(sendPacketIds.get(oneshot.getId()));
+														packet.setResend();
+														Packets.getInstance().update(packet);
+														// pickup regex value
+														regexParams.stream().filter(v -> {
+															return v.getPacketId() == idx;
+														}).forEach(v -> {
+															regexParams.get(regexParams.indexOf(v))
+																	.setValue(oneshot);
+														});
+														latch.countDown();
+													}
+												} catch (Exception e) {
+													e.printStackTrace();
+												}
+											}
+										});
+										latch.await();
+									}
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+						}.start();
+					}
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -144,7 +197,6 @@ public class GUIBulkSender
 				}
 			}
 		});
-
 
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.add(sendButton);
@@ -183,4 +235,4 @@ public class GUIBulkSender
 		return split_panel;
 	}
 
-}	
+}
