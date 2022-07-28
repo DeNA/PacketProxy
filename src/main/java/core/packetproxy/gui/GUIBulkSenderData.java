@@ -25,6 +25,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+
 public class GUIBulkSenderData {
 
 	//private JFrame owner;

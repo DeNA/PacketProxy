@@ -17,17 +17,30 @@ package packetproxy.gui;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseAdapter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+
+import packetproxy.common.Utils;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.OptionTableModel;
+import packetproxy.model.RegexParam;
+import packetproxy.util.PacketProxyUtility;
 
 public class GUIBulkSenderTable
 {
@@ -38,11 +51,25 @@ public class GUIBulkSenderTable
 	boolean updating = false;
 	private Type type;
 	private Consumer<Integer> onSelected;
+	private List<RegexParam> regexParams;
 
 	public enum Type { CLIENT, SERVER };
 	public GUIBulkSenderTable(Type type, Consumer<Integer> onSelected) {
 		this.type = type;
 		this.onSelected = onSelected;
+		this.regexParams = new ArrayList<>();
+	}
+
+	private JMenuItem createMenuItem(String name, int key, KeyStroke hotkey, ActionListener l) {
+		JMenuItem out = new JMenuItem (name);
+		if (key >= 0) {
+			out.setMnemonic(key);
+		}
+		if (hotkey != null) {
+			out.setAccelerator(hotkey);
+		}
+		out.addActionListener(l);
+		return out;
 	}
 
 	public JComponent createPanel() throws Exception {
@@ -106,6 +133,46 @@ public class GUIBulkSenderTable
 			}
 		});
 
+		if (this.type == Type.CLIENT) {
+			JMenuItem paramsMenu = createMenuItem("use params", -1, null, new ActionListener() {
+				public void actionPerformed(ActionEvent actionEvent) {
+					try {
+						PacketProxyUtility.getInstance().packetProxyLog("TODO");
+						JFrame owner = GUIMain.getInstance();
+						int packetId = getSelectedPacketId();
+						GUIRegexParamsTableDialog dlg = new GUIRegexParamsTableDialog(owner, regexParams, packetId);
+						regexParams = dlg.showDialog();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			});
+
+			JPopupMenu menu = new JPopupMenu();
+			menu.add(paramsMenu);
+
+			table.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseReleased(MouseEvent event) {
+					if (Utils.isWindows() && event.isPopupTrigger()) {
+						menu.show(event.getComponent(), event.getX(), event.getY());
+					}
+				}
+
+				@Override
+				public void mousePressed(MouseEvent event) {
+					try {
+						if (event.isPopupTrigger()) {
+							menu.show(event.getComponent(), event.getX(), event.getY());
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			});
+		}
+
+
 		table.getSelectionModel().addListSelectionListener(new javax.swing.event.ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
@@ -135,6 +202,7 @@ public class GUIBulkSenderTable
 
 	public void clear() {
 		tableModel.setRowCount(0);
+		regexParams.clear();
 	}
 
 	private Object[] makeRowDataFromPacket(OneShotPacket oneshot) throws Exception {
@@ -149,5 +217,9 @@ public class GUIBulkSenderTable
 					oneshot.getSummarizedResponse()
 			};
 		}
+	}
+
+	public List<RegexParam> getRegexParams() {
+		return this.regexParams;
 	}
 }
