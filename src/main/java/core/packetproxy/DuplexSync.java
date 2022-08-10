@@ -24,18 +24,17 @@ import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.common.Endpoint;
 import packetproxy.model.OneShotPacket;
 
-public class DuplexSync extends Duplex
-{
+public class DuplexSync extends Duplex {
 	private Endpoint server;
 	private OutputStream out;
 	private InputStream in;
-	
+
 	public DuplexSync(Endpoint endpoint) throws Exception {
 		this.server = endpoint;
 		this.out = this.server.getOutputStream();
 		this.in = this.server.getInputStream();
 	}
-	
+
 	public static OneShotPacket encodePacket(OneShotPacket one_shot) {
 		return one_shot;
 	}
@@ -49,13 +48,14 @@ public class DuplexSync extends Duplex
 	public Duplex createSameConnectionDuplex() throws Exception {
 		return new DuplexSync(this.server);
 	}
+
 	public byte[] prepareFastSend(byte[] data) throws Exception {
 		int accepted_length = callOnClientPacketReceived(data);
-		if (accepted_length <= 0){
+		if (accepted_length <= 0) {
 			return null;
 		}
 		byte[] accepted = ArrayUtils.subarray(data, 0, accepted_length);
-		
+
 		byte[] pass = callOnClientChunkPassThrough();
 
 		byte[] decoded = super.callOnClientChunkReceived(accepted);
@@ -63,19 +63,20 @@ public class DuplexSync extends Duplex
 
 		return ArrayUtils.addAll(pass, encoded);
 	}
+
 	public void execFastSend(byte[] data) throws Exception {
 		out.write(data);
 		out.flush();
 	}
-	
+
 	@Override
 	public void send(byte[] data) throws Exception {
 		int accepted_length = callOnClientPacketReceived(data);
-		if (accepted_length <= 0){
+		if (accepted_length <= 0) {
 			return;
 		}
 		byte[] accepted = ArrayUtils.subarray(data, 0, accepted_length);
-		
+
 		byte[] decoded = super.callOnClientChunkReceived(accepted);
 		byte[] encoded = super.callOnClientChunkSend(decoded);
 		out.write(encoded);
@@ -90,13 +91,13 @@ public class DuplexSync extends Duplex
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 
 		int length = 0;
-		while((length = in.read(input_data, 0, input_data.length)) >= 0) {
+		while ((length = in.read(input_data, 0, input_data.length)) >= 0) {
 
 			bin.write(input_data, 0, length);
 
 			int packetLen = 0;
 			while ((packetLen = callOnServerPacketReceived(bin.toByteArray())) > 0) {
-				
+
 				byte[] packetData = ArrayUtils.subarray(bin.toByteArray(), 0, packetLen);
 				byte[] restData = ArrayUtils.subarray(bin.toByteArray(), packetLen, bin.size());
 				bin.reset();
@@ -113,12 +114,13 @@ public class DuplexSync extends Duplex
 					bout.write(decoded);
 					available_data = callOnServerChunkAvailable();
 				} while (available_data != null && available_data.length > 0);
-				return bout.toByteArray();
+				byte[] encoded = callOnServerChunkSend(bout.toByteArray());
+				return encoded;
 			}
 		}
 		return null;
 	}
-	
+
 	@Override
 	public void close() throws Exception {
 		in.close();
