@@ -14,7 +14,7 @@ plugins {
   id 'eclipse'
   id 'me.champeau.jmh' version '0.6.6'
   id 'com.bmuschko.izpack' version '3.2'
-  id "com.github.hierynomus.license" version "0.16.1"
+  id 'com.github.hierynomus.license-report' version "0.16.1"
   id "de.undercouch.download" version "4.0.0"
 }
 
