@@ -15,13 +15,11 @@
  */
 package packetproxy;
 
-import java.net.ServerSocket;
-
 import packetproxy.common.I18nString;
-import packetproxy.http.Https;
-import packetproxy.model.CAs.CA;
 import packetproxy.model.ListenPort;
 import packetproxy.util.PacketProxyUtility;
+
+import java.net.ServerSocket;
 
 public class ProxyFactory {
 
@@ -48,6 +46,12 @@ public class ProxyFactory {
 			
 		} else if (listen_info.getType() == ListenPort.TYPE.UDP_FORWARDER) {
 			proxy = new ProxyUDPForward(listen_info);
+
+		} else if (listen_info.getType() == ListenPort.TYPE.QUIC_FORWARDER) {
+			proxy = new ProxyQuicForward(listen_info);
+
+		} else if (listen_info.getType() == ListenPort.TYPE.QUIC_TRANSPARENT_PROXY) {
+			proxy = new ProxyQuicTransparent(listen_info);
 
 		} else if (listen_info.getType() == ListenPort.TYPE.XMPP_SSL_FORWARDER) {
 			PacketProxyUtility.getInstance().packetProxyLog("type is XMPP_SSL_FORWARDER");

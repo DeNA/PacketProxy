@@ -110,7 +110,7 @@ public class HeadersFrame extends Frame
 		version = HttpVersion.fromString("HTTP/2");
 		
 		HttpHeader headers = (originalHttpHeader == true ? http.getOriginalHeader() : http.getHeader());
-		fields = new HttpFields();
+		HttpFields.Mutable mutableFields = HttpFields.build();
 		for (HeaderField field : headers.getFields()) {
 			if (field.getName().equals("X-PacketProxy-HTTP2-Host")) {
 				scheme = "https";
@@ -125,9 +125,10 @@ public class HeadersFrame extends Frame
 			} else if (field.getName().equals("X-PacketProxy-HTTP2-Weight")) {
 				weight = Integer.parseInt(field.getValue());
 			} else {
-				fields.add(field.getName(), field.getValue());
+				mutableFields.add(field.getName(), field.getValue());
 			}
 		}
+		fields = mutableFields;
 		
 		MetaData meta;
 		if (http.isRequest()) {
@@ -136,9 +137,10 @@ public class HeadersFrame extends Frame
 				contentLength = (http.getBody().length == 0 ? Long.MIN_VALUE : http.getBody().length);
 			} else if (method.equals("POST") || method.equals("PUT")) {
 				contentLength = http.getBody().length;
-				fields.add("content-length", String.valueOf(contentLength));
+				mutableFields.add("content-length", String.valueOf(contentLength));
+				fields = mutableFields;
 			}
-			HttpURI uri = new HttpURI(uriString);
+			HttpURI uri = HttpURI.build().uri(uriString);
 			meta = new MetaData.Request(method, uri, version, fields, contentLength);
 		} else {
 			this.status = Integer.valueOf(http.getStatusCode());

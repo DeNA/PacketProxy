@@ -23,7 +23,17 @@ import packetproxy.model.CAs.CA;
 @DatabaseTable(tableName = "listenports")
 public class ListenPort
 {
-	public enum TYPE { HTTP_PROXY, FORWARDER, SSL_FORWARDER, UDP_FORWARDER, SSL_TRANSPARENT_PROXY, HTTP_TRANSPARENT_PROXY, XMPP_SSL_FORWARDER };
+	public enum TYPE {
+        HTTP_PROXY,
+        FORWARDER,
+        SSL_FORWARDER,
+        UDP_FORWARDER,
+        SSL_TRANSPARENT_PROXY,
+        HTTP_TRANSPARENT_PROXY,
+        XMPP_SSL_FORWARDER,
+        QUIC_FORWARDER,
+        QUIC_TRANSPARENT_PROXY
+    }
 	
     @DatabaseField(generatedId = true)
     private int id;

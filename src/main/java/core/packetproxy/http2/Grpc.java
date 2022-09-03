@@ -117,7 +117,7 @@ public class Grpc extends FramesBase
 		int flags = Integer.valueOf(http.getFirstHeader("X-PacketProxy-HTTP2-Flags"));
 		if (http.getBody() != null && http.getBody().length > 0) {
 			http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff & ~HeadersFrame.FLAG_END_STREAM));
-			HttpFields GRPC2ndHeaderHttpFields = new HttpFields();
+			HttpFields.Mutable GRPC2ndHeaderHttpFields = HttpFields.build();
 
 			List<String> unusedHeaders = new ArrayList<>();
 			for (HeaderField field : http.getHeader().getFields()) {

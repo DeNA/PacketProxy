@@ -79,7 +79,7 @@ public class Server
 	public String toString() {
     	return String.format("%s:%d(%s)", ip, port, encoder);
     }
-    public InetSocketAddress getAddress() throws UnknownHostException {
+    public InetSocketAddress getAddress() throws Exception {
     	return new InetSocketAddress(PrivateDNSClient.getByName(ip), port);
     }
     public int getId() {
@@ -147,7 +147,7 @@ public class Server
     			ips.add(InetAddress.getByName(ip));
     			return ips;
     		}
-    	} catch (UnknownHostException e) {
+    	} catch (Exception e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();
     		return new ArrayList<InetAddress>();

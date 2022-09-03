@@ -149,6 +149,15 @@ public class GUIOptionListenPortDialog extends JDialog
 				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect into 'Servers setting' first."));
 				dispose();
 			}
+		} else if (item.equals("QUIC_FORWARDER")) {
+			servers = Servers.getInstance().queryNonHttpProxies();
+			if (servers.isEmpty()) {
+				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect into 'Servers setting' first."));
+				dispose();
+			}
+		} else if (item.equals("QUIC_TRANSPARENT_PROXY")) {
+			servers = new ArrayList<Server>();
+			combo.addItem(I18nString.get("Forward to server specified in SNI header"));
 		} else if (item.equals("XMPP_SSL_FORWARDER")) {
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
@@ -174,9 +183,11 @@ public class GUIOptionListenPortDialog extends JDialog
 		type_combo.addItem("SSL_TRANSPARENT_PROXY");
 		type_combo.addItem("HTTP_TRANSPARENT_PROXY");
 		type_combo.addItem("UDP_FORWARDER");
+		type_combo.addItem("QUIC_FORWARDER");
+		type_combo.addItem("QUIC_TRANSPARENT_PROXY");
 		type_combo.addItem("XMPP_SSL_FORWARDER");
 		type_combo.setEnabled(true);
-		type_combo.setMaximumRowCount(6);
+		type_combo.setMaximumRowCount(9);
 		type_combo.addItemListener(new ItemListener(){
 			@Override
 			public void itemStateChanged(ItemEvent event) {
@@ -246,6 +257,10 @@ public class GUIOptionListenPortDialog extends JDialog
 						type = ListenPort.TYPE.HTTP_TRANSPARENT_PROXY;
 					} else if (type_combo.getSelectedItem().toString().equals("XMPP_SSL_FORWARDER")) {
 						type = ListenPort.TYPE.XMPP_SSL_FORWARDER;
+					} else if (type_combo.getSelectedItem().toString().equals("QUIC_FORWARDER")) {
+						type = ListenPort.TYPE.QUIC_FORWARDER;
+					} else if (type_combo.getSelectedItem().toString().equals("QUIC_TRANSPARENT_PROXY")) {
+						type = ListenPort.TYPE.QUIC_TRANSPARENT_PROXY;
 					} else {
 						type = ListenPort.TYPE.SSL_FORWARDER;
 					}

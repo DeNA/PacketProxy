@@ -537,7 +537,7 @@ public class Http
 		return null;
 	}
 
-	public InetSocketAddress getServerAddr() throws UnknownHostException {
+	public InetSocketAddress getServerAddr() throws Exception {
 		return new InetSocketAddress(PrivateDNSClient.getByName(proxyHost), proxyPort);
 	}
 

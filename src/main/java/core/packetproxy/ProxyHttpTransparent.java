@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 DeNA Co., Ltd.
+ * Copyright 2022 DeNA Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ public class ProxyHttpTransparent extends Proxy
 	static class HostPort {
 		String hostName;
 		int port;
-		InetSocketAddress getInetSocketAddress() throws UnknownHostException {
+		InetSocketAddress getInetSocketAddress() throws Exception {
 			return new InetSocketAddress(PrivateDNSClient.getByName(this.hostName), this.port);
 		}
 	}

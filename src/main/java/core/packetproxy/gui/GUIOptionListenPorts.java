@@ -115,7 +115,7 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort>
 		try {
 			String serverNullStr = "";
 			TYPE type = listenPort.getType();
-			if(type==TYPE.FORWARDER || type==TYPE.SSL_FORWARDER || type==TYPE.UDP_FORWARDER)
+			if(type==TYPE.FORWARDER || type==TYPE.SSL_FORWARDER || type==TYPE.UDP_FORWARDER || type==TYPE.QUIC_FORWARDER)
 				serverNullStr = "Deleted";
 			option_model.addRow(new Object[] {
 				listenPort.isEnabled(),
