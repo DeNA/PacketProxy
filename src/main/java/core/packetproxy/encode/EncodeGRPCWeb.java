@@ -34,10 +34,10 @@ public class EncodeGRPCWeb extends EncodeHTTPBase
         var contentType = inputHttp.getFirstHeader("Content-Type");
         if (contentType.startsWith("application/grpc-web")) {
             Optional<String> json = Optional.empty();
-            if (contentType.endsWith("web-text+proto")) {
+            if (contentType.endsWith("web-text") || contentType.endsWith("web-text+proto")) {
                 var base64Body = new String(inputHttp.getBody());
                 json = Optional.of(JSON.encode(GRPCMessage.decodeTextMessages(base64Body)));
-            } else if (contentType.endsWith("web+proto")) {
+            } else if (contentType.endsWith("web") || contentType.endsWith("web+proto")) {
                 json = Optional.of(JSON.encode(GRPCMessage.decodeMessages(inputHttp.getBody())));
             }
             json.ifPresent(j -> inputHttp.setBody(j.getBytes()));
@@ -50,9 +50,9 @@ public class EncodeGRPCWeb extends EncodeHTTPBase
         var contentType = inputHttp.getFirstHeader("Content-Type");
         if (contentType.startsWith("application/grpc-web")) {
             List<Map<String, Object>> json = JSON.decode(new String(inputHttp.getBody()));
-            if (contentType.endsWith("web-text+proto")) {
+            if (contentType.endsWith("web-text") || contentType.endsWith("web-text+proto")) {
                 inputHttp.setBody(GRPCMessage.encodeTextMessages(json).getBytes());
-            } else if (contentType.endsWith("web+proto")) {
+            } else if (contentType.endsWith("web") || contentType.endsWith("web+proto")) {
                 inputHttp.setBody(GRPCMessage.encodeMessages(json));
             }
         }
@@ -64,10 +64,10 @@ public class EncodeGRPCWeb extends EncodeHTTPBase
         var contentType = inputHttp.getFirstHeader("Content-Type");
         if (contentType.startsWith("application/grpc-web")) {
             Optional<String> json = Optional.empty();
-            if (contentType.endsWith("web-text+proto")) {
+            if (contentType.endsWith("web-text") || contentType.endsWith("web-text+proto")) {
                 var base64Body = new String(inputHttp.getBody());
                 json = Optional.of(JSON.encode(GRPCMessage.decodeTextMessages(base64Body)));
-            } else if (contentType.endsWith("web+proto")) {
+            } else if (contentType.endsWith("web") || contentType.endsWith("web+proto")) {
                 json = Optional.of(JSON.encode(GRPCMessage.decodeMessages(inputHttp.getBody())));
             }
             json.ifPresent(j -> inputHttp.setBody(j.getBytes()));
@@ -80,9 +80,9 @@ public class EncodeGRPCWeb extends EncodeHTTPBase
         var contentType = inputHttp.getFirstHeader("Content-Type");
         if (contentType.startsWith("application/grpc-web")) {
             List<Map<String, Object>> json = JSON.decode(new String(inputHttp.getBody()));
-            if (contentType.endsWith("web-text+proto")) {
+            if (contentType.endsWith("web-text") || contentType.endsWith("web-text+proto")) {
                 inputHttp.setBody(GRPCMessage.encodeTextMessages(json).getBytes());
-            } else if (contentType.endsWith("web+proto")) {
+            } else if (contentType.endsWith("web") || contentType.endsWith("web+proto")) {
                 inputHttp.setBody(GRPCMessage.encodeMessages(json));
             }
         }
