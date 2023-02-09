@@ -60,6 +60,21 @@ public class GUIExtensions {
 
     private GUIExtensions() throws Exception {
         extensionMenus = new HashMap<>();
+
+        main_panel = new JPanel();
+        tabs = new JTabbedPane();
+        tabs.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                int currentTabIndex = tabs.getSelectedIndex();
+                previousTabIndex = currentTabIndex;
+            }
+        });
+        main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
+        main_panel.add(tabs);
+    }
+
+    private void loadJars() throws Exception {
         File directory = new File(System.getProperty("user.home") + "/.packetproxy/extensions");
         File[] jarFiles = directory.listFiles(new FilenameFilter() {
             public boolean accept(File dir, String name) {
@@ -79,43 +94,31 @@ public class GUIExtensions {
                 if (!name.endsWith(".class"))   continue;
 
                 String className = name.replace("/", ".").substring(0, name.length() - 6);
-                Class clazz = urlClassLoader.loadClass(className);
-                if (!Extension.class.isAssignableFrom(clazz))   continue;
-                Constructor constructor = clazz.getConstructor();
-                Extension ext = (Extension)constructor.newInstance();
-                if (ext.getName() == null) {
-                    ext.setName(className);
+                try {
+                    Class clazz = urlClassLoader.loadClass(className);
+                    if (!Extension.class.isAssignableFrom(clazz))   continue;
+                    Constructor constructor = clazz.getConstructor();
+                    Extension ext = (Extension)constructor.newInstance();
+                    if (ext.getName() == null) {
+                        ext.setName(className);
+                    }
+                    if (ext.getPath() == null) {
+                        ext.setPath(jarFile.toPath().toString());
+                    }
+                    Extensions.getInstance().create(ext);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                if (ext.getPath() == null) {
-                    ext.setPath(jarFile.toPath().toString());
-                }
-                Extensions.getInstance().create(ext);
             }
             jar.close();
         }
         urlClassLoader.close();
 
-        main_panel = new JPanel();
-        tabs = new JTabbedPane();
-
-        System.out.println("GUIExtensions loading start");
         for (Extension extension: Extensions.getInstance().queryAll()) {
-            System.out.println(extension.getName() + " " + extension.isEnabled());
             if (extension.isEnabled()) {
-                tabs.addTab(extension.getName(), extension.createPanel());
+                addExtension(extension);
             }
         }
-        System.out.println("GUIExtensions loading finished");
-
-        tabs.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                int currentTabIndex = tabs.getSelectedIndex();
-                previousTabIndex = currentTabIndex;
-            }
-        });
-        main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
-        main_panel.add(tabs);
     }
 
     public void addExtension(Extension ext) throws Exception {
@@ -142,6 +145,7 @@ public class GUIExtensions {
     }
 
     public JComponent createPanel() throws Exception {
+        loadJars();
         return main_panel;
     }
 }

@@ -61,12 +61,10 @@ public class Extension {
 
     public JComponent createPanel() throws Exception {
         // Please override this
-        System.out.println("NG: createPanel");
         return new JPanel();
     }
     public JMenuItem historyClickHandler() {
         // Please override this
-        System.out.println("NG: historyClickHandler");
         return new JMenuItem("extensions");
     }
 }

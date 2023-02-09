@@ -185,7 +185,6 @@ public class Extensions extends Observable implements Observer {
         Map<String, Extension> newHash = new HashMap<>();
         for (int i = 0; i < ret.size(); i++) {
             Extension ext = ret.get(i);
-            System.out.println("queryAll: " + ext.getName() + " " + ext.isEnabled());
             if (!ext.isEnabled()) continue;
             if (ext_instances.containsKey(ext.getName())) {
                 Extension loadedExt = ext_instances.get(ext.getName());

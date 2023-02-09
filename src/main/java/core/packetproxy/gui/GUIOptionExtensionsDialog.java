@@ -99,7 +99,9 @@ public class GUIOptionExtensionsDialog extends JDialog {
                 try {
                     String name = nameField.getText();
                     String path = pathField.getText();
-                    extension = Extensions.getInstance().loadExtension(name, path);
+                    if (name != "") {
+                        extension = Extensions.getInstance().loadExtension(name, path);
+                    }
                     dispose();
                 } catch (Exception e1) {
                     e1.printStackTrace();

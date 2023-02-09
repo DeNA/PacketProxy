@@ -41,6 +41,7 @@ import java.io.UnsupportedEncodingException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -88,11 +89,15 @@ public class RandomnessExtension extends Extension {
 
     public RandomnessExtension() {
         super();
+        recvPackets = new HashMap<>();
+        tokens = new ArrayList<>();
         this.setName("Randomness");
     }
 
     public RandomnessExtension(String name, String path) throws Exception {
         super(name, path);
+        recvPackets = new HashMap<>();
+        tokens = new ArrayList<>();
         this.setName("Randomness");
     }
 
@@ -103,7 +108,6 @@ public class RandomnessExtension extends Extension {
 
     @Override
     public JComponent createPanel() throws Exception {
-        System.out.println("OK: createPanel");
         JSplitPane vsplit_panel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         vsplit_panel.add(createSendPanel());
         vsplit_panel.add(createResultPanel());
@@ -422,7 +426,6 @@ public class RandomnessExtension extends Extension {
 
     @Override
     public JMenuItem historyClickHandler() {
-        System.out.println("OK: historyClickHandler");
         JMenuItem randomness = createMenuItem ("send to Randomness Checker", -1, null, new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
                 try {
