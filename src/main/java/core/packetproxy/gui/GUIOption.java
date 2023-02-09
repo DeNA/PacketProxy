@@ -247,6 +247,12 @@ public class GUIOption
 
 		panel.add(createSeparator());
 
+		panel.add(createElement("Extensions", I18nString.get("Enable/Disable loaded extensions")));
+		GUIOptionExtensions extensionsGUI = new GUIOptionExtensions(owner);
+		panel.add(extensionsGUI.createPanel());
+
+		panel.add(createSeparator());
+
 		panel.add(createElement("Fonts", ""));
 		GUIOptionFonts fontsGUI = new GUIOptionFonts(owner);
 		panel.add(fontsGUI.createPanel());

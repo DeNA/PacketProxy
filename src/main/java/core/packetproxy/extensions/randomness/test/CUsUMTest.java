@@ -1,4 +1,4 @@
-package packetproxy.randomness;
+package packetproxy.extensions.randomness.test;
 
 // source code is from: NIST SP 800-22 rev1-a
 // https://www.nist.gov/disclaimer
@@ -12,7 +12,7 @@ public class CUsUMTest extends RandomnessTest {
     public CUsUMTest(int mode) {
         this.mode = mode;
     }
- 
+
     public double[] run(Integer[][] e) {
         int n = 0;
         for (int i = 0; i < e.length; i++) {
@@ -64,5 +64,5 @@ public class CUsUMTest extends RandomnessTest {
             p[j] = 1.0 - sum1 + sum2;
         }
         return p;
-    } 
+    }
 }

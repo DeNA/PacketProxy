@@ -1,4 +1,19 @@
-package packetproxy.randomness;
+/*
+ * Copyright 2019 DeNA Co., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package packetproxy.extensions.randomness.test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,8 +24,8 @@ import javax.swing.JComboBox;
 
 public class RandomnessTestManager {
     private static RandomnessTestManager instance;
-    private Map<String, RandomnessTest> testMap = new HashMap<String, RandomnessTest>();
-    private double[] x;
+    private final Map<String, RandomnessTest> testMap = new HashMap<>();
+    private final double[] x;
 
     public static RandomnessTestManager getInstance() {
         if (instance == null) {
@@ -37,7 +52,7 @@ public class RandomnessTestManager {
 
         testList.addItem("LongestRunOfOne");
         testMap.put("LongestRunOfOne", new LongestRunOfOneTest());
-        
+
         testList.addItem("MatrixRank");
         testMap.put("MatrixRank", new RankTest());
 
@@ -72,8 +87,8 @@ public class RandomnessTestManager {
 
             for (int i = 0; i < res.length; i++) {
                 int cnt = 0;
-                for (int j = 0; j < pValues.length; j++) {
-                    if (x[i] > pValues[j]) cnt++;
+                for (double pValue : pValues) {
+                    if (x[i] > pValue) cnt++;
                 }
                 res[i][0] = x[i];
                 res[i][1] = cnt;

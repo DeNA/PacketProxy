@@ -13,36 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy.gui;
-
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.UnsupportedEncodingException;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JFormattedTextField;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JSplitPane;
-import javax.swing.JTextField;
-import javax.swing.text.NumberFormatter;
+package packetproxy.extensions.randomness;
 
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
@@ -57,36 +28,53 @@ import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
 import org.jfree.data.Range;
-// import org.jfree.chart.renderer.xy.XYItemRenderer;
-// import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.UnsupportedEncodingException;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JSplitPane;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.text.NumberFormatter;
 
 import packetproxy.controller.ResendController;
-import packetproxy.controller.ResendController.ResendWorker;
+import packetproxy.extensions.randomness.test.RandomnessTestManager;
+import packetproxy.gui.GUIBulkSenderData;
+import packetproxy.gui.GUIPacket;
+import  packetproxy.model.Extension;
 import packetproxy.model.OneShotPacket;
-import packetproxy.randomness.RandomnessTestManager;
+import packetproxy.model.Packet;
 import packetproxy.util.PacketProxyUtility;
 
-public class GUIRandomness
-{
-    private static GUIRandomness instance;
+public class RandomnessExtension extends Extension {
     private static JFrame owner;
 
-    public static JFrame getOwner() {
-		return owner;
-	}
-
-    public static GUIRandomness getInstance() throws Exception {
-        if (instance == null) {
-            instance = new GUIRandomness();
-        }
-        return instance;
-    }
-    
     private OneShotPacket sendPacket;
-	private Map<Integer, OneShotPacket> recvPackets;
+    private Map<Integer, OneShotPacket> recvPackets;
     private List<String> tokens;
     private JTextField regexField;
     private JFormattedTextField countField;
@@ -95,14 +83,27 @@ public class GUIRandomness
     private JComboBox<String> testMethods;
     private JFreeChart chart;
 
-    private GUIRandomness() throws Exception {
-        sendPacket = null;
-        sendPacketId = 0;
-        recvPackets = new HashMap<Integer, OneShotPacket>();
-        tokens = new ArrayList<String>();
+    private GUIBulkSenderData sendData;
+    private int sendPacketId;
+
+    public RandomnessExtension() {
+        super();
+        this.setName("Randomness");
     }
 
+    public RandomnessExtension(String name, String path) throws Exception {
+        super(name, path);
+        this.setName("Randomness");
+    }
+
+    @Override
+    public void setName(String s) {
+        super.setName(s);
+    }
+
+    @Override
     public JComponent createPanel() throws Exception {
+        System.out.println("OK: createPanel");
         JSplitPane vsplit_panel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         vsplit_panel.add(createSendPanel());
         vsplit_panel.add(createResultPanel());
@@ -114,14 +115,11 @@ public class GUIRandomness
         oneshot.setId(sendPacketId);
         sendPacket = oneshot;
         sendPacketId++;
-        
+
         if (oneshot != null) {
             sendData.setData(oneshot.getData());
         }
     }
-
-	private GUIBulkSenderData sendData;
-    private int sendPacketId;
 
     private JComponent createSendPanel() throws Exception {
         sendData = new GUIBulkSenderData(owner, GUIBulkSenderData.Type.CLIENT, data -> {
@@ -132,7 +130,7 @@ public class GUIRandomness
 
         JPanel regexPanel = new JPanel();
         regexPanel.setBackground(Color.WHITE);
-        regexPanel.setLayout(new BoxLayout(regexPanel, BoxLayout.X_AXIS)); 
+        regexPanel.setLayout(new BoxLayout(regexPanel, BoxLayout.X_AXIS));
 
         JLabel regexLabel = new JLabel("RegExp to pickup:");
         regexPanel.add(regexLabel);
@@ -180,7 +178,7 @@ public class GUIRandomness
                     for (int i = 0; i < count; i++) {
                         future = future.thenApplyAsync(arg -> {
                             try {
-                                ResendController.getInstance().resend(new ResendWorker(sendPacket, 1) {
+                                ResendController.getInstance().resend(new ResendController.ResendWorker(sendPacket, 1) {
                                     @Override
                                     protected void process(List<OneShotPacket> oneshots) {
                                         int id = requestProgressBar.getValue();
@@ -204,12 +202,12 @@ public class GUIRandomness
                                                 }
                                             }
                                             JOptionPane.showMessageDialog(
-                                                owner,
-                                                "get " + String.valueOf(tokens.size()) + " tokens",
-                                                "Packet collection finished",
-                                                JOptionPane.PLAIN_MESSAGE
+                                                    owner,
+                                                    "get " + tokens.size() + " tokens",
+                                                    "Packet collection finished",
+                                                    JOptionPane.PLAIN_MESSAGE
                                             );
-                                        } 
+                                        }
                                     }
                                 });
                             } catch (Exception e) {
@@ -221,7 +219,7 @@ public class GUIRandomness
                             try {
                                 Thread.sleep(100); // wait 0.1 sec before sending next packet
                             } catch (Exception e) {
-                                e.printStackTrace();;
+                                e.printStackTrace();
                             }
                             return arg;
                         });
@@ -382,23 +380,59 @@ public class GUIRandomness
         chart = new JFreeChart("p-value and randomized bits", (Plot)xyPlot);
         chart.removeLegend();
         ChartPanel chartPanel = new ChartPanel(chart);
-        
+
         JPanel rightHalf = new JPanel();
         rightHalf.add(preprocessPanel);
         rightHalf.add(testPanel);
         rightHalf.add(buttonPanel);
         rightHalf.add(chartPanel);
-        rightHalf.setLayout(new BoxLayout(rightHalf, BoxLayout.Y_AXIS)); 
+        rightHalf.setLayout(new BoxLayout(rightHalf, BoxLayout.Y_AXIS));
 
         return rightHalf;
     }
 
     private String toUTF8(byte[] raw){
-		try {
-			return new String(raw, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		return "";
-	}
+        try {
+            return new String(raw, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    public static JFrame getOwner() {
+        return owner;
+    }
+
+    private JMenuItem createMenuItem(String name, int key, KeyStroke hotkey, ActionListener l) {
+        JMenuItem out = new JMenuItem (name);
+        if (key >= 0) {
+            out.setMnemonic(key);
+        }
+        if (hotkey != null) {
+            out.setAccelerator(hotkey);
+        }
+        out.addActionListener(l);
+        return out;
+    }
+
+    public static void setOwner(JFrame owner) {
+        RandomnessExtension.owner = owner;
+    }
+
+    @Override
+    public JMenuItem historyClickHandler() {
+        System.out.println("OK: historyClickHandler");
+        JMenuItem randomness = createMenuItem ("send to Randomness Checker", -1, null, new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                try {
+                    Packet packet = GUIPacket.getInstance().getPacket();
+                    add(packet.getOneShotFromModifiedData(), packet.getId());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+         });
+        return randomness;
+    }
 }

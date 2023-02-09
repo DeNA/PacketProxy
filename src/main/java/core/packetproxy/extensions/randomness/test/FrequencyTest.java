@@ -1,4 +1,4 @@
-package packetproxy.randomness;
+package packetproxy.extensions.randomness.test;
 // source code is from: NIST SP 800-22 rev1-a
 // https://www.nist.gov/disclaimer
 
@@ -23,5 +23,5 @@ public class FrequencyTest extends RandomnessTest {
             p[i] = 1.0 - Erf.erf(z / Math.sqrt(2));
         }
         return p;
-    }    
+    }
 }

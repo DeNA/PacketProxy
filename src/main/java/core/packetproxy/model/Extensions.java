@@ -1,0 +1,258 @@
+/*
+ * Copyright 2019 DeNA Co., Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package packetproxy.model;
+
+import java.io.File;
+import java.lang.reflect.Constructor;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+
+import javax.swing.JOptionPane;
+
+import com.j256.ormlite.dao.Dao;
+
+import packetproxy.extensions.randomness.RandomnessExtension;
+import packetproxy.model.Database.DatabaseMessage;
+
+public class Extensions extends Observable implements Observer {
+    private static Extensions instance;
+    
+    public static Extensions getInstance() throws Exception {
+        if (instance == null) {
+            instance = new Extensions();
+        }
+        return instance;
+    }
+
+    private static Map<String, Class> presetExtensions = new HashMap<>(){{
+        put((new RandomnessExtension()).getName(), RandomnessExtension.class);
+    }};
+
+    // Extensionではなく、継承先のインスタンスを保持する必要がある
+    // enabledになっている際にのみext_instancesに保持されるようにする
+    private Map<String, Extension> ext_instances;
+    private Database database;
+    private Dao<Extension, String> dao;
+    private DaoQueryCache<Extension> cache;
+    
+    private Extensions() throws Exception {
+        ext_instances = new HashMap<>();
+        database = Database.getInstance();
+        dao = database.createTable(Extension.class, this);
+        cache = new DaoQueryCache<>();
+        if (!isLatestVersion()) {
+            RecreateTable();
+        }
+
+        // load presets
+        for (Class clazz: presetExtensions.values()) {
+            Constructor<Extension> constructor = clazz.getConstructor(); 
+            Extension extension = (Extension)constructor.newInstance(); 
+            create(extension);
+        }
+    }
+
+    // return loaded extension or null
+    public Extension loadExtension(String name, String path) {
+        if (presetExtensions.containsKey(name)) {
+            Extension extension = null;
+            try {
+                Class clazz = presetExtensions.get(name);
+                Constructor<Extension> constructor = clazz.getConstructor(); 
+                extension = (Extension)constructor.newInstance();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return extension;
+        }
+         try {
+            File file = new File(path);
+            URL[] urls = { file.toURI().toURL() };
+            URLClassLoader urlClassLoader = new URLClassLoader(urls);
+            JarFile jar = new JarFile(file);
+            Extension extension = null;
+            for (Enumeration<JarEntry> entries = jar.entries(); entries.hasMoreElements();) {
+                JarEntry entry = entries.nextElement();
+                String entryName = entry.getName();
+                if (!entryName.endsWith(".class"))   continue;
+                String className = entryName.replace("/", ".").substring(0, entryName.length() - 6);
+                try {
+                    Class clazz = urlClassLoader.loadClass(className);
+                    if (!Extension.class.isAssignableFrom(clazz))   continue;
+                    Constructor<Extension> constructor = clazz.getConstructor(String.class, String.class);
+                    extension = (Extension)constructor.newInstance(name, path);
+                } catch (ClassNotFoundException e1) {
+                    // e1.printStackTrace();
+                }
+            }
+            jar.close();
+            urlClassLoader.close();
+            return extension;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public void create(Extension ext) throws Exception {
+        // 存在しないならListに追加
+        if (!dao.idExists(ext.getName())) {
+            dao.create(ext);
+            if (ext.isEnabled()) {
+                ext_instances.put(ext.getName(), ext);
+            }
+        }
+        cache.clear();
+        notifyObservers();
+    }
+    public void delete(String id) throws Exception {
+        dao.deleteById(id);
+        ext_instances.remove(id);
+        cache.clear();
+        notifyObservers();
+    }
+    public void delete(Extension ext) throws Exception {
+        dao.delete(ext);
+        ext_instances.remove(ext.getName());
+        cache.clear();
+        notifyObservers();
+    }
+    public Extension update(Extension ext) throws Exception {
+        dao.update(ext);
+        if (ext.isEnabled() && !ext_instances.containsKey(ext.getName())) {
+            Extension loadedExt = loadExtension(ext.getName(), ext.getPath());
+            if (loadedExt != null) {
+                loadedExt.setEnabled(true);
+                ext_instances.put(loadedExt.getName(), loadedExt);
+            }
+            ext = loadedExt;
+        } else if (!ext.isEnabled()) {
+            // remove because of disabled
+            ext_instances.remove(ext.getName());
+        }
+        cache.clear();
+        notifyObservers();
+        return ext;
+    }
+    public void refresh() {
+        notifyObservers();
+    }
+    public Extension query(String id) throws Exception {
+        List<Extension> ret = cache.query("query", id);
+        if (ret != null) return ret.get(0);
+        Extension ext = null;
+        if (ext_instances.containsKey(id)) {
+            ext = ext_instances.get(id);
+        } else {
+            ext = dao.queryForId(id);
+            if (ext.isEnabled()) {
+                // load jar
+                ext = loadExtension(ext.getName(), ext.getPath());
+                if (ext != null) {
+                    ext.setEnabled(true);
+                    ext_instances.put(ext.getName(), ext);
+                }
+            }
+        }
+        cache.set("query", id, ext);
+        return ext;
+    }
+    public List<Extension> queryAll() throws Exception {
+        List<Extension> ret = cache.query("queryAll", 0);
+        if (ret != null) { return ret; }
+        ret = dao.queryBuilder().query();
+        Map<String, Extension> newHash = new HashMap<>();
+        for (int i = 0; i < ret.size(); i++) {
+            Extension ext = ret.get(i);
+            System.out.println("queryAll: " + ext.getName() + " " + ext.isEnabled());
+            if (!ext.isEnabled()) continue;
+            if (ext_instances.containsKey(ext.getName())) {
+                Extension loadedExt = ext_instances.get(ext.getName());
+                ret.set(i, loadedExt);
+                newHash.put(ext.getName(), loadedExt);
+                continue;
+            }
+            Extension loadedExt = loadExtension(ext.getName(), ext.getPath());
+            if (loadedExt != null) {
+                loadedExt.setEnabled(ext.isEnabled());
+                ret.set(i, loadedExt);
+                newHash.put(loadedExt.getName(), loadedExt);
+            }
+        }
+        ext_instances = newHash;
+        cache.set("queryAll", 0, ret);
+        return ret;
+    }
+
+    @Override
+    public void notifyObservers(Object arg) {
+        setChanged();
+        super.notifyObservers(arg);
+        clearChanged();
+    }
+    @Override
+    public void update(Observable o, Object arg) {
+        DatabaseMessage message = (DatabaseMessage) arg;
+        try {
+            switch (message) {
+                case PAUSE:
+                    // TODO ロックを取る
+                    break;
+                case RESUME:
+                    // TODO ロックを取る
+                    break;
+                case DISCONNECT_NOW:
+                    break;
+                case RECONNECT:
+                    database = Database.getInstance();
+                    dao = database.createTable(Extension.class, this);
+                    cache.clear();
+                    notifyObservers(arg);
+                    break;
+                case RECREATE:
+                    database = Database.getInstance();
+                    dao = database.createTable(Extension.class, this);
+                    cache.clear();
+                    break;
+                default:
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private boolean isLatestVersion() throws Exception {
+        String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='extensions'").getFirstResult()[0];
+        return result.equals("CREATE TABLE `extensions` (`name` VARCHAR , `enabled` BOOLEAN , `path` VARCHAR , PRIMARY KEY (`name`) )");
+    }
+    private void RecreateTable() throws Exception {
+        int option = JOptionPane.showConfirmDialog(null, "Extensionsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",
+            "テーブルの更新",
+            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (option == JOptionPane.YES_OPTION) {
+            database.dropTable(Extension.class);
+            dao = database.createTable(Extension.class, this);
+        } 
+    }
+}

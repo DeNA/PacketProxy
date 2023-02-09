@@ -1,4 +1,6 @@
-package packetproxy.randomness;
+package packetproxy.extensions.randomness.test;
+// source code is from: NIST SP 800-22 rev1-a
+// https://www.nist.gov/disclaimer
 
 import org.apache.commons.math3.distribution.GammaDistribution;
 
@@ -23,7 +25,7 @@ public class SerialTest extends RandomnessTest {
 
             double del1 = pSim0 - pSim1;
             double del2 = pSim0 - 2.0 * pSim1 + pSim2;
-            
+
             GammaDistribution dist = new GammaDistribution(Math.abs(del1 / 2.0), 1);
             double p1 = 1 - dist.cumulativeProbability(Math.pow(2, M - 1));
             dist = new GammaDistribution(Math.abs(del2 / 2.0), 1);

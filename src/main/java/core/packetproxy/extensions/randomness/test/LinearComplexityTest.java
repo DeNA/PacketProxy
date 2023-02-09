@@ -1,4 +1,6 @@
-package packetproxy.randomness;
+package packetproxy.extensions.randomness.test;
+// source code is from: NIST SP 800-22 rev1-a
+// https://www.nist.gov/disclaimer
 
 import org.apache.commons.math3.distribution.GammaDistribution;
 
@@ -16,7 +18,7 @@ public class LinearComplexityTest extends RandomnessTest {
     public double[] run(Integer[][] e) {
         int N = e.length / M;
         if (N == 0) {
-            PacketProxyUtility.getInstance().packetProxyLog("[Warn] bit length is not suitable for Rank test. Please collect more tokens."); 
+            PacketProxyUtility.getInstance().packetProxyLog("[Warn] bit length is not suitable for Rank test. Please collect more tokens.");
             return new double[e.length > 0 ? e[0].length : 0];
         }
 
@@ -67,7 +69,7 @@ public class LinearComplexityTest extends RandomnessTest {
 
                 int sign = (M % 2 == 1 ? -1 : 1);
                 double mean = M / 2.0 + (9.0 + sign) / 36.0 - 1.0 / Math.pow(2, M) * (M / 3.0 + 2.0 / 9.0);
-                
+
                 sign = (M % 2 == 0 ? 1 : -1);
                 double tmpT = sign * (L - mean) + 2.0 / 9.0;
 
@@ -90,12 +92,12 @@ public class LinearComplexityTest extends RandomnessTest {
 
             double chi2 = 0.00;
             for (int j = 0; j <= K; j++) {
-                chi2 += Math.pow(nu[j] - N * pi[j], 2) / (N * pi[j]); 
+                chi2 += Math.pow(nu[j] - N * pi[j], 2) / (N * pi[j]);
             }
             GammaDistribution dist = new GammaDistribution(K / 2.0, 1);
             p[i] = 1 - dist.cumulativeProbability(chi2 / 2.0);
         }
-        
+
         return p;
-    }    
+    }
 }

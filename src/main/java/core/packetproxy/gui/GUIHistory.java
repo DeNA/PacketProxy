@@ -132,6 +132,7 @@ public class GUIHistory implements Observer
 	private Hashtable<Integer, Integer> id_row;
 	private boolean dialogOnce = false;
 	private GUIHistoryAutoScroll autoScroll;
+	private JPopupMenu menu;
 
 	private GUIHistory(boolean restore) throws Exception {
 		packets = Packets.getInstance(restore);
@@ -386,7 +387,7 @@ public class GUIHistory implements Observer
 		if (!PacketProxyUtility.getInstance().isMac()) {
 			mask_key = ActionEvent.CTRL_MASK;
 		}
-		JPopupMenu menu = new JPopupMenu();
+		menu = new JPopupMenu();
 
 		JMenuItem send = createMenuItem ("send", KeyEvent.VK_S, KeyStroke.getKeyStroke(KeyEvent.VK_S, mask_key), new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
@@ -463,16 +464,6 @@ public class GUIHistory implements Observer
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					GUIBulkSender.getInstance().add(gui_packet.getPacket().getOneShotFromModifiedData(), gui_packet.getPacket().getId());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-
-		JMenuItem randomness = createMenuItem ("send to Randomness Checker", -1, null, new ActionListener() {
-			public void actionPerformed(ActionEvent actionEvent) {
-				try {
-					GUIRandomness.getInstance().add(gui_packet.getPacket().getOneShotFromModifiedData(), gui_packet.getPacket().getId());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -685,7 +676,6 @@ TODO: support --data-binary
 		menu.add(copyAll);
 		menu.add(copy);
 		menu.add(bulkSender);
-		menu.add(randomness);
 		menu.add(saveAll);
 		menu.add(saveHttpBody);
 		menu.add(addColorG);
@@ -696,7 +686,6 @@ TODO: support --data-binary
 		menu.add(delete_selected_items);
 		menu.add(delete_all);
 
-		
 		table.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent e) {
 				try {
@@ -1124,5 +1113,13 @@ TODO: support --data-binary
 	}
 	public int getSelectedIndex() {
 		return table.getSelectedRow();
+	}
+
+	public void addMenu(JMenuItem menuItem) {
+		menu.add(menuItem);
+	}
+
+	public void removeMenu(JMenuItem menuItem) {
+		menu.remove(menuItem);
 	}
 }
