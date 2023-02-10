@@ -102,11 +102,6 @@ public class RandomnessExtension extends Extension {
     }
 
     @Override
-    public void setName(String s) {
-        super.setName(s);
-    }
-
-    @Override
     public JComponent createPanel() throws Exception {
         JSplitPane vsplit_panel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         vsplit_panel.add(createSendPanel());

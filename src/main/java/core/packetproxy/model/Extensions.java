@@ -33,6 +33,7 @@ import javax.swing.JOptionPane;
 import com.j256.ormlite.dao.Dao;
 
 import packetproxy.extensions.randomness.RandomnessExtension;
+import packetproxy.extensions.samplehttp.SampleEncoders;
 import packetproxy.model.Database.DatabaseMessage;
 
 public class Extensions extends Observable implements Observer {
@@ -45,8 +46,9 @@ public class Extensions extends Observable implements Observer {
         return instance;
     }
 
-    private static Map<String, Class> presetExtensions = new HashMap<>(){{
+    private static Map<String, Class<?>> presetExtensions = new HashMap<>(){{
         put((new RandomnessExtension()).getName(), RandomnessExtension.class);
+        put((new SampleEncoders()).getName(), SampleEncoders.class);
     }};
 
     // Extensionではなく、継承先のインスタンスを保持する必要がある

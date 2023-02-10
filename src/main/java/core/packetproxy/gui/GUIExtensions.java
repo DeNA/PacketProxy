@@ -35,6 +35,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import packetproxy.EncoderManager;
+import packetproxy.encode.Encoder;
 import packetproxy.model.Extension;
 import packetproxy.model.Extensions;
 
@@ -122,8 +124,25 @@ public class GUIExtensions {
     }
 
     public void addExtension(Extension ext) throws Exception {
-        tabs.addTab(ext.getName(), ext.createPanel());
+        // encoder
+        Map<String, Class<?>> encoders = ext.getEncoders();
+        if (encoders != null) {
+            for (String name: encoders.keySet()) {
+                Class encodeClass = encoders.get(name);
+                if (!Encoder.class.isAssignableFrom(encodeClass)) {
+                    continue;
+                }
+                EncoderManager.getInstance().addEncoder(name, encodeClass);
+            }
+        }
 
+        // extension page
+        JComponent component = ext.createPanel();
+        if (component != null) {
+            tabs.addTab(ext.getName(), ext.createPanel());
+        }
+
+        // history right click
         JMenuItem extensionItem = ext.historyClickHandler();
         if (extensionItem != null) {
             GUIHistory.getInstance().addMenu(extensionItem);
@@ -132,6 +151,18 @@ public class GUIExtensions {
     }
 
     public void removeExtension(Extension ext) throws Exception {
+        // encoder
+        Map<String, Class<?>> encoders = ext.getEncoders();
+        if (encoders != null) {
+            for (String name: encoders.keySet()) {
+                Class<?> encodeClass = encoders.get(name);
+                if (!Encoder.class.isAssignableFrom(encodeClass)) {
+                    continue;
+                }
+                EncoderManager.getInstance().removeEncoder(name);
+            }
+        }
+
         JMenuItem extensionItem = extensionMenus.get(ext.getName());
         if (extensionItem != null) {
             GUIHistory.getInstance().removeMenu(extensionItem);

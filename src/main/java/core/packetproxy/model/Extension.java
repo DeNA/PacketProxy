@@ -15,9 +15,11 @@
  */
 package packetproxy.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -61,10 +63,14 @@ public class Extension {
 
     public JComponent createPanel() throws Exception {
         // Please override this
-        return new JPanel();
+        return null;
     }
     public JMenuItem historyClickHandler() {
         // Please override this
-        return new JMenuItem("extensions");
+        return null;
+    }
+    public Map<String, Class<?>> getEncoders() {
+        // Please override this
+        return new HashMap<>(); 
     }
 }
