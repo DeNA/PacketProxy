@@ -78,6 +78,9 @@ public class GUIExtensions {
 
     private void loadJars() throws Exception {
         File directory = new File(System.getProperty("user.home") + "/.packetproxy/extensions");
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
         File[] jarFiles = directory.listFiles(new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return name.endsWith(".jar");
