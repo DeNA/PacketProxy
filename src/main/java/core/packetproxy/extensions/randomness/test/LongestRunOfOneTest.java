@@ -1,4 +1,6 @@
-package packetproxy.randomness;
+package packetproxy.extensions.randomness.test;
+// source code is from: NIST SP 800-22 rev1-a
+// https://www.nist.gov/disclaimer
 
 import org.apache.commons.math3.distribution.GammaDistribution;
 
@@ -8,7 +10,7 @@ public class LongestRunOfOneTest extends RandomnessTest {
     public double[] run(Integer[][] e) {
         int n = e.length;
         if (n < 128) {
-            PacketProxyUtility.getInstance().packetProxyLog("[Warn] bit length is not suitable for LongestRunOfOne test. Please collect more tokens."); 
+            PacketProxyUtility.getInstance().packetProxyLog("[Warn] bit length is not suitable for LongestRunOfOne test. Please collect more tokens.");
             return new double[e.length > 0 ? e[0].length : 0];
         }
         int K = 0, M = 0;
@@ -53,7 +55,7 @@ public class LongestRunOfOneTest extends RandomnessTest {
                         r = 0;
                     }
                 }
-                
+
                 if (Vb < V[0]) {
                     nu[0]++;
                 }
@@ -75,5 +77,4 @@ public class LongestRunOfOneTest extends RandomnessTest {
         }
         return p;
     }
-}    
-
+}

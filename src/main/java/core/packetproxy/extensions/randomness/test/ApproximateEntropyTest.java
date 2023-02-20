@@ -1,4 +1,7 @@
-package packetproxy.randomness;
+package packetproxy.extensions.randomness.test;
+
+// source code is from: NIST SP 800-22 rev1-a
+// https://www.nist.gov/disclaimer
 
 import org.apache.commons.math3.distribution.GammaDistribution;
 
@@ -47,7 +50,7 @@ public class ApproximateEntropyTest extends RandomnessTest {
                     int idx = (int)Math.pow(2, blockSize) - 1;
                     for (int j = 0; j < Math.pow(2, blockSize); j++,idx++) {
                         if (P[idx] > 0) {
-                            sum += P[idx] * Math.log(P[idx] / numOfBlocks); 
+                            sum += P[idx] * Math.log(P[idx] / numOfBlocks);
                         }
                     }
                     sum /= numOfBlocks;

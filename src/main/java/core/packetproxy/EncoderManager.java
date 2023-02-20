@@ -140,6 +140,16 @@ public class EncoderManager
 		}
 	}
 
+	public void addEncoder(String name, Class klass) {
+		if (Encoder.class.isAssignableFrom(klass)) {
+			module_list.put(name, klass);
+		}
+	}
+
+	public void removeEncoder(String name) {
+		module_list.remove(name);
+	}
+
 	public boolean hasDuplicateModules(){
 		return isDuplicated;
 	}

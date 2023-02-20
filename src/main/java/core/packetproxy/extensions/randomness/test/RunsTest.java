@@ -1,4 +1,6 @@
-package packetproxy.randomness;
+package packetproxy.extensions.randomness.test;
+// source code is from: NIST SP 800-22 rev1-a
+// https://www.nist.gov/disclaimer
 
 import org.apache.commons.math3.special.Erf;
 
@@ -25,5 +27,5 @@ public class RunsTest extends RandomnessTest {
             p[i] = Erf.erfc(erfcArgs);
         }
         return p;
-    } 
+    }
 }
