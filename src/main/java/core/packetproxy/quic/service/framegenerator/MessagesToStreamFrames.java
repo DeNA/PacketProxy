@@ -19,6 +19,7 @@ package packetproxy.quic.service.framegenerator;
 import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.quic.service.frame.Frames;
 import packetproxy.quic.value.QuicMessage;
+import packetproxy.quic.value.StreamId;
 import packetproxy.quic.value.frame.Frame;
 import packetproxy.quic.value.frame.StreamFrame;
 
@@ -30,12 +31,12 @@ import java.util.Map;
 public class MessagesToStreamFrames {
 
     private final List<Frame> frameList = new ArrayList<>();
-    private final Map<Long /* StreamId */, Long /* current Offset */> continuousStreamMap = new HashMap<>();
+    private final Map<StreamId, Long /* current Offset */> continuousStreamMap = new HashMap<>();
 
     public synchronized void put(QuicMessage msg) {
-        long streamId = msg.getStreamId();
+        StreamId streamId = msg.getStreamId();
 
-        if ((streamId & 0x02) == 0x00) { /* bi-directional stream */
+        if (streamId.isBidirectional()) { /* bi-directional stream */
             byte[] data = msg.getData();
             int remaining = data.length;
             int subOffset = 0;

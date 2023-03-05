@@ -33,6 +33,7 @@ import java.net.InetSocketAddress;
 public class ServerConnection extends Connection {
 
     private final ClientHandshake handshake;
+    private final String serverName;
 
     public ServerConnection(ConnectionIdPair connIdPair, String serverName, int serverPort) throws Exception {
         super(Constants.Role.CLIENT,
@@ -41,6 +42,7 @@ public class ServerConnection extends Connection {
                 new DatagramSocket(),
                 new InetSocketAddress(PrivateDNSClient.getByName(serverName), serverPort));
         this.handshake = new ClientHandshake(this);
+        this.serverName = serverName;
         this.handshake.start(serverName);
         super.executor.submit(new RecvUdpPacketsLoop());
         super.start();
@@ -85,7 +87,7 @@ public class ServerConnection extends Connection {
 
     @Override
     public String getName() {
-        return "QUIC Server Endpoint";
+        return this.serverName;
     }
 
 }

@@ -20,15 +20,17 @@ import java.io.InputStream;
 import packetproxy.http.Http;
 import packetproxy.http2.FramesBase;
 import packetproxy.http2.Http2;
+import packetproxy.http3.service.Http3;
 import packetproxy.model.Packet;
 
 public abstract class EncodeHTTPBase extends Encoder
 {
 	public enum HTTPVersion {
-		HTTP1, HTTP2	
+		HTTP1, HTTP2, HTTP3
 	}
 	private HTTPVersion httpVersion;
 	private FramesBase http2;
+	private Http3 http3;
 
 	public EncodeHTTPBase() {
 		super("http/1.1");
@@ -44,6 +46,9 @@ public abstract class EncodeHTTPBase extends Encoder
 		} else if (ALPN.equals("h2") || ALPN.equals("grpc") || ALPN.equals("grpc-exp")) {
 			httpVersion = HTTPVersion.HTTP2;
 			http2 = new Http2();
+		} else if (ALPN.equals("h3")) {
+			httpVersion = HTTPVersion.HTTP3;
+			http3 = new Http3();
 		} else {
 			httpVersion = HTTPVersion.HTTP1;
 		}
@@ -61,8 +66,10 @@ public abstract class EncodeHTTPBase extends Encoder
 	public int checkDelimiter(byte[] data) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			return Http.parseHttpDelimiter(data);
-		} else {
+		} else if (this.httpVersion == HTTPVersion.HTTP2){
 			return http2.checkDelimiter(data);
+		} else {
+			return http3.checkDelimiter(data);
 		}
 	}
 
@@ -70,8 +77,10 @@ public abstract class EncodeHTTPBase extends Encoder
 	public void clientRequestArrived(byte[] frames) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			super.clientRequestArrived(frames);
-		} else {
+		} else if (this.httpVersion == HTTPVersion.HTTP2){
 			http2.clientRequestArrived(frames);
+		} else {
+			http3.clientRequestArrived(frames);
 		}
 	}
 
@@ -79,8 +88,10 @@ public abstract class EncodeHTTPBase extends Encoder
 	public void serverResponseArrived(byte[] frames) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			super.serverResponseArrived(frames);
-		} else {
+		} else if (this.httpVersion == HTTPVersion.HTTP2){
 			http2.serverResponseArrived(frames);
+		} else {
+			http3.serverResponseArrived(frames);
 		}
 	}
 
@@ -88,8 +99,10 @@ public abstract class EncodeHTTPBase extends Encoder
 	public byte[] passThroughClientRequest() throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			return super.passThroughClientRequest();
-		} else {
+		} else if (this.httpVersion == HTTPVersion.HTTP2){
 			return http2.passThroughClientRequest();
+		} else {
+			return http3.passThroughClientRequest();
 		}
 	}
 
@@ -97,8 +110,10 @@ public abstract class EncodeHTTPBase extends Encoder
 	public byte[] passThroughServerResponse() throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			return super.passThroughServerResponse();
-		} else {
+		} else if (this.httpVersion == HTTPVersion.HTTP2){
 			return http2.passThroughServerResponse();
+		} else {
+			return http3.passThroughServerResponse();
 		}
 	}
 
@@ -106,8 +121,10 @@ public abstract class EncodeHTTPBase extends Encoder
 	public byte[] clientRequestAvailable() throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			return super.clientRequestAvailable();
-		} else {
+		} else if (this.httpVersion == HTTPVersion.HTTP2){
 			return http2.clientRequestAvailable();
+		} else {
+			return http3.clientRequestAvailable();
 		}
 	}
 
@@ -115,8 +132,10 @@ public abstract class EncodeHTTPBase extends Encoder
 	public byte[] serverResponseAvailable() throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			return super.serverResponseAvailable();
-		} else {
+		} else if (this.httpVersion == HTTPVersion.HTTP2){
 			return http2.serverResponseAvailable();
+		} else {
+			return http3.serverResponseAvailable();
 		}
 	}
 
@@ -124,6 +143,8 @@ public abstract class EncodeHTTPBase extends Encoder
 	public byte[] decodeClientRequest(byte[] input_data) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP2) { 
 			input_data = http2.decodeClientRequest(input_data);
+		} else if (this.httpVersion == HTTPVersion.HTTP3) {
+			input_data = http3.decodeClientRequest(input_data);
 		}
 		Http http = new Http(input_data);
 		Http decodedHttp = decodeClientRequestHttp(http);
@@ -137,6 +158,8 @@ public abstract class EncodeHTTPBase extends Encoder
 		byte[] encodedData = encodedHttp.toByteArray();
 		if (this.httpVersion == HTTPVersion.HTTP2) { 
 			encodedData = http2.encodeClientRequest(encodedData);
+		} else if (this.httpVersion == HTTPVersion.HTTP3) {
+			encodedData = http3.encodeClientRequest(encodedData);
 		}
 		return encodedData;
 	}
@@ -145,6 +168,8 @@ public abstract class EncodeHTTPBase extends Encoder
 	final public byte[] decodeServerResponse(byte[] input_data) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP2) { 
 			input_data = http2.decodeServerResponse(input_data);
+		} else if (this.httpVersion == HTTPVersion.HTTP3) {
+			input_data = http3.decodeServerResponse(input_data);
 		}
 		Http http = new Http(input_data);
 		Http decodedHttp = decodeServerResponseHttp(http);
@@ -159,43 +184,45 @@ public abstract class EncodeHTTPBase extends Encoder
 		byte[] encodedData = encodedHttp.toByteArray();
 		if (this.httpVersion == HTTPVersion.HTTP2) { 
 			encodedData = http2.encodeServerResponse(encodedData);
+		} else if (this.httpVersion == HTTPVersion.HTTP3) {
+			encodedData = http3.encodeServerResponse(encodedData);
 		}
 		return encodedData;
 	}
 
 	@Override
 	public void putToClientFlowControlledQueue(byte[] frames) throws Exception {
-		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			super.putToClientFlowControlledQueue(frames);
-		} else {
+		if (this.httpVersion == HTTPVersion.HTTP2) {
 			http2.putToClientFlowControlledQueue(frames);
+		} else {
+			super.putToClientFlowControlledQueue(frames);
 		}
 	}
 
 	@Override
 	public void putToServerFlowControlledQueue(byte[] frames) throws Exception {
-		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			super.putToServerFlowControlledQueue(frames);
-		} else {
+		if (this.httpVersion == HTTPVersion.HTTP2) {
 			http2.putToServerFlowControlledQueue(frames);
+		} else {
+			super.putToServerFlowControlledQueue(frames);
 		}
 	}
 
 	@Override
 	public InputStream getClientFlowControlledInputStream() {
-		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			return super.getClientFlowControlledInputStream();
-		} else {
+		if (this.httpVersion == HTTPVersion.HTTP2) {
 			return http2.getClientFlowControlledInputStream();
+		} else {
+			return super.getClientFlowControlledInputStream();
 		}
 	}
 
 	@Override
 	public InputStream getServerFlowControlledInputStream() {
-		if (this.httpVersion == HTTPVersion.HTTP1) { 
-			return super.getServerFlowControlledInputStream();
-		} else {
+		if (this.httpVersion == HTTPVersion.HTTP2) {
 			return http2.getServerFlowControlledInputStream();
+		} else {
+			return super.getServerFlowControlledInputStream();
 		}
 	}
 
@@ -240,10 +267,10 @@ public abstract class EncodeHTTPBase extends Encoder
 
 	@Override
 	public void setGroupId(Packet packet) throws Exception {
-		if (httpVersion == HTTPVersion.HTTP1) {
-			super.setGroupId(packet);
-		} else {
+		if (httpVersion == HTTPVersion.HTTP2) {
 			http2.setGroupId(packet);
+		} else {
+			super.setGroupId(packet);
 		}
 	}
 

@@ -20,6 +20,8 @@ import packetproxy.http.Https;
 import packetproxy.model.CAs.CA;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.Server;
+import packetproxy.quic.service.connection.ServerConnection;
+import packetproxy.quic.value.ConnectionIdPair;
 
 import javax.net.ssl.SSLSocket;
 import java.io.InputStream;
@@ -69,7 +71,10 @@ public class EndpointFactory
 	}
 	
 	public static Endpoint createFromOneShotPacket(OneShotPacket packet) throws Exception {
-		if (packet.getUseSSL()) {
+		if (packet.getAlpn().equals("h3")) {
+			// HTTP3 on QUICの場合は特別対応
+			return new ServerConnection(ConnectionIdPair.generateRandom(), packet.getServerName(), packet.getServerPort());
+		} else if (packet.getUseSSL()) {
 			return new SSLSocketEndpoint(packet.getServer(), packet.getServerName(), packet.getAlpn());
 		} else {
 			// nc など複数同時接続を受け付けないconnection用に10秒でtimeoutする

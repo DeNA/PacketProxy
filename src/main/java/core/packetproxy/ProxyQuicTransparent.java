@@ -53,11 +53,13 @@ public class ProxyQuicTransparent extends Proxy
 				if (encoder == null) {
 					encoder = "Sample";
 				}
+				String alpn = encoder.equals("HTTP") ? "h3" : null;
 
 				DuplexAsync duplex = DuplexFactory.createDuplexAsync(
 						clientConnection,
 						serverConnection,
-						encoder);
+						encoder,
+						alpn);
 
 				duplex.start();
 				DuplexManager.getInstance().registerDuplex(duplex);

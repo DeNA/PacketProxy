@@ -18,6 +18,7 @@ package packetproxy.quic.service.framegenerator.helper;
 
 import lombok.Getter;
 import packetproxy.quic.value.QuicMessage;
+import packetproxy.quic.value.StreamId;
 import packetproxy.quic.value.frame.StreamFrame;
 
 import java.io.ByteArrayOutputStream;
@@ -28,11 +29,11 @@ import java.util.Optional;
 @Getter
 public class ContinuousStream {
     private final Map<Long/*offset*/, StreamFrame> frameMap = new HashMap<>();
-    private final long streamId;
+    private final StreamId streamId;
     private long currentOffset = 0;
     private boolean finished = false;
 
-    public ContinuousStream(long streamId) {
+    public ContinuousStream(StreamId streamId) {
         this.streamId = streamId;
     }
 

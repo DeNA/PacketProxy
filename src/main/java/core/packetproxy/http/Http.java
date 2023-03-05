@@ -276,7 +276,7 @@ public class Http
 	}
 
 	public String getURL(int port) {
-		if (version.equals("HTTP/2")) { /* HTTP2 */
+		if (version.equals("HTTP/2") || version.equals("HTTP/3")) {
 			return getURI();
 		} else { /* HTTP/1.1 */
 			String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?"+getQueryAsString() : "";
@@ -288,14 +288,18 @@ public class Http
 	}
 
 	private String getURI() {
-		String authority = getFirstHeader("X-PacketProxy-HTTP2-Host");
+		String authority = "unknown";
+		if (version.equals("HTTP/2")) {
+			authority = getFirstHeader("X-PacketProxy-HTTP2-Host");
+		} else if (version.equals("HTTP/3")) {
+			authority = getFirstHeader("x-packetproxy-http3-host");
+		}
 		String scheme = "https";
 		String path = getPath();
 		String query = getQueryAsString();
 		String queryStr = (query != null && query.length() > 0) ? "?"+query : "";
 		return scheme + "://" + authority + path + queryStr;
 	}
-
 
 	public byte[] toByteArray() throws Exception{
 		byte[] result = null;

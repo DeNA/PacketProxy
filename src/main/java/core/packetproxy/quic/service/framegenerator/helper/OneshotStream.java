@@ -16,6 +16,7 @@
 
 package packetproxy.quic.service.framegenerator.helper;
 
+import packetproxy.quic.value.StreamId;
 import packetproxy.quic.value.frame.StreamFrame;
 import packetproxy.quic.value.QuicMessage;
 
@@ -26,11 +27,11 @@ import java.util.Optional;
 
 public class OneshotStream {
     private final Map<Long/*offset*/, StreamFrame> frameMap = new HashMap<>();
-    private final long streamId;
+    private final StreamId streamId;
     private boolean lastFrameReceived = false;
     private long totalLength = 0;
 
-    public OneshotStream(long streamId) {
+    public OneshotStream(StreamId streamId) {
         this.streamId = streamId;
     }
 

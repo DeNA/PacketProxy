@@ -31,10 +31,7 @@ import packetproxy.quic.service.pnspace.PnSpace;
 import packetproxy.quic.service.pnspace.PnSpaces;
 import packetproxy.quic.utils.Constants;
 import packetproxy.quic.utils.Constants.PnSpaceType;
-import packetproxy.quic.value.ConnectionId;
-import packetproxy.quic.value.ConnectionIdPair;
-import packetproxy.quic.value.QuicMessage;
-import packetproxy.quic.value.SimpleBytes;
+import packetproxy.quic.value.*;
 import packetproxy.quic.value.packet.QuicPacket;
 import packetproxy.quic.value.packet.longheader.pnspace.HandshakePacket;
 import packetproxy.quic.value.packet.longheader.pnspace.InitialPacket;
@@ -175,7 +172,7 @@ public abstract class Connection implements Endpoint {
                     while ((length = in.read(readChunk)) > 0) {
                         readQueue.write(readChunk, 0, length);
                         ByteBuffer buffer = ByteBuffer.wrap(readQueue.toByteArray());
-                        QuicMessage.parse(buffer).forEach(rethrow(msg -> {
+                        QuicMessages.parse(buffer).forEach(rethrow(msg -> {
                             getPnSpace(Constants.PnSpaceType.PnSpaceApplicationData).addSendQuicMessage(msg);
                         }));
                         readQueue.reset();

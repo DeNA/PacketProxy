@@ -17,45 +17,41 @@
 package packetproxy.quic.value;
 
 import lombok.Value;
-import org.apache.commons.codec.binary.Hex;
 
 import java.nio.ByteBuffer;
 
-/*
-QuicMessage {
-  streamId: 8 bytes
-  dataLength: 8 bytes
-  data: ...
-}
-*/
 @Value(staticConstructor = "of")
-public class QuicMessage {
+public class StreamId {
 
-    StreamId streamId;
-    byte[] data;
-
-    boolean streamIdIs(StreamId streamId) {
-        return streamId.equals(this.streamId);
+    static public StreamId parse(ByteBuffer buffer) {
+        return StreamId.of(buffer.getLong());
     }
 
-    /**
-     * @return data to be passed to encoder module
-     * streamId: 8 bytes
-     * dataLength: 8 bytes
-     * data: x bytes
-     */
+    long id;
+
+    public boolean isClientInitiated() {
+        return (this.id & 0x01) == 0;
+    }
+
+    public boolean isServerInitiated() {
+        return (this.id & 0x01) > 0;
+    }
+
+    public boolean isUniDirectional()  {
+        return (this.id & 0x02) > 0;
+    }
+
+    public boolean isBidirectional() {
+        return (this.id & 0x02) == 0;
+    }
+
     public byte[] getBytes() {
-        ByteBuffer buffer = ByteBuffer.allocate(data.length + 16);
-        buffer.put(this.streamId.getBytes());
-        buffer.putLong(this.data.length);
-        buffer.put(data);
-        return buffer.array();
+        return ByteBuffer.allocate(8).putLong(this.id).array();
     }
 
     @Override
     public String toString() {
-        return String.format("QuicMessage(streamId=%s data=[%s])",
-                this.streamId,
-                Hex.encodeHexString(this.data));
+        return String.format("StreamId(%x)", id);
     }
+
 }

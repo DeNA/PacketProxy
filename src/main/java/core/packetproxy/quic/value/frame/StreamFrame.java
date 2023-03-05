@@ -21,6 +21,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.apache.commons.codec.binary.Hex;
 import packetproxy.quic.value.SimpleBytes;
+import packetproxy.quic.value.StreamId;
 import packetproxy.quic.value.VariableLengthInteger;
 
 import java.nio.ByteBuffer;
@@ -41,20 +42,16 @@ public class StreamFrame extends Frame {
     static private boolean hasOffsetField(byte type) {
         return (type & 0x04) > 0;
     }
-
     static private boolean hasLengthField(byte type) {
         return (type & 0x02) > 0;
     }
-
-    static private boolean hasFinishBit(byte type) {
-        return (type & 0x01) > 0;
-    }
+    static private boolean hasFinishBit(byte type) { return (type & 0x01) > 0; }
 
     static public StreamFrame parse(ByteBuffer buffer) {
         byte type = buffer.get();
         assert(StreamFrame.is(type));
 
-        long streamId = VariableLengthInteger.parse(buffer).getValue();
+        StreamId streamId = StreamId.of(VariableLengthInteger.parse(buffer).getValue());
         long offset = hasOffsetField(type) ? VariableLengthInteger.parse(buffer).getValue() : 0;
         long length = hasLengthField(type) ? VariableLengthInteger.parse(buffer).getValue() : 0;
         boolean finished = hasFinishBit(type);
@@ -68,7 +65,7 @@ public class StreamFrame extends Frame {
         return StreamFrame.of(streamId, offset, length, streamData, finished);
     }
 
-    long streamId;
+    StreamId streamId;
     long offset;
     long length;
     byte[] streamData;
@@ -76,7 +73,7 @@ public class StreamFrame extends Frame {
 
     @Override
     public String toString() {
-        return String.format("StreamFrame(streamId=0x%x, offset=%d, length=%d, data=[%s])",
+        return String.format("StreamFrame(streamId=%s, offset=%d, length=%d, data=[%s])",
                 this.streamId, this.offset, this.length, Hex.encodeHexString(this.streamData));
     }
 
@@ -91,7 +88,7 @@ public class StreamFrame extends Frame {
     public byte[] getBytes() {
         ByteBuffer buffer = ByteBuffer.allocate(1500);
         buffer.put(this.getType());
-        buffer.put(VariableLengthInteger.of(this.streamId).getBytes());
+        buffer.put(VariableLengthInteger.of(this.streamId.getId()).getBytes());
         if (this.offset > 0) {
             buffer.put(VariableLengthInteger.of(this.offset).getBytes());
         }
