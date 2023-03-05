@@ -90,12 +90,14 @@ public class SettingsFrame implements Frame {
         try {
             ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
 
-            dataStream.write(VariableLengthInteger.of(SettingParam.QpackMaxTableCapacity.getId()).getBytes());
-            dataStream.write(VariableLengthInteger.of(this.setting.getQpackMaxTableCapacity()).getBytes());
-
-            dataStream.write(VariableLengthInteger.of(SettingParam.QpackBlockedStreams.getId()).getBytes());
-            dataStream.write(VariableLengthInteger.of(this.setting.getQpackBlockedStreams()).getBytes());
-
+            if (this.setting.getQpackMaxTableCapacity() != SettingParam.QpackMaxTableCapacity.defaultValue) {
+                dataStream.write(VariableLengthInteger.of(SettingParam.QpackMaxTableCapacity.getId()).getBytes());
+                dataStream.write(VariableLengthInteger.of(this.setting.getQpackMaxTableCapacity()).getBytes());
+            }
+            if (this.setting.getQpackBlockedStreams() != SettingParam.QpackBlockedStreams.defaultValue) {
+                dataStream.write(VariableLengthInteger.of(SettingParam.QpackBlockedStreams.getId()).getBytes());
+                dataStream.write(VariableLengthInteger.of(this.setting.getQpackBlockedStreams()).getBytes());
+            }
             if (this.setting.getMaxFieldSectionSize() != SettingParam.MaxFieldSectionSize.defaultValue) {
                 dataStream.write(VariableLengthInteger.of(SettingParam.MaxFieldSectionSize.getId()).getBytes());
                 dataStream.write(VariableLengthInteger.of(this.setting.getMaxFieldSectionSize()).getBytes());
