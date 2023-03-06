@@ -46,4 +46,11 @@ class SettingsFrameTest {
         assertThat(settingsFrame.getBytes()).isEqualTo(Hex.decodeHex("0400".toCharArray()));
     }
 
+    @Test
+    public void curlのSettingsFrameをパースできること() throws Exception {
+        byte[] test = Hex.decodeHex("040f06ffffffffffffffff010007003300".toCharArray());
+        SettingsFrame settingsFrame = SettingsFrame.parse(ByteBuffer.wrap(test));
+        assertThat(settingsFrame.getBytes()).isEqualTo(Hex.decodeHex("040906ffffffffffffffff".toCharArray()));
+    }
+
 }

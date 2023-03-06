@@ -55,6 +55,7 @@ public class ServerHandshake implements Handshake {
     final Connection conn;
     final BlockingQueue<String> sniQueue = new LinkedBlockingQueue<>();
     final CA ca;
+    final TransportParameters clientTransportParams = new TransportParameters(Constants.Role.CLIENT);
     Optional<String> sniName = Optional.empty();
     TlsServerEngine engine;
 
@@ -153,10 +154,9 @@ public class ServerHandshake implements Handshake {
             conn.getPnSpace(Constants.PnSpaceType.PnSpaceApplicationData).addSendFrames(frames);
 
             /* send NewConnectionIdFrame */
+            /* 現在のところ、ActiveConnIdLimit=2(default)を想定して、新しいコネクションIDを1つだけ返す。 (Todo: ClientのActiveConnIdLimit値に応じて返す) */
             NewConnectionIdFrame frame1 = new NewConnectionIdFrame(1, 0, ConnectionId.generateRandom(), Token.generateRandom(TOKEN_SIZE));
-            NewConnectionIdFrame frame2 = new NewConnectionIdFrame(2, 0, ConnectionId.generateRandom(), Token.generateRandom(TOKEN_SIZE));
-            NewConnectionIdFrame frame3 = new NewConnectionIdFrame(3, 0, ConnectionId.generateRandom(), Token.generateRandom(TOKEN_SIZE));
-            conn.getPnSpace(Constants.PnSpaceType.PnSpaceApplicationData).addSendFrames(Frames.of(frame1, frame2, frame3));
+            conn.getPnSpace(Constants.PnSpaceType.PnSpaceApplicationData).addSendFrames(Frames.of(frame1));
         }
     }
 
@@ -203,7 +203,7 @@ public class ServerHandshake implements Handshake {
             tp.setInitMaxStreamDataBidiLocal(10L * 1024 * 1024 * 1024);
             tp.setInitMaxStreamDataBidiRemote(10L * 1024 * 1024 * 1024);
             tp.setInitMaxStreamDataUni(10L * 1024 * 1024 * 1024);
-            tp.setActiveConnIdLimit(4);
+            tp.setActiveConnIdLimit(2);
             tp.setDisableActiveMigration(true);
             //if (retryRequired) {
             //    tp.setRetrySrcConnId();
