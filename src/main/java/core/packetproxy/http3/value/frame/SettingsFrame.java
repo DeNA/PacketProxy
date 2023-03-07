@@ -70,7 +70,7 @@ public class SettingsFrame implements Frame {
             } else if (SettingParam.EnableMetaData.idEqualsTo(id)) {
                 settingBuilder = settingBuilder.enableMetaData(value);
             } else {
-                System.err.printf("Unknown HTTP3 Setting Frame (type=%x, value=%x)%n", id, value);
+                // Grease Setting. Just ignored.
             }
         }
         return new SettingsFrame(settingBuilder.build());

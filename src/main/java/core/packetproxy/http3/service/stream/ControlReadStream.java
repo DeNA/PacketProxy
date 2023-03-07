@@ -20,6 +20,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.http3.service.frame.FrameParser;
 import packetproxy.http3.value.Setting;
 import packetproxy.http3.value.frame.Frames;
+import packetproxy.http3.value.frame.GreaseFrame;
 import packetproxy.http3.value.frame.SettingsFrame;
 import packetproxy.quic.value.QuicMessage;
 import packetproxy.quic.value.StreamId;
@@ -53,8 +54,10 @@ public class ControlReadStream extends Stream implements ReadStream {
             if (frame instanceof SettingsFrame) {
                 SettingsFrame settingFrame = (SettingsFrame) frame;
                 this.setting = settingFrame.getSetting();
+            } else if (frame instanceof GreaseFrame){
+                // just ignored
             } else {
-                throw new Exception("Error: add non SettingsFrame into ControlStream");
+                throw new Exception(String.format("Error: add non-SettingsFrame into ControlStream: %s", frame));
             }
             this.frames.add(frame);
         }));

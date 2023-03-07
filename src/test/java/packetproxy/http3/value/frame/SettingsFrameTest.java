@@ -18,6 +18,7 @@ package packetproxy.http3.value.frame;
 
 import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Test;
+import packetproxy.http3.service.frame.FrameParser;
 
 import java.nio.ByteBuffer;
 
@@ -51,6 +52,16 @@ class SettingsFrameTest {
         byte[] test = Hex.decodeHex("040f06ffffffffffffffff010007003300".toCharArray());
         SettingsFrame settingsFrame = SettingsFrame.parse(ByteBuffer.wrap(test));
         assertThat(settingsFrame.getBytes()).isEqualTo(Hex.decodeHex("040906ffffffffffffffff".toCharArray()));
+    }
+
+    @Test
+    public void www_google_comのSettingをパースできること2() throws Exception {
+        byte[] test = Hex.decodeHex("041F018001000006800100000740640801C000001647FE8F66C000000068F2C54CC00000033AFE7BAE032CAD74".toCharArray());
+        Frames frames = FrameParser.parse(ByteBuffer.wrap(test));
+        assertThat(frames.size()).isEqualTo(2);
+        assertThat(frames.get(0)).isInstanceOf(SettingsFrame.class);
+        assertThat(frames.get(1)).isInstanceOf(GreaseFrame.class);
+        System.out.println(frames);
     }
 
 }

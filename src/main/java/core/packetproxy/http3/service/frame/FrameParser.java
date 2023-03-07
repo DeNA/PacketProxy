@@ -19,6 +19,7 @@ package packetproxy.http3.service.frame;
 import com.google.common.collect.Sets;
 import packetproxy.http3.value.frame.Frame;
 import packetproxy.http3.value.frame.Frames;
+import packetproxy.http3.value.frame.GreaseFrame;
 import packetproxy.quic.value.VariableLengthInteger;
 
 import javax.tools.*;
@@ -73,7 +74,7 @@ public class FrameParser {
             long type = getTypeWithoutIncrement(buffer);
             Class<Frame> klass = frameMap.get(type);
             if (klass == null) {
-                throw new Exception(String.format("Error: unknown frame type: %x", type));
+                frames.add(GreaseFrame.parse(buffer));
             } else {
                 frames.add(createInstance(klass, buffer));
             }
