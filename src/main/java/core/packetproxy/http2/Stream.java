@@ -37,6 +37,14 @@ public class Stream {
 		return out.toByteArray();
 	}
 
+	public byte[] toByteArrayWithoutExtra() throws Exception {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		for (Frame frame : stream) {
+			out.write(frame.toByteArrayWithoutExtra());
+		}
+		return out.toByteArray();
+	}
+
 	public int payloadSize() throws Exception {
 		int size = 0;
 		for (Frame frame : stream) {

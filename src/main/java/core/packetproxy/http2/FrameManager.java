@@ -15,24 +15,16 @@
  */
 package packetproxy.http2;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.eclipse.jetty.http2.hpack.HpackDecoder;
+import org.eclipse.jetty.http2.hpack.HpackEncoder;
+import packetproxy.http2.frames.*;
+import packetproxy.http2.frames.SettingsFrame.SettingsFrameType;
+
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.eclipse.jetty.http2.hpack.HpackDecoder;
-import org.eclipse.jetty.http2.hpack.HpackEncoder;
-
-import packetproxy.http2.frames.DataFrame;
-import packetproxy.http2.frames.Frame;
-import packetproxy.http2.frames.FrameUtils;
-import packetproxy.http2.frames.GoawayFrame;
-import packetproxy.http2.frames.HeadersFrame;
-import packetproxy.http2.frames.RstStreamFrame;
-import packetproxy.http2.frames.SettingsFrame;
-import packetproxy.http2.frames.SettingsFrame.SettingsFrameType;
-import packetproxy.http2.frames.WindowUpdateFrame;
 
 public class FrameManager {
 
@@ -89,21 +81,26 @@ public class FrameManager {
 				}
 			}
 			//System.out.println("SettingsFrame: " + settingsFrame);
+			//System.out.flush();
 		} else if (frame instanceof GoawayFrame) {
 			GoawayFrame goAwayFrame = (GoawayFrame)frame;
 			if (goAwayFrame.getErrorCode() != 0) { // 0 is NO_ERROR
 				System.err.println("GoAway:" + goAwayFrame);
+				System.err.flush();
 			}
 		} else if (frame instanceof RstStreamFrame) {
 			RstStreamFrame rstFrame = (RstStreamFrame)frame;
 			if (rstFrame.getErrorCode() != 0 && rstFrame.getErrorCode() != 8) { // 0 is NO_ERROR, 8 is CANCEL
 				System.err.println("RstStream:" + rstFrame);
+				System.err.flush();
 			}
-			controlFrames.add(rstFrame);
 		} else if (frame instanceof WindowUpdateFrame) {
-			WindowUpdateFrame windowUpdateFrame = (WindowUpdateFrame)frame;
+			WindowUpdateFrame windowUpdateFrame = (WindowUpdateFrame) frame;
 			flowControlManager.appendWindowSize(windowUpdateFrame);
-			//System.out.println("WindowUpdateFrame: " + windowUpdateFrame.getWindowSize());
+		} else if (frame instanceof PingFrame) {
+			PingFrame pingFrame = (PingFrame)frame;
+			//System.out.println("Ping:" + pingFrame);
+			//System.out.flush();
 		} else {
 			controlFrames.add(frame);
 		}

@@ -43,7 +43,7 @@ public class FlowControlManager
 		inputForFlowControl = new PipedInputStream(outputForFlowControl, PIPE_SIZE);
 	}
 	
-	private FlowControl getFlow(int streamId) {
+	private synchronized FlowControl getFlow(int streamId) {
 		FlowControl flow = flows.get(streamId);
 		if (flow == null) {
 			flow = new FlowControl(streamId, initialStreamWindowSize);
@@ -52,16 +52,18 @@ public class FlowControlManager
 		return flow;
 	}
 	
-	private void writeData(FlowControl flow) throws Exception {
-		Stream stream = flow.dequeue(connectionWindowSize);
+	private synchronized void writeData(FlowControl flow) throws Exception {
+		Stream stream = flow.dequeue(this.connectionWindowSize);
 		if (stream != null) {
-			connectionWindowSize -= stream.payloadSize();
-			outputForFlowControl.write(stream.toByteArray());
-			outputForFlowControl.flush();
+			this.connectionWindowSize -= stream.payloadSize();
+			//System.out.printf("[%d] sent: %d (remain: %d), WindowSize: %d, ConnectionWindowSize: %d\n", flow.getStreamId(), stream.payloadSize(), flow.size(), flow.getWindowSize(), this.connectionWindowSize);
+			//System.out.flush();
+			this.outputForFlowControl.write(stream.toByteArrayWithoutExtra());
+			this.outputForFlowControl.flush();
 		}
 	}
 	
-	public void setInitialWindowSize(SettingsFrame frame) {
+	public synchronized void setInitialWindowSize(SettingsFrame frame) {
 		int flags = frame.getFlags();
 		if ((flags & 0x1) > 0) {
 			return;
@@ -72,7 +74,7 @@ public class FlowControlManager
 		initialStreamWindowSize = frame.get(SettingsFrameType.SETTINGS_INITIAL_WINDOW_SIZE);
 	}
 	
-	public void setMaxConcurrentStreams(SettingsFrame frame) {
+	public synchronized void setMaxConcurrentStreams(SettingsFrame frame) {
 		int flags = frame.getFlags();
 		if ((flags & 0x1) > 0) {
 			return;
@@ -80,28 +82,35 @@ public class FlowControlManager
 		maxConcurrentStreams = frame.get(SettingsFrameType.SETTINGS_MAX_CONCURRENT_STREAMS);
 	}
 
-	public void appendWindowSize(WindowUpdateFrame frame) throws Exception {
+	public synchronized void appendWindowSize(WindowUpdateFrame frame) throws Exception {
 		int streamId = frame.getStreamId();
 		int windowSize = frame.getWindowSize();
 		
 		if (streamId == 0) {
 			connectionWindowSize += windowSize;
+			//System.err.printf("ConnectionWindowSize: +%d\n", connectionWindowSize);
+			//System.err.flush();
 			for (FlowControl flow : flows.values()) {
 				writeData(flow);
 			}
 		} else {
 			FlowControl flow = getFlow(streamId);
 			flow.appendWindowSize(windowSize);
+			//System.err.printf("[%d] WindowSize: +%d\n", streamId, flow.getWindowSize());
+			//System.err.flush();
 			writeData(flow);
 		}
 	}
 
-	public void write(Frame frame) throws Exception {
+	public synchronized void write(Frame frame) throws Exception {
+		/* TODO: maximum concurrent streams is not implemented yet */
 		if (frame.getType() == Frame.Type.HEADERS) {
-			/* TODO: maximum concurrent streams is not implemented yet */
-			outputForFlowControl.write(frame.toByteArray());
-			outputForFlowControl.flush();
+			//System.out.printf("[%d] sent HeadersFrame %02x\n", frame.getStreamId(), frame.getFlags());
+			FlowControl flow = getFlow(frame.getStreamId());
+			flow.pushHeadersFrame(frame);
+			writeData(flow);
 		} else if (frame.getType() == Frame.Type.DATA) {
+			//System.out.printf("[%d] sent DataFrame %02x\n", frame.getStreamId(), frame.getFlags());
 			FlowControl flow = getFlow(frame.getStreamId());
 			flow.enqueue(frame);
 			writeData(flow);

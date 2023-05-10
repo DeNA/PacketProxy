@@ -15,16 +15,9 @@
  */
 package packetproxy.http2;
 
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
-
 import packetproxy.common.UniqueID;
 import packetproxy.http.HeaderField;
 import packetproxy.http.Http;
@@ -33,6 +26,12 @@ import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameUtils;
 import packetproxy.http2.frames.HeadersFrame;
 import packetproxy.model.Packet;
+
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Grpc extends FramesBase
 {

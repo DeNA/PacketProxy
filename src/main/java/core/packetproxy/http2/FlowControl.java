@@ -17,29 +17,46 @@ package packetproxy.http2;
 
 import java.io.ByteArrayOutputStream;
 
+import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
 
 import packetproxy.http2.frames.DataFrame;
 import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameFactory;
 
+@Getter
 public class FlowControl {
 
 	private int streamId;
 	private int windowSize;
+	private Frame headersFrame = null;
+	private Frame grpcHeaderFrame = null;
+	private boolean headersFrameSent = false;
+	private boolean dataFrameSent = false;
+	private boolean grpcHeadersFrameSent = false;
 	private ByteArrayOutputStream queue;
 	private boolean end_flag;
 
 	public FlowControl(int streamId, int initialWindowSize) {
 		this.streamId = streamId;
 		this.windowSize = initialWindowSize;
-		queue = new ByteArrayOutputStream();
-		end_flag = false;
+		this.queue = new ByteArrayOutputStream();
+		this.end_flag = false;
 	}
 	
 	public void appendWindowSize(int appendWindowSize) {
 		synchronized (queue) {
 			windowSize += appendWindowSize;
+		}
+	}
+
+	// 1回目のpushは、HeadersFrameとして扱う。
+	// 2回目のpushは、gRPC通信の2nd HeadersFrameとして扱い、DataFrameの後に送信する
+	public void pushHeadersFrame(Frame headersFrame) {
+		if (this.headersFrame == null) {
+			this.headersFrame = headersFrame;
+		} else {
+			this.grpcHeaderFrame = headersFrame;
 		}
 	}
 	
@@ -53,45 +70,72 @@ public class FlowControl {
 		}
 	}
 
-	public Stream dequeue(int connectionWindowSize) throws Exception {
-		synchronized (queue) {
-			int capacity = Math.min(windowSize, connectionWindowSize);
-			if (capacity == 0) {
-				System.err.println("[HTTP/2 FlowControl] running out of window.");
-				return null;
-			}
-			int dataLen = Math.min(queue.size(), capacity);
-			if (dataLen == 0) {
-				//System.err.println("[HTTP/2 FlowControl] sending data is not found.");
-				return null;
-			}
-			windowSize -= dataLen;
-			byte[] data = ArrayUtils.subarray(queue.toByteArray(), 0, dataLen);
-			byte[] remaining = ArrayUtils.subarray(queue.toByteArray(), dataLen, queue.size());
-			queue.reset();
-			queue.write(remaining);
-			queue.flush();
-			
-			Stream stream = new Stream();
-			
-			while (data.length > 0) {
+	public synchronized Stream dequeue(int connectionWindowSize) throws Exception {
+		Stream stream = new Stream();
 
-				int payloadLen = Math.min(data.length, 16384);
-				byte[] payload = ArrayUtils.subarray(data, 0, payloadLen);
-				data = ArrayUtils.subarray(data, payloadLen, data.length);
-
-				int flags = 0x0;
-				if (remaining.length == 0 && end_flag == true && data.length == 0) {
-					flags = DataFrame.FLAG_END_STREAM;
-				}
-
-				Frame frame = FrameFactory.create(DataFrame.TYPE, flags, streamId, payload);
-
-				stream.write(frame);
-			}
-
+		// 最初にheadersFrameを送信する
+		if (!this.headersFrameSent && this.headersFrame != null) {
+			//System.out.printf("[%d] HeadersFrame sent!\n", streamId);
+			stream.write(this.headersFrame);
+			this.headersFrameSent = true;
 			return stream;
 		}
+
+		// データの送信が終わっていたら、grpcヘッダを送信する
+		if (this.headersFrameSent && this.dataFrameSent && !this.grpcHeadersFrameSent && this.grpcHeaderFrame != null) {
+			//System.out.printf("[%d] gRPC HeadersFrame sent!\n", streamId);
+			stream.write(this.grpcHeaderFrame);
+			this.grpcHeadersFrameSent = true;
+			return stream;
+		}
+
+		if (queue.size() == 0) {
+			return null; /* no data */
+		}
+		int capacity = Math.min(windowSize, connectionWindowSize);
+		if (capacity == 0) {
+			System.err.printf("[HTTP/2 FlowControl] try to send %d data, but running out of window (streamId: %d)\n", queue.size(), this.streamId);
+			System.err.flush();
+			return null;
+		}
+		// 少しだけcapacityに余裕を持たせる
+		if (capacity <= 3000) {
+			return null;
+		} else {
+			capacity -= 3000;
+		}
+		int dataLen = Math.min(queue.size(), capacity);
+		if (dataLen == 0) {
+			System.err.printf("[HTTP/2 FlowControl] sending data is not found (streamId: %d)\n", this.streamId);
+			System.err.flush();
+			return null;
+		}
+		this.windowSize -= dataLen;
+		byte[] data = ArrayUtils.subarray(queue.toByteArray(), 0, dataLen);
+		byte[] remaining = ArrayUtils.subarray(queue.toByteArray(), dataLen, queue.size());
+		queue.reset();
+		queue.write(remaining);
+		queue.flush();
+
+		while (data.length > 0) {
+			int payloadLen = Math.min(data.length, 16384);
+			byte[] payload = ArrayUtils.subarray(data, 0, payloadLen);
+			data = ArrayUtils.subarray(data, payloadLen, data.length);
+
+			int flags = 0x0;
+			if (remaining.length == 0 && end_flag && data.length == 0) {
+				flags = DataFrame.FLAG_END_STREAM;
+			}
+			Frame frame = FrameFactory.create(DataFrame.TYPE, flags, streamId, payload);
+
+			if (remaining.length == 0 && data.length == 0) {
+				this.dataFrameSent = true;
+			}
+
+			stream.write(frame);
+		}
+
+		return stream;
 	}
 	
 	public int size() {
