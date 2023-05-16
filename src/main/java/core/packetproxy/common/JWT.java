@@ -16,6 +16,7 @@
 package packetproxy.common;
 
 import java.io.ByteArrayInputStream;
+import java.util.HashMap;
 import java.util.Map;
 import net.arnx.jsonic.JSON;
 
@@ -25,14 +26,16 @@ public class JWT
 {
 	protected String header;
 	protected String payload;
-	
+
 	/*
 	public static void main(String[] args) {
 		try {
 			JWT jwt = new JWT("{ header: { a: \"hello\" }, payload: { b: \"world\", c: { d: \"hoge\" } } }");
 			PacketProxyUtility.getInstance().packetProxyLog(jwt.getPayloadValue("c/d"));
+			jwt.setHeaderValue("jwk/kid", "abc");
+			jwt.setHeaderValue("c", "ccc");
 			jwt.setPayloadValue("c/d","fuga");
-			jwt.debug();
+			PacketProxyUtility.getInstance().packetProxyLog(jwt.toJwtString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -96,12 +99,11 @@ public class JWT
 		Map<String,Object> cur = new JSON().parse(chunk);
 		Map<String,Object> root = cur;
 		for (int i = 0; i < keys.length-1; i++) {
-			if (cur == null)
-				return JSON.encode(root);
+			if (!cur.containsKey(keys[i])) {
+				cur.put(keys[i], new HashMap<String, Object>());
+			}
 			cur = forceCast(cur.get(keys[i]));
 		}
-		if (cur == null)
-			return JSON.encode(root);
 		cur.put(keys[keys.length-1], value);
 		return JSON.encode(root);
 	}
