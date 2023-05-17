@@ -45,6 +45,7 @@ public class TokenHttpServer extends NanoHTTPD {
             res.addHeader("Access-Control-Allow-Headers", "Content-Type");
             res.addHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
             res.addHeader("Access-Control-Max-Age", "86400");
+            res.addHeader("Access-Control-Allow-Private-Network", "true");
             return res;
         }
 
