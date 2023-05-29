@@ -194,7 +194,7 @@ public class EncodeMQTTWebSocket extends Encoder
 			if (data.length == 0) throw new Exception();
 			Http http = new Http(data);
 			String method = http.getMethod();
-			String url = http.getURL(packet.getServerPort());
+			String url = http.getURL(packet.getServerPort(), packet.getUseSSL());
 			if (method == null)
 				return getSummarizedMessage(encodeMQTT(data));
 			return method + " " + url;

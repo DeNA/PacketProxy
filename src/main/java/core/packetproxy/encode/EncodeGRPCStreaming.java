@@ -119,7 +119,7 @@ public class EncodeGRPCStreaming extends Encoder
 			byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();                                                                                                                                                              
 			Http http = new Http(data);
 			statusCode = http.getStatusCode();
-			summary = http.getMethod() + " " + http.getURL(packet.getServerPort());
+			summary = http.getMethod() + " " + http.getURL(packet.getServerPort(), packet.getUseSSL());
 		} catch (Exception e) { 
 			if (statusCode != null && statusCode.length() > 0) {
 				summary = statusCode;

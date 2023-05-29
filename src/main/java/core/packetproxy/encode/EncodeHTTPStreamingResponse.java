@@ -231,7 +231,7 @@ public class EncodeHTTPStreamingResponse extends Encoder
 		try {
 			byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();                                                                                                                                                              
 			Http http = new Http(data);
-			summary = http.getMethod() + " " + http.getURL(packet.getServerPort());
+			summary = http.getMethod() + " " + http.getURL(packet.getServerPort(), packet.getUseSSL());
 		} catch (Exception e) { 
 			e.printStackTrace();
 			summary = "Headlineを生成できません・・・";

@@ -86,7 +86,7 @@ public class GUIData {
 					Packet packet = Packets.getInstance().query(id);
 					Http http = new Http(tabs.getRaw().getData());
 					String copyData = http.getMethod() + "\t" +
-						http.getURL(packet.getServerPort()) + "\t" + 
+						http.getURL(packet.getServerPort(), packet.getUseSSL()) + "\t" +
 						new String(http.getBody(),"UTF-8");
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(copyData);
@@ -124,7 +124,7 @@ public class GUIData {
 					int id = GUIHistory.getInstance().getSelectedPacketId();
 					Packet packet = Packets.getInstance().query(id);
 					Http http = new Http(tabs.getRaw().getData());
-					String url = http.getURL(packet.getServerPort());
+					String url = http.getURL(packet.getServerPort(), packet.getUseSSL());
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(url);
 					clipboard.setContents(selection, selection);

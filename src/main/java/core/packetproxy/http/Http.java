@@ -275,14 +275,14 @@ public class Http
 		return cookedBody;
 	}
 
-	public String getURL(int port) {
+	public String getURL(int port, boolean use_ssl) {
 		if (version.equals("HTTP/2") || version.equals("HTTP/3")) {
 			return getURI();
 		} else { /* HTTP/1.1 */
 			String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?"+getQueryAsString() : "";
 			String path = getPath();
 			String host = header.getValue("Host").orElse(null);
-			String protocol = (port == 443 ? "https" : "http"); 
+			String protocol = (use_ssl ? "https" : "http");
 			return String.format("%s://%s%s%s", protocol, host, path, query);
 		}
 	}

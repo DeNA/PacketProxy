@@ -432,7 +432,7 @@ public class GUIHistory implements Observer
 						charsetutil.setGuessedCharSet(http.getBody());
 					}
 					String copyData = http.getMethod() + "\t" +
-						http.getURL(packet.getServerPort()) + "\t" + 
+						http.getURL(packet.getServerPort(), packet.getUseSSL()) + "\t" +
 						new String(http.getBody(), charsetutil.getCharSet());
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(copyData);
@@ -449,7 +449,7 @@ public class GUIHistory implements Observer
 					int id = GUIHistory.getInstance().getSelectedPacketId();
 					Packet packet = Packets.getInstance().query(id);
 					Http http = new Http(packet.getDecodedData());
-					String url = http.getURL(packet.getServerPort());
+					String url = http.getURL(packet.getServerPort(), packet.getUseSSL());
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(url);
 					clipboard.setContents(selection, selection);
@@ -639,7 +639,7 @@ TODO: support --data-binary
 					commandList.add("curl");
 
 					// 'http://example.com'
-					String url = http.getURL(gui_packet.getPacket().getServerPort());
+					String url = http.getURL(gui_packet.getPacket().getServerPort(), gui_packet.getPacket().getUseSSL());
 					commandList.add(String.format("'%s'", url));
 
 					// -X POST
