@@ -279,17 +279,17 @@ public class Https {
 	}
 
 	public static String getCommonName(InetSocketAddress addr) throws Exception {
-		SSLSocketFactory ssf = HttpsURLConnection.getDefaultSSLSocketFactory();
-	    SSLSocket socket = (SSLSocket) ssf.createSocket(addr.getAddress(), addr.getPort());
-	    socket.startHandshake();
-	    SSLSession session = socket.getSession();
-	    X509Certificate[] servercerts = (X509Certificate[]) session.getPeerCertificates();
+		SSLSocketFactory ssf = createSSLSocketFactory();
+		SSLSocket socket = (SSLSocket) ssf.createSocket(addr.getAddress(), addr.getPort());
+		socket.startHandshake();
+		SSLSession session = socket.getSession();
+		X509Certificate[] servercerts = (X509Certificate[]) session.getPeerCertificates();
 
-	    Pattern pattern = Pattern.compile("CN=([^,]+)", Pattern.CASE_INSENSITIVE);
-	    Matcher matcher = pattern.matcher(servercerts[0].getSubjectDN().getName());
-	    if (matcher.find()) {
-	    	return matcher.group(1);
-	    }
-	    return "";
+		Pattern pattern = Pattern.compile("CN=([^,]+)", Pattern.CASE_INSENSITIVE);
+		Matcher matcher = pattern.matcher(servercerts[0].getSubjectDN().getName());
+		if (matcher.find()) {
+			return matcher.group(1);
+		}
+		return "";
 	}
 }
