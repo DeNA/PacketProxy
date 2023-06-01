@@ -17,6 +17,7 @@ package packetproxy.http;
 
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections4.map.MultiValueMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -127,8 +128,14 @@ public class Http
 
 		Matcher matcher = CHUNKED_PATTERN.matcher(header_str);
 		if (matcher.find()) {
-			// TODO subarrayを何度もして遅くなるので末尾が0でなかったらreturn -1する
 			byte[] body = ArrayUtils.subarray(data, header_size, data.length);
+			byte[] finishFlag = "0\r\n\r\n".getBytes();
+			if (body.length < finishFlag.length) {
+				return -1;
+			}
+			if (Arrays.compare(finishFlag, 0, finishFlag.length, body, body.length - finishFlag.length, body.length) != 0) {
+				return -1;
+			}
 			body = getChankedHttpBody(body);
 			if (body == null)
 				return -1;
