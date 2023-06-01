@@ -168,7 +168,7 @@ public class Https {
 		ssl_socket.setUseClientMode(false);
 
 		SSLParameters sslp = ssl_socket.getSSLParameters();
-		String[] serverAPs ={ "h2", "http/1.1", "http/1.0" };
+		String[] serverAPs ={ "http/1.1", "http/1.0" };
 		sslp.setApplicationProtocols(serverAPs);
 		ssl_socket.setSSLParameters(sslp);
 

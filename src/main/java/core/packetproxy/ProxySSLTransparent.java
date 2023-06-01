@@ -123,12 +123,14 @@ public class ProxySSLTransparent extends Proxy
 
 		List<SNIServerName> serverNames = capabilities.getServerNames();
 		if (serverNames.isEmpty()) {
+			/* SNIヘッダが見当たらないので、通信をHTTP1を強制し、Hostヘッダを覗くことで宛先を知る必要がある */
+			/* クライアントわたすサーバ証明書は、宛先がわからないので packetproxy.com とする */
 			ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, position);
-			/* 証明書のチェックルーチンは必ずはずしておいてください！ */
 			SSLSocketEndpoint client_e = EndpointFactory.createClientEndpointFromSNIServerName(client, "packetproxy.com", listen_info.getCA().get(), bais);
+
 			/* 少しだけ先読みし、Hostフィールドから次に接続するべきサーバー名を入手 */
 			InputStream in = client_e.getInputStream();
-			byte[] buff = new byte[2048];
+			byte[] buff = new byte[4096];
 			int length = in.read(buff);
 			String str = new String(buff);
 			Pattern pattern = Pattern.compile("Host: *([^\r\n]+)", Pattern.CASE_INSENSITIVE);
