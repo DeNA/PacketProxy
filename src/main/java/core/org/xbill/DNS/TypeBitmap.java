@@ -27,7 +27,7 @@ TypeBitmap(int [] array) {
 	this();
 	for (int i = 0; i < array.length; i++) {
 		Type.check(array[i]);
-		types.add(new Integer(array[i]));
+		types.add(array[i]);
 	}
 }
 
@@ -129,7 +129,7 @@ toWire(DNSOutput out) {
 			}
 			mapbase = base;
 		}
-			map.add(new Integer(t));
+			map.add(t);
 	}
 	mapToWire(out, map, mapbase);
 }

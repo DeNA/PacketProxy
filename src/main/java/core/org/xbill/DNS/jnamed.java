@@ -72,10 +72,10 @@ addTSIG(String algstr, String namestr, String key) throws IOException {
 
 public Cache
 getCache(int dclass) {
-	Cache c = (Cache) caches.get(new Integer(dclass));
+	Cache c = (Cache) caches.get(dclass);
 	if (c == null) {
 		c = new Cache(dclass);
-		caches.put(new Integer(dclass), c);
+		caches.put(dclass, c);
 	}
 	return c;
 }

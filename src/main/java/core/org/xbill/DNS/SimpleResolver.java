@@ -309,7 +309,7 @@ public Object
 sendAsync(final Message query, final ResolverListener listener) {
 	final Object id;
 	synchronized (this) {
-		id = new Integer(uniqueID++);
+		id = uniqueID++;
 	}
 	Record question = query.getQuestion();
 	String qname;

@@ -618,7 +618,7 @@ rrFromWire(DNSInput in) throws IOException {
 		for (int j = 0; j < 8; j++) {
 			int octet = array[i] & 0xFF;
 			if ((octet & (1 << (7 - j))) != 0) {
-				list.add(new Integer(i * 8 + j));
+				list.add(i * 8 + j);
 			}
 		}
 	}
@@ -651,7 +651,7 @@ rdataFromString(Tokenizer st, Name origin) throws IOException {
 			throw st.exception("Invalid TCP/UDP service: " +
 					   t.value);
 		}
-		list.add(new Integer(service));
+		list.add(service);
 	}
 	st.unget();
 	services = new int[list.size()];
