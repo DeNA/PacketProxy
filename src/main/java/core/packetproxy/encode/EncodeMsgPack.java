@@ -27,7 +27,7 @@ public class EncodeMsgPack extends EncodeHTTPBase {
 
     private ObjectMapper msgPackMapper;
     private ObjectMapper jsonMapper;
-    
+
 	public EncodeMsgPack(String ALPN) throws Exception {
 		super(ALPN);
         MessagePackFactory f = new MessagePackFactory();
@@ -35,34 +35,34 @@ public class EncodeMsgPack extends EncodeHTTPBase {
         jsonMapper = new ObjectMapper();
 	}
 
-    private byte[] msgPackToJson(byte[] src) {
-        try {
-            if ((byte)0x90 <= src[0] && src[0] <= (byte)0x9f) { // fixarray
-                List<Object> objList = this.msgPackMapper.readValue(src, new TypeReference<List<Object>>(){});
-                return this.jsonMapper.writeValueAsBytes(objList);
-            } else if (src[0] == (byte)0xdc || src[0] == (byte)0xdd) { // array16, array32
-                List<Object> objList = this.msgPackMapper.readValue(src, new TypeReference<List<Object>>(){});
-                return this.jsonMapper.writeValueAsBytes(objList);
-            }
-        } catch (Exception e){
-            e.printStackTrace();
+    private byte[] msgPackToJson(byte[] src) throws Exception {
+        if (0x90 <= (src[0] & 0xff) && (src[0] & 0xff) <= 0x9f) { // fixarray
+            List<Object> objList = this.msgPackMapper.readValue(src, new TypeReference<List<Object>>(){});
+            return this.jsonMapper.writeValueAsBytes(objList);
+        } else if ((src[0] & 0xff) == 0xdc || (src[0] & 0xff) == 0xdd) { // array16, array32
+            List<Object> objList = this.msgPackMapper.readValue(src, new TypeReference<List<Object>>(){});
+            return this.jsonMapper.writeValueAsBytes(objList);
+        } else if (0x80 <= (src[0] & 0xff) && (src[0] & 0xff) <= 0x8f) { // fixmap
+            Map<String, Object> objMap = this.msgPackMapper.readValue(src, new TypeReference<Map<String,Object>>(){});
+            return this.jsonMapper.writeValueAsBytes(objMap);
+        } else if ((src[0] & 0xff) == 0xde || (src[0] & 0xff) == 0xdf) { // map16, map32
+            Map<String, Object> objMap = this.msgPackMapper.readValue(src, new TypeReference<Map<String,Object>>(){});
+            return this.jsonMapper.writeValueAsBytes(objMap);
+        } else {
+            throw new Exception("EncodeMsgPack: Root of msgpack data should be array or map.");
         }
-        return "{}".getBytes();
     }
 
-    private byte[] jsonToMsgPack(byte[] src) {
-        try {
-            if (src[0] == '[') {
-                List<Object> objList = this.jsonMapper.readValue(src, new TypeReference<List<Object>>(){});
-                return this.msgPackMapper.writeValueAsBytes(objList);
-            } else {
-                Map<String, Object> objMap = this.jsonMapper.readValue(src, new TypeReference<Map<String,Object>>(){});
-                return this.msgPackMapper.writeValueAsBytes(objMap);
-            }
-        } catch (Exception e){
-            e.printStackTrace();
+    private byte[] jsonToMsgPack(byte[] src) throws Exception {
+        if (src[0] == '[') {
+            List<Object> objList = this.jsonMapper.readValue(src, new TypeReference<List<Object>>(){});
+            return this.msgPackMapper.writeValueAsBytes(objList);
+        } else if (src[0] == '{') {
+            Map<String, Object> objMap = this.jsonMapper.readValue(src, new TypeReference<Map<String,Object>>(){});
+            return this.msgPackMapper.writeValueAsBytes(objMap);
+        } else {
+            throw new Exception("EncodeMsgPack: Json data should be start with '{' or '['.");
         }
-        return new byte[0];
     }
 
     @Override
