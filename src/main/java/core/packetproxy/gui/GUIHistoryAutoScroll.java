@@ -28,7 +28,7 @@ public class GUIHistoryAutoScroll extends JLabel {
 
 	static private ImageIcon disabledIcon = new ImageIcon(GUIHistoryAutoScroll.class.getResource("/gui/auto_scroll_disabled.png"));
 	static private ImageIcon enabledIcon = new ImageIcon(GUIHistoryAutoScroll.class.getResource("/gui/auto_scroll_enabled.png"));
-	private Boolean isEnabled = false;
+	private boolean isEnabled = false;
 
 	public GUIHistoryAutoScroll() {
 		super(disabledIcon);
@@ -40,39 +40,31 @@ public class GUIHistoryAutoScroll extends JLabel {
 		});
 	}
 	
-	public boolean isEnabled() {
-		synchronized (isEnabled) {
-			return isEnabled.booleanValue();
+	public synchronized boolean isEnabled() {
+		return isEnabled;
+	}
+
+	public synchronized void doToggle() {
+		if (isEnabled) {
+			doDisable();
+		} else {
+			doEnable();
 		}
 	}
 	
-	public void doToggle() {
-		synchronized (isEnabled) {
-			if (isEnabled == true) {
-				doDisable();
-			} else {
-				doEnable();
-			}
-		}
-	}
-	
-	public void doEnable() {
-		synchronized (isEnabled) {
-			if (isEnabled == false) {
-				setIcon(enabledIcon);
-				isEnabled = true;
-				PacketProxyUtility.getInstance().packetProxyLogErr("Auto scrolling was turned ON!");
-			}
+	public synchronized void doEnable() {
+		if (!isEnabled) {
+			setIcon(enabledIcon);
+			isEnabled = true;
+			PacketProxyUtility.getInstance().packetProxyLogErr("Auto scrolling was turned ON!");
 		}
 	}
 
-	public void doDisable() {
-		synchronized (isEnabled) {
-			if (isEnabled == true) {
-				setIcon(disabledIcon);
-				isEnabled = false;
-				PacketProxyUtility.getInstance().packetProxyLogErr("Auto scrolling was turned OFF");
-			}
+	public synchronized void doDisable() {
+		if (isEnabled) {
+			setIcon(disabledIcon);
+			isEnabled = false;
+			PacketProxyUtility.getInstance().packetProxyLogErr("Auto scrolling was turned OFF");
 		}
 	}
 
