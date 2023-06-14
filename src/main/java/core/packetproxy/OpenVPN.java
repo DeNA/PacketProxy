@@ -34,6 +34,7 @@ import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.exception.NotModifiedException;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Capability;
+import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.PortBinding;
@@ -127,15 +128,15 @@ public class OpenVPN {
             HostConfig hostConfig = new HostConfig()
                     .withBinds(new Bind(volumeName, new Volume("/opt")))
                     .withPortBindings(new Ports(
-                            PortBinding.parse(
-                                    "0.0.0.0:1194:1194/tcp"),
                             PortBinding.parse("0.0.0.0:1194:1194/udp"),
+                            PortBinding.parse("0.0.0.0:1194:1194/tcp"),
                             PortBinding.parse("0.0.0.0:18080:8080/tcp")))
                     .withCapAdd(Capability.NET_ADMIN);
 
             client.createContainerCmd(imageName)
                     .withName(containerName)
                     .withHostConfig(hostConfig)
+                    .withExposedPorts(new ExposedPort(1194))
                     .withEnv("HOST_ADDR=" + localIp)
                     .exec();
         }
@@ -216,7 +217,7 @@ public class OpenVPN {
                             "sed -i s/tcp-server/udp/ /opt/Dockovpn/config/server.conf" };
                     execCommand(client, commands);
                     commands = new String[] { "/bin/sh", "-c",
-                            "find /opt -name \\\"client.ovpn\\\" | xargs sed -i s/tcp-client/udp/" };
+                            "find /opt -name \"client.ovpn\" | xargs sed -i s/tcp-client/udp/" };
                     execCommand(client, commands);
                     break;
             }
