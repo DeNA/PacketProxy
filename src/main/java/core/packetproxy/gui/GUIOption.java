@@ -41,13 +41,13 @@ import packetproxy.model.InterceptOptions;
 import packetproxy.model.CAs.CA;
 import packetproxy.util.PacketProxyUtility;
 
-public class GUIOption
-{
+public class GUIOption {
 	private JFrame owner;
 
 	public GUIOption(JFrame owner) {
 		this.owner = owner;
 	}
+
 	private JComponent createTitle(String title) throws Exception {
 		JLabel label = new JLabel(title);
 		label.setForeground(Color.decode("61136"));
@@ -57,6 +57,7 @@ public class GUIOption
 		label.setAlignmentX(Component.LEFT_ALIGNMENT);
 		return label;
 	}
+
 	private JComponent createDescription(String description) throws Exception {
 		JLabel label = new JLabel(description);
 		label.setForeground(Color.BLACK);
@@ -65,6 +66,7 @@ public class GUIOption
 		label.setAlignmentX(Component.LEFT_ALIGNMENT);
 		return label;
 	}
+
 	private JComponent createElement(String title, String description) throws Exception {
 		JPanel panel = new JPanel();
 		panel.setBackground(Color.WHITE);
@@ -74,13 +76,14 @@ public class GUIOption
 		panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		return panel;
 	}
+
 	private JComponent createSeparator() {
 		JSeparator line = new JSeparator();
 		line.setMaximumSize(new Dimension(Short.MAX_VALUE, line.getMinimumSize().height));
 		return line;
 	}
-	public JComponent createPanel() throws Exception
-	{
+
+	public JComponent createPanel() throws Exception {
 		JPanel panel = new JPanel();
 		panel.setBackground(Color.WHITE);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -126,7 +129,7 @@ public class GUIOption
 				}
 			}
 		});
-		
+
 		panel.add(interceptRule);
 		panel.add(interceptPanel);
 
@@ -150,10 +153,16 @@ public class GUIOption
 
 		panel.add(createSeparator());
 
+		panel.add(createElement("OpenVPN Server with Docker", I18nString.get("Use OpenVPN Server as Docker Container to proxy HTTP/HTTPS without DNS Spoofing.")));
+		GUIOptionOpenVPN openVPN = new GUIOptionOpenVPN(owner);
+		panel.add(openVPN.getPanel());
+
+		panel.add(createSeparator());
+
 		panel.add(createElement("Priority Order of HTTP Versions", I18nString.get("Set order of priority between HTTP1 and HTTP2.")));
 		GUIOptionHttp http = new GUIOptionHttp();
 		panel.add(http.createPanel());
-		
+
 		panel.add(createSeparator());
 
 		panel.add(createElement("PacketProxy CA Certificates", I18nString.get("Export CA certificate used to view SSL packets. It needs to be registered in trusted CA list of PC/Mac/Linux/Android/iOS")));
@@ -180,7 +189,7 @@ public class GUIOption
 						@Override
 						public void onApproved(File file, String extension) {
 							try {
-								CA ca = CAFactory.findByUTF8Name((String)ca_combo.getSelectedItem()).get();
+								CA ca = CAFactory.findByUTF8Name((String) ca_combo.getSelectedItem()).get();
 								byte[] derData = ca.getCACertificate();
 								String derPath = file.getAbsolutePath();
 								try (FileOutputStream fos = new FileOutputStream(derPath)) {
@@ -188,14 +197,15 @@ public class GUIOption
 									fos.close();
 									JOptionPane.showMessageDialog(owner, I18nString.get("Successfully exported to %s", derPath));
 								}
-							}catch (Exception e1) {
+							} catch (Exception e1) {
 								e1.printStackTrace();
 								JOptionPane.showMessageDialog(null, I18nString.get("[Error] can't export"));
 							}
 						}
 
 						@Override
-						public void onCanceled() {}
+						public void onCanceled() {
+						}
 
 						@Override
 						public void onError() {
@@ -225,8 +235,8 @@ public class GUIOption
 						util.packetProxyLog("regenerate " + name);
 						ca.regenerateCA();
 					}
-				}catch(Exception exp){
-					util.packetProxyLogErr("RegenerateCertButton Action Error: "+ exp.getMessage());
+				} catch (Exception exp) {
+					util.packetProxyLogErr("RegenerateCertButton Action Error: " + exp.getMessage());
 				}
 			}
 		});
