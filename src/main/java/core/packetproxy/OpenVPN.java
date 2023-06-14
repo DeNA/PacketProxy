@@ -75,15 +75,15 @@ public class OpenVPN {
         return DockerClientImpl.getInstance(config, httpClient);
     }
 
-    public void startServer(String ip) {
+    public void startServer(String ip, String proto) {
         DockerClient client = getClient();
         if (!getImage(client)) {
             // TODO: disable checkbox
             return;
         }
-        createContainer(client, ip);
-        startContainer(client);
-        patchContainer(client, ip);
+        createContainer(client, ip, proto);
+        startContainer(client, proto);
+        patchContainer(client, ip, proto);
     }
 
     public void stopServer() {
@@ -108,7 +108,7 @@ public class OpenVPN {
         return true;
     }
 
-    public void createContainer(DockerClient client, String localIp) {
+    public void createContainer(DockerClient client, String localIp, String proto) {
         InspectVolumeCmd inspectVolume = client.inspectVolumeCmd(volumeName);
         try {
             inspectVolume.exec();
@@ -124,10 +124,11 @@ public class OpenVPN {
             inspect.exec();
         } catch (NotFoundException e) {
             // create container
-            // TODO: volume mount
             HostConfig hostConfig = new HostConfig()
-                    .withBinds(new Bind(volumeName, new Volume("/opt/Dockovpn_data")))
+                    .withBinds(new Bind(volumeName, new Volume("/opt")))
                     .withPortBindings(new Ports(
+                            PortBinding.parse(
+                                    "0.0.0.0:1194:1194/tcp"),
                             PortBinding.parse("0.0.0.0:1194:1194/udp"),
                             PortBinding.parse("0.0.0.0:18080:8080/tcp")))
                     .withCapAdd(Capability.NET_ADMIN);
@@ -140,19 +141,23 @@ public class OpenVPN {
         }
     }
 
-    public void startContainer(DockerClient client) {
+    public void startContainer(DockerClient client, String proto) {
         InspectContainerResponse inspect = client.inspectContainerCmd(containerName).exec();
         if (inspect.getState().getRunning()) {
             // running
             PacketProxyUtility.getInstance().packetProxyLog("OpenVPN Server is already running");
             return;
         }
+
         try {
+            // start the server
             client.startContainerCmd(containerName).exec();
         } catch (NotFoundException e) {
             PacketProxyUtility.getInstance().packetProxyLogErr(e.toString());
         } catch (NotModifiedException e) {
             PacketProxyUtility.getInstance().packetProxyLog(e.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -166,7 +171,19 @@ public class OpenVPN {
         }
     }
 
-    public void patchContainer(DockerClient client, String localIp) {
+    public void execCommand(DockerClient client, String[] command) throws Exception {
+        ExecCreateCmdResponse resp = client.execCreateCmd(containerName)
+                .withPrivileged(true)
+                .withUser("root")
+                .withCmd(command)
+                .exec();
+
+        ExecResultCallback<ResultCallback<Frame>, Frame> callback = new ExecResultCallback<>();
+        client.execStartCmd(resp.getId()).exec(callback);
+        callback.awaitCompletion();
+    }
+
+    public void patchContainer(DockerClient client, String localIp, String proto) {
         try {
             List<OpenVPNForwardPort> forwardPorts = OpenVPNForwardPorts.getInstance().queryAll();
             for (OpenVPNForwardPort forwardPort : forwardPorts) {
@@ -174,19 +191,48 @@ public class OpenVPN {
                         + " --dport "
                         + forwardPort.getFromPort() + " -j DNAT --to-destination " + localIp + ":"
                         + forwardPort.getToPort();
-                System.out.println("exec: " + command);
 
                 String[] commands = new String[] { "/bin/sh", "-c", command };
-                ExecCreateCmdResponse resp = client.execCreateCmd(containerName)
-                        .withPrivileged(true)
-                        .withUser("root")
-                        .withCmd(commands)
-                        .exec();
-
-                ExecResultCallback<ResultCallback<Frame>, Frame> callback = new ExecResultCallback<>();
-                client.execStartCmd(resp.getId()).exec(callback);
-                callback.awaitCompletion();
+                execCommand(client, commands);
             }
+
+            // patch server/client configs
+            // change the server config to use inside the volume
+            String[] commands = { "/bin/sh", "-c",
+                    "\"sed -i 's/\\/etc\\/openvpn\\/server\\.conf/\\/opt\\/Dockovpn\\/config\\/server\\.conf/' /opt/Dockovpn/start.sh\"" };
+            execCommand(client, commands);
+            // change server/client config file(udp->tcp-server/tcp-client)
+            switch (proto) {
+                case "TCP":
+                    commands = new String[] { "/bin/sh", "-c",
+                            "sed -i s/udp/tcp-server/ /opt/Dockovpn/config/server.conf" };
+                    execCommand(client, commands);
+                    commands = new String[] { "/bin/sh", "-c",
+                            "find /opt -name \"client.ovpn\" | xargs sed -i s/udp/tcp-client/" };
+                    execCommand(client, commands);
+                    break;
+                case "UDP":
+                    commands = new String[] { "/bin/sh", "-c",
+                            "sed -i s/tcp-server/udp/ /opt/Dockovpn/config/server.conf" };
+                    execCommand(client, commands);
+                    commands = new String[] { "/bin/sh", "-c",
+                            "find /opt -name \\\"client.ovpn\\\" | xargs sed -i s/tcp-client/udp/" };
+                    execCommand(client, commands);
+                    break;
+            }
+            /*
+             * restart the server. it is because
+             * - dockovpn is start in entrypoint, this means it is difficult to patch in CMD
+             * - so it seems to be necessary to patch in docker exec, but it is after docker
+             * start(now doing)
+             * - after patching, the server should be restarted to reflect the config
+             */
+            PacketProxyUtility.getInstance().packetProxyLog("OpenVPN Server is restarting...");
+            // kill the process and restart openvpn
+            commands = new String[] { "/bin/sh", "-c", "kill $(pgrep openvpn)" };
+            execCommand(client, commands);
+            commands = new String[] { "openvpn", "--config", "/opt/Dockovpn/config/server.conf" };
+            execCommand(client, commands);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -200,7 +246,6 @@ public class OpenVPN {
 
         @Override
         public void onStart(Closeable stream) {
-            System.out.println("onStart");
             this.stream = stream;
             this.closed = false;
             started.countDown();
@@ -209,12 +254,10 @@ public class OpenVPN {
         @Override
         public void onNext(A_RES_T object) {
             // nothing to do
-            System.out.println("onNext " + object.toString());
         }
 
         @Override
         public void onError(Throwable error) {
-            System.out.println("onError");
             if (closed)
                 return;
             System.err.println(error.toString());
@@ -223,7 +266,6 @@ public class OpenVPN {
 
         @Override
         public void onComplete() {
-            System.out.println("onComplete: " + this.stream);
             try {
                 close();
             } catch (IOException e) {

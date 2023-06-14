@@ -150,7 +150,6 @@ public class OpenVPNForwardPorts extends Observable implements Observer {
     private boolean isLatestVersion() throws Exception {
         String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='openvpn_forward_ports'")
                 .getFirstResult()[0];
-        System.out.println(result);
         return result.equals(
                 "CREATE TABLE `openvpn_forward_ports` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `type` VARCHAR , `fromPort` INTEGER , `toPort` INTEGER , UNIQUE (`type`,`fromPort`,`toPort`) )");
     }

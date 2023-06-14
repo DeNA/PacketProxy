@@ -156,7 +156,6 @@ public class GUIOption {
 		panel.add(createElement("OpenVPN Server with Docker", I18nString.get("Use OpenVPN Server as Docker Container to proxy HTTP/HTTPS without DNS Spoofing.")));
 		GUIOptionOpenVPN openVPN = new GUIOptionOpenVPN(owner);
 		panel.add(openVPN.getPanel());
-		panel.add(openVPN.createPanel());
 
 		panel.add(createSeparator());
 
