@@ -26,7 +26,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+import packetproxy.model.Resolution;
+import packetproxy.model.Resolutions;
+
 public class PrivateDNSClient {
+
+    private static Resolutions resolutions;
+    private static PacketProxyUtility util;
 
     private static boolean isLoopbackAddress(String addr) {
         return addr.equals("127.0.0.1") ||
@@ -88,6 +94,16 @@ public class PrivateDNSClient {
     }
 
     public static InetAddress getByName(String serverName) throws Exception {
+        resolutions = resolutions.getInstance();
+        util = PacketProxyUtility.getInstance();
+        List<Resolution> resolution_list = resolutions.queryEnabled();
+        for (Resolution resolution : resolution_list) {
+            if (serverName.equals(resolution.getHostName())) {
+                String ip = resolution.getIp();
+                util.packetProxyLog("[Hostname Resolution]: " + serverName + " -> " + ip);
+                return InetAddress.getByName(ip);
+            }
+        }
         return dnsLooping(serverName) ? Address.getByName(serverName) : InetAddress.getByName(serverName);
     }
 
