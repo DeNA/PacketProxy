@@ -100,6 +100,12 @@ public class GUIOption {
 
 		panel.add(createSeparator());
 
+		panel.add(createElement("Hostname Resolutions", I18nString.get("Set ip addr and server for DNS resolution.")));
+		GUIOptionResolutions resolutions = new GUIOptionResolutions(owner);
+		panel.add(resolutions.createPanel());
+
+		panel.add(createSeparator());
+
 		panel.add(createElement("Auto Modifications", I18nString.get("Set pattern for auto packet modification.")));
 		GUIOptionModifications mods = new GUIOptionModifications(owner);
 		panel.add(mods.createPanel());
