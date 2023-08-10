@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+import java.util.Objects;
 
 public class EndpointFactory
 {
@@ -71,7 +72,7 @@ public class EndpointFactory
 	}
 	
 	public static Endpoint createFromOneShotPacket(OneShotPacket packet) throws Exception {
-		if (packet.getAlpn().equals("h3")) {
+		if (Objects.equals(packet.getAlpn(), "h3")) {
 			// HTTP3 on QUICの場合は特別対応
 			return new ServerConnection(ConnectionIdPair.generateRandom(), packet.getServerName(), packet.getServerPort());
 		} else if (packet.getUseSSL()) {
