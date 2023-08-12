@@ -23,6 +23,7 @@ import java.util.Observable;
 import java.util.Observer;
 import packetproxy.model.DaoQueryCache;
 import packetproxy.model.Database.DatabaseMessage;
+import packetproxy.util.PacketProxyUtility;
 
 public class Resolutions extends Observable implements Observer {
 
@@ -49,13 +50,21 @@ public class Resolutions extends Observable implements Observer {
 	}
 	
 	public void setResolutionsBySystem() throws Exception {
-		List<String> fileLines = Files.readAllLines(Paths.get("/etc/hosts"));
+		List<String> fileLines;
+		if (PacketProxyUtility.getInstance().isWindows()) {
+			fileLines = Files.readAllLines(Paths.get("C:\\Windows\\System32\\drivers\\etc\\hosts"));
+		} else{
+			fileLines = Files.readAllLines(Paths.get("/etc/hosts"));
+		}
 		fileLines.stream().forEach(line -> {
 			if (!(line.startsWith("#"))) {
 				try{
-					String ip = line.split("[\\s]+")[0];
-					String hostname = line.split("[\\s]+")[1];
-					create(new Resolution(ip, hostname));
+					String[] parts = line.split("[\\s]+");
+					if (parts.length >= 2) {
+						String ip = parts[0];
+						String hostname = parts[1];
+						create(new Resolution(ip, hostname));
+					}
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
