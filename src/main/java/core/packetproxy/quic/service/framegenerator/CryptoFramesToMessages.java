@@ -71,6 +71,9 @@ public class CryptoFramesToMessages {
                 }
             }
             byte[] data = this.messages.toByteArray();
+            if (data.length < 4) {
+                return Optional.empty();
+            }
             this.nextMessageLength = 4; /* header(4B) */
             this.nextMessageLength += ((data[1] & 0xff) << 16) | ((data[2] & 0xff) << 8) | (data[3] & 0xff);
         }

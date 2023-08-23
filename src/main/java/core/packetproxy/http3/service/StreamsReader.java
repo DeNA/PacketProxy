@@ -37,34 +37,62 @@ public class StreamsReader {
 
     private final Map<StreamId, HttpReadStream> httpStreams = new HashMap<>();
     private final ControlReadStream controlReadStream;
-    private final QpackReadStream qpackEncodeStreamReader;
-    private final QpackReadStream qpackDecodeStreamReader;
+
+    private QpackReadStream qpackEncodeStreamReader = null;
+    private QpackReadStream qpackDecodeStreamReader = null;
 
     public StreamsReader(Constants.Role role) {
         if (role == Constants.Role.CLIENT) {
             this.controlReadStream = new ControlReadStream(StreamId.of(0x2));
-            this.qpackEncodeStreamReader = new QpackReadStream(StreamId.of(0x6), Stream.StreamType.QpackEncoderStreamType);
-            this.qpackDecodeStreamReader = new QpackReadStream(StreamId.of(0xa), Stream.StreamType.QpackDecoderStreamType);
         } else {
             this.controlReadStream = new ControlReadStream(StreamId.of(0x3));
-            this.qpackEncodeStreamReader = new QpackReadStream(StreamId.of(0x7), Stream.StreamType.QpackEncoderStreamType);
-            this.qpackDecodeStreamReader = new QpackReadStream(StreamId.of(0xb), Stream.StreamType.QpackDecoderStreamType);
+        }
+    }
+
+    private void writeQpackMsg(QuicMessage msg) throws Exception {
+        if (this.qpackEncodeStreamReader != null) {
+            if (this.qpackEncodeStreamReader.processable(msg)) {
+                this.qpackEncodeStreamReader.write(msg);
+                return;
+            }
+        }
+        if (this.qpackDecodeStreamReader != null) {
+            if (this.qpackDecodeStreamReader.processable(msg)) {
+                this.qpackDecodeStreamReader.write(msg);
+                return;
+            }
+        }
+        if (msg.getData().length == 0) {
+            return;
+        }
+        Stream.StreamType streamType = Stream.StreamType.of(msg.getData()[0]);
+        if (streamType == Stream.StreamType.QpackEncoderStreamType) {
+            this.qpackEncodeStreamReader = new QpackReadStream(msg.getStreamId(), Stream.StreamType.QpackEncoderStreamType);
+            this.qpackEncodeStreamReader.write(msg);
+            return;
+        } else if (streamType == Stream.StreamType.QpackDecoderStreamType) {
+            this.qpackDecodeStreamReader = new QpackReadStream(msg.getStreamId(), Stream.StreamType.QpackDecoderStreamType);
+            this.qpackDecodeStreamReader.write(msg);
+        } else {
+            throw new Exception("QPackStreamType is neither QpackEncoder(0x2) nor QpackDecoder(0x3)");
         }
     }
 
     public synchronized void write(QuicMessage msg) throws Exception {
         if (this.controlReadStream.processable(msg)) {
             this.controlReadStream.write(msg);
-        } else if (this.qpackDecodeStreamReader.processable(msg)) {
-            this.qpackDecodeStreamReader.write(msg);
-        } else if (this.qpackEncodeStreamReader.processable(msg)) {
-            this.qpackEncodeStreamReader.write(msg);
-        } else {
-            if (!this.httpStreams.containsKey(msg.getStreamId())) {
-                this.httpStreams.put(msg.getStreamId(), new HttpReadStream(msg.getStreamId()));
-            }
-            this.httpStreams.get(msg.getStreamId()).write(msg);
+            return;
         }
+
+        if (msg.getStreamId().isUniDirectional()) {
+            writeQpackMsg(msg);
+            return;
+        }
+
+        if (!this.httpStreams.containsKey(msg.getStreamId())) {
+            this.httpStreams.put(msg.getStreamId(), new HttpReadStream(msg.getStreamId()));
+        }
+        this.httpStreams.get(msg.getStreamId()).write(msg);
     }
 
     public synchronized void write(QuicMessages msgs) {
@@ -76,10 +104,14 @@ public class StreamsReader {
     }
 
     public synchronized byte[] readQpackEncodeData() {
+        if (this.qpackEncodeStreamReader == null)
+            return new byte[]{};
         return this.qpackEncodeStreamReader.readAllBytes();
     }
 
     public synchronized byte[] readQpackDecodeData() {
+        if (this.qpackDecodeStreamReader == null)
+            return new byte[]{};
         return this.qpackDecodeStreamReader.readAllBytes();
     }
 

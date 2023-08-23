@@ -38,7 +38,7 @@ public class ApplicationDataPnSpace extends PnSpace {
     private final MessagesToStreamFrames msgToStreamFrames = new MessagesToStreamFrames();
 
     public ApplicationDataPnSpace(Connection conn) {
-        super(conn);
+        super(conn, Constants.PnSpaceType.PnSpaceApplicationData);
     }
 
     @Override
@@ -52,13 +52,9 @@ public class ApplicationDataPnSpace extends PnSpace {
     public List<QuicPacketBuilder> getAndRemoveSendFramesAndConvertPacketBuilders() {
         List<QuicPacketBuilder> builders = new ArrayList<>();
         for (Frame frame: sendFrameQueue.pollAll()) {
-            byte[] payload = new FramesBuilder().add(frame).getBytes();
             builders.add(QuicPacketBuilder.getBuilder()
                     .setPnSpaceType(Constants.PnSpaceType.PnSpaceApplicationData)
-                    .setPacketType(PacketApplication)
-                    .setPacketNumber(this.nextPacketNumber)
-                    .setPayload(payload));
-            this.nextPacketNumber = this.nextPacketNumber.plus(1);
+                    .setFramesBuilder(new FramesBuilder().add(frame)));
         }
         return builders;
     }

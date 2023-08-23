@@ -269,6 +269,8 @@ public abstract class EncodeHTTPBase extends Encoder
 	public void setGroupId(Packet packet) throws Exception {
 		if (httpVersion == HTTPVersion.HTTP2) {
 			http2.setGroupId(packet);
+		} else if (httpVersion == HTTPVersion.HTTP3) {
+			http3.setGroupId(packet);
 		} else {
 			super.setGroupId(packet);
 		}

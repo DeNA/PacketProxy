@@ -23,7 +23,11 @@ import packetproxy.model.CAs.CA;
 @DatabaseTable(tableName = "listenports")
 public class ListenPort
 {
-	public enum TYPE {
+    public enum Protocol {
+        TCP,
+        UDP
+    }
+    public enum TYPE {
         HTTP_PROXY,
         FORWARDER,
         SSL_FORWARDER,
@@ -34,7 +38,7 @@ public class ListenPort
         QUIC_FORWARDER,
         QUIC_TRANSPARENT_PROXY
     }
-	
+
     @DatabaseField(generatedId = true)
     private int id;
     @DatabaseField
@@ -47,7 +51,18 @@ public class ListenPort
     private TYPE type;
     @DatabaseField(uniqueCombo = true)
     private int server_id;
-    
+    private Protocol protocol = null;
+
+    private Protocol getProtocolForPortType(TYPE type) {
+        if (type == TYPE.QUIC_FORWARDER ||
+            type == TYPE.QUIC_TRANSPARENT_PROXY ||
+            type == TYPE.UDP_FORWARDER) {
+            return Protocol.UDP;
+        } else {
+            return Protocol.TCP;
+        }
+    }
+
     public ListenPort() {
         // ORMLite needs a no-arg constructor 
     }
@@ -57,6 +72,7 @@ public class ListenPort
     	this.type = type;
     	this.server_id = 0;
     	this.ca_name = "PacketProxy CA";
+        this.protocol = getProtocolForPortType(type);
     }
     public ListenPort(int port, TYPE type, Server server, String ca_name) {
     	this.enabled = false;
@@ -64,6 +80,7 @@ public class ListenPort
     	this.type = type;
     	this.server_id = (server != null) ? server.getId() : 0;
     	this.ca_name = ca_name;
+        this.protocol = getProtocolForPortType(type);
     }
     public boolean isEnabled() {
     	return this.enabled;
@@ -95,6 +112,15 @@ public class ListenPort
     public Server getServer() throws Exception {
     	return Servers.getInstance().query(this.server_id);
     }
+    public Protocol getProtocol() {
+        if (this.protocol == null) {
+            this.protocol = getProtocolForPortType(this.type);
+        }
+        return this.protocol;
+    }
+    public String getProtoPort() {
+        return String.format("%s %s", getProtocol(), getPort());
+    }
     public TYPE getType() {
     	return this.type;
     }
@@ -108,7 +134,7 @@ public class ListenPort
         this.id = id;
     }
     @Override
-	public int hashCode() {
+    public int hashCode() {
     	return this.getId();
     }
     public boolean equals(ListenPort obj) {

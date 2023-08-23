@@ -20,6 +20,7 @@ import lombok.Getter;
 import packetproxy.common.Endpoint;
 import packetproxy.model.CAs.CA;
 import packetproxy.quic.service.handshake.ServerHandshake;
+import packetproxy.quic.utils.AwaitingException;
 import packetproxy.quic.utils.Constants;
 import packetproxy.quic.value.ConnectionId;
 import packetproxy.quic.value.ConnectionIdPair;
@@ -59,13 +60,17 @@ public class ClientConnection extends Connection implements Endpoint {
         awaitingReceivedPackets.forEachAndRemovedIfReturnTrue(packet -> {
             try {
                 clientPacketParser.parseOnePacket(packet);
-                return true;
+                return true; /* 正常終了したので、受信パケットリストから捨てる */
+            } catch (AwaitingException e) {
+                return false; /* 少し待ってから、もう一度処理 */
+            } catch (java.io.IOException e) {
+                return true; /* 処理できないので捨てる */
             } catch (AEADBadTagException e) {
-                PacketProxyUtility.getInstance().packetProxyLogErr("[QUIC] Error: malformed packet received");
-                return true; /* 読み飛ばす */
+                e.printStackTrace();
+                return true; /* 処理できないので捨てる */
             } catch (Exception e) {
                 e.printStackTrace();
-                return false;
+                return true; /* 処理できないので捨てる */
             }
         });
     }

@@ -32,7 +32,7 @@ public class Http3TestHelper {
         http.getHeader().getFields().forEach(field -> {
             jettyHttpFields.add(field.getName(), field.getValue());
         });
-        return new MetaData.Request(http.getMethod(), HttpURI.from(http.getURL(80)), HttpVersion.HTTP_3, jettyHttpFields);
+        return new MetaData.Request(http.getMethod(), HttpURI.from(http.getURL(80, false)), HttpVersion.HTTP_3, jettyHttpFields);
     }
 
 }

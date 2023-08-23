@@ -88,8 +88,8 @@ public class RoleKeys {
     }
 
     public void discardHandshakeKey() {
-        this.optionalHandshakeKey = Optional.empty();
-        this.discardedHandshakeKey = true;
+        //this.optionalHandshakeKey = Optional.empty();
+        //this.discardedHandshakeKey = true;
     }
 
     public boolean discardedInitialKey() {

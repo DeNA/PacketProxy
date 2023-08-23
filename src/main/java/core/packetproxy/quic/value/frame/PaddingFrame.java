@@ -42,7 +42,10 @@ public class PaddingFrame extends Frame {
         long length = 0;
         while (buffer.remaining() > 0) {
             byte type = buffer.get();
-            assert (type == TYPE);
+            if (type != TYPE) {
+                buffer.position(buffer.position()-1);
+                break;
+            }
             length++;
         }
         return new PaddingFrame(length);

@@ -32,14 +32,14 @@ import packetproxy.quic.service.connection.Connection;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import static packetproxy.quic.utils.Constants.PnSpaceType.*;
 import static packetproxy.util.Throwing.rethrow;
 
 public class PnSpaces {
 
-    private final LinkedBlockingQueue<QuicPacketBuilder> sendPacketQueue = new LinkedBlockingQueue<>();
+    private final LinkedBlockingDeque<QuicPacketBuilder> sendPacketDeque = new LinkedBlockingDeque<>();
     private final PnSpace[] pnSpaces = new PnSpace[PnSpaceType.values().length];
     private final Connection conn;
 
@@ -68,7 +68,13 @@ public class PnSpaces {
      * 送信するパケットをキューに入れる
      */
     public void addSendPackets(List<QuicPacketBuilder> packets) {
-        packets.forEach(rethrow(this.sendPacketQueue::put));
+        packets.forEach(rethrow(this.sendPacketDeque::put));
+    }
+    /**
+     * 送信するパケットをキューに入れる (優先度高）
+     */
+    public void addSendPacketsFirst(QuicPacketBuilder packet) {
+        this.sendPacketDeque.addFirst(packet);
     }
 
     /**
@@ -76,9 +82,11 @@ public class PnSpaces {
      */
     @SneakyThrows
     public List<QuicPacket> pollSendPackets() {
-        QuicPacketBuilder builder = this.sendPacketQueue.take();
+        QuicPacketBuilder builder = this.sendPacketDeque.take(); /* Blocking */
+        PnSpace pnSpace = this.conn.getPnSpace(builder.getPnSpaceType());
+        builder.setPacketNumber(pnSpace.getNextPacketNumberAndIncrement());
         QuicPacket packet = builder.setConnectionIdPair(this.conn.getConnIdPair()).build();
-        this.conn.getPnSpace(builder.getPnSpaceType()).addSentPacket(packet);
+        pnSpace.addSentPacket(packet);
         return new ArrayList<>(List.of(packet));
     }
 

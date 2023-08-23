@@ -89,6 +89,8 @@ class VariableLengthIntegerTest {
         System.out.println(VariableLengthInteger.parse(Hex.decodeHex("4201".toCharArray()))); /* 513 */
         System.out.println(VariableLengthInteger.parse(Hex.decodeHex("4077".toCharArray()))); /* 119 */
         System.out.println(VariableLengthInteger.parse(Hex.decodeHex("58cb".toCharArray()))); /* 6347 */
+        System.out.printf("%x\n", VariableLengthInteger.parse(Hex.decodeHex("f684f228323451e8".toCharArray())).getValue()); /* 3684f228323451e8 */
+        System.out.printf("%x\n", VariableLengthInteger.parse(Hex.decodeHex("00".toCharArray())).getValue()); /* 0 */
     }
 
 }

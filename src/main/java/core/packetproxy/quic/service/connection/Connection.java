@@ -31,7 +31,10 @@ import packetproxy.quic.service.pnspace.PnSpace;
 import packetproxy.quic.service.pnspace.PnSpaces;
 import packetproxy.quic.utils.Constants;
 import packetproxy.quic.utils.Constants.PnSpaceType;
-import packetproxy.quic.value.*;
+import packetproxy.quic.value.ConnectionId;
+import packetproxy.quic.value.ConnectionIdPair;
+import packetproxy.quic.value.QuicMessages;
+import packetproxy.quic.value.SimpleBytes;
 import packetproxy.quic.value.packet.QuicPacket;
 import packetproxy.quic.value.packet.longheader.pnspace.HandshakePacket;
 import packetproxy.quic.value.packet.longheader.pnspace.InitialPacket;
@@ -110,8 +113,8 @@ public abstract class Connection implements Endpoint {
                                     return true; /* Initialキーは破棄済みなのでInitialパケットは送信せずに破棄する */
                                 }
                                 byte[] udpData = (role == Constants.Role.CLIENT) ?
-                                        ip.getBytes(keys.getClientKeys().getInitialKey(), getPnSpace(ip.getPnSpaceType()).getLargestAckedPn()):
-                                        ip.getBytes(keys.getServerKeys().getInitialKey(), getPnSpace(ip.getPnSpaceType()).getLargestAckedPn());
+                                        ip.getBytes(keys.getClientKeys().getInitialKey(), getPnSpace(ip.getPnSpaceType()).getAckFrameGenerator().getSmallestValidPn()):
+                                        ip.getBytes(keys.getServerKeys().getInitialKey(), getPnSpace(ip.getPnSpaceType()).getAckFrameGenerator().getSmallestValidPn());
                                 sendUdpPacket(udpData);
                                 return true;
                             }
@@ -121,19 +124,18 @@ public abstract class Connection implements Endpoint {
                                     return true; /* Handshakeキーは破棄済みなのでHandshakeパケットは送信せずに破棄する */
                                 }
                                 byte[] udpData = (role == Constants.Role.CLIENT) ?
-                                        hp.getBytes(keys.getClientKeys().getHandshakeKey(), getPnSpace(hp.getPnSpaceType()).getLargestAckedPn()):
-                                        hp.getBytes(keys.getServerKeys().getHandshakeKey(), getPnSpace(hp.getPnSpaceType()).getLargestAckedPn());
+                                        hp.getBytes(keys.getClientKeys().getHandshakeKey(), getPnSpace(hp.getPnSpaceType()).getAckFrameGenerator().getSmallestValidPn()):
+                                        hp.getBytes(keys.getServerKeys().getHandshakeKey(), getPnSpace(hp.getPnSpaceType()).getAckFrameGenerator().getSmallestValidPn());
                                 sendUdpPacket(udpData);
                                 return true;
                             }
-                            if (packet instanceof ShortHeaderPacket && keys.hasApplicationKey()) {
+                            if (packet instanceof ShortHeaderPacket sp && keys.hasApplicationKey()) {
                                 if (role == Constants.Role.CLIENT && getHandshakeState().isNotConfirmed()) {
                                     return false; /* Handshakeが終わってからShortHeaderPacketを送信しないとサーバー側でエラーになってしまうので、後ほど送信 */
                                 }
-                                ShortHeaderPacket sp = (ShortHeaderPacket) packet;
                                 byte[] udpData = (role == Constants.Role.CLIENT) ?
-                                        sp.getBytes(keys.getClientKeys().getApplicationKey(), getPnSpace(sp.getPnSpaceType()).getLargestAckedPn()):
-                                        sp.getBytes(keys.getServerKeys().getApplicationKey(), getPnSpace(sp.getPnSpaceType()).getLargestAckedPn());
+                                        sp.getBytes(keys.getClientKeys().getApplicationKey(), getPnSpace(sp.getPnSpaceType()).getAckFrameGenerator().getSmallestValidPn()):
+                                        sp.getBytes(keys.getServerKeys().getApplicationKey(), getPnSpace(sp.getPnSpaceType()).getAckFrameGenerator().getSmallestValidPn());
                                 sendUdpPacket(udpData);
                                 return true;
                             }

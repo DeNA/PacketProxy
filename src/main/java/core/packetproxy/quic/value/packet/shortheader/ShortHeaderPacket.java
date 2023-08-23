@@ -2,17 +2,18 @@ package packetproxy.quic.value.packet.shortheader;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.ArrayUtils;
-import packetproxy.quic.utils.Constants;
-import packetproxy.quic.value.frame.AckFrame;
 import packetproxy.quic.service.frame.Frames;
-import packetproxy.quic.value.key.Key;
-import packetproxy.quic.value.packet.PnSpacePacket;
-import packetproxy.quic.value.packet.QuicPacket;
+import packetproxy.quic.utils.Constants;
 import packetproxy.quic.value.ConnectionId;
 import packetproxy.quic.value.PacketNumber;
 import packetproxy.quic.value.SimpleBytes;
 import packetproxy.quic.value.TruncatedPacketNumber;
+import packetproxy.quic.value.frame.AckFrame;
+import packetproxy.quic.value.key.Key;
+import packetproxy.quic.value.packet.PnSpacePacket;
+import packetproxy.quic.value.packet.QuicPacket;
 
 import java.nio.ByteBuffer;
 import java.util.Optional;
@@ -99,8 +100,8 @@ public class ShortHeaderPacket extends QuicPacket implements PnSpacePacket {
             header[packetNumberPosition - startPosition + i] = truncatedPn[i];
         }
 
-        this.payload = key.decryptPayload(truncatedPn, encodedPayload, header);
         this.packetNumber = new TruncatedPacketNumber(truncatedPn).getPacketNumber(largestAckedPn);
+        this.payload = key.decryptPayload(this.packetNumber.toBytes(), encodedPayload, header);
 
         buffer.position(positionPacketEnd);
     }
@@ -144,7 +145,7 @@ public class ShortHeaderPacket extends QuicPacket implements PnSpacePacket {
     @Override
     public String toString() {
         try {
-            return String.format("ShortHeaderPacket(connIdPair=%s, packetNumber=%s, payload=%s",
+            return String.format("ShortHeaderPacket(connIdPair=%s, packetNumber=%s, payload=%s)",
                     this.destConnId,
                     this.packetNumber,
                     Frames.parse(this.payload));

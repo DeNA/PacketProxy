@@ -73,8 +73,8 @@ public class StreamFrame extends Frame {
 
     @Override
     public String toString() {
-        return String.format("StreamFrame(streamId=%s, offset=%d, length=%d, data=[%s])",
-                this.streamId, this.offset, this.length, Hex.encodeHexString(this.streamData));
+        return String.format("StreamFrame(streamId=%s, type=%x, offset=%d, length=%d, data=[%s])",
+                this.streamId, this.getType(), this.offset, this.length, Hex.encodeHexString(this.streamData));
     }
 
     private byte getType() {

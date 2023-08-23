@@ -18,7 +18,6 @@ package packetproxy.http3.value.frame;
 
 import com.google.common.collect.ImmutableList;
 import lombok.Value;
-import org.apache.commons.codec.binary.Hex;
 import packetproxy.quic.value.SimpleBytes;
 import packetproxy.quic.value.VariableLengthInteger;
 
@@ -43,8 +42,15 @@ public class GreaseFrame implements Frame {
 
     static public GreaseFrame parse(ByteBuffer buffer) {
         long frameType = VariableLengthInteger.parse(buffer).getValue();
+        int startOfLength = buffer.position();
         long frameLength = VariableLengthInteger.parse(buffer).getValue();
-        byte[] frameData = SimpleBytes.parse(buffer, frameLength).getBytes();
+        byte[] frameData = new byte[]{};
+        if (frameLength > buffer.remaining()) {
+            buffer.position(startOfLength);
+            frameData = SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+        } else {
+            frameData = SimpleBytes.parse(buffer, frameLength).getBytes();
+        }
         return new GreaseFrame(frameType, frameData);
     }
 
@@ -63,7 +69,7 @@ public class GreaseFrame implements Frame {
 
     @Override
     public String toString() {
-        return String.format("GreaseFrame(type=0x%x,data=[%s])", this.type, Hex.encodeHexString(this.data));
+        return String.format("GreaseFrame(type=0x%x,data=[%s])", this.type, new String(this.data));
     }
 
 }

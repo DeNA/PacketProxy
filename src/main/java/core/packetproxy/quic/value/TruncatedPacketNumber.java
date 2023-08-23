@@ -51,7 +51,7 @@ public class TruncatedPacketNumber {
     }
 
     public byte[] getBytes() {
-        return truncatedPacketNumber;
+        return this.truncatedPacketNumber;
     }
 
     public PacketNumber getPacketNumber(PacketNumber largestAckedPn) {
@@ -75,7 +75,7 @@ public class TruncatedPacketNumber {
                 packetNumber.getNumber() - largestAckPn.getNumber();
 
         double minBits = Math.log(numUnAcked) / Math.log(2) + 1;
-        int numBytes = (int)Math.ceil(minBits / 8);
+        int numBytes = (int)Math.ceil(minBits / 8.0f);
 
         /* truncate to the least significant bytes. */
         return truncate(packetNumber.getNumber(), numBytes);
@@ -117,7 +117,7 @@ public class TruncatedPacketNumber {
     }
 
     static private byte[] truncate(long packetNumber, int byteLength) {
-        if (byteLength == 1) {
+        if (byteLength == 0 || byteLength == 1) {
             return new byte[] { (byte)(packetNumber & 0xff) };
         }
         else if (byteLength == 2) {

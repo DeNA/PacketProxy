@@ -16,6 +16,7 @@
 
 package packetproxy.quic.utils;
 
+import lombok.ToString;
 import packetproxy.quic.value.PacketNumber;
 
 import java.util.ArrayList;
@@ -53,5 +54,9 @@ public class PacketNumbers {
         return pn.orElse(null);
     }
 
+    public String toString() {
+        return String.format("PacketNumbers([%s])",
+                String.join(",", this.packetNumberList.stream().map(pn -> String.valueOf(pn.getNumber())).toList()));
+    }
 
 }

@@ -41,6 +41,10 @@ public class SentPackets implements Iterable<SentPacket> {
         this.sentPacketMap.put(packet.getPacketNumber(), new SentPacket(packet));
     }
 
+    public synchronized SentPacket get(PacketNumber pn) {
+        return this.sentPacketMap.get(pn);
+    }
+
     public synchronized boolean isEmpty() {
         return this.sentPacketMap.isEmpty();
     }

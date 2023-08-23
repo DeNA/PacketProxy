@@ -25,8 +25,7 @@ import packetproxy.util.PacketProxyUtility;
 import java.time.Instant;
 
 import static packetproxy.quic.utils.Constants.PnSpaceType;
-import static packetproxy.quic.utils.Constants.PnSpaceType.PnSpaceHandshake;
-import static packetproxy.quic.utils.Constants.PnSpaceType.PnSpaceInitial;
+import static packetproxy.quic.utils.Constants.PnSpaceType.*;
 
 public class LossDetection {
 
@@ -99,9 +98,9 @@ public class LossDetection {
                  * サーバーがanti-amplificationのため、何も送信できない状態に陥っているため、何かパケットを投げて送信できるようにする
                  */
                 if (this.conn.getHandshakeState().hasHandshakeKeys()) {
-                    this.conn.getPnSpace(PnSpaceHandshake).addSendFrame(new PingFrame());
+                    this.conn.getPnSpace(PnSpaceHandshake).addSendFrame(PingFrame.generate());
                 } else {
-                    this.conn.getPnSpace(PnSpaceInitial).addSendFrame(new PingFrame());
+                    this.conn.getPnSpace(PnSpaceInitial).addSendFrame(PingFrame.generate());
                 }
             }
         } else {
@@ -111,12 +110,24 @@ public class LossDetection {
              * AckElicitingパケットを投げたのに、Ackが返ってこないので催促する
              */
             PnSpaceType ptoPnSpaceType = this.conn.getPto().getPtoSpaceType();
-            PacketProxyUtility.getInstance().packetProxyLogErr(
-                    String.format("[QUIC] Probe Timeout: send ack-eliciting packet (%s:%s)",
-                            this.conn.getRole(),
-                            ptoPnSpaceType.toString()));
+            //PacketProxyUtility.getInstance().packetProxyLogErr(
+            //        String.format("[QUIC] Probe Timeout: send ack-eliciting packet (%s:%s)",
+            //                this.conn.getRole(),
+            //                ptoPnSpaceType.toString()));
 
-            this.conn.getPnSpace(ptoPnSpaceType).addSendFrame(new PingFrame());
+            if (this.conn.getHandshakeState().isConfirmed()) { /* 現在は ApplicationData ステート */
+                if (ptoPnSpaceType == PnSpaceApplicationData) {
+                    this.conn.getPnSpace(ptoPnSpaceType).addSendFrame(PingFrame.generate());
+                }
+            } else if (this.conn.getHandshakeState().isAckReceived()) { /* 現在は Handshake ステート */
+                if (ptoPnSpaceType == PnSpaceHandshake) {
+                    this.conn.getPnSpace(ptoPnSpaceType).addSendFrame(PingFrame.generate());
+                }
+            } else { /* 現在は Initial ステート */
+                //if (ptoPnSpaceType == PnSpaceInitial) {
+                //    this.conn.getPnSpace(ptoPnSpaceType).addSendFrame(PingFrame.generate());
+                //}
+            }
         }
         this.conn.getPto().incrementPtoCount();
         setLossDetectionTimer();

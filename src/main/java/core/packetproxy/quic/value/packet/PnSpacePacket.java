@@ -25,14 +25,9 @@ import java.util.Optional;
 
 public interface PnSpacePacket {
     PacketNumber getPacketNumber();
-
     boolean isAckEliciting();
-
     boolean hasAckFrame();
-
     Optional<AckFrame> getAckFrame();
-
     PnSpaceType getPnSpaceType();
-
     Frames getFrames();
 }

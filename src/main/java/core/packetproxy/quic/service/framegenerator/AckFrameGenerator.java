@@ -83,6 +83,10 @@ public class AckFrameGenerator {
                 PacketNumber.of(this.largestAckedPn);
     }
 
+    public PacketNumber getSmallestValidPn() {
+        return PacketNumber.of(this.smallestValidPn - 1);
+    }
+
     public AckRanges generateAckRanges(long smallestOfRange) {
         List<AckRange> ackRanges =  new ArrayList<>();
         while (ackRangeExists(smallestOfRange)) {

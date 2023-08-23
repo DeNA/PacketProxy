@@ -34,26 +34,16 @@ import static packetproxy.quic.service.handshake.HandshakeState.State.AckReceive
 public class HandshakePnSpace extends PnSpace {
 
     public HandshakePnSpace(Connection conn) {
-        super(conn);
-    }
-
-    @Override
-    public void OnAckReceived(AckFrame ackFrame) {
-        super.conn.getHandshakeState().transit(AckReceived);
-        super.OnAckReceived(ackFrame);
+        super(conn, Constants.PnSpaceType.PnSpaceHandshake);
     }
 
     @Override
     public List<QuicPacketBuilder> getAndRemoveSendFramesAndConvertPacketBuilders() {
         List<QuicPacketBuilder> builders = new ArrayList<>();
         for (Frame frame: sendFrameQueue.pollAll()) {
-            byte[] payload = new FramesBuilder().add(frame).getBytes();
             builders.add(QuicPacketBuilder.getBuilder()
                     .setPnSpaceType(Constants.PnSpaceType.PnSpaceHandshake)
-                    .setPacketType(Constants.QuicPacketType.PacketHandshake)
-                    .setPacketNumber(this.nextPacketNumber)
-                    .setPayload(payload));
-            this.nextPacketNumber = this.nextPacketNumber.plus(1);
+                    .setFramesBuilder(new FramesBuilder().add(frame)));
         }
         return builders;
     }

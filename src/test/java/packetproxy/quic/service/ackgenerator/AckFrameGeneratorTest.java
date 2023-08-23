@@ -42,6 +42,21 @@ class AckFrameGeneratorTest {
     }
 
     @Test
+    public void 全て受信ただし開始番号が途中() throws Exception {
+        AckFrameGenerator ackFrameGenerator = new AckFrameGenerator();
+
+        ackFrameGenerator.received(5);
+        ackFrameGenerator.received(6);
+        ackFrameGenerator.received(7);
+        ackFrameGenerator.received(8);
+
+        AckFrame ackFrame = ackFrameGenerator.generateAckFrame();
+        assertEquals(8, ackFrame.getLargestAcknowledged());
+        assertEquals(3, ackFrame.getFirstAckRange());
+        assertEquals(0, ackFrame.getAckRangeCount());
+    }
+
+    @Test
     public void 受信できていないpacketが存在() throws Exception {
         AckFrameGenerator ackFrameGenerator = new AckFrameGenerator();
 

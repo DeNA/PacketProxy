@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import packetproxy.quic.service.connection.Connection;
 import packetproxy.quic.service.frame.Frames;
+import packetproxy.quic.service.frame.FramesBuilder;
 import packetproxy.quic.service.framegenerator.AckFrameGenerator;
 import packetproxy.quic.service.framegenerator.CryptoFramesToMessages;
 import packetproxy.quic.service.framegenerator.MessagesToCryptoFrames;
@@ -40,9 +41,11 @@ import packetproxy.util.PacketProxyUtility;
 
 import java.io.OutputStream;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 import static packetproxy.quic.service.handshake.HandshakeState.State.Confirmed;
+import static packetproxy.quic.utils.Constants.*;
 import static packetproxy.quic.utils.Constants.PnSpaceType.PnSpaceHandshake;
 import static packetproxy.quic.utils.Constants.PnSpaceType.PnSpaceInitial;
 import static packetproxy.util.Throwing.rethrow;
@@ -60,13 +63,21 @@ public abstract class PnSpace {
     protected final SendFrameQueue sendFrameQueue = new SendFrameQueue();
     protected final Connection conn;
     protected PacketNumber largestAckedPn = PacketNumber.Infinite;
+    protected PacketNumber largestAckedPnrInitiatedByPeer = PacketNumber.Infinite;
     protected Instant lossTime = Instant.MAX; /* パケットが欠落することになる未来時刻 */
     protected Instant timeOfLastAckElicitingPacket = Instant.MIN; /* 最後にAckを誘発するPacketを送信した時刻 */
-    protected PacketNumber nextPacketNumber;
+    protected PacketNumber nextPacketNumber = PacketNumber.of(0);
+    protected PnSpaceType pnSpaceType;
 
-    public PnSpace(Connection conn) {
+    public PnSpace(Connection conn, PnSpaceType pnSpaceType) {
         this.conn = conn;
-        this.nextPacketNumber = PacketNumber.of(0);
+        this.pnSpaceType = pnSpaceType;
+    }
+
+    public PacketNumber getNextPacketNumberAndIncrement() {
+        PacketNumber pn = PacketNumber.copy(this.nextPacketNumber);
+        this.nextPacketNumber = this.nextPacketNumber.plus(1);
+        return pn;
     }
 
     public synchronized boolean hasAnyAckElicitingPacket() {
@@ -80,13 +91,12 @@ public abstract class PnSpace {
         this.timeOfLastAckElicitingPacket = Instant.MIN;
     }
 
-    public synchronized void OnAckReceived(AckFrame ackFrame) {
+    public synchronized void OnAckReceived(PacketNumber pn, AckFrame ackFrame) {
         if (this.largestAckedPn == PacketNumber.Infinite) {
             this.largestAckedPn = ackFrame.getLargestAckedPn();
         } else {
             this.largestAckedPn = PacketNumber.max(this.largestAckedPn, ackFrame.getLargestAckedPn());
         }
-
         SentPackets newlyAckedPackets = sentPackets.detectAndRemoveAckedPackets(ackFrame);
         if (newlyAckedPackets.isEmpty()) {
             return;
@@ -106,7 +116,7 @@ public abstract class PnSpace {
 
         LostPackets lostPackets = this.detectAndRemoveLostPackets();
         if (!lostPackets.isEmpty()) {
-            PacketProxyUtility.getInstance().packetProxyLogErr("[QUIC] lost packets: " + lostPackets);
+            //PacketProxyUtility.getInstance().packetProxyLogErr("[QUIC] lost packets: " + lostPackets);
             OnPacketsLost(lostPackets);
         }
 
@@ -117,21 +127,30 @@ public abstract class PnSpace {
         this.conn.getLossDetection().setLossDetectionTimer();
     }
 
-    public synchronized void receivePacket(QuicPacket packet) {
-        if (packet instanceof PnSpacePacket) {
-            PnSpacePacket pnSpacePacket = (PnSpacePacket) packet;
-
-            this.ackFrameGenerator.received(pnSpacePacket.getPacketNumber());
-
-            if (pnSpacePacket.isAckEliciting()) {
-                this.addSendFrame(ackFrameGenerator.generateAckFrame());
+    public synchronized void receivePacket(QuicPacket quicPacket) {
+        if (quicPacket instanceof PnSpacePacket packet) {
+            packet.getAckFrame().ifPresent(ackFrame -> {
+                ackFrame.getAckedPacketNumbers().stream().forEach(pn -> {
+                    SentPacket sp = this.sentPackets.get(pn);
+                    if (sp != null) {
+                        PnSpacePacket pnPacket = sp.getPacket();
+                        if (pnPacket != null) {
+                            pnPacket.getAckFrame().ifPresent(ackFrame1 -> {
+                                this.largestAckedPnrInitiatedByPeer = ackFrame1.getLargestAckedPn();
+                            });
+                        }
+                    }
+                });
+            });
+            this.ackFrameGenerator.received(packet.getPacketNumber());
+            if (packet.isAckEliciting()) {
+                this.addSendFrameFirst(this.ackFrameGenerator.generateAckFrame());
             }
-
-            this.receiveFrames(pnSpacePacket.getFrames());
+            this.receiveFrames(packet.getPacketNumber(), packet.getFrames());
         }
     }
 
-    private synchronized void receiveFrames(Frames frames) {
+    private synchronized void receiveFrames(PacketNumber pn, Frames frames) {
         for (Frame frame : frames) {
             if (frame instanceof CryptoFrame) {
                 frameToMsgCryptoStream.write((CryptoFrame) frame);
@@ -142,13 +161,12 @@ public abstract class PnSpace {
                 StreamFrame streamFrame = (StreamFrame) frame;
                 this.frameToMsgStream.put(streamFrame);
                 this.frameToMsgStream.get(streamFrame.getStreamId()).ifPresent(rethrow(msg -> {
-                    /* Application Data received from peer */
                     OutputStream os = this.conn.getPipe().getRawEndpoint().getOutputStream();
                     os.write(msg.getBytes());
                     os.flush();
                 }));
             } else if (frame instanceof AckFrame) {
-                this.OnAckReceived((AckFrame) frame);
+                this.OnAckReceived(pn, (AckFrame) frame);
             } else if (frame instanceof HandshakeDoneFrame) {
                 this.conn.getHandshakeState().transit(Confirmed);
                 if (this.conn.getRole() == Constants.Role.CLIENT) {
@@ -167,14 +185,27 @@ public abstract class PnSpace {
                 /* Do Nothing */
             } else if (frame instanceof PaddingFrame) {
                 /* Do Nothing */
+            } else if (frame instanceof MaxDataFrame) {
+                /* Do Nothing */
+            } else if (frame instanceof StopSendingFrame) {
+                /* Do Nothing */
+            } else if (frame instanceof ResetStreamFrame) {
+                this.conn.close();
             } else {
-                System.err.println("Error: couldn't process frame: " + frame);
+                System.err.println("Error: cannot process frame: " + frame);
             }
         }
     }
 
     public synchronized void addSendQuicMessage(QuicMessage msg) {
         /* defined on ApplicationData PnSpace only */
+    }
+
+    public synchronized void addSendFrameFirst(Frame frame) {
+        QuicPacketBuilder builder = QuicPacketBuilder.getBuilder()
+                .setPnSpaceType(this.pnSpaceType)
+                .setFramesBuilder(new FramesBuilder().add(frame));
+        this.conn.getPnSpaces().addSendPacketsFirst(builder);
     }
 
     public void addSendFrame(Frame frame) {
@@ -187,11 +218,10 @@ public abstract class PnSpace {
     }
     public abstract List<QuicPacketBuilder> getAndRemoveSendFramesAndConvertPacketBuilders();
 
-    public synchronized void addSentPacket(QuicPacket packet) {
-        if (packet instanceof PnSpacePacket) {
-            PnSpacePacket pnSpacePacket = (PnSpacePacket) packet;
-            if (pnSpacePacket.isAckEliciting()) {
-                this.sentPackets.add(new SentPacket(pnSpacePacket));
+    public synchronized void addSentPacket(QuicPacket quicPacket) {
+        if (quicPacket instanceof PnSpacePacket packet) {
+            this.sentPackets.add(new SentPacket(packet));
+            if (packet.isAckEliciting()) {
                 this.timeOfLastAckElicitingPacket = Instant.now();
             }
         }

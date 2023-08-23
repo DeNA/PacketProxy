@@ -29,6 +29,7 @@ public class OneshotStream {
     private final Map<Long/*offset*/, StreamFrame> frameMap = new HashMap<>();
     private final StreamId streamId;
     private boolean lastFrameReceived = false;
+    private boolean alreadyResultReturned = false;
     private long totalLength = 0;
 
     public OneshotStream(StreamId streamId) {
@@ -44,6 +45,9 @@ public class OneshotStream {
     }
 
     public Optional<QuicMessage> get() throws Exception {
+        if (this.alreadyResultReturned) {
+            return Optional.empty();
+        }
         if (!this.lastFrameReceived) {
             return Optional.empty();
         }
@@ -57,6 +61,7 @@ public class OneshotStream {
             offset += frame.getLength();
             data.write(frame.getStreamData());
         }
+        this.alreadyResultReturned = true;
         return Optional.of(QuicMessage.of(this.streamId, data.toByteArray()));
     }
 }

@@ -33,7 +33,7 @@ import java.util.List;
 public class InitialPnSpace extends PnSpace {
 
     public InitialPnSpace(Connection conn) {
-        super(conn);
+        super(conn, Constants.PnSpaceType.PnSpaceInitial);
     }
 
     @Override
@@ -49,13 +49,9 @@ public class InitialPnSpace extends PnSpace {
     public List<QuicPacketBuilder> getAndRemoveSendFramesAndConvertPacketBuilders() {
         List<QuicPacketBuilder> builders = new ArrayList<>();
         for (Frame frame: sendFrameQueue.pollAll()) {
-            byte[] payload = new FramesBuilder().add(frame).addPaddingFramesToEnsure1200Bytes().getBytes();
             builders.add(QuicPacketBuilder.getBuilder()
                     .setPnSpaceType(Constants.PnSpaceType.PnSpaceInitial)
-                    .setPacketType(Constants.QuicPacketType.PacketInitial)
-                    .setPacketNumber(super.nextPacketNumber)
-                    .setPayload(payload));
-            super.nextPacketNumber = super.nextPacketNumber.plus(1);
+                    .setFramesBuilder(new FramesBuilder().add(frame).addPaddingFramesToEnsure1200Bytes()));
         }
         return builders;
     }

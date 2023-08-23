@@ -75,25 +75,29 @@ public class ListenPorts extends Observable implements Observer
 		return dao.queryBuilder().where().eq("enabled", true).query();
 	}
 	public boolean isAlreadyEnabled(ListenPort port) throws Exception {
-		return (dao.queryBuilder().where()
+		return dao.queryBuilder().where()
 				.ne("id", port.getId())
 				.and()
 				.eq("port", port.getPort())
 				.and()
-				.eq("enabled", true).countOf() > 0) ? true : false;
+				.eq("enabled", true).query().stream().anyMatch(listenPort ->
+						listenPort.getProtocol() == port.getProtocol()
+				);
 	}
-	public ListenPort queryEnabledByPort(int port) throws Exception {
-		List<ListenPort> rets =  dao.queryBuilder().where()
+	public ListenPort queryEnabledByPort(ListenPort.Protocol protocol, int port) throws Exception {
+		List<ListenPort> rets = dao.queryBuilder().where()
 				.eq("port", port)
 				.and()
-				.eq("enabled", true).query();
+				.eq("enabled", true).query().stream().filter(listenPort ->
+						listenPort.getProtocol() == protocol).toList();
 		return rets.size() > 0 ? rets.get(0) : null;
 	}
-	public ListenPort queryByPortServer(int port, int server_id) throws Exception {
+	public ListenPort queryByPortServer(ListenPort.Protocol protocol, int port, int server_id) throws Exception {
 		List<ListenPort> rets =  dao.queryBuilder().where()
 				.eq("port", port)
 				.and()
-				.eq("server_id", server_id).query();
+				.eq("server_id", server_id).query().stream().filter(listenPort ->
+						listenPort.getProtocol() == protocol).toList();
 		return rets.size() > 0 ? rets.get(0) : null;
 	}
 	public ListenPort queryByHttpProxyPort(int port) throws Exception {

@@ -85,22 +85,22 @@ public class QuicPacketParser {
         byte type = getTypeWithoutIncrement(buffer);
 
         if (InitialPacket.is(type) && this.roleKeys.hasInitialKey()) {
-            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceInitial).getLargestAckedPn();
+            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceInitial).getLargestAckedPnrInitiatedByPeer();
             InitialPacket initialPacket = new InitialPacket(buffer, this.roleKeys.getInitialKey(), largestAckedPn);
             return Optional.of(initialPacket);
 
         } else if (HandshakePacket.is(type) && this.roleKeys.hasHandshakeKey()) {
-            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceHandshake).getLargestAckedPn();
+            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceHandshake).getLargestAckedPnrInitiatedByPeer();
             HandshakePacket handshakePacket = new HandshakePacket(buffer, this.roleKeys.getHandshakeKey(), largestAckedPn);
             return Optional.of(handshakePacket);
 
         } else if (ShortHeaderPacket.is(type) && this.roleKeys.hasApplicationKey()) {
-            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceApplicationData).getLargestAckedPn();
+            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceApplicationData).getLargestAckedPnrInitiatedByPeer();
             ShortHeaderPacket shortHeaderPacket = new ShortHeaderPacket(buffer, this.roleKeys.getApplicationKey(), largestAckedPn);
             return Optional.of(shortHeaderPacket);
 
         } else if (ZeroRttPacket.is(type) && this.roleKeys.hasZeroRttKey()) {
-            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceApplicationData).getLargestAckedPn();
+            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceApplicationData).getLargestAckedPnrInitiatedByPeer();
             ZeroRttPacket zeroRttPacket = new ZeroRttPacket(buffer, this.roleKeys.getZeroRttKey(), largestAckedPn);
             return Optional.of(zeroRttPacket);
 
@@ -110,14 +110,16 @@ public class QuicPacketParser {
             return Optional.empty();
 
         } else {
+            if (InitialPacket.is(type)) {
+                throw new AwaitingException("InitialPacket has been received, but initial key was not found");
+            }
             if (HandshakePacket.is(type)) {
                 throw new AwaitingException("wait until deploying handshake key");
             }
             if (ShortHeaderPacket.is(type) || ZeroRttPacket.is(type)) {
                 throw new AwaitingException("wait until deploying application key");
             }
-            // TODO: ZeroRttPacket, RetryPacket
-            throw new Exception(String.format("Error: packet type (%x) is not supported", type));
+            throw new Exception(String.format("Unknown Error: packet type (%x) received", type));
         }
     }
 

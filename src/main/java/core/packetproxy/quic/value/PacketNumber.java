@@ -30,6 +30,10 @@ public class PacketNumber {
         return new PacketNumber(number);
     }
 
+    static public PacketNumber copy(PacketNumber pn) {
+        return new PacketNumber(pn.getNumber());
+    }
+
     static public PacketNumber max(PacketNumber a, PacketNumber b) {
         return a.getNumber() > b.getNumber() ? a : b;
     }
@@ -80,6 +84,10 @@ public class PacketNumber {
 
     public boolean isLargerThanOrEquals(PacketNumber packetPn) {
         return this.number >= packetPn.getNumber();
+    }
+
+    public byte[] toBytes() {
+        return new byte[] { (byte)((this.number >> 24) & 0xff), (byte)((this.number >> 16) & 0xff), (byte)((this.number >> 8) & 0xff), (byte)(this.number & 0xff) };
     }
 
     public String toString() {

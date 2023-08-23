@@ -18,33 +18,34 @@ package packetproxy.http3.service.stream;
 
 import packetproxy.http3.service.HttpRaw;
 import packetproxy.http3.service.frame.FrameParser;
-import packetproxy.http3.value.frame.DataFrame;
-import packetproxy.http3.value.frame.Frame;
-import packetproxy.http3.value.frame.Frames;
-import packetproxy.http3.value.frame.HeadersFrame;
+import packetproxy.http3.value.frame.*;
 import packetproxy.quic.value.QuicMessage;
 import packetproxy.quic.value.StreamId;
 
-import java.util.Optional;
+import java.io.ByteArrayOutputStream;
 
 import static packetproxy.util.Throwing.rethrow;
 
 public class HttpReadStream extends Stream implements ReadStream {
 
-    private HeadersFrame headersFrame = null;
-    private DataFrame dataFrame = null;
+    private ByteArrayOutputStream headers = new ByteArrayOutputStream();
+    private ByteArrayOutputStream data = new ByteArrayOutputStream();
 
     public HttpReadStream(StreamId streamId) {
         super(streamId, StreamType.NoStreamType);
     }
 
     public void write(Frame frame) throws Exception {
-        if (frame instanceof HeadersFrame) {
-            this.headersFrame = (HeadersFrame)frame;
+        if (frame instanceof HeadersFrame headersFrame) {
+            this.headers.write(headersFrame.getData());
             return;
         }
-        if (frame instanceof DataFrame) {
-            this.dataFrame = (DataFrame)frame;
+        if (frame instanceof DataFrame dataFrame) {
+            this.data.write(dataFrame.getData());
+            return;
+        }
+        if (frame instanceof GreaseFrame) {
+            System.out.println(frame);
             return;
         }
         throw new Exception("Error: write UnknownFrame(neither HeaderFrame nor DataFrame) to HttpStream.");
@@ -62,11 +63,11 @@ public class HttpReadStream extends Stream implements ReadStream {
     }
 
     public byte[] readHeaderBytes() {
-        return this.headersFrame != null ? this.headersFrame.getData() : new byte[]{};
+        return this.headers.toByteArray();
     }
 
     public byte[] readDataBytes() {
-        return this.dataFrame != null ? this.dataFrame.getData() : new byte[]{};
+        return this.data.toByteArray();
     }
 
     public HttpRaw readHttpRaw() {
@@ -74,7 +75,7 @@ public class HttpReadStream extends Stream implements ReadStream {
     }
 
     public boolean isEmpty() {
-        return this.headersFrame == null;
+        return this.headers.size() == 0;
     }
 
 }

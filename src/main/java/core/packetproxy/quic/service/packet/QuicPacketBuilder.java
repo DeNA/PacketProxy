@@ -19,13 +19,14 @@ package packetproxy.quic.service.packet;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import packetproxy.quic.service.frame.FramesBuilder;
 import packetproxy.quic.value.packet.QuicPacket;
 import packetproxy.quic.value.packet.longheader.pnspace.HandshakePacket;
 import packetproxy.quic.value.packet.longheader.pnspace.InitialPacket;
 import packetproxy.quic.value.packet.shortheader.ShortHeaderPacket;
 import packetproxy.quic.value.ConnectionIdPair;
 import packetproxy.quic.value.PacketNumber;
-import packetproxy.quic.utils.Constants;
+import packetproxy.quic.utils.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.NONE)
@@ -36,9 +37,9 @@ public class QuicPacketBuilder {
     }
 
     Constants.PnSpaceType pnSpaceType;
-    Constants.QuicPacketType quicPacketType;
     byte[] token = new byte[0]; /* for Initial Packet */
     byte[] payload = new byte[0];
+    FramesBuilder framesBuilder;
     PacketNumber packetNumber;
     ConnectionIdPair connIdPair;
 
@@ -47,18 +48,13 @@ public class QuicPacketBuilder {
         return this;
     }
 
-    public QuicPacketBuilder setPacketType(Constants.QuicPacketType quicPacketType) {
-        this.quicPacketType = quicPacketType;
-        return this;
-    }
-
     public QuicPacketBuilder setToken(byte[] token) {
         this.token = token;
         return this;
     }
 
-    public QuicPacketBuilder setPayload(byte[] payload) {
-        this.payload = payload;
+    public QuicPacketBuilder setFramesBuilder(FramesBuilder builder) {
+        this.framesBuilder = builder;
         return this;
     }
 
@@ -73,13 +69,14 @@ public class QuicPacketBuilder {
     }
 
     public QuicPacket build() throws Exception {
-        if (this.quicPacketType == Constants.QuicPacketType.PacketInitial) {
+        this.payload = this.framesBuilder.getBytes();
+        if (this.pnSpaceType == Constants.PnSpaceType.PnSpaceInitial) {
             return InitialPacket.of(1, this.connIdPair, this.packetNumber, this.payload, this.token);
         }
-        if (this.quicPacketType == Constants.QuicPacketType.PacketHandshake) {
+        if (this.pnSpaceType == Constants.PnSpaceType.PnSpaceHandshake) {
             return HandshakePacket.of(1, this.connIdPair, this.packetNumber, this.payload);
         }
-        if (this.quicPacketType == Constants.QuicPacketType.PacketApplication) {
+        if (this.pnSpaceType == Constants.PnSpaceType.PnSpaceApplicationData) {
             return ShortHeaderPacket.of(this.connIdPair.getDestConnId(), this.packetNumber, this.payload);
         }
         throw new Exception("error: unknown packet type");

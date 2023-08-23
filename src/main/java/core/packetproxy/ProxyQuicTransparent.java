@@ -17,6 +17,7 @@
 package packetproxy;
 
 import packetproxy.model.ListenPort;
+import packetproxy.model.Server;
 import packetproxy.model.Servers;
 import packetproxy.quic.service.connection.ClientConnection;
 import packetproxy.quic.service.connection.ClientConnections;
@@ -49,10 +50,15 @@ public class ProxyQuicTransparent extends Proxy
 						sniServerName,
 						this.listen_info.getPort());
 
-				String encoder = Servers.getInstance().queryByHostName(sniServerName).getEncoder();
-				if (encoder == null) {
-					encoder = "Sample";
+				String encoder = "HTTP";
+				Server server = Servers.getInstance().queryByHostName(sniServerName);
+				if (server != null) {
+					String encoderTemp = Servers.getInstance().queryByHostName(sniServerName).getEncoder();
+					if (encoderTemp != null) {
+						encoder = encoderTemp;
+					}
 				}
+
 				String alpn = encoder.equals("HTTP") ? "h3" : null;
 
 				DuplexAsync duplex = DuplexFactory.createDuplexAsync(

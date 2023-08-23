@@ -25,7 +25,7 @@ import java.util.*;
 @Getter
 public class SendFrameQueue {
 
-    Queue<Frame> frames;
+    Deque<Frame> frames;
 
     public SendFrameQueue() {
         this.frames = new ArrayDeque<>();

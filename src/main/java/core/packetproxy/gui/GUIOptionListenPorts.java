@@ -39,8 +39,8 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort>
 		listenPorts.addObserver(this);
 		table_ext_list = new ArrayList<ListenPort>();
 
-		String[] menu = { "Enabled", "Listen Port", "Port Type", "CA", "Forward Server" };
-		int[] menuWidth = { 50, 80, 120, 250, 300 };
+		String[] menu = { "Enabled", "Protocol", "Listen Port", "Port Type", "CA", "Forward Server" };
+		int[] menuWidth = { 50, 50, 80, 120, 250, 300 };
 		MouseAdapter tableAction = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -119,6 +119,7 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort>
 				serverNullStr = "Deleted";
 			option_model.addRow(new Object[] {
 				listenPort.isEnabled(),
+					listenPort.getProtocol(),
 					listenPort.getPort(),
 					listenPort.getType(),
 					listenPort.getCA().map(ca -> ca.getName()).orElse("Error"),

@@ -17,51 +17,42 @@
 package packetproxy.quic.value.frame;
 
 import com.google.common.collect.ImmutableList;
-import iris.protocol.Ping;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import packetproxy.quic.value.SimpleBytes;
+import packetproxy.quic.value.VariableLengthInteger;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.List;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
-public class PingFrame extends Frame {
+public class MaxDataFrame extends Frame {
 
-    static public final byte TYPE = 0x01;
-    long length;
+    static public final byte TYPE = 0x10;
+    long maxData;
 
     static public List<Byte> supportedTypes() {
         return ImmutableList.of(TYPE);
     }
 
-    static public PingFrame parse(byte[] bytes) {
-        return PingFrame.parse(ByteBuffer.wrap(bytes));
+    static public MaxDataFrame parse(byte[] bytes) {
+        return MaxDataFrame.parse(ByteBuffer.wrap(bytes));
     }
 
-    static public PingFrame parse(ByteBuffer buffer) {
-        long length = 0;
-        while (buffer.remaining() > 0) {
-            byte type = buffer.get();
-            if (type != TYPE) {
-                buffer.position(buffer.position() - 1);
-                break;
-            }
-            length++;
-        }
-        return new PingFrame(length);
-    }
-
-    static public PingFrame generate() {
-        return new PingFrame(1);
+    static public MaxDataFrame parse(ByteBuffer buffer) {
+        byte type = buffer.get();
+        long maxData = VariableLengthInteger.parse(buffer).getValue();
+        return new MaxDataFrame(maxData);
     }
 
     @Override
     public byte[] getBytes() {
-        byte[] bytes = new byte[(int)this.length];
-        Arrays.fill(bytes, TYPE);
-        return bytes;
+        ByteBuffer buffer = ByteBuffer.allocate(1500);
+        buffer.put(TYPE);
+        buffer.put(VariableLengthInteger.of(this.maxData).getBytes());
+        buffer.flip();
+        return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
     }
 
     @Override

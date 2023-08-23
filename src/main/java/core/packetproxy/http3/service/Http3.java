@@ -18,16 +18,20 @@ package packetproxy.http3.service;
 
 import org.apache.commons.codec.binary.Hex;
 import org.eclipse.jetty.http.*;
+import packetproxy.common.UniqueID;
 import packetproxy.http.HeaderField;
 import packetproxy.http.Http;
 import packetproxy.http.HttpHeader;
 import packetproxy.http3.value.Setting;
+import packetproxy.model.Packet;
 import packetproxy.quic.utils.Constants;
 import packetproxy.quic.value.QuicMessages;
 import packetproxy.quic.value.StreamId;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 import static packetproxy.util.Throwing.rethrow;
 
@@ -49,7 +53,7 @@ public class Http3 {
     }
 
     public int checkDelimiter(byte[] input) {
-        if (input == null || input.length == 0) {
+        if (input == null || input.length < 16) {
             return -1;
         }
         ByteBuffer buffer = ByteBuffer.wrap(input);
@@ -238,6 +242,24 @@ public class Http3 {
         HttpRaw httpRaw = this.generateHttpRaw(input);
         this.clientStreamsWriter.write(httpRaw);
         return this.clientStreamsWriter.readQuickMessages().getBytes();
+    }
+
+    private Map<Long,Long> groupMap = new HashMap<>();
+
+    public void setGroupId(Packet packet) throws Exception {
+        byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
+        Http http = new Http(data);
+        String streamIdStr = http.getFirstHeader("x-packetproxy-http3-stream-id");
+        if (streamIdStr != null && streamIdStr.length() > 0) {
+            long streamId = Long.parseLong(streamIdStr);
+            if (groupMap.containsKey(streamId)) {
+                packet.setGroup(groupMap.get(streamId));
+            } else {
+                long groupId = UniqueID.getInstance().createId();
+                groupMap.put(streamId, groupId);
+                packet.setGroup(groupId);
+            }
+        }
     }
 
 

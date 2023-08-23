@@ -30,6 +30,14 @@ abstract public class Stream {
         QpackDecoderStreamType(0x3),
         NoStreamType(0x4);
         final long type;
+        public static StreamType of(final int typeId) {
+            for (StreamType streamType : StreamType.values()) {
+                if (streamType.type == typeId) {
+                    return streamType;
+                }
+            }
+            return null;
+        }
     }
 
     public StreamId streamId;
