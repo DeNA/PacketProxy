@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class PacketNumbers {
@@ -56,7 +57,7 @@ public class PacketNumbers {
 
     public String toString() {
         return String.format("PacketNumbers([%s])",
-                String.join(",", this.packetNumberList.stream().map(pn -> String.valueOf(pn.getNumber())).toList()));
+                this.packetNumberList.stream().map(pn -> String.valueOf(pn.getNumber())).collect(Collectors.joining(",")));
     }
 
 }

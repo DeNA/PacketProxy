@@ -128,7 +128,8 @@ public abstract class PnSpace {
     }
 
     public synchronized void receivePacket(QuicPacket quicPacket) {
-        if (quicPacket instanceof PnSpacePacket packet) {
+        if (quicPacket instanceof PnSpacePacket) {
+            PnSpacePacket packet = (PnSpacePacket)quicPacket;
             packet.getAckFrame().ifPresent(ackFrame -> {
                 ackFrame.getAckedPacketNumbers().stream().forEach(pn -> {
                     SentPacket sp = this.sentPackets.get(pn);
@@ -219,7 +220,8 @@ public abstract class PnSpace {
     public abstract List<QuicPacketBuilder> getAndRemoveSendFramesAndConvertPacketBuilders();
 
     public synchronized void addSentPacket(QuicPacket quicPacket) {
-        if (quicPacket instanceof PnSpacePacket packet) {
+        if (quicPacket instanceof PnSpacePacket) {
+            PnSpacePacket packet = (PnSpacePacket) quicPacket;
             this.sentPackets.add(new SentPacket(packet));
             if (packet.isAckEliciting()) {
                 this.timeOfLastAckElicitingPacket = Instant.now();

@@ -129,7 +129,8 @@ public abstract class Connection implements Endpoint {
                                 sendUdpPacket(udpData);
                                 return true;
                             }
-                            if (packet instanceof ShortHeaderPacket sp && keys.hasApplicationKey()) {
+                            if (packet instanceof ShortHeaderPacket && keys.hasApplicationKey()) {
+                                ShortHeaderPacket sp = (ShortHeaderPacket) packet;
                                 if (role == Constants.Role.CLIENT && getHandshakeState().isNotConfirmed()) {
                                     return false; /* Handshakeが終わってからShortHeaderPacketを送信しないとサーバー側でエラーになってしまうので、後ほど送信 */
                                 }

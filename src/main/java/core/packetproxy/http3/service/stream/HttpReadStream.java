@@ -36,11 +36,13 @@ public class HttpReadStream extends Stream implements ReadStream {
     }
 
     public void write(Frame frame) throws Exception {
-        if (frame instanceof HeadersFrame headersFrame) {
+        if (frame instanceof HeadersFrame) {
+            HeadersFrame headersFrame = (HeadersFrame)frame;
             this.headers.write(headersFrame.getData());
             return;
         }
-        if (frame instanceof DataFrame dataFrame) {
+        if (frame instanceof DataFrame) {
+            DataFrame dataFrame = (DataFrame)frame;
             this.data.write(dataFrame.getData());
             return;
         }

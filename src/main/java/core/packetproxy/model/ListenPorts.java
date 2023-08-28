@@ -19,6 +19,8 @@ import com.j256.ormlite.dao.Dao;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.stream.Collectors;
+
 import packetproxy.model.Database.DatabaseMessage;
 
 public class ListenPorts extends Observable implements Observer
@@ -89,7 +91,7 @@ public class ListenPorts extends Observable implements Observer
 				.eq("port", port)
 				.and()
 				.eq("enabled", true).query().stream().filter(listenPort ->
-						listenPort.getProtocol() == protocol).toList();
+						listenPort.getProtocol() == protocol).collect(Collectors.toList());
 		return rets.size() > 0 ? rets.get(0) : null;
 	}
 	public ListenPort queryByPortServer(ListenPort.Protocol protocol, int port, int server_id) throws Exception {
@@ -97,7 +99,7 @@ public class ListenPorts extends Observable implements Observer
 				.eq("port", port)
 				.and()
 				.eq("server_id", server_id).query().stream().filter(listenPort ->
-						listenPort.getProtocol() == protocol).toList();
+						listenPort.getProtocol() == protocol).collect(Collectors.toList());
 		return rets.size() > 0 ? rets.get(0) : null;
 	}
 	public ListenPort queryByHttpProxyPort(int port) throws Exception {
