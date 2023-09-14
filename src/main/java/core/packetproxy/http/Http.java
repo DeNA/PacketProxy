@@ -17,7 +17,6 @@ package packetproxy.http;
 
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections4.map.MultiValueMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -33,7 +32,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
@@ -61,6 +59,15 @@ public class Http
 	private boolean flag_proxy_ssl = false;
 	private boolean flag_disable_proxy_format_url = false;
 	private boolean flag_disable_content_length = false;
+	private boolean flag_dont_touch_content_length = false;
+
+	public static Http create(byte[] data) throws Exception {
+		return new Http(data, false);
+	}
+
+	public static Http createWithoutTouchingContentLength(byte[] data) throws Exception {
+		return new Http(data, true);
+	}
 
 	/*
 	public static void main(String args[])
@@ -164,8 +171,11 @@ public class Http
 		return HttpHeader.isHTTPHeader(data);
 	}
 
-	public Http(byte[] data) throws Exception
+	private Http(byte[] data, boolean withoutTouchingContentLength) throws Exception
 	{
+		if (withoutTouchingContentLength) {
+			this.dontTouchContentLength();
+		}
 		queryString = new QueryString("");
 		header = new HttpHeader(data);
 		originalHeader = new HttpHeader(data);
@@ -246,6 +256,12 @@ public class Http
 		this.flag_disable_content_length = true;
 	}
 
+	/* Content-Lengthには触らない */
+	/* HEADのレスポンス等で利用 */
+	public void dontTouchContentLength() {
+		this.flag_dont_touch_content_length = true;
+	}
+
 	public void disableProxyFormatUrl() {
 		this.flag_disable_proxy_format_url = true;
 	}
@@ -278,7 +294,9 @@ public class Http
 			}
 		}
 
-		header.removeAll("Content-Length");
+		if (!this.flag_dont_touch_content_length) {
+			header.removeAll("Content-Length");
+		}
 		return cookedBody;
 	}
 
@@ -340,6 +358,8 @@ public class Http
 			// 特定サイトでは Content-Length: 0をつけるとうまく動かないので例外処理する
 		} else if (this.flag_disable_content_length) { 
 			// content-lengthがいらないと明示的に指定したケース
+		} else if (this.flag_dont_touch_content_length) {
+			// content-lengthを触らないと明示的に指定したケース
 		} else {
 			// Content-Typeがないパターンでも必ずContent-Lengthはつけるべき
 			//if (header.containsKey("Content-Type")) {

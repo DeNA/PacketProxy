@@ -128,7 +128,7 @@ public class Http3 {
     }
 
     public HttpRaw generateHttpRaw(byte[] httpBytes) throws Exception {
-        return generateHttpRaw(new Http(httpBytes));
+        return generateHttpRaw(Http.create(httpBytes));
     }
 
     public HttpRaw generateHttpRaw(Http http) throws Exception {
@@ -248,7 +248,7 @@ public class Http3 {
 
     public void setGroupId(Packet packet) throws Exception {
         byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
-        Http http = new Http(data);
+        Http http = Http.create(data);
         String streamIdStr = http.getFirstHeader("x-packetproxy-http3-stream-id");
         if (streamIdStr != null && streamIdStr.length() > 0) {
             long streamId = Long.parseLong(streamIdStr);

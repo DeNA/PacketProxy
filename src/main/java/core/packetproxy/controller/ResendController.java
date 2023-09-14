@@ -242,7 +242,7 @@ public class ResendController
 					if (encoder instanceof EncodeHTTPBase) {
 						EncodeHTTPBase httpEncoder = (EncodeHTTPBase)encoder;
 						if (httpEncoder.getHttpVersion() == EncodeHTTPBase.HTTPVersion.HTTP1) {
-							while (new Http(data).getStatusCode().equals("100")) {
+							while (Http.create(data).getStatusCode().equals("100")) {
 								data = duplex.receive();
 							}
 						}

@@ -31,6 +31,7 @@ public abstract class EncodeHTTPBase extends Encoder
 	private HTTPVersion httpVersion;
 	private FramesBase http2;
 	private Http3 http3;
+	private String requestMethod = "";
 
 	public EncodeHTTPBase() {
 		super("http/1.1");
@@ -71,6 +72,14 @@ public abstract class EncodeHTTPBase extends Encoder
 		} else {
 			return http3.checkDelimiter(data);
 		}
+	}
+
+	@Override
+	public int checkResponseDelimiter(byte[] data) throws Exception {
+		if (this.requestMethod.equals("HEAD")) {
+			return data.length;
+		}
+		return checkDelimiter(data);
 	}
 
 	@Override
@@ -146,14 +155,15 @@ public abstract class EncodeHTTPBase extends Encoder
 		} else if (this.httpVersion == HTTPVersion.HTTP3) {
 			input_data = http3.decodeClientRequest(input_data);
 		}
-		Http http = new Http(input_data);
+		Http http = Http.create(input_data);
 		Http decodedHttp = decodeClientRequestHttp(http);
 		return decodedHttp.toByteArray();
 	}
 
 	@Override
 	public byte[] encodeClientRequest(byte[] input_data) throws Exception {
-		Http http = new Http(input_data);
+		Http http = Http.create(input_data);
+		this.requestMethod = http.getMethod();
 		Http encodedHttp = encodeClientRequestHttp(http);
 		byte[] encodedData = encodedHttp.toByteArray();
 		if (this.httpVersion == HTTPVersion.HTTP2) { 
@@ -171,15 +181,24 @@ public abstract class EncodeHTTPBase extends Encoder
 		} else if (this.httpVersion == HTTPVersion.HTTP3) {
 			input_data = http3.decodeServerResponse(input_data);
 		}
-		Http http = new Http(input_data);
+		Http http;
+		if (this.requestMethod.equals("HEAD")) {
+			http = Http.createWithoutTouchingContentLength(input_data);
+		} else {
+			http = Http.create(input_data);
+		}
 		Http decodedHttp = decodeServerResponseHttp(http);
-		decodedHttp.isGzipEncoded();
 		return decodedHttp.toByteArray();
 	}
 
 	@Override
 	public byte[] encodeServerResponse(byte[] input_data) throws Exception {
-		Http http = new Http(input_data);
+		Http http;
+		if (this.requestMethod.equals("HEAD")) {
+			http = Http.createWithoutTouchingContentLength(input_data);
+		} else {
+			http = Http.create(input_data);
+		}
 		Http encodedHttp = encodeServerResponseHttp(http);
 		byte[] encodedData = encodedHttp.toByteArray();
 		if (this.httpVersion == HTTPVersion.HTTP2) { 
@@ -228,7 +247,7 @@ public abstract class EncodeHTTPBase extends Encoder
 
 	@Override
 	public String getContentType(byte[] input_data) throws Exception {
-		Http http = new Http(input_data);
+		Http http = Http.create(input_data);
 		return http.getFirstHeader("Content-Type");
 	}
 
@@ -239,7 +258,7 @@ public abstract class EncodeHTTPBase extends Encoder
 		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
 		try {
 			byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
-			Http http = new Http(data);
+			Http http = Http.create(data);
 			String statusCode = http.getStatusCode();
 			summary = statusCode;
 		} catch (Exception e) {
@@ -256,7 +275,7 @@ public abstract class EncodeHTTPBase extends Encoder
 		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
 		try {
 			byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();                                                                                                                                                              
-			Http http = new Http(data);
+			Http http = Http.create(data);
 			summary = http.getMethod() + " " + http.getURL(packet.getServerPort(), packet.getUseSSL());
 		} catch (Exception e) { 
 			e.printStackTrace();

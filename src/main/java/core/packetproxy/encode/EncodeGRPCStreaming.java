@@ -99,7 +99,7 @@ public class EncodeGRPCStreaming extends Encoder
 		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
 		try {
 			byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
-			Http http = new Http(data);
+			Http http = Http.create(data);
 			String statusCode = http.getStatusCode();
 			summary = statusCode;
 		} catch (Exception e) {
@@ -117,7 +117,7 @@ public class EncodeGRPCStreaming extends Encoder
 		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
 		try {
 			byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();                                                                                                                                                              
-			Http http = new Http(data);
+			Http http = Http.create(data);
 			statusCode = http.getStatusCode();
 			summary = http.getMethod() + " " + http.getURL(packet.getServerPort(), packet.getUseSSL());
 		} catch (Exception e) { 

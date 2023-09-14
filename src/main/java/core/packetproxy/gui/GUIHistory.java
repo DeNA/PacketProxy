@@ -426,7 +426,7 @@ public class GUIHistory implements Observer
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					Packet packet = gui_packet.getPacket();
-					Http http = new Http(packet.getDecodedData());
+					Http http = Http.create(packet.getDecodedData());
 					CharSetUtility charsetutil = CharSetUtility.getInstance();
 					if(charsetutil.isAuto()){
 						charsetutil.setGuessedCharSet(http.getBody());
@@ -448,7 +448,7 @@ public class GUIHistory implements Observer
 				try {
 					int id = GUIHistory.getInstance().getSelectedPacketId();
 					Packet packet = Packets.getInstance().query(id);
-					Http http = new Http(packet.getDecodedData());
+					Http http = Http.create(packet.getDecodedData());
 					String url = http.getURL(packet.getServerPort(), packet.getUseSSL());
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(url);
@@ -505,7 +505,7 @@ public class GUIHistory implements Observer
 					@Override
 					public void onApproved(File file, String extension) {
 						try {
-							Http http = new Http(gui_packet.getPacket().getDecodedData());
+							Http http = Http.create(gui_packet.getPacket().getDecodedData());
 							byte[] data = http.getBody();
 							FileUtils.writeByteArrayToFile(file, data);
 							JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", file.getPath()));
@@ -633,7 +633,7 @@ TODO: support --data-binary
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					Http http = new Http(gui_packet.getPacket().getDecodedData());
+					Http http = Http.create(gui_packet.getPacket().getDecodedData());
 					List<HeaderField> headerFields = http.getHeader().getFields();
 					ArrayList<String> commandList = new ArrayList<>();
 					commandList.add("curl");

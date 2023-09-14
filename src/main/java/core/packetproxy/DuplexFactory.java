@@ -169,7 +169,7 @@ public class DuplexFactory {
 
 				// 画像データの場合には、ディスクスペース節約のためにDBに保存しない
 				if (server_packet.getContentType().startsWith("image")) {
-					Http http = new Http(server_packet.getDecodedData());
+					Http http = Http.create(server_packet.getDecodedData());
 					http.setBody("[Info] body data were deleted by PacketProxy to save space of disc.".getBytes());
 					server_packet.setReceivedData(http.toByteArray());
 					server_packet.setDecodedData(http.toByteArray());
@@ -330,7 +330,7 @@ public class DuplexFactory {
 				if (data.length > TOO_LARGE_LENGTH) {
 					byte[] omitData = String.format("*** Data cannot be displayed (reason: Data too large: %d) ***", data.length).getBytes(StandardCharsets.UTF_8);
 					if (oneshot.getEncoder().equals("HTTP")) {
-						Http http = new Http(data);
+						Http http = Http.create(data);
 						http.setBody(omitData);
 						omitData = http.toByteArray();
 					}

@@ -204,7 +204,7 @@ public class EncodeHTTPStreamingResponse extends Encoder
 
 	@Override
 	public String getContentType(byte[] input_data) throws Exception {
-		Http http = new Http(input_data);
+		Http http = Http.create(input_data);
 		return http.getFirstHeader("Content-Type");
 	}
 
@@ -214,7 +214,7 @@ public class EncodeHTTPStreamingResponse extends Encoder
 		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
 		try {
 			byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
-			Http http = new Http(data);
+			Http http = Http.create(data);
 			String statusCode = http.getStatusCode();
 			summary = statusCode;
 		} catch (Exception e) {
@@ -230,7 +230,7 @@ public class EncodeHTTPStreamingResponse extends Encoder
 		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
 		try {
 			byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();                                                                                                                                                              
-			Http http = new Http(data);
+			Http http = Http.create(data);
 			summary = http.getMethod() + " " + http.getURL(packet.getServerPort(), packet.getUseSSL());
 		} catch (Exception e) { 
 			e.printStackTrace();

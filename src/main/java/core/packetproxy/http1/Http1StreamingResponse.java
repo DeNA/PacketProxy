@@ -66,9 +66,9 @@ public class Http1StreamingResponse
 				headerReceived = false;
 				buffer.reset();
 				buffer.write(remaining);
-				http = new Http(httpData);
+				http = Http.create(httpData);
 			} else {
-				http = new Http(buffer.toByteArray());
+				http = Http.create(buffer.toByteArray());
 			}
 			Thread guiHistoryUpdater = new Thread(new Runnable() {
 				public void run() {

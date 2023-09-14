@@ -66,7 +66,7 @@ public class EncodeMQTTWebSocket extends Encoder
 			byte[] decodeData = decodeWebsocketResponse(encodedData);
 			return decodeMQTT(decodeData);
 		} else {
-			Http http = new Http(input_data);
+			Http http = Http.create(input_data);
 			http = decodeHttpResponse(http);
 			return http.toByteArray();
 		}
@@ -83,7 +83,7 @@ public class EncodeMQTTWebSocket extends Encoder
 			WebSocket ws = WebSocket.generateFromPayload(encodedData, ws_original);
 			return ws.toByteArray();
 		} else {
-			Http http = new Http(input_data);
+			Http http = Http.create(input_data);
 			// encodeでやらないと、Switching Protocolsのレスポンス自体がwebsocketとしてencodeされてしまう
 			binary_start =http.getStatusCode().matches("101");
 			http = encodeHttpResponse(http);
@@ -101,7 +101,7 @@ public class EncodeMQTTWebSocket extends Encoder
 			byte[] decodeData = decodeWebsocketRequest(encodedData);
 			return decodeMQTT(decodeData);
 		} else {
-			Http http = new Http(input_data);
+			Http http = Http.create(input_data);
 			http = decodeHttpRequest(http);
 			return http.toByteArray();
 		}
@@ -118,7 +118,7 @@ public class EncodeMQTTWebSocket extends Encoder
 			WebSocket ws = WebSocket.generateFromPayload(encodedData, ws_original);
 			return ws.toByteArray();
 		} else {
-			Http http = new Http(input_data);
+			Http http = Http.create(input_data);
 			http = encodeHttpRequest(http);
 			return http.toByteArray();
 		}
@@ -130,7 +130,7 @@ public class EncodeMQTTWebSocket extends Encoder
 		if (binary_start) {
 			return "WebSocket";
 		} else {
-			Http http = new Http(input_data);
+			Http http = Http.create(input_data);
 			return http.getFirstHeader("Content-Type");
 		}
 	}
@@ -192,7 +192,7 @@ public class EncodeMQTTWebSocket extends Encoder
 
 		try {
 			if (data.length == 0) throw new Exception();
-			Http http = new Http(data);
+			Http http = Http.create(data);
 			String method = http.getMethod();
 			String url = http.getURL(packet.getServerPort(), packet.getUseSSL());
 			if (method == null)
@@ -210,7 +210,7 @@ public class EncodeMQTTWebSocket extends Encoder
 
 		try {
 			if (data.length == 0) throw new Exception();
-			Http http = new Http(data);
+			Http http = Http.create(data);
 			if (http.getStatusCode() == null)
 				return getSummarizedMessage(encodeMQTT(data));
 			return http.getStatusCode();

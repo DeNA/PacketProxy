@@ -114,7 +114,7 @@ public class QpackTest {
     public void MetaDataTest() throws Exception {
         String httpStr = "POST / HTTP/3\nhost: localhost\nx-hoge: fuga\n\nThis is a post data.";
 
-        Http http = new Http(httpStr.getBytes());
+        Http http = Http.create(httpStr.getBytes());
         HttpHeader header = http.getHeader();
         List<HeaderField> fields = header.getFields();
         HttpFields.Mutable jettyHttpFields = HttpFields.build();

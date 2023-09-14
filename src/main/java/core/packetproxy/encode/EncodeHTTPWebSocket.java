@@ -60,7 +60,7 @@ public class EncodeHTTPWebSocket extends Encoder
 			byte[] encodedData = ws.getPayload();
 			return decodeWebsocketResponse(encodedData);
 		} else {
-			Http http = new Http(input_data);
+			Http http = Http.create(input_data);
 			http = decodeHttpResponse(http);
 			return http.toByteArray();
 		}
@@ -77,7 +77,7 @@ public class EncodeHTTPWebSocket extends Encoder
 			WebSocket ws = WebSocket.generateFromPayload(encodedData, ws_original);
 			return ws.toByteArray();
 		} else {
-			Http http = new Http(input_data);
+			Http http = Http.create(input_data);
 			// encodeでやらないと、Switching Protocolsのレスポンス自体がwebsocketとしてencodeされてしまう
 			binary_start =http.getStatusCode().matches("101");
 			http = encodeHttpResponse(http);
@@ -94,7 +94,7 @@ public class EncodeHTTPWebSocket extends Encoder
 			byte[] encodedData = ws.getPayload();
 			return decodeWebsocketRequest(encodedData);
 		} else {
-			Http http = new Http(input_data);
+			Http http = Http.create(input_data);
 			http = decodeHttpRequest(http);
 			return http.toByteArray();
 		}
@@ -111,7 +111,7 @@ public class EncodeHTTPWebSocket extends Encoder
 			WebSocket ws = WebSocket.generateFromPayload(encodedData, ws_original);
 			return ws.toByteArray();
 		} else {
-			Http http = new Http(input_data);
+			Http http = Http.create(input_data);
 			http = encodeHttpRequest(http);
 			return http.toByteArray();
 		}
@@ -123,7 +123,7 @@ public class EncodeHTTPWebSocket extends Encoder
 		if (binary_start) {
 			return "WebSocket";
 		} else {
-			Http http = new Http(input_data);
+			Http http = Http.create(input_data);
 			return http.getFirstHeader("Content-Type");
 		}
 	}

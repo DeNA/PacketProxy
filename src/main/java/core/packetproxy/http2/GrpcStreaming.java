@@ -72,7 +72,7 @@ public class GrpcStreaming extends FramesBase
 		for (Frame frame : FrameUtils.parseFrames(frames)) {
 			if (frame instanceof HeadersFrame) {
 				HeadersFrame headersFrame = (HeadersFrame)frame;
-				Http http = new Http(headersFrame.getHttp());
+				Http http = Http.create(headersFrame.getHttp());
 				if(!http.getFirstHeader("grpc-status").equals("")){
 					// Trailer Header Frame doesn't have headers below.(ref: HeadersFrame.java)
 					http.updateHeader("X-PacketProxy-HTTP2-UUID", StringUtils.randomUUID());
@@ -86,7 +86,7 @@ public class GrpcStreaming extends FramesBase
 
 			} else if (frame instanceof DataFrame) {
 				DataFrame dataFrame = (DataFrame)frame;
-				Http http = new Http(dataFrame.getHttp());
+				Http http = Http.create(dataFrame.getHttp());
 				byte[] payload = http.getBody();
 				if(payload.length!=0) {
 					byte[] data = ArrayUtils.subarray(payload, 5, payload.length);
@@ -108,7 +108,7 @@ public class GrpcStreaming extends FramesBase
 	private byte[] encodeToFrames(byte[] input, HpackEncoder encoder) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-		Http http = new Http(input);
+		Http http = Http.create(input);
 		int type = Integer.parseInt(http.getFirstHeader("X-PacketProxy-HTTP2-Type"));
 		if (Frame.Type.values()[type] == Frame.Type.HEADERS) {
 			HeadersFrame frame = new HeadersFrame(http);

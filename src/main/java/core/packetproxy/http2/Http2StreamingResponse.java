@@ -82,7 +82,7 @@ public class Http2StreamingResponse extends FramesBase
 								}
 							}
 							
-							Http http = new Http(data.toByteArray());
+							Http http = Http.create(data.toByteArray());
 
 							if (http.getBody().length > 0) {
 								List<Packet> packets = Packets.getInstance().queryFullText(http.getFirstHeader("X-PacketProxy-HTTP2-UUID"));
@@ -150,7 +150,7 @@ public class Http2StreamingResponse extends FramesBase
 				out.write(dataFrame.getPayload());
 			}
 		}
-		Http http = new Http(out.toByteArray());
+		Http http = Http.create(out.toByteArray());
 		int flags = Integer.valueOf(http.getFirstHeader("X-PacketProxy-HTTP2-Flags"));
 		if (http.getBody() == null || http.getBody().length == 0) {
 			http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff | HeadersFrame.FLAG_END_STREAM));
@@ -165,7 +165,7 @@ public class Http2StreamingResponse extends FramesBase
 
 	private byte[] encodeToFrames(byte[] data, HpackEncoder encoder) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		Http http = new Http(data);
+		Http http = Http.create(data);
 		HeadersFrame headersFrame = new HeadersFrame(http);
 		out.write(headersFrame.toByteArrayWithoutExtra(encoder));
 		if (http.getBody() != null && http.getBody().length > 0) {
@@ -180,7 +180,7 @@ public class Http2StreamingResponse extends FramesBase
 
 	public void setGroupId(Packet packet) throws Exception {
 		byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
-		Http http = new Http(data);
+		Http http = Http.create(data);
 		String streamIdStr = http.getFirstHeader("X-PacketProxy-HTTP2-Stream-Id");
 		if (streamIdStr != null && streamIdStr.length() > 0) {
 			long streamId = Long.parseLong(streamIdStr); 

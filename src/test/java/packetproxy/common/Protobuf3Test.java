@@ -15,10 +15,9 @@
  */
 package packetproxy.common;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Protobuf3Test {
 	@Test
@@ -27,7 +26,7 @@ public class Protobuf3Test {
 		byte[] bytes = new Binary(new Binary.HexString(data)).toByteArray();
 		String json = Protobuf3.decode(bytes);
 		byte[] bytes2 = Protobuf3.encode(json);
-		assertTrue(ArrayUtils.isEquals(bytes, bytes2));
+		assertEquals(bytes, bytes2);
 	}
 
 	@Test
@@ -36,7 +35,7 @@ public class Protobuf3Test {
 		byte[] bytes = new Binary(new Binary.HexString(data)).toByteArray();
 		String json = Protobuf3.decode(bytes);
 		byte[] bytes2 = Protobuf3.encode(json);
-		assertTrue(ArrayUtils.isEquals(bytes, bytes2));
+		assertEquals(bytes, bytes2);
 	}
 
 	@Test
@@ -45,7 +44,7 @@ public class Protobuf3Test {
 		byte[] bytes = new Binary(new Binary.HexString(data)).toByteArray();
 		String json = Protobuf3.decode(bytes);
 		byte[] bytes2 = Protobuf3.encode(json);
-		assertTrue(ArrayUtils.isEquals(bytes, bytes2));
+		assertEquals(bytes, bytes2);
 	}
 
 	@Test
@@ -54,7 +53,7 @@ public class Protobuf3Test {
 		byte[] bytes = new Binary(new Binary.HexString(data)).toByteArray();
 		String json = Protobuf3.decode(bytes);
 		byte[] bytes2 = Protobuf3.encode(json);
-		assertTrue(ArrayUtils.isEquals(bytes, bytes2));
+		assertEquals(bytes, bytes2);
 	}
 
 	@Test
@@ -63,7 +62,7 @@ public class Protobuf3Test {
 		byte[] bytes = new Binary(new Binary.HexString(data)).toByteArray();
 		String json = Protobuf3.decode(bytes);
 		byte[] bytes2 = Protobuf3.encode(json);
-		assertTrue(ArrayUtils.isEquals(bytes, bytes2));
+		assertEquals(bytes, bytes2);
 	}
 
 	@Test
@@ -72,7 +71,7 @@ public class Protobuf3Test {
 		byte[] bytes = new Binary(new Binary.HexString(data)).toByteArray();
 		String json = Protobuf3.decode(bytes);
 		byte[] bytes2 = Protobuf3.encode(json);
-		assertTrue(ArrayUtils.isEquals(bytes, bytes2));
+		assertEquals(bytes, bytes2);
 	}
 
 	@Test
@@ -81,7 +80,7 @@ public class Protobuf3Test {
 		byte[] bytes = new Binary(new Binary.HexString(data)).toByteArray();
 		String json = Protobuf3.decode(bytes);
 		byte[] bytes2 = Protobuf3.encode(json);
-		assertTrue(ArrayUtils.isEquals(bytes, bytes2));
+		assertEquals(bytes, bytes2);
 	}
 
 	@Test
@@ -90,6 +89,6 @@ public class Protobuf3Test {
 		byte[] bytes = new Binary(new Binary.HexString(data)).toByteArray();
 		String json = Protobuf3.decodeBytes(bytes);
 		byte[] bytes2 = Protobuf3.encodeBytes(json);
-		assertTrue(ArrayUtils.isEquals(bytes, bytes2));
+		assertEquals(bytes, bytes2);
 	}
 }

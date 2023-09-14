@@ -65,7 +65,7 @@ public class ProxyHttp extends Proxy
 						byte[] result = new byte[]{};
 						synchronized (client_loopback) {
 
-							Http http = new Http(data);
+							Http http = Http.create(data);
 							//System.out.println(String.format("%s: %s:%s", http.getMethod(), http.getServerName(), http.getServerPort()));
 
 							if (http.getMethod().equals("CONNECT")) {
@@ -136,7 +136,7 @@ public class ProxyHttp extends Proxy
 								http.getHeader().update("Connection", "close");
 								http.getHeader().removeAll("Proxy-Connection");
 
-								Http response = new Http(createConnection(client_e, server_e, http.toByteArray()));
+								Http response = Http.create(createConnection(client_e, server_e, http.toByteArray()));
 
 								if (response.getHeader().getAll("Connection").contains("keep-alive") && flag_keepalive == true) {
 									response.getHeader().update("Connection", "keep-alive");

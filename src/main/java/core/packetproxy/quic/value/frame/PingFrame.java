@@ -17,7 +17,6 @@
 package packetproxy.quic.value.frame;
 
 import com.google.common.collect.ImmutableList;
-import iris.protocol.Ping;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 

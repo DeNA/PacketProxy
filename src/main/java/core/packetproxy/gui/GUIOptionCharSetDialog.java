@@ -72,7 +72,7 @@ public class GUIOptionCharSetDialog extends JDialog
 			if(i>=a.length){
 				return a;
 			}
-			a[i++] = new Object[]{new Boolean(false),k};
+			a[i++] = new Object[]{Boolean.FALSE,k};
 		}
 		return a;
 	}

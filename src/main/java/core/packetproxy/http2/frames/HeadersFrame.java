@@ -104,7 +104,7 @@ public class HeadersFrame extends Frame
 		if ((super.flags & FLAG_EXTRA) == 0) {
 			return;
 		}
-		Http http = new Http(getExtra());
+		Http http = Http.create(getExtra());
 
 		method = http.getMethod();
 		version = HttpVersion.fromString("HTTP/2");

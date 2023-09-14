@@ -27,7 +27,7 @@ public class Http3TestHelper {
     static public MetaData generateTestMetaData() throws Exception {
         String httpStr = "POST / HTTP/3\nhost: example.com\nhoge: fuga\ncontent-type: application/json\n\n{\"name\":\"taro\",\"age\":20}";
 
-        Http http = new Http(httpStr.getBytes());
+        Http http = Http.create(httpStr.getBytes());
         HttpFields.Mutable jettyHttpFields = HttpFields.build();
         http.getHeader().getFields().forEach(field -> {
             jettyHttpFields.add(field.getName(), field.getValue());
