@@ -16,8 +16,14 @@
 
 package packetproxy;
 
+import org.xbill.DNS.AAAARecord;
+import org.xbill.DNS.Lookup;
+import org.xbill.DNS.Type;
+import org.xbill.DNS.Record;
 import org.xbill.DNS.Address;
 import org.xbill.DNS.SystemResolverConfig;
+import org.xbill.DNS.TextParseException;
+
 import packetproxy.util.PacketProxyUtility;
 
 import java.net.InetAddress;
@@ -111,4 +117,20 @@ public class PrivateDNSClient {
         return dnsLooping(serverName) ? Address.getAllByName(serverName) : InetAddress.getAllByName(serverName);
     }
 
+    public static InetAddress getByName6(String host) {
+        InetAddress hostIP;
+        try {
+            Lookup lookup = new Lookup(host, Type.AAAA);
+            // lookup.setResolver(resolver);
+            Record[] records = lookup.run();
+            if (records == null) {
+                return null;
+            }
+            hostIP = ((AAAARecord) records[0]).getAddress();
+        } catch (TextParseException ex) {
+            util.packetProxyLog(String.format("'%s'", ex.getMessage()));
+            throw new IllegalStateException(ex);
+        }
+        return hostIP;
+    }
 }

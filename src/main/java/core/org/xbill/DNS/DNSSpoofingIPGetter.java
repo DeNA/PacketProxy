@@ -16,4 +16,8 @@ public class DNSSpoofingIPGetter {
 		return gui.getSpoofingIP();
 	}
 
+		public String get6(){
+		return gui.getSpoofingIP6();
+	}
+
 }

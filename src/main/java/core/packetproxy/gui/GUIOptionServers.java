@@ -44,8 +44,8 @@ public class GUIOptionServers extends GUIOptionComponentBase<Server>
 		servers = Servers.getInstance();
 		servers.addObserver(this);
 		server_list = new ArrayList<Server>();
-		String[] menu = { "Host", "Port", "Use SSL", "Encode Module", "Spoof DNS", "HttpProxy", "Comment" };
-		int[] menuWidth = { 200, 80, 50, 160, 60, 60, 100 };
+		String[] menu = { "Host", "Port", "Use SSL", "Encode Module", "Spoof DNS(A)", "Spoof DNS(AAAA)", "HttpProxy", "Comment" };
+		int[] menuWidth = { 200, 80, 50, 160, 60, 60, 60, 100 };
 		MouseAdapter tableAction = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -59,6 +59,16 @@ public class GUIOptionServers extends GUIOptionComponentBase<Server>
 							server.disableResolved();
 						} else {
 							server.enableResolved();
+						}
+						servers.update(server);
+					}
+					if (columnIndex == 5) { /* Spoof DNS area */
+						boolean enable_checkbox = (Boolean)table.getValueAt(rowIndex, 5);
+						Server server = getSelectedTableContent();
+						if (enable_checkbox == true) {
+							server.disableResolved6();
+						} else {
+							server.enableResolved6();
 						}
 						servers.update(server);
 					}
@@ -117,6 +127,7 @@ public class GUIOptionServers extends GUIOptionComponentBase<Server>
 				server.getUseSSL(),
 				server.getEncoder(),
 				server.isResolved(),
+				server.isResolved6(),
 				server.isHttpProxy(),
 				server.getComment()});
 	}
