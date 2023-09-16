@@ -65,55 +65,55 @@ public class PrivateDNS
 		private Inet6Address defaultAddr6 = null;
 
 		SpoofAddrFactory() throws Exception {
-            Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
-            for (NetworkInterface netint : Collections.list(nets)) {
-                for (InterfaceAddress intAddress : netint.getInterfaceAddresses()) {
-                    InetAddress addr = intAddress.getAddress();
-                    if (addr instanceof Inet4Address) {
-                        short length = intAddress.getNetworkPrefixLength();
-                        if(length<0)continue;
-                        String cidr = String.format("%s/%d", addr.getHostAddress(),length);
-                        SubnetUtils subnet = new SubnetUtils(cidr);
-                        subnets.add(subnet.getInfo());
-                        if (defaultAddr == null) {
-                            defaultAddr = addr.getHostAddress();
-                        } else if (defaultAddr.equals("127.0.0.1")) {
-                            defaultAddr = addr.getHostAddress();
-                        }
-                    } else {
-                        if( !addr.isMulticastAddress() && !addr.isLinkLocalAddress() && !addr.isSiteLocalAddress() ){
-                            ifscopes.put(((Inet6Address)addr).getScopeId(), (Inet6Address)addr);
-                            if (defaultAddr6 == null) {
-                                defaultAddr6 = (Inet6Address)addr;
-                            } else if (defaultAddr6.isLoopbackAddress()) {
-                                defaultAddr6 = (Inet6Address)addr;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        Map<Integer,String> getSpoofAddr(InetAddress addr) {
-            Map<Integer,String> spoofAddrs = new HashMap<>();
-            if (addr instanceof Inet4Address) {
-                for (SubnetInfo subnet : subnets) {
-                    if (subnet.isInRange(addr.getHostAddress())) {
-                        spoofAddrs.put(4, subnet.getAddress());
-                    } else {
-                        spoofAddrs.put(4, defaultAddr);
-                    }
-                }
-                spoofAddrs.put(6, defaultAddr6.getHostAddress());
-            } else {
-                if (ifscopes.containsKey(((Inet6Address)addr).getScopeId())) {
-                    spoofAddrs.put(6, ifscopes.get(((Inet6Address)addr).getScopeId()).getHostAddress());
-                } else {
-                    spoofAddrs.put(6, defaultAddr6.getHostAddress());
-                }
-                spoofAddrs.put(4, defaultAddr);
-            }
-            return spoofAddrs;
-        }
+	            Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
+	            for (NetworkInterface netint : Collections.list(nets)) {
+	                for (InterfaceAddress intAddress : netint.getInterfaceAddresses()) {
+	                    InetAddress addr = intAddress.getAddress();
+	                    if (addr instanceof Inet4Address) {
+	                        short length = intAddress.getNetworkPrefixLength();
+	                        if(length<0)continue;
+	                        String cidr = String.format("%s/%d", addr.getHostAddress(),length);
+	                        SubnetUtils subnet = new SubnetUtils(cidr);
+	                        subnets.add(subnet.getInfo());
+	                        if (defaultAddr == null) {
+	                            defaultAddr = addr.getHostAddress();
+	                        } else if (defaultAddr.equals("127.0.0.1")) {
+	                            defaultAddr = addr.getHostAddress();
+	                        }
+	                    } else {
+	                        if( !addr.isMulticastAddress() && !addr.isLinkLocalAddress() && !addr.isSiteLocalAddress() ){
+	                            ifscopes.put(((Inet6Address)addr).getScopeId(), (Inet6Address)addr);
+	                            if (defaultAddr6 == null) {
+	                                defaultAddr6 = (Inet6Address)addr;
+	                            } else if (defaultAddr6.isLoopbackAddress()) {
+	                                defaultAddr6 = (Inet6Address)addr;
+	                            }
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	        Map<Integer,String> getSpoofAddr(InetAddress addr) {
+	            Map<Integer,String> spoofAddrs = new HashMap<>();
+	            if (addr instanceof Inet4Address) {
+	                for (SubnetInfo subnet : subnets) {
+	                    if (subnet.isInRange(addr.getHostAddress())) {
+	                        spoofAddrs.put(4, subnet.getAddress());
+	                    } else {
+	                        spoofAddrs.put(4, defaultAddr);
+	                    }
+	                }
+	                spoofAddrs.put(6, defaultAddr6.getHostAddress());
+	            } else {
+	                if (ifscopes.containsKey(((Inet6Address)addr).getScopeId())) {
+	                    spoofAddrs.put(6, ifscopes.get(((Inet6Address)addr).getScopeId()).getHostAddress());
+	                } else {
+	                    spoofAddrs.put(6, defaultAddr6.getHostAddress());
+	                }
+	                spoofAddrs.put(4, defaultAddr);
+	            }
+	            return spoofAddrs;
+	        }
 	}
 
 	public static PrivateDNS getInstance() throws Exception {
