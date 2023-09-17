@@ -280,7 +280,12 @@ addAnswer(Message response, Name name, int type, int dclass,
 
 	try {
 		if (spoofIP != null) {
-			RRset rrset = new RRset(new ARecord(name, dclass, 0, InetAddress.getByName(spoofIP)));
+			RRset rrset;
+			if(type == 1){
+				rrset = new RRset(new ARecord(name, dclass, 0, InetAddress.getByName(spoofIP)));
+			} else {
+				rrset = new RRset(new AAAARecord(name, dclass, 0, InetAddress.getByName(spoofIP)));
+			}
 			addRRset(name, response, rrset, Section.ANSWER, flags);
 		}
 	} catch (Exception e) {

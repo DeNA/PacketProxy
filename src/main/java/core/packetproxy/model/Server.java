@@ -42,6 +42,8 @@ public class Server
     @DatabaseField
     private boolean resolved_by_dns;
     @DatabaseField
+    private boolean resolved_by_dns6;
+    @DatabaseField
     private boolean http_proxy;
     @DatabaseField
     private String comment;
@@ -52,17 +54,18 @@ public class Server
         // ORMLite needs a no-arg constructor 
     }
     public Server(String ip, int port, String encoder) {
-    	initialize(ip, port, false, encoder, false, false, "");
+        initialize(ip, port, false, encoder, false, false, false, "");
     }
-    public Server(String ip, int port, boolean use_ssl, String encoder, boolean resolved_by_dns, boolean http_proxy, String comment) {
-    	initialize(ip, port, use_ssl, encoder, resolved_by_dns, http_proxy, comment);
+    public Server(String ip, int port, boolean use_ssl, String encoder, boolean resolved_by_dns, boolean resolved_by_dns6, boolean http_proxy, String comment) {
+        initialize(ip, port, use_ssl, encoder, resolved_by_dns, resolved_by_dns6, http_proxy, comment);
     }
-    private void initialize(String ip, int port, boolean use_ssl, String encoder, boolean resolved_by_dns, boolean http_proxy, String comment) {
+    private void initialize(String ip, int port, boolean use_ssl, String encoder, boolean resolved_by_dns, boolean resolved_by_dns6, boolean http_proxy, String comment) {
         this.ip = ip;
         this.port = port;
         this.use_ssl = use_ssl;
         this.encoder = encoder;
         this.resolved_by_dns = resolved_by_dns;
+        this.resolved_by_dns6 = resolved_by_dns6;
         this.http_proxy = http_proxy;
         this.comment = comment;
         this.specifiedByHostName = isHostName(ip);
@@ -129,6 +132,18 @@ public class Server
     }
     public void setResolved(boolean resolved_by_dns) {
         this.resolved_by_dns = resolved_by_dns;
+    }
+    public void enableResolved6() {
+        this.resolved_by_dns6 = true;
+    }
+    public void disableResolved6() {
+        this.resolved_by_dns6 = false;
+    }
+    public boolean isResolved6() {
+        return this.resolved_by_dns6;
+    }
+    public void setResolved6(boolean resolved_by_dns6) {
+        this.resolved_by_dns6 = resolved_by_dns6;
     }
     public String getComment() {
     	return this.comment;

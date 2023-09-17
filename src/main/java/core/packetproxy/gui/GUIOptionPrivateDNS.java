@@ -21,11 +21,14 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.InterfaceAddress;
+import java.net.Inet6Address;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Collections;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -50,6 +53,7 @@ public class GUIOptionPrivateDNS implements Observer
 
 	private JCheckBox checkBox;
 	private JTextField textField;
+	private JTextField textField6;
 	private JRadioButton auto, manual;
 
 	private JPanel base;
@@ -59,7 +63,8 @@ public class GUIOptionPrivateDNS implements Observer
 
 		checkBox = createCheckBox();
 		textField = createAddressField();
-		base = createPanel(checkBox, textField);
+		textField6 = createAddress6Field();
+		base = createPanel(checkBox, textField, textField6);
 
 		Configs.getInstance().addObserver(this);
 		updateState();
@@ -69,7 +74,7 @@ public class GUIOptionPrivateDNS implements Observer
 		return base;
 	}
 
-	private JPanel createPanel(JCheckBox checkBox, JTextField text) throws Exception {
+	private JPanel createPanel(JCheckBox checkBox, JTextField text, JTextField text6) throws Exception {
 		auto = new JRadioButton(I18nString.get("Auto (Replace resolved IP with local IP of suitable NIC automatically)"), true);
 		auto.setMinimumSize(new Dimension(Short.MAX_VALUE, auto.getMaximumSize().height));
 		auto.addActionListener(this::radioButtonChangeHandler);
@@ -85,6 +90,7 @@ public class GUIOptionPrivateDNS implements Observer
 		manualPanel.setLayout(new BoxLayout(manualPanel, BoxLayout.X_AXIS));
 		manualPanel.add(manual);
 		manualPanel.add(text);
+		manualPanel.add(text6);
 
 		TitledBorder rewriteRuleBorder = new TitledBorder(I18nString.get("Rewrite Rule"));
 		LineBorder inborder = new LineBorder(Color.BLACK, 1);
@@ -113,6 +119,7 @@ public class GUIOptionPrivateDNS implements Observer
 
 	private void radioButtonChangeHandler(ActionEvent e){
 		textField.setEnabled(manual.isSelected());
+		textField6.setEnabled(manual.isSelected());
 	}
 	
 	public boolean isAutoSpoofing() {
@@ -128,6 +135,13 @@ public class GUIOptionPrivateDNS implements Observer
 			}
 		}else{
 			return textField.getText();
+		}
+		return "";
+	}
+
+	public String getSpoofingIP6(){
+		if(!auto.isSelected()){
+			return textField6.getText();
 		}
 		return "";
 	}
@@ -155,6 +169,18 @@ public class GUIOptionPrivateDNS implements Observer
 		return text;
 	}
 
+	private JTextField createAddress6Field(){
+		JTextField text = new JTextField("");
+		try {
+			text.setText(getLocalIP6());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		text.setMaximumSize(new Dimension(300, 30));
+		text.setEnabled(false);
+		return text;
+	}
+
 	public void updateState(){
 		try {
 			checkBox.setSelected(new ConfigBoolean("PrivateDNS").getState());
@@ -170,9 +196,9 @@ public class GUIOptionPrivateDNS implements Observer
 	}
 
 	private String getLocalIP() throws Exception{
+
 		Enumeration<NetworkInterface> enuIfs = NetworkInterface.getNetworkInterfaces();
 		List<String> ips = new ArrayList<>();
-		String pubIp = null, corpIp = null;
 
 		while (enuIfs.hasMoreElements()){
 			NetworkInterface ni = (NetworkInterface)enuIfs.nextElement();
@@ -185,13 +211,30 @@ public class GUIOptionPrivateDNS implements Observer
 			}
 		}
 
-		for(String ip : ips){
-			if(ip.startsWith("172.23"))corpIp = ip;
-			if(ip.startsWith("172.25"))pubIp = ip;
-		}
-		if(pubIp != null)return pubIp;
-		if(corpIp != null)return corpIp;
 		if(!ips.isEmpty())return ips.get(0);
 		return "127.0.0.1";
+	}
+
+	private String getLocalIP6() throws Exception{
+
+		Inet6Address defaultAddr6 = null;
+		Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
+		for (NetworkInterface netint : Collections.list(nets)) {
+			for (InterfaceAddress intAddress : netint.getInterfaceAddresses()) {
+				InetAddress addr = intAddress.getAddress();
+				if (addr instanceof Inet6Address) {
+					if( !addr.isMulticastAddress() && !addr.isLinkLocalAddress() && !addr.isSiteLocalAddress() ){
+						// ifscopes.put(((Inet6Address)addr).getScopeId(), (Inet6Address)addr);
+						if (defaultAddr6 == null) {
+							defaultAddr6 = (Inet6Address)addr;
+						} else if (defaultAddr6.isLoopbackAddress()) {
+							defaultAddr6 = (Inet6Address)addr;
+						}
+					}
+				}
+			}
+		}
+		if(defaultAddr6 == null) return "::1";
+		return defaultAddr6.getHostAddress();
 	}
 }

@@ -154,6 +154,15 @@ public class Servers extends Observable implements Observer {
 		cache.set("queryResolvedByDNS", 0, ret);
 		return ret;
 	}
+	public List<Server> queryResolvedByDNS6() throws Exception {
+		List<Server> ret = cache.query("queryResolvedByDNS6", 0);
+		if (ret != null) { return ret; }
+
+		ret = dao.queryBuilder().where().eq("resolved_by_dns6", true).query();
+
+		cache.set("queryResolvedByDNS6", 0, ret);
+		return ret;
+	}
 	public void update(Server server) throws Exception {
 		dao.update(server);
 		cache.clear();

@@ -20,6 +20,7 @@ import java.net.BindException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
@@ -28,7 +29,9 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.commons.net.util.SubnetUtils.SubnetInfo;
@@ -57,36 +60,60 @@ public class PrivateDNS
 	
 	class SpoofAddrFactory {
 		private List<SubnetInfo> subnets = new ArrayList<SubnetInfo>();
+		private Map<Integer,Inet6Address> ifscopes = new HashMap<>();
 		private String defaultAddr = null;
+		private Inet6Address defaultAddr6 = null;
 
 		SpoofAddrFactory() throws Exception {
-			Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
-			for (NetworkInterface netint : Collections.list(nets)) {
-				for (InterfaceAddress intAddress : netint.getInterfaceAddresses()) {
-					InetAddress addr = intAddress.getAddress();
-					if (addr instanceof Inet4Address) {
-						short length = intAddress.getNetworkPrefixLength();
-						if(length<0)continue;
-						String cidr = String.format("%s/%d", addr.getHostAddress(),length);
-						SubnetUtils subnet = new SubnetUtils(cidr);
-						subnets.add(subnet.getInfo());
-						if (defaultAddr == null) {
-							defaultAddr = addr.getHostAddress();
-						} else if (defaultAddr.equals("127.0.0.1")) {
-							defaultAddr = addr.getHostAddress();
-						}
-					}
-				}
-			}
-		}
-		String getSpoofAddr(String addr) {
-			for (SubnetInfo subnet : subnets) {
-				if (subnet.isInRange(addr)) {
-					return subnet.getAddress();
-				}
-			}
-			return defaultAddr;
-		}
+	            Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
+	            for (NetworkInterface netint : Collections.list(nets)) {
+	                for (InterfaceAddress intAddress : netint.getInterfaceAddresses()) {
+	                    InetAddress addr = intAddress.getAddress();
+	                    if (addr instanceof Inet4Address) {
+	                        short length = intAddress.getNetworkPrefixLength();
+	                        if(length<0)continue;
+	                        String cidr = String.format("%s/%d", addr.getHostAddress(),length);
+	                        SubnetUtils subnet = new SubnetUtils(cidr);
+	                        subnets.add(subnet.getInfo());
+	                        if (defaultAddr == null) {
+	                            defaultAddr = addr.getHostAddress();
+	                        } else if (defaultAddr.equals("127.0.0.1")) {
+	                            defaultAddr = addr.getHostAddress();
+	                        }
+	                    } else {
+	                        if( !addr.isMulticastAddress() && !addr.isLinkLocalAddress() && !addr.isSiteLocalAddress() ){
+	                            ifscopes.put(((Inet6Address)addr).getScopeId(), (Inet6Address)addr);
+	                            if (defaultAddr6 == null) {
+	                                defaultAddr6 = (Inet6Address)addr;
+	                            } else if (defaultAddr6.isLoopbackAddress()) {
+	                                defaultAddr6 = (Inet6Address)addr;
+	                            }
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	        Map<Integer,String> getSpoofAddr(InetAddress addr) {
+	            Map<Integer,String> spoofAddrs = new HashMap<>();
+	            if (addr instanceof Inet4Address) {
+	                for (SubnetInfo subnet : subnets) {
+	                    if (subnet.isInRange(addr.getHostAddress())) {
+	                        spoofAddrs.put(4, subnet.getAddress());
+	                    } else {
+	                        spoofAddrs.put(4, defaultAddr);
+	                    }
+	                }
+	                spoofAddrs.put(6, defaultAddr6.getHostAddress());
+	            } else {
+	                if (ifscopes.containsKey(((Inet6Address)addr).getScopeId())) {
+	                    spoofAddrs.put(6, ifscopes.get(((Inet6Address)addr).getScopeId()).getHostAddress());
+	                } else {
+	                    spoofAddrs.put(6, defaultAddr6.getHostAddress());
+	                }
+	                spoofAddrs.put(4, defaultAddr);
+	            }
+	            return spoofAddrs;
+	        }
 	}
 
 	public static PrivateDNS getInstance() throws Exception {
@@ -193,36 +220,69 @@ public class PrivateDNS
 					cAddr = recvPacket.getAddress();
 					cPort = recvPacket.getPort();
 
+					Map<Integer,String>  spoofingIpStrs = new HashMap<>();
 					String spoofingIpStr = "";
+					String spoofingIp6Str = "";
+
+					// if (cAddr instanceof Inet6Address) {
+					// 	util.packetProxyLog(String.format("[ScopeID] %s", ((Inet6Address)cAddr).getScopeId()));
+					// }
 					if (spoofingIp.isAuto()) {
-						String hostAddrStr = cAddr.getHostAddress();
-						if (hostAddrStr.equals("0:0:0:0:0:0:0:1")) {
-							hostAddrStr = "127.0.0.1";
-						}
-						spoofingIpStr = spoofAddrFactry.getSpoofAddr(hostAddrStr);
+						spoofingIpStrs = spoofAddrFactry.getSpoofAddr(cAddr);
+						spoofingIpStr = spoofingIpStrs.get(4);
+						spoofingIp6Str = spoofingIpStrs.get(6);;
 					} else {
 						spoofingIpStr = spoofingIp.get();
+						spoofingIp6Str = spoofingIp.get6();
 					}
+
+					// util.packetProxyLog(String.format("[hostAddrStr] %s", cAddr.getHostAddress()));
+					// util.packetProxyLog(String.format("[SpoofingIP] %s : %s", spoofingIpStr, spoofingIp6Str));
 
 					byte[] requestData = recvPacket.getData();
 
 					Message smsg = new Message(requestData);
 					byte[] smsgBA = smsg.toWire();
-
+					int queryRecType = smsg.getQuestion().getType();
 					String queryHostName = smsg.getQuestion().getName().toString(true);
-
+					String queryRecTypeName = Type.string(queryRecType);
+					InetAddress addr;
 					byte[] res = null;
+
 					try {
-						if (smsg.getQuestion().getType() != Type.A) {
+						if (queryRecType == Type.A ){
+							addr = PrivateDNSClient.getByName(queryHostName);
+							if (addr instanceof Inet6Address) {
+								throw new UnknownHostException();
+							}
+						} else if (queryRecType == Type.AAAA) {
+							addr = PrivateDNSClient.getByName6(queryHostName);
+							if (addr == null ) {
+								throw new UnknownHostException();
+							}
+						} else {
+							util.packetProxyLog(String.format("[DNS Query] Unsupport Query Type %s : '%s'", queryRecTypeName, queryHostName));
 							throw new UnsupportedOperationException();
 						}
 
-						util.packetProxyLog(String.format("[DNS Query] '%s'", queryHostName));
+						String ip = addr.getHostAddress();
 
-						String ip = PrivateDNSClient.getByName(queryHostName).getHostAddress();
+						util.packetProxyLog(String.format("[DNS Query] %s : '%s'", queryRecTypeName, queryHostName));
+						// util.packetProxyLog(String.format("[DNS Response Address] '%s'", ip));
+
 						if (isTargetHost(queryHostName)) {
-							ip = spoofingIpStr;
-							util.packetProxyLog("Replaced to " + spoofingIpStr);
+							if (queryRecType == Type.A ){
+							//ToDo GUIにIPv4有効チェックを追加し、無効のときはスキップするようにする。
+								ip = spoofingIpStr;
+                                util.packetProxyLog("Replaced to " + ip);
+							}
+						}
+						if (isTargetHost6(queryHostName)) {
+							if (queryRecType == Type.AAAA ){
+								//ToDo GUIにIPv6有効チェックを追加し、無効のときはスキップするようにする。
+								ip = spoofingIp6Str;
+                                util.packetProxyLog("Replaced to " + ip);
+							}
 						}
 						jnamed jn = new jnamed(ip);
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
@@ -261,6 +321,15 @@ public class PrivateDNS
 
 		private boolean isTargetHost(String hostName) throws Exception {
 			List<Server> server_list = servers.queryResolvedByDNS();
+			for (Server server : server_list) {
+				if (hostName.equals(server.getIp())) {
+					return true;
+				}
+			}
+			return false;
+		}
+		private boolean isTargetHost6(String hostName) throws Exception {
+			List<Server> server_list = servers.queryResolvedByDNS6();
 			for (Server server : server_list) {
 				if (hostName.equals(server.getIp())) {
 					return true;
