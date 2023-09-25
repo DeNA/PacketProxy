@@ -171,6 +171,22 @@ public static final int SMIMEA		= 53;
 /** OpenPGP Key, RFC 7929 */
 public static final int OPENPGPKEY	= 61;
 
+/**
+ * Service Location and Parameter Binding
+ *
+ * @see <a
+ *     href="https://tools.ietf.org/html/draft-ietf-dnsop-svcb-https-01">draft-ietf-dnsop-svcb-https</a>
+ */
+public static final int SVCB = 64;
+
+/**
+ * HTTPS Service Location and Parameter Binding
+ *
+ * @see <a
+ *     href="https://tools.ietf.org/html/draft-ietf-dnsop-svcb-https-01">draft-ietf-dnsop-svcb-https</a>
+ */
+public static final int HTTPS = 65;
+
 /** Sender Policy Framework (experimental) */
 public static final int SPF		= 99;
 
@@ -291,6 +307,8 @@ static {
 	types.add(TLSA, "TLSA", new TLSARecord());
 	types.add(SMIMEA, "SMIMEA", new SMIMEARecord());
 	types.add(OPENPGPKEY, "OPENPGPKEY", new OPENPGPKEYRecord());
+	types.add(SVCB, "SVCB", new SVCBRecord());
+	types.add(HTTPS, "HTTPS", new HTTPSRecord());
 	types.add(SPF, "SPF", new SPFRecord());
 	types.add(TKEY, "TKEY", new TKEYRecord());
 	types.add(TSIG, "TSIG", new TSIGRecord());

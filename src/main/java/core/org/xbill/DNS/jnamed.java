@@ -24,7 +24,8 @@ static final int FLAG_SIGONLY = 2;
 Map caches;
 Map znames;
 Map TSIGs;
-String spoofIP;
+String spoofIP = null;
+Record answer = null;
 
 private static String
 addrport(InetAddress addr, int port) {
@@ -43,7 +44,15 @@ jnamed(String ip) throws IOException, ZoneTransferException {
 	caches = new HashMap();
 	znames = new HashMap();
 	TSIGs = new HashMap();
-	spoofIP = ip;
+	this.spoofIP = ip;
+}
+
+public
+jnamed(Record answer) throws IOException, ZoneTransferException {
+	caches = new HashMap();
+	znames = new HashMap();
+	TSIGs = new HashMap();
+	this.answer = answer;
 }
 
 public void
@@ -279,6 +288,11 @@ addAnswer(Message response, Name name, int type, int dclass,
 	}
 
 	try {
+		if (this.answer != null) {
+			RRset rrset;
+			rrset = new RRset(this.answer);
+			addRRset(name, response, rrset, Section.ANSWER, flags);
+		}
 		if (spoofIP != null) {
 			RRset rrset;
 			if(type == 1){

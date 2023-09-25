@@ -26,19 +26,11 @@ import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.commons.net.util.SubnetUtils.SubnetInfo;
-import org.xbill.DNS.DNSSpoofingIPGetter;
-import org.xbill.DNS.Message;
-import org.xbill.DNS.Type;
-import org.xbill.DNS.jnamed;
+import org.xbill.DNS.*;
 
 import packetproxy.model.ConfigBoolean;
 import packetproxy.model.Server;
@@ -257,11 +249,24 @@ public class PrivateDNS
 							}
 						} else if (queryRecType == Type.AAAA) {
 							addr = PrivateDNSClient.getByName6(queryHostName);
-							if (addr == null ) {
+							if (addr == null) {
 								throw new UnknownHostException();
 							}
+						} else if (queryRecType == Type.HTTPS && isTargetHost(queryHostName)) {
+								util.packetProxyLog(String.format("[DNS Query] HTTPS: '%s'", queryHostName));
+								Name label = Name.fromString(queryHostName + ".");
+								Name svcDomain = Name.fromString(".");
+								HTTPSRecord.ParameterAlpn alpn = new HTTPSRecord.ParameterAlpn();
+								alpn.fromString("h1,h2,h3");
+								List<HTTPSRecord.ParameterBase> params = List.of(alpn);
+								HTTPSRecord record = new HTTPSRecord(label, DClass.IN, 300, 1, svcDomain, params);
+								jnamed jn = new jnamed(record);
+								res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
+								sendPacket = new DatagramPacket(res, res.length, cAddr, cPort);
+								soc.send(sendPacket);
+								continue;
 						} else {
-							util.packetProxyLog(String.format("[DNS Query] Unsupport Query Type %s : '%s'", queryRecTypeName, queryHostName));
+							util.packetProxyLog(String.format("[DNS Query] Unsupported Query Type %s : '%s'", queryRecTypeName, queryHostName));
 							throw new UnsupportedOperationException();
 						}
 
