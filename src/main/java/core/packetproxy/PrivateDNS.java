@@ -49,7 +49,7 @@ public class PrivateDNS
 	private Object lock;
 	private PacketProxyUtility util;
 	private SpoofAddrFactory spoofAddrFactry = new SpoofAddrFactory();
-	
+
 	class SpoofAddrFactory {
 		private List<SubnetInfo> subnets = new ArrayList<SubnetInfo>();
 		private Map<Integer,Inet6Address> ifscopes = new HashMap<>();
@@ -57,55 +57,56 @@ public class PrivateDNS
 		private Inet6Address defaultAddr6 = null;
 
 		SpoofAddrFactory() throws Exception {
-	            Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
-	            for (NetworkInterface netint : Collections.list(nets)) {
-	                for (InterfaceAddress intAddress : netint.getInterfaceAddresses()) {
-	                    InetAddress addr = intAddress.getAddress();
-	                    if (addr instanceof Inet4Address) {
-	                        short length = intAddress.getNetworkPrefixLength();
-	                        if(length<0)continue;
-	                        String cidr = String.format("%s/%d", addr.getHostAddress(),length);
-	                        SubnetUtils subnet = new SubnetUtils(cidr);
-	                        subnets.add(subnet.getInfo());
-	                        if (defaultAddr == null) {
-	                            defaultAddr = addr.getHostAddress();
-	                        } else if (defaultAddr.equals("127.0.0.1")) {
-	                            defaultAddr = addr.getHostAddress();
-	                        }
-	                    } else {
-	                        if( !addr.isMulticastAddress() && !addr.isLinkLocalAddress() && !addr.isSiteLocalAddress() ){
-	                            ifscopes.put(((Inet6Address)addr).getScopeId(), (Inet6Address)addr);
-	                            if (defaultAddr6 == null) {
-	                                defaultAddr6 = (Inet6Address)addr;
-	                            } else if (defaultAddr6.isLoopbackAddress()) {
-	                                defaultAddr6 = (Inet6Address)addr;
-	                            }
-	                        }
-	                    }
-	                }
-	            }
-	        }
-	        Map<Integer,String> getSpoofAddr(InetAddress addr) {
-	            Map<Integer,String> spoofAddrs = new HashMap<>();
-	            if (addr instanceof Inet4Address) {
-	                for (SubnetInfo subnet : subnets) {
-	                    if (subnet.isInRange(addr.getHostAddress())) {
-	                        spoofAddrs.put(4, subnet.getAddress());
-	                    } else {
-	                        spoofAddrs.put(4, defaultAddr);
-	                    }
-	                }
-	                spoofAddrs.put(6, defaultAddr6.getHostAddress());
-	            } else {
-	                if (ifscopes.containsKey(((Inet6Address)addr).getScopeId())) {
-	                    spoofAddrs.put(6, ifscopes.get(((Inet6Address)addr).getScopeId()).getHostAddress());
-	                } else {
-	                    spoofAddrs.put(6, defaultAddr6.getHostAddress());
-	                }
-	                spoofAddrs.put(4, defaultAddr);
-	            }
-	            return spoofAddrs;
-	        }
+			Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
+			for (NetworkInterface netint : Collections.list(nets)) {
+				for (InterfaceAddress intAddress : netint.getInterfaceAddresses()) {
+					InetAddress addr = intAddress.getAddress();
+					if (addr instanceof Inet4Address) {
+						short length = intAddress.getNetworkPrefixLength();
+						if(length<0)continue;
+						String cidr = String.format("%s/%d", addr.getHostAddress(),length);
+						SubnetUtils subnet = new SubnetUtils(cidr);
+						subnets.add(subnet.getInfo());
+						if (defaultAddr == null) {
+							defaultAddr = addr.getHostAddress();
+						} else if (defaultAddr.equals("127.0.0.1")) {
+							defaultAddr = addr.getHostAddress();
+						}
+					} else {
+						if( !addr.isMulticastAddress() && !addr.isLinkLocalAddress() && !addr.isSiteLocalAddress() ){
+							ifscopes.put(((Inet6Address)addr).getScopeId(), (Inet6Address)addr);
+							if (defaultAddr6 == null) {
+								defaultAddr6 = (Inet6Address)addr;
+							} else if (defaultAddr6.isLoopbackAddress()) {
+								defaultAddr6 = (Inet6Address)addr;
+							}
+						}
+					}
+				}
+			}
+		}
+		Map<Integer,String> getSpoofAddr(InetAddress addr) {
+			Map<Integer,String> spoofAddrs = new HashMap<>();
+			if (addr instanceof Inet4Address) {
+				for (SubnetInfo subnet : subnets) {
+					if (subnet.isInRange(addr.getHostAddress())) {
+						spoofAddrs.put(4, subnet.getAddress());
+					}
+				}
+				if (spoofAddrs.get(4) == null) {
+					spoofAddrs.put(4, defaultAddr);
+				}
+				spoofAddrs.put(6, defaultAddr6.getHostAddress());
+			} else {
+				if (ifscopes.containsKey(((Inet6Address)addr).getScopeId())) {
+					spoofAddrs.put(6, ifscopes.get(((Inet6Address)addr).getScopeId()).getHostAddress());
+				} else {
+					spoofAddrs.put(6, defaultAddr6.getHostAddress());
+				}
+				spoofAddrs.put(4, defaultAddr);
+			}
+			return spoofAddrs;
+		}
 	}
 
 	public static PrivateDNS getInstance() throws Exception {
@@ -136,7 +137,7 @@ public class PrivateDNS
 						dns.start();
 						state.setState(true);
 					} else {
-						
+
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -159,7 +160,7 @@ public class PrivateDNS
 		}
 	}
 
-    @SuppressWarnings("unused")
+	@SuppressWarnings("unused")
 	private class PrivateDNSImp extends Thread {
 		private DNSSpoofingIPGetter spoofingIp;
 
@@ -253,18 +254,18 @@ public class PrivateDNS
 								throw new UnknownHostException();
 							}
 						} else if (queryRecType == Type.HTTPS && isTargetHost(queryHostName)) {
-								util.packetProxyLog(String.format("[DNS Query] HTTPS: '%s'", queryHostName));
-								Name label = Name.fromString(queryHostName + ".");
-								Name svcDomain = Name.fromString(".");
-								HTTPSRecord.ParameterAlpn alpn = new HTTPSRecord.ParameterAlpn();
-								alpn.fromString("h1,h2,h3");
-								List<HTTPSRecord.ParameterBase> params = List.of(alpn);
-								HTTPSRecord record = new HTTPSRecord(label, DClass.IN, 300, 1, svcDomain, params);
-								jnamed jn = new jnamed(record);
-								res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
-								sendPacket = new DatagramPacket(res, res.length, cAddr, cPort);
-								soc.send(sendPacket);
-								continue;
+							util.packetProxyLog(String.format("[DNS Query] HTTPS: '%s'", queryHostName));
+							Name label = Name.fromString(queryHostName + ".");
+							Name svcDomain = Name.fromString(".");
+							HTTPSRecord.ParameterAlpn alpn = new HTTPSRecord.ParameterAlpn();
+							alpn.fromString("h1,h2,h3");
+							List<HTTPSRecord.ParameterBase> params = List.of(alpn);
+							HTTPSRecord record = new HTTPSRecord(label, DClass.IN, 300, 1, svcDomain, params);
+							jnamed jn = new jnamed(record);
+							res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
+							sendPacket = new DatagramPacket(res, res.length, cAddr, cPort);
+							soc.send(sendPacket);
+							continue;
 						} else {
 							util.packetProxyLog(String.format("[DNS Query] Unsupported Query Type %s : '%s'", queryRecTypeName, queryHostName));
 							throw new UnsupportedOperationException();
@@ -277,16 +278,16 @@ public class PrivateDNS
 
 						if (isTargetHost(queryHostName)) {
 							if (queryRecType == Type.A ){
-							//ToDo GUIにIPv4有効チェックを追加し、無効のときはスキップするようにする。
+								//ToDo GUIにIPv4有効チェックを追加し、無効のときはスキップするようにする。
 								ip = spoofingIpStr;
-                                util.packetProxyLog("Replaced to " + ip);
+								util.packetProxyLog("Replaced to " + ip);
 							}
 						}
 						if (isTargetHost6(queryHostName)) {
 							if (queryRecType == Type.AAAA ){
 								//ToDo GUIにIPv6有効チェックを追加し、無効のときはスキップするようにする。
 								ip = spoofingIp6Str;
-                                util.packetProxyLog("Replaced to " + ip);
+								util.packetProxyLog("Replaced to " + ip);
 							}
 						}
 						jnamed jn = new jnamed(ip);
@@ -333,6 +334,7 @@ public class PrivateDNS
 			}
 			return false;
 		}
+
 		private boolean isTargetHost6(String hostName) throws Exception {
 			List<Server> server_list = servers.queryResolvedByDNS6();
 			for (Server server : server_list) {
@@ -345,4 +347,3 @@ public class PrivateDNS
 
 	}
 }
-
