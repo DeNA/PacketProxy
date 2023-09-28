@@ -156,7 +156,12 @@ public abstract class EncodeHTTPBase extends Encoder
 			input_data = http3.decodeClientRequest(input_data);
 		}
 		Http http = Http.create(input_data);
-		Http decodedHttp = decodeClientRequestHttp(http);
+		Http decodedHttp = http;
+		if (http.getFirstHeader("X-PacketProxy-Skip-ClientSideEncode").contains("true")) {
+			encode_mode = 1;
+		} else {
+			decodedHttp = decodeClientRequestHttp(http);
+		}
 		return decodedHttp.toByteArray();
 	}
 
@@ -199,7 +204,10 @@ public abstract class EncodeHTTPBase extends Encoder
 		} else {
 			http = Http.create(input_data);
 		}
-		Http encodedHttp = encodeServerResponseHttp(http);
+		Http encodedHttp = http;
+		if (encode_mode == 0) {
+			encodedHttp = encodeServerResponseHttp(http);
+		}
 		byte[] encodedData = encodedHttp.toByteArray();
 		if (this.httpVersion == HTTPVersion.HTTP2) { 
 			encodedData = http2.encodeServerResponse(encodedData);
