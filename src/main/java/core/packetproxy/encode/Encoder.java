@@ -33,6 +33,7 @@ public abstract class Encoder
 	private PipedOutputStream serverOutputForFlowControl;
 	private PipedInputStream serverInputForFlowControl;
 	private String ALPN;
+	public int encode_mode;
 	
 	public Encoder(String alpn) {
 		this.ALPN = alpn;
