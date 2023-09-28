@@ -45,10 +45,6 @@ public class EncodeProtobuf extends EncodeHTTPBase
 
 	@Override
 	protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
-		if (inputHttp.getFirstHeader("X-PacketProxy").contains("true")) {
-            encode_mode = 1;
-			return inputHttp;
-        }
 		if (inputHttp.getFirstHeader("Content-Type").contains("protobuf")) {
             return decodeProtobuf3(inputHttp);
         }
@@ -73,9 +69,6 @@ public class EncodeProtobuf extends EncodeHTTPBase
 
 	@Override
 	protected Http encodeServerResponseHttp(Http inputHttp) throws Exception {
-		if (encode_mode == 1) {
-			return inputHttp;
-		}
 		if (inputHttp.getFirstHeader("Content-Type").contains("protobuf")) {
             return encodeProtobuf3(inputHttp);
         }
