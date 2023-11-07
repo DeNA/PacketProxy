@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 DeNA Co., Ltd.
+ * Copyright 2019,2023 DeNA Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,35 +15,41 @@
  */
 package packetproxy.encode;
 
-import packetproxy.common.WebSocket;
 import packetproxy.http.Http;
-import packetproxy.model.Packet;
+import packetproxy.websocket.WebSocket;
+import packetproxy.websocket.WebSocketFrame;
 
 public class EncodeHTTPWebSocket extends Encoder
 {
 	protected boolean binary_start = false;
+	WebSocket clientWebSocket = new WebSocket();
+	WebSocket serverWebSocket = new WebSocket();
 
 	public EncodeHTTPWebSocket(String ALPN) throws Exception {
 		super(ALPN);
 	}
 
-	public EncodeHTTPWebSocket()
-	{
+	public EncodeHTTPWebSocket() throws Exception {
+		super();
 	}
 
+	@Override
 	public boolean useNewConnectionForResend() {
 		return false;
 	}
-	
+
 	@Override
-	public String getName()
-	{
+	public boolean useNewEncoderForResend() {
+		return false;
+	}
+
+	@Override
+	public String getName() {
 		return "HTTP WebSocket";
 	}
 	
 	@Override
-	public int checkDelimiter(byte[] input) throws Exception
-	{
+	public int checkDelimiter(byte[] input) throws Exception {
 		if (binary_start) {
 			return WebSocket.checkDelimiter(input);
 		} else {
@@ -52,117 +58,123 @@ public class EncodeHTTPWebSocket extends Encoder
 	}
 
 	@Override
-	public byte[] decodeServerResponse(Packet server_packet) throws Exception
-	{
-		byte[] input_data = server_packet.getReceivedData();
+	public void clientRequestArrived(byte[] input) throws Exception {
 		if (binary_start) {
-			WebSocket ws = new WebSocket(input_data);
-			byte[] encodedData = ws.getPayload();
-			return decodeWebsocketResponse(encodedData);
+			clientWebSocket.frameArrived(input);
 		} else {
-			Http http = Http.create(input_data);
-			http = decodeHttpResponse(http);
+			super.clientRequestArrived(input);
+		}
+	}
+
+	@Override
+	public void serverResponseArrived(byte[] input) throws Exception {
+		if (binary_start) {
+			serverWebSocket.frameArrived(input);
+		} else {
+			super.serverResponseArrived(input);
+		}
+	}
+
+	@Override
+	public byte[] passThroughClientRequest() throws Exception {
+		if (binary_start) {
+			return clientWebSocket.passThroughFrame();
+		} else {
+			return super.passThroughClientRequest();
+		}
+	}
+
+	@Override
+	public byte[] passThroughServerResponse() throws Exception {
+		if (binary_start) {
+			return serverWebSocket.passThroughFrame();
+		} else {
+			return super.passThroughServerResponse();
+		}
+	}
+
+	@Override
+	public byte[] clientRequestAvailable() throws Exception {
+		if (binary_start) {
+			return clientWebSocket.frameAvailable();
+		} else {
+			return super.clientRequestAvailable();
+		}
+	}
+
+	@Override
+	public byte[] serverResponseAvailable() throws Exception {
+		if (binary_start) {
+			return serverWebSocket.frameAvailable();
+		} else {
+			return super.serverResponseAvailable();
+		}
+	}
+
+	@Override
+	public byte[] decodeServerResponse(byte[] input) throws Exception
+	{
+		if (binary_start) {
+			return decodeWebsocketResponse(input);
+		} else {
+			Http http = Http.create(input);
 			return http.toByteArray();
 		}
 	}
 
 	@Override
-	public byte[] encodeServerResponse(Packet server_packet) throws Exception
+	public byte[] encodeServerResponse(byte[] input) throws Exception
 	{
-		byte[] input_data = server_packet.getModifiedData();
 		if (binary_start) {
-			byte[] received_data = server_packet.getReceivedData();
-			WebSocket ws_original = new WebSocket(received_data);
-			byte[] encodedData = encodeWebsocketResponse(input_data);
-			WebSocket ws = WebSocket.generateFromPayload(encodedData, ws_original);
-			return ws.toByteArray();
+			byte[] payload = encodeWebsocketResponse(input);
+			WebSocketFrame frame = WebSocketFrame.of(payload, false);
+			return frame.getBytes();
 		} else {
-			Http http = Http.create(input_data);
+			Http http = Http.create(input);
 			// encodeでやらないと、Switching Protocolsのレスポンス自体がwebsocketとしてencodeされてしまう
-			binary_start =http.getStatusCode().matches("101");
-			http = encodeHttpResponse(http);
+			binary_start = http.getStatusCode().matches("101");
 			return http.toByteArray();
 		}
 	}
 
 	@Override
-	public byte[] decodeClientRequest(Packet client_packet) throws Exception
+	public byte[] decodeClientRequest(byte[] input) throws Exception
 	{
-		byte[] input_data = client_packet.getReceivedData();
 		if (binary_start) {
-			WebSocket ws = new WebSocket(input_data);
-			byte[] encodedData = ws.getPayload();
-			return decodeWebsocketRequest(encodedData);
+			return decodeWebsocketRequest(input);
 		} else {
-			Http http = Http.create(input_data);
-			http = decodeHttpRequest(http);
+			Http http = Http.create(input);
 			return http.toByteArray();
 		}
 	}
 	
 	@Override
-	public byte[] encodeClientRequest(Packet client_packet) throws Exception
+	public byte[] encodeClientRequest(byte[] input) throws Exception
 	{
-		byte[] input_data = client_packet.getModifiedData();
 		if (binary_start) {
-			byte[] received_data = client_packet.getReceivedData();
-			WebSocket ws_original = new WebSocket(received_data);
-			byte[] encodedData = encodeWebsocketRequest(input_data);
-			WebSocket ws = WebSocket.generateFromPayload(encodedData, ws_original);
-			return ws.toByteArray();
+			byte[] payload = encodeWebsocketRequest(input);
+			WebSocketFrame frame = WebSocketFrame.of(payload, true);
+			return frame.getBytes();
 		} else {
-			Http http = Http.create(input_data);
-			http = encodeHttpRequest(http);
+			Http http = Http.create(input);
 			return http.toByteArray();
 		}
 	}
 
 	@Override
-	public String getContentType(byte[] input_data) throws Exception
+	public String getContentType(byte[] input) throws Exception
 	{
 		if (binary_start) {
 			return "WebSocket";
 		} else {
-			Http http = Http.create(input_data);
+			Http http = Http.create(input);
 			return http.getFirstHeader("Content-Type");
 		}
 	}
 	
-	public Http decodeHttpRequest(Http input){
-		return input;
-	}
+	public byte[] decodeWebsocketRequest(byte[] input) throws Exception { return input; }
+	public byte[] encodeWebsocketRequest(byte[] input) throws Exception { return input; }
+	public byte[] decodeWebsocketResponse(byte[] input) throws Exception { return input; }
+	public byte[] encodeWebsocketResponse(byte[] input) throws Exception { return input; }
 
-	public Http encodeHttpRequest(Http input){
-		return input;
-	}
-
-	public Http decodeHttpResponse(Http input){
-		return input;
-	}
-
-	public Http encodeHttpResponse(Http input){
-		return input;
-	}
-
-	public byte[] decodeWebsocketRequest(byte[] input){
-		return input;
-	}
-
-	public byte[] encodeWebsocketRequest(byte[] input){
-		return input;
-	}
-
-	public byte[] decodeWebsocketResponse(byte[] input){
-		return input;
-	}
-
-	public byte[] encodeWebsocketResponse(byte[] input){
-		return input;
-	}
-
-
-	public byte[] decodeServerResponse(byte[] input_data) throws Exception { return null; }
-	public byte[] encodeServerResponse(byte[] input_data) throws Exception { return null; }
-	public byte[] decodeClientRequest(byte[] input_data) throws Exception { return null; }
-	public byte[] encodeClientRequest(byte[] input_data) throws Exception { return null; }
 }

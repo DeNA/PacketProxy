@@ -2,6 +2,7 @@ package packetproxy.util;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class Throwing {
 
@@ -12,9 +13,15 @@ public class Throwing {
         return consumer;
     }
 
+    @Nonnull
+    public static <T> Predicate<T> rethrowP(@Nonnull final ThrowingPredicate<T> predicate) {
+        return predicate;
+    }
+
     @SuppressWarnings("unchecked")
     @Nonnull
     public static <E extends Throwable> void sneakyThrow(@Nonnull Throwable ex) throws E {
         throw (E) ex;
     }
+
 }

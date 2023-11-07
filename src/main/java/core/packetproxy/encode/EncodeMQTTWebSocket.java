@@ -20,11 +20,11 @@ import com.mobius.software.mqtt.parser.MQParser;
 import com.mobius.software.mqtt.parser.header.api.MQMessage;
 import com.mobius.software.mqtt.parser.header.impl.*;
 import io.netty.buffer.Unpooled;
-import packetproxy.common.WebSocket;
+import packetproxy.websocket.WebSocket;
 import packetproxy.http.Http;
 import packetproxy.model.Packet;
 
-public class EncodeMQTTWebSocket extends Encoder
+public class EncodeMQTTWebSocket extends EncodeHTTPWebSocket
 {
 	protected boolean binary_start = false;
 
@@ -32,98 +32,12 @@ public class EncodeMQTTWebSocket extends Encoder
 		super(ALPN);
 	}
 
-	public EncodeMQTTWebSocket()
-	{
-	}
-
-	public boolean useNewConnectionForResend() {
-		return false;
-	}
-	
 	@Override
 	public String getName()
 	{
 		return "MQTTv3.1 over WebSocket";
 	}
 	
-	@Override
-	public int checkDelimiter(byte[] input) throws Exception
-	{
-		if (binary_start) {
-			return WebSocket.checkDelimiter(input);
-		} else {
-			return Http.parseHttpDelimiter(input);
-		}
-	}
-
-	@Override
-	public byte[] decodeServerResponse(Packet server_packet) throws Exception
-	{
-		byte[] input_data = server_packet.getReceivedData();
-		if (binary_start) {
-			WebSocket ws = new WebSocket(input_data);
-			byte[] encodedData = ws.getPayload();
-			byte[] decodeData = decodeWebsocketResponse(encodedData);
-			return decodeMQTT(decodeData);
-		} else {
-			Http http = Http.create(input_data);
-			http = decodeHttpResponse(http);
-			return http.toByteArray();
-		}
-	}
-
-	@Override
-	public byte[] encodeServerResponse(Packet server_packet) throws Exception
-	{
-		byte[] input_data = server_packet.getModifiedData();
-		if (binary_start) {
-			byte[] received_data = server_packet.getReceivedData();
-			WebSocket ws_original = new WebSocket(received_data);
-			byte[] encodedData = encodeWebsocketResponse(encodeMQTT(input_data));
-			WebSocket ws = WebSocket.generateFromPayload(encodedData, ws_original);
-			return ws.toByteArray();
-		} else {
-			Http http = Http.create(input_data);
-			// encodeでやらないと、Switching Protocolsのレスポンス自体がwebsocketとしてencodeされてしまう
-			binary_start =http.getStatusCode().matches("101");
-			http = encodeHttpResponse(http);
-			return http.toByteArray();
-		}
-	}
-
-	@Override
-	public byte[] decodeClientRequest(Packet client_packet) throws Exception
-	{
-		byte[] input_data = client_packet.getReceivedData();
-		if (binary_start) {
-			WebSocket ws = new WebSocket(input_data);
-			byte[] encodedData = ws.getPayload();
-			byte[] decodeData = decodeWebsocketRequest(encodedData);
-			return decodeMQTT(decodeData);
-		} else {
-			Http http = Http.create(input_data);
-			http = decodeHttpRequest(http);
-			return http.toByteArray();
-		}
-	}
-	
-	@Override
-	public byte[] encodeClientRequest(Packet client_packet) throws Exception
-	{
-		byte[] input_data = client_packet.getModifiedData();
-		if (binary_start) {
-			byte[] received_data = client_packet.getReceivedData();
-			WebSocket ws_original = new WebSocket(received_data);
-			byte[] encodedData = encodeWebsocketRequest(encodeMQTT(input_data));
-			WebSocket ws = WebSocket.generateFromPayload(encodedData, ws_original);
-			return ws.toByteArray();
-		} else {
-			Http http = Http.create(input_data);
-			http = encodeHttpRequest(http);
-			return http.toByteArray();
-		}
-	}
-
 	@Override
 	public String getContentType(byte[] input_data) throws Exception
 	{
@@ -146,43 +60,22 @@ public class EncodeMQTTWebSocket extends Encoder
 		return parser.jsonString(m).getBytes();
 	}
 
-	public Http decodeHttpRequest(Http input){
-		return input;
+	@Override
+	public byte[] decodeWebsocketRequest(byte[] input) throws Exception {
+		return decodeMQTT(input);
 	}
 
-	public Http encodeHttpRequest(Http input){
-		return input;
+	public byte[] encodeWebsocketRequest(byte[] input) throws Exception {
+		return encodeMQTT(input);
 	}
 
-	public Http decodeHttpResponse(Http input){
-		return input;
+	public byte[] decodeWebsocketResponse(byte[] input) throws Exception {
+		return decodeMQTT(input);
 	}
 
-	public Http encodeHttpResponse(Http input){
-		return input;
+	public byte[] encodeWebsocketResponse(byte[] input) throws Exception {
+		return encodeMQTT(input);
 	}
-
-	public byte[] decodeWebsocketRequest(byte[] input){
-		return input;
-	}
-
-	public byte[] encodeWebsocketRequest(byte[] input){
-		return input;
-	}
-
-	public byte[] decodeWebsocketResponse(byte[] input){
-		return input;
-	}
-
-	public byte[] encodeWebsocketResponse(byte[] input){
-		return input;
-	}
-
-
-	public byte[] decodeServerResponse(byte[] input_data) throws Exception { return null; }
-	public byte[] encodeServerResponse(byte[] input_data) throws Exception { return null; }
-	public byte[] decodeClientRequest(byte[] input_data) throws Exception { return null; }
-	public byte[] encodeClientRequest(byte[] input_data) throws Exception { return null; }
 
 	@Override
 	public String getSummarizedRequest(Packet packet) {
