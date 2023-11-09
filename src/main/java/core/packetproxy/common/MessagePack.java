@@ -107,7 +107,7 @@ public class MessagePack {
                 this.type = Type.Boolean;
                 this.size = 1;
                 this.fix = true;
-                this.value = 1; // false
+                this.value = 1; // true
             } else if ((byte) 0xc4 <= firstByte && firstByte <= (byte) 0xc6) {
                 this.type = Type.RawBinary;
                 this.size = 1 << (firstByte - 0xc4);
@@ -201,7 +201,7 @@ public class MessagePack {
                     break;
                 }
                 case RawString: {
-                    if (n >= 32) {
+                    if (this.fix && n >= 32) {
                         this.fix = false;
                         this.size = 0;
                     }
@@ -223,7 +223,7 @@ public class MessagePack {
                 }
                 case Array:
                 case Map: {
-                    if (n >= 16) {
+                    if (this.fix && n >= 16) {
                         this.fix = false;
                         this.size = 0;
                     }
@@ -241,8 +241,9 @@ public class MessagePack {
                     break;
                 }
                 case Extension: {
-                    if (n != 1 && n != 2 && n != 4 && n != 8 && n != 16) {
+                    if (this.fix && n != 1 && n != 2 && n != 4 && n != 8 && n != 16) {
                         this.fix = false;
+                        this.size = 0;
                     }
                     if (this.fix) {
                         this.size = (int) n;
