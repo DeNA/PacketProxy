@@ -152,13 +152,21 @@ public class ProxySSLTransparent extends Proxy
 		} else {
 			for (SNIServerName serverE: serverNames) {
 				String serverName = new String(serverE.getEncoded()); // 接続先サーバを取得
-				PacketProxyUtility.getInstance().packetProxyLog(String.format("[SSL-forward! using SNI] %s", serverName));
+				if (listen_info.getServer() != null) { // upstream proxy
+					PacketProxyUtility.getInstance().packetProxyLog(String.format("[SSL-forward through upstream proxy! using SNI] %s", serverName));
+				} else {
+					PacketProxyUtility.getInstance().packetProxyLog(String.format("[SSL-forward! using SNI] %s", serverName));
+				}
 				ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, position);
 
 				/* check server connection */
 				InetSocketAddress serverAddr;
 				try {
-					serverAddr = new InetSocketAddress(PrivateDNSClient.getByName(serverName), proxyPort);
+					if (listen_info.getServer() != null) { // upstream proxy
+						serverAddr = listen_info.getServer().getAddress();
+					} else {
+						serverAddr = new InetSocketAddress(PrivateDNSClient.getByName(serverName), proxyPort);
+					}
 					Socket s = new Socket();
 					s.connect(serverAddr, 500); /* timeout: 500ms */
 					s.close();
@@ -167,7 +175,7 @@ public class ProxySSLTransparent extends Proxy
 					serverAddr = new InetSocketAddress(PrivateDNSClient.getByName(serverName), 443);
 					PacketProxyUtility.getInstance().packetProxyLog("[Fallback port] " + proxyPort + " -> 443");
 				}
-				
+
 				if (SSLPassThroughs.getInstance().includes(serverName, listen_info.getPort())) {
 					SocketEndpoint server_e = new SocketEndpoint(serverAddr);
 					SocketEndpoint client_e = new SocketEndpoint(client, bais);
