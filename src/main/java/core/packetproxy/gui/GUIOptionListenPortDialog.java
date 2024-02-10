@@ -129,7 +129,7 @@ public class GUIOptionListenPortDialog extends JDialog
 			servers = Servers.getInstance().queryHttpProxies();
 			combo.addItem(I18nString.get("Forward to server specified in SNI header"));
 		} else if (item.equals("HTTP_TRANSPARENT_PROXY")) {
-			servers = new ArrayList<Server>();
+			servers = Servers.getInstance().queryHttpProxies();
 			combo.addItem(I18nString.get("Forward to server specified in Hosts header"));
 		} else if (item.equals("UDP_FORWARDER")) {
 			servers = Servers.getInstance().queryNonHttpProxies();

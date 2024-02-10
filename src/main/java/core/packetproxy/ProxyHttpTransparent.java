@@ -126,8 +126,13 @@ public class ProxyHttpTransparent extends Proxy
 
 		try {
 			Endpoint client_e = EndpointFactory.createClientEndpoint(client, lookaheadBuffer);
-			Endpoint server_e = EndpointFactory.createServerEndpoint(hostPort.getInetSocketAddress());
 
+			Endpoint server_e = null;
+			if (listen_info.getServer() != null) { // upstream proxy
+				server_e = EndpointFactory.createServerEndpoint(listen_info.getServer().getAddress());
+			} else {
+				server_e = EndpointFactory.createServerEndpoint(hostPort.getInetSocketAddress());
+			}
 
 			Server server = Servers.getInstance().queryByHostNameAndPort(hostPort.getHostName(), listen_info.getPort());
 			createConnection(client_e, server_e, server);
