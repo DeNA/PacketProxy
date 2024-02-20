@@ -124,7 +124,7 @@ public class HeadersFrame extends Frame
 				dependency = Integer.parseInt(field.getValue());
 			} else if (field.getName().equals("X-PacketProxy-HTTP2-Weight")) {
 				weight = Integer.parseInt(field.getValue());
-			} else {
+			} else if (!field.getName().startsWith("X-PacketProxy")) {
 				mutableFields.add(field.getName(), field.getValue());
 			}
 		}
