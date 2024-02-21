@@ -79,6 +79,8 @@ public class HeadersFrame extends Frame
 				super.streamId = Integer.parseInt(field.getValue());
 			} else if (field.getName().equals("X-PacketProxy-HTTP2-Flags")) {
 				super.flags |= (byte)Integer.parseInt(field.getValue());
+			} else if (field.getName().equals("grpc-status")) {
+				this.bTrailer = true;
 			}
 		}
 		super.saveExtra(http.toByteArray());
@@ -143,9 +145,13 @@ public class HeadersFrame extends Frame
 			HttpURI uri = HttpURI.build().uri(uriString);
 			meta = new MetaData.Request(method, uri, version, fields, contentLength);
 		} else {
-			this.status = Integer.valueOf(http.getStatusCode());
-			long contentLength = (http.getBody().length == 0 ? Long.MIN_VALUE : http.getBody().length);
-			meta = new MetaData.Response(version, Integer.parseInt(http.getStatusCode()), fields, contentLength);
+			if (this.bTrailer) {
+				meta = new MetaData(version, fields);
+			} else {
+				this.status = Integer.valueOf(http.getStatusCode());
+				long contentLength = (http.getBody().length == 0 ? Long.MIN_VALUE : http.getBody().length);
+				meta = new MetaData.Response(version, Integer.parseInt(http.getStatusCode()), fields, contentLength);
+			}
 		}
 
 		ByteBuffer buffer = ByteBuffer.allocate(65535);
