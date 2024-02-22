@@ -135,6 +135,13 @@ public class FlowControl {
 			stream.write(frame);
 		}
 
+		// データの送信が終わっていたら、grpcヘッダを送信する
+		if (this.headersFrameSent && this.dataFrameSent && !this.grpcHeadersFrameSent && this.grpcHeaderFrame != null) {
+			//System.out.printf("[%d] gRPC HeadersFrame sent!\n", streamId);
+			stream.write(this.grpcHeaderFrame);
+			this.grpcHeadersFrameSent = true;
+		}
+
 		return stream;
 	}
 	

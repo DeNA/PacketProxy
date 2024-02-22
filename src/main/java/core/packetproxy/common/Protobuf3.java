@@ -165,6 +165,7 @@ public class Protobuf3
 	/* 注意：repeatedデータが、inputバッファとぴったり合わないとfalse */
 	public static boolean validateRepeatedStrictly(byte[] input) {
 		int i = 0;
+		int entries = 0;
 		while (i < input.length) {
 			byte[] subInput = ArrayUtils.subarray(input, i, input.length);
 			int[] varLen = new int[1];
@@ -172,8 +173,12 @@ public class Protobuf3
 				return false;
 			}
 			i = i + varLen[0];
+			entries++;
 		}
-		return true;
+		if (entries > 64) { /* 64エントリを超える場合はrepeatedとみなさずbytesとみなす */
+			return false;
+		}
+		return i == input.length;
 	}
 	public static List<Object> decodeRepeated(ByteArrayInputStream input) {
 		List<Object> list = new LinkedList<>();

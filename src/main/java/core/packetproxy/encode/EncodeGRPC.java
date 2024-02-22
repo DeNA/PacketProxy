@@ -15,10 +15,15 @@
  */
 package packetproxy.encode;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.common.Protobuf3;
+import packetproxy.common.Utils;
 import packetproxy.http.Http;
 import packetproxy.http2.Grpc;
 
@@ -43,35 +48,50 @@ public class EncodeGRPC extends EncodeHTTPBase
 	@Override
 	protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
 		byte[] raw = inputHttp.getBody();
-		compressedFlag = raw[0];
-		int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, 1, 5)).getInt();
-		byte[] byteBasedMsg = Arrays.copyOfRange(raw, 5, 5+messageLength);
-		byteBasedMsg = decodeGrpcClientPayload(byteBasedMsg);
-		String json = Protobuf3.decode(byteBasedMsg);
-		inputHttp.setBody(json.getBytes("UTF-8"));
+		ByteArrayOutputStream body = new ByteArrayOutputStream();
+		int pos = 0;
+		while (pos < raw.length) {
+			compressedFlag = raw[pos];
+			if (compressedFlag != 0) {
+				throw new Exception("gRPC: compressed flag in gRPC message is not supported yet");
+			}
+			pos += 1;
+			int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, pos, pos+4)).getInt();
+			pos += 4;
+			byte[] grpcMsg = Arrays.copyOfRange(raw, pos, pos+messageLength);
+			byte[] decodedMsg = decodeGrpcClientPayload(grpcMsg);
+			if (body.size() > 0) {
+				body.write("\n".getBytes());
+			}
+			body.write(Protobuf3.decode(decodedMsg).getBytes(StandardCharsets.UTF_8));
+			pos += messageLength;
+		}
+		inputHttp.setBody(body.toByteArray());
 		return inputHttp;
 	}
 
 	@Override
 	protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
-		byte[] encodeBytes = Protobuf3.encode(new String(inputHttp.getBody(),"UTF-8"));
-		encodeBytes = encodeGrpcClientPayload(encodeBytes);
-		int messageLength = encodeBytes.length;
-		byte[] raw = new byte[5+messageLength];
-
-		for(int i=0;i<encodeBytes.length;++i){
-			raw[5+i] = encodeBytes[i];
+		byte[] body = inputHttp.getBody();
+		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();
+		int pos = 0;
+		while (pos < body.length) {
+			int idx;
+			if ((idx = Utils.indexOf(body, pos, body.length, "\n}".getBytes())) > 0) { // split into gRPC messages
+				byte[] msgBytes = ArrayUtils.subarray(body, pos, idx+2);
+				String msg = new String(msgBytes, StandardCharsets.UTF_8);
+				byte[] data = Protobuf3.encode(msg);
+				byte[] encodedData = encodeGrpcClientPayload(data);
+				int encodedDataLen = encodedData.length;
+				rawStream.write((byte)0); // always compressed flag is zero
+				rawStream.write(ByteBuffer.allocate(4).putInt(encodedDataLen).array());
+				rawStream.write(encodedData);
+				pos = idx+2;
+			} else {
+				break;
+			}
 		}
-
-		byte[] msgLength = ByteBuffer.allocate(4).putInt(messageLength).array();
-		raw[1] = msgLength[0];
-		raw[2] = msgLength[1];
-		raw[3] = msgLength[2];
-		raw[4] = msgLength[3];
-
-		raw[0] = compressedFlag;
-
-		inputHttp.setBody(raw);
+		inputHttp.setBody(rawStream.toByteArray());
 		return inputHttp;
 	}
 
@@ -81,38 +101,53 @@ public class EncodeGRPC extends EncodeHTTPBase
 		if (raw.length == 0) {
 			return inputHttp;
 		}
-		compressedFlag = raw[0];
-		int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, 1, 5)).getInt();
-		byte[] byteBasedMsg = Arrays.copyOfRange(raw, 5, 5+messageLength);
-		byteBasedMsg = decodeGrpcServerPayload(byteBasedMsg);
-		String json = Protobuf3.decode(byteBasedMsg);
-		inputHttp.setBody(json.getBytes("UTF-8"));
+		ByteArrayOutputStream body = new ByteArrayOutputStream();
+		int pos = 0;
+		while (pos < raw.length) {
+			compressedFlag = raw[pos];
+			if (compressedFlag != 0) {
+				throw new Exception("gRPC: compressed flag in gRPC message is not supported yet");
+			}
+			pos += 1;
+			int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, pos, pos+4)).getInt();
+			pos += 4;
+			byte[] grpcMsg = Arrays.copyOfRange(raw, pos, pos+messageLength);
+			byte[] decodedMsg = decodeGrpcServerPayload(grpcMsg);
+			if (body.size() > 0) {
+				body.write("\n".getBytes());
+			}
+			body.write(Protobuf3.decode(decodedMsg).getBytes(StandardCharsets.UTF_8));
+			pos += messageLength;
+		}
+		inputHttp.setBody(body.toByteArray());
 		return inputHttp;
 	}
 
 	@Override
 	protected Http encodeServerResponseHttp(Http inputHttp) throws Exception {
-		if (inputHttp.getBody().length == 0) {
+		byte[] body = inputHttp.getBody();
+		if (body.length == 0) {
 			return inputHttp;
 		}
-		byte[] encodeBytes = Protobuf3.encode(new String(inputHttp.getBody(),"UTF-8"));
-		encodeBytes = encodeGrpcServerPayload(encodeBytes);
-		int messageLength = encodeBytes.length;
-		byte[] raw = new byte[5+messageLength];
-
-		for(int i=0;i<encodeBytes.length;++i){
-			raw[5+i] = encodeBytes[i];
+		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();
+		int pos = 0;
+		while (pos < body.length) {
+			int idx;
+			if ((idx = Utils.indexOf(body, pos, body.length, "\n}".getBytes())) > 0) { // split into gRPC messages
+				byte[] msgBytes = ArrayUtils.subarray(body, pos, idx+2);
+				String msg = new String(msgBytes, StandardCharsets.UTF_8);
+				byte[] data = Protobuf3.encode(msg);
+				byte[] encodedData = encodeGrpcServerPayload(data);
+				int encodedDataLen = encodedData.length;
+				rawStream.write((byte)0); // always compressed flag is zero
+				rawStream.write(ByteBuffer.allocate(4).putInt(encodedDataLen).array());
+				rawStream.write(encodedData);
+				pos = idx+2;
+			} else {
+				break;
+			}
 		}
-
-		byte[] msgLength = ByteBuffer.allocate(4).putInt(messageLength).array();
-		raw[1] = msgLength[0];
-		raw[2] = msgLength[1];
-		raw[3] = msgLength[2];
-		raw[4] = msgLength[3];
-
-		raw[0] = compressedFlag;
-
-		inputHttp.setBody(raw);
+		inputHttp.setBody(rawStream.toByteArray());
 		return inputHttp;
 	}
 

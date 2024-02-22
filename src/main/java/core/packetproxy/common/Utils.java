@@ -29,6 +29,17 @@ import java.util.zip.GZIPOutputStream;
 
 public class Utils {
 
+	public static List<byte[]> splitArray(byte[] array, int maxSubArraySize) {
+		List<byte[]> list = new ArrayList<>();
+		int pos = 0;
+		while (pos < array.length) {
+			int subArraySize = Math.min(array.length - pos, maxSubArraySize);
+			list.add(ArrayUtils.subarray(array, pos, pos + subArraySize));
+			pos += subArraySize;
+		}
+		return list;
+	}
+
 	public static int indexOf(byte[] input_data, int start_idx, int end_idx, byte[] word)
 	{
 		assert(end_idx <= input_data.length);
