@@ -76,20 +76,22 @@ public class EncodeGRPC extends EncodeHTTPBase
 		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();
 		int pos = 0;
 		while (pos < body.length) {
+			byte[] subBody;
 			int idx;
 			if ((idx = Utils.indexOf(body, pos, body.length, "\n}".getBytes())) > 0) { // split into gRPC messages
-				byte[] msgBytes = ArrayUtils.subarray(body, pos, idx+2);
-				String msg = new String(msgBytes, StandardCharsets.UTF_8);
-				byte[] data = Protobuf3.encode(msg);
-				byte[] encodedData = encodeGrpcClientPayload(data);
-				int encodedDataLen = encodedData.length;
-				rawStream.write((byte)0); // always compressed flag is zero
-				rawStream.write(ByteBuffer.allocate(4).putInt(encodedDataLen).array());
-				rawStream.write(encodedData);
-				pos = idx+2;
+				subBody = ArrayUtils.subarray(body, pos, idx + 2);
+				pos = idx + 2;
 			} else {
-				break;
+				subBody = ArrayUtils.subarray(body, pos, body.length);
+				pos = body.length;
 			}
+			String msg = new String(subBody, StandardCharsets.UTF_8);
+			byte[] data = Protobuf3.encode(msg);
+			byte[] encodedData = encodeGrpcClientPayload(data);
+			int encodedDataLen = encodedData.length;
+			rawStream.write((byte)0); // always compressed flag is zero
+			rawStream.write(ByteBuffer.allocate(4).putInt(encodedDataLen).array());
+			rawStream.write(encodedData);
 		}
 		inputHttp.setBody(rawStream.toByteArray());
 		return inputHttp;
@@ -132,20 +134,22 @@ public class EncodeGRPC extends EncodeHTTPBase
 		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();
 		int pos = 0;
 		while (pos < body.length) {
+			byte[] subBody;
 			int idx;
 			if ((idx = Utils.indexOf(body, pos, body.length, "\n}".getBytes())) > 0) { // split into gRPC messages
-				byte[] msgBytes = ArrayUtils.subarray(body, pos, idx+2);
-				String msg = new String(msgBytes, StandardCharsets.UTF_8);
-				byte[] data = Protobuf3.encode(msg);
-				byte[] encodedData = encodeGrpcServerPayload(data);
-				int encodedDataLen = encodedData.length;
-				rawStream.write((byte)0); // always compressed flag is zero
-				rawStream.write(ByteBuffer.allocate(4).putInt(encodedDataLen).array());
-				rawStream.write(encodedData);
+				subBody = ArrayUtils.subarray(body, pos, idx+2);
 				pos = idx+2;
 			} else {
-				break;
+				subBody = ArrayUtils.subarray(body, pos, body.length);
+				pos = body.length;
 			}
+			String msg = new String(subBody, StandardCharsets.UTF_8);
+			byte[] data = Protobuf3.encode(msg);
+			byte[] encodedData = encodeGrpcServerPayload(data);
+			int encodedDataLen = encodedData.length;
+			rawStream.write((byte)0); // always compressed flag is zero
+			rawStream.write(ByteBuffer.allocate(4).putInt(encodedDataLen).array());
+			rawStream.write(encodedData);
 		}
 		inputHttp.setBody(rawStream.toByteArray());
 		return inputHttp;
