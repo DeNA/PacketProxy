@@ -45,7 +45,8 @@ public class EncodeProtobuf extends EncodeHTTPBase
 
 	@Override
 	protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
-		if (inputHttp.getFirstHeader("Content-Type").contains("protobuf")) {
+		var contentType = inputHttp.getFirstHeader("Content-Type");
+		if (contentType.contains("protobuf") || contentType.startsWith("application/octet-stream")) {
             return decodeProtobuf3(inputHttp);
         }
 		return inputHttp;
@@ -53,7 +54,8 @@ public class EncodeProtobuf extends EncodeHTTPBase
 
 	@Override
 	protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
-		if (inputHttp.getFirstHeader("Content-Type").contains("protobuf")) {
+		var contentType = inputHttp.getFirstHeader("Content-Type");
+		if (contentType.contains("protobuf") || contentType.startsWith("application/octet-stream")) {
             return encodeProtobuf3(inputHttp);
         }
 		return inputHttp;
@@ -61,7 +63,8 @@ public class EncodeProtobuf extends EncodeHTTPBase
 
 	@Override
 	protected Http decodeServerResponseHttp(Http inputHttp) throws Exception {
-		if (inputHttp.getFirstHeader("Content-Type").contains("protobuf")) {
+		var contentType = inputHttp.getFirstHeader("Content-Type");
+		if (contentType.contains("protobuf") || contentType.startsWith("application/octet-stream")) {
             return decodeProtobuf3(inputHttp);
         }
 		return inputHttp;
@@ -69,7 +72,8 @@ public class EncodeProtobuf extends EncodeHTTPBase
 
 	@Override
 	protected Http encodeServerResponseHttp(Http inputHttp) throws Exception {
-		if (inputHttp.getFirstHeader("Content-Type").contains("protobuf")) {
+		var contentType = inputHttp.getFirstHeader("Content-Type");
+		if (contentType.contains("protobuf") || contentType.startsWith("application/octet-stream")) {
             return encodeProtobuf3(inputHttp);
         }
 		return inputHttp;
