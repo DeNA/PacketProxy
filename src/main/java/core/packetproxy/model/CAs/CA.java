@@ -130,10 +130,13 @@ abstract public class CA
 		/* SANの設定 */
 		ArrayList<ASN1Encodable> sans = new ArrayList<>();
 		sans.add(new GeneralName(GeneralName.dNSName, createCNforSAN(commonName)));
-		for (String domainName : domainNames) {
-			//System.out.println(domainName);
-			sans.add(new GeneralName(GeneralName.dNSName, domainName));
-		}
+		/*
+		 Fix: SubjectCN = SANに変更
+		 Reason: SANに全てのサーバが入っていると、HTTP2通信のとき、1つのHTTP2コネクション内に複数サーバ宛のストリームが含まれてしまうケースがあるため
+		*/
+		//for (String domainName : domainNames) {
+		// sans.add(new GeneralName(GeneralName.dNSName, domainName));
+		//}
 		DERSequence subjectAlternativeNames = new DERSequence(sans.toArray(new ASN1Encodable[sans.size()]));
 		serverBuilder.addExtension(Extension.subjectAlternativeName, false, subjectAlternativeNames);
 
