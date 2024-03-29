@@ -314,7 +314,7 @@ public class Protobuf3
 			}
 			case "String": {
 				new Key(fieldNumber, Key.Type.LengthDelimited).writeTo(output);
-				String str = (String)messages.get(key); 
+				String str = messages.get(key).toString();
 				writeVar(str.getBytes().length, output);
 				output.write(str.getBytes());
 				break;
