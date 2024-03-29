@@ -616,7 +616,7 @@ public class Http
 		Map<String, String> cookieMap;
 		cookieMap = cookies
 			.stream()
-			.flatMap(v -> Arrays.stream(v.split(";")))
+			.flatMap(v -> Arrays.stream(v.split(";\\s*")))
 			.map(kv -> kv.split("="))
 			.collect(Collectors.toMap(
 						kv -> URLDecoder.decode(kv[0]),
