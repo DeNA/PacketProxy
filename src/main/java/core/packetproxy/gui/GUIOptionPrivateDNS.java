@@ -22,6 +22,7 @@ import java.awt.event.ActionEvent;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.InterfaceAddress;
+import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -33,7 +34,10 @@ import java.util.Collections;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JLabel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
@@ -55,7 +59,7 @@ public class GUIOptionPrivateDNS implements Observer
 	private JTextField textField;
 	private JTextField textField6;
 	private JRadioButton auto, manual;
-
+	private JComboBox<String> dnsInterface;
 	private JPanel base;
 
 	public GUIOptionPrivateDNS() throws Exception {
@@ -111,9 +115,30 @@ public class GUIOptionPrivateDNS implements Observer
 		panel.setBackground(Color.WHITE);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.add(checkBox);
+		panel.add(createInterfaceSetting());
 		panel.add(rewriteRule);
 		panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+		return panel;
+	}
+
+	private JComponent createInterfaceSetting() {
+		JPanel panel = new JPanel();
+		panel.setBackground(Color.WHITE);
+		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+
+		try{
+			dnsInterface = new JComboBox(getIntAddrs());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// dnsInterface.setPrototypeDisplayValue("xxxxxxx");
+		dnsInterface.setMaximumRowCount(dnsInterface.getItemCount());
+		dnsInterface.setSelectedItem("0.0.0.0");
+		dnsInterface.setMaximumSize(new Dimension(dnsInterface.getMinimumSize().width, dnsInterface.getMinimumSize().height));
+		panel.add(dnsInterface);
+		panel.add(new JLabel(I18nString.get("will be used for Binding Interface")));
+		panel.setMaximumSize(new Dimension(Short.MAX_VALUE, panel.getMaximumSize().height));
 		return panel;
 	}
 
@@ -190,6 +215,31 @@ public class GUIOptionPrivateDNS implements Observer
 		}
 	}
 
+	private String[] getIntAddrs() throws Exception{
+		Enumeration<NetworkInterface> enuIfs = NetworkInterface.getNetworkInterfaces();
+		List<String> intaddrs = new ArrayList<String>();
+		intaddrs.add("0.0.0.0");
+		for (NetworkInterface netint : Collections.list(enuIfs)) {
+			for (InterfaceAddress intAddress : netint.getInterfaceAddresses()) {
+				InetAddress addr = intAddress.getAddress();
+				if (addr instanceof Inet4Address) {
+					short length = intAddress.getNetworkPrefixLength();
+					if(length<0)continue;
+					intaddrs.add(addr.getHostAddress());
+				} else {
+					if( !addr.isMulticastAddress() && !addr.isLinkLocalAddress() && !addr.isSiteLocalAddress() ){
+						intaddrs.add(addr.getHostAddress());
+					}
+				}
+			}
+		}
+		return intaddrs.toArray(new String[intaddrs.size()]);
+	}
+
+	public String getBindInterface(){
+		return this.dnsInterface.getSelectedItem().toString();
+	}
+
 	@Override
 	public void update(Observable o, Object arg) {
 		updateState();
@@ -237,4 +287,5 @@ public class GUIOptionPrivateDNS implements Observer
 		if(defaultAddr6 == null) return "::1";
 		return defaultAddr6.getHostAddress();
 	}
+
 }

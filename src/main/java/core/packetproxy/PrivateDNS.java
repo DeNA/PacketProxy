@@ -178,7 +178,7 @@ public class PrivateDNS
 		public PrivateDNSImp(DNSSpoofingIPGetter dnsSpoofingIPGetter) throws Exception {
 			try {
 				this.spoofingIp = dnsSpoofingIPGetter;
-				soc = new DatagramSocket(PORT);
+				soc = new DatagramSocket(PORT, InetAddress.getByName(spoofingIp.getInt()));
 				recvPacket = new DatagramPacket(buf, BUFSIZE);
 				sendPacket = null;
 			} catch (BindException e) {
