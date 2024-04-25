@@ -110,10 +110,16 @@ public class PrivateDNSClient {
                 return InetAddress.getByName(ip);
             }
         }
+        if (serverName.equals("localhost")) {
+            return InetAddress.getByName(serverName);
+        }
         return dnsLooping(serverName) ? Address.getByName(serverName) : InetAddress.getByName(serverName);
     }
 
     public static InetAddress[] getAllByName(String serverName) throws Exception {
+        if (serverName.equals("localhost")) {
+            return InetAddress.getAllByName(serverName);
+        }
         return dnsLooping(serverName) ? Address.getAllByName(serverName) : InetAddress.getAllByName(serverName);
     }
 
