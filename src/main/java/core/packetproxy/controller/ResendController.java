@@ -151,6 +151,9 @@ public class ResendController
 				PacketProxyUtility.getInstance().packetProxyLogErr("All resend packets are dropped.");
 				e.printStackTrace();
 				return null;
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw e;
 			}
 			return null;
 		}
