@@ -29,6 +29,7 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -207,6 +208,7 @@ public class Protobuf3
 	
 	public static byte[] encode(String input) throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
+		mapper.enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
 		HashMap<String,Object> messages = mapper.readValue(input, new TypeReference<HashMap<String,Object>>(){});
 		return encodeData(messages);
 	}
@@ -288,13 +290,13 @@ public class Protobuf3
 
 	public static byte[] encodeData(Map<String,Object> messages) throws Exception {
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
-		String[] orderedKeys = new String[messages.keySet().size()];
+		TreeMap<String, String> orderedKeys = new TreeMap<String, String>();
 		messages.keySet().stream().forEach(key -> {
 			String[] keyval = key.split(":");
-			int ordinary    = Integer.parseInt(keyval[1], 16);
-			orderedKeys[ordinary] = key;
+			String index = String.format("%s-%s", keyval[1], key);
+			orderedKeys.put(index, key);
 		});
-		for (String key : orderedKeys) {
+		for (String key : orderedKeys.values()) {
 			String[] keyval = key.split(":");
 			long fieldNumber = Long.parseLong(keyval[0], 16);
 			String type      = keyval[2];
