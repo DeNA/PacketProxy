@@ -29,6 +29,7 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -207,6 +208,7 @@ public class Protobuf3
 	
 	public static byte[] encode(String input) throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
+		mapper.enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
 		HashMap<String,Object> messages = mapper.readValue(input, new TypeReference<HashMap<String,Object>>(){});
 		return encodeData(messages);
 	}
