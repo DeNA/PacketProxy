@@ -92,4 +92,66 @@ public class Protobuf3Test {
 		byte[] bytes2 = Protobuf3.encodeBytes(json);
 		assertArrayEquals(bytes, bytes2);
 	}
+
+	@Test
+	public void testEncodeDecodeBytes2() throws Exception {
+		String data;
+		byte[] bytes;
+		String json;
+		byte[] bytes2;
+
+		data = "220100";
+		bytes = new Binary(new Binary.HexString(data)).toByteArray();
+		json = Protobuf3.decode(bytes);
+		bytes2 = Protobuf3.encode(json);
+		assertArrayEquals(bytes, bytes2);
+
+		data = "220101";
+		bytes = new Binary(new Binary.HexString(data)).toByteArray();
+		json = Protobuf3.decode(bytes);
+		bytes2 = Protobuf3.encode(json);
+		assertArrayEquals(bytes, bytes2);
+
+		data = "220102";
+		bytes = new Binary(new Binary.HexString(data)).toByteArray();
+		json = Protobuf3.decode(bytes);
+		bytes2 = Protobuf3.encode(json);
+		assertArrayEquals(bytes, bytes2);
+
+		data = "220103";
+		bytes = new Binary(new Binary.HexString(data)).toByteArray();
+		json = Protobuf3.decode(bytes);
+		bytes2 = Protobuf3.encode(json);
+		assertArrayEquals(bytes, bytes2);
+
+		data = "220104";
+		bytes = new Binary(new Binary.HexString(data)).toByteArray();
+		json = Protobuf3.decode(bytes);
+		bytes2 = Protobuf3.encode(json);
+		assertArrayEquals(bytes, bytes2);
+
+		data = "220105";
+		bytes = new Binary(new Binary.HexString(data)).toByteArray();
+		json = Protobuf3.decode(bytes);
+		bytes2 = Protobuf3.encode(json);
+		assertArrayEquals(bytes, bytes2);
+
+		data = "220106";
+		bytes = new Binary(new Binary.HexString(data)).toByteArray();
+		json = Protobuf3.decode(bytes);
+		bytes2 = Protobuf3.encode(json);
+		assertArrayEquals(bytes, bytes2);
+
+		data = "220107";
+		bytes = new Binary(new Binary.HexString(data)).toByteArray();
+		json = Protobuf3.decode(bytes);
+		bytes2 = Protobuf3.encode(json);
+		assertArrayEquals(bytes, bytes2);
+
+		data = "220108";
+		bytes = new Binary(new Binary.HexString(data)).toByteArray();
+		json = Protobuf3.decode(bytes);
+		bytes2 = Protobuf3.encode(json);
+		assertArrayEquals(bytes, bytes2);
+	}
 }
