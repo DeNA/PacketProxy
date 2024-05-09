@@ -89,6 +89,7 @@ public class Protobuf3
 	public static boolean validateVar(byte[] input, int[] outLength) {
 		long var = 0;
 		int i = 0;
+		if (input.length == 0) { return false; }
 		while (0 < input.length) {
 			long nextB = input[i] & 0xff;
 			var = var | ((nextB & 0x7f) << (7*i));
