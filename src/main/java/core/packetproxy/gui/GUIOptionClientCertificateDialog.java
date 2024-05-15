@@ -46,7 +46,7 @@ import packetproxy.model.Servers;
 public class GUIOptionClientCertificateDialog extends JDialog
 {
 	private static final long serialVersionUID = 1L;
-	
+
 	private JFrame owner;
 
 	private JButton buttonCancel = new JButton(I18nString.get("Cancel"));
@@ -215,7 +215,7 @@ public class GUIOptionClientCertificateDialog extends JDialog
 				} catch (Exception e2) {
 					certificate = null;
 					JOptionPane.showMessageDialog(this.owner,
-							I18nString.get("[Error] incorrect file password."),
+							I18nString.get("[Error] incorrect certificate file password."),
 							I18nString.get("Message"),
 							JOptionPane.INFORMATION_MESSAGE);
 					return;
