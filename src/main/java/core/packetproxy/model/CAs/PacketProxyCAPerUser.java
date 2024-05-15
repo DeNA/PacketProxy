@@ -21,12 +21,17 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -43,6 +48,9 @@ import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 
+import packetproxy.CertCacheManager;
+import packetproxy.common.Utils;
+
 public class PacketProxyCAPerUser extends CA {
 	private static final String name = "PacketProxy per-user CA";
 	private static final String desc = "PacketProxy per-user CA";
@@ -55,7 +63,7 @@ public class PacketProxyCAPerUser extends CA {
 		}
 		super.load(ksPath);
 	}
-	
+
 	@Override
 	public String getName() {
 		return name;
@@ -86,21 +94,22 @@ public class PacketProxyCAPerUser extends CA {
 
 	@Override
 	public void regenerateCA() throws Exception {
-	    new File(ksPath).delete();
-	    generateKeyStore(ksPath);
-	    super.load(ksPath);
+		new File(ksPath).delete();
+		generateKeyStore(ksPath);
+		super.load(ksPath);
+		CertCacheManager.clearCache();
 	}
 
 	private void generateKeyStore(String ksPath) throws Exception {
 		KeyStore ks;
 		KeyPair CAKeyPair = super.genRSAKeyPair();
-		
+
 		// 各ユーザ用のキーストアを作るためのテンプレートを取得
 		try (InputStream input = this.getClass().getResourceAsStream("/certificates/user.ks")) {
 			ks = KeyStore.getInstance("JKS");
 			ks.load(input, password);
 		}
-		
+
 		int serialNumber = 0;
 		do {
 			serialNumber = SecureRandom.getInstance("SHA1PRNG").nextInt();
@@ -120,27 +129,34 @@ public class PacketProxyCAPerUser extends CA {
 				to,
 				new X500Name(x500Name),
 				SubjectPublicKeyInfo.getInstance(CAKeyPair.getPublic().getEncoded()));
-        
+
 		/* CA: X509 Extensionsの設定（CA:true, pathlen:0) */
 		caRootBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(0)); 
-		
+
         AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
         AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
         ContentSigner signer = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(PrivateKeyFactory.createKey(CAKeyPair.getPrivate().getEncoded()));
         X509CertificateHolder signedRoot = caRootBuilder.build(signer);
-		
+
+		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+		registerCertificateAndPrivateKeyToKeyStore(
+			certFactory.generateCertificate(new ByteArrayInputStream(signedRoot.getEncoded())),
+			CAKeyPair.getPrivate()
+		);
+	}
+
+	private void registerCertificateAndPrivateKeyToKeyStore(Certificate certificate, PrivateKey privateKey) throws Exception {
 		// 新しいKeyStoreの生成
 		KeyStore newks = KeyStore.getInstance("JKS");
 		newks.load(null, password);
-		
+
 		// 証明書と秘密鍵の登録
-		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
 		newks.setKeyEntry(
 				"root",
-				CAKeyPair.getPrivate(),
+				privateKey,
 				password,
-				new Certificate[]{ certFactory.generateCertificate(new ByteArrayInputStream(signedRoot.getEncoded())) });
-		
+				new Certificate[]{ certificate });
+
 		File newksfile = new File(ksPath);
 		newksfile.getParentFile().mkdirs();
 		newksfile.createNewFile();
@@ -148,8 +164,55 @@ public class PacketProxyCAPerUser extends CA {
 		newksfile.setWritable(true);
 		newksfile.setReadable(false, false);
 		newksfile.setReadable(true);
-		try (FileOutputStream fos = new FileOutputStream(ksPath)) {
-		    newks.store(fos, password);
-		}
+		FileOutputStream fos = new FileOutputStream(ksPath);
+		newks.store(fos, password);
+	}
+
+	public void importPEM(String certificatePath, String privateKeyPath) throws Exception {
+		InputStream is = Files.newInputStream(Paths.get(certificatePath));
+		CertificateFactory cf = CertificateFactory.getInstance("X.509");
+		Certificate certificate = cf.generateCertificate(is);
+		byte[] b = Utils.readfile(privateKeyPath);
+		String s = new String(b).replaceAll("-----.+?-----", "").replaceAll("\\r?\\n", "");
+		// PKCS#8のRSA鍵のみ対応
+		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(s));
+		KeyFactory kf = KeyFactory.getInstance("RSA");
+		registerCertificateAndPrivateKeyToKeyStore(
+			certificate,
+			kf.generatePrivate(keySpec)
+		);
+		super.load(ksPath);
+		CertCacheManager.clearCache();
+	}
+
+	public void importDER(String certificatePath, String privateKeyPath) throws Exception {
+		InputStream is = Files.newInputStream(Paths.get(certificatePath));
+		CertificateFactory cf = CertificateFactory.getInstance("X.509");
+		Certificate certificate = cf.generateCertificate(is);
+		byte[] b = Utils.readfile(privateKeyPath);
+		// PKCS#8のRSA鍵のみ対応
+		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(b);
+		KeyFactory kf = KeyFactory.getInstance("RSA");
+		registerCertificateAndPrivateKeyToKeyStore(
+			certificate,
+			kf.generatePrivate(keySpec)
+		);
+		super.load(ksPath);
+		CertCacheManager.clearCache();
+	}
+
+	public void importP12(String p12Path, char[] password) throws Exception {
+		InputStream inStream = Files.newInputStream(Paths.get(p12Path));
+		KeyStore ks = KeyStore.getInstance("PKCS12");
+		ks.load(inStream, password);
+		String alias = ks.aliases().nextElement();
+		Certificate certificate = ks.getCertificate(alias);
+		PrivateKey privateKey = (PrivateKey) ks.getKey(alias, password);
+		registerCertificateAndPrivateKeyToKeyStore(
+			certificate,
+			privateKey
+		);
+		super.load(ksPath);
+		CertCacheManager.clearCache();
 	}
 }

@@ -39,6 +39,7 @@ import packetproxy.common.I18nString;
 import packetproxy.model.CAFactory;
 import packetproxy.model.InterceptOptions;
 import packetproxy.model.CAs.CA;
+import packetproxy.model.CAs.PacketProxyCAPerUser;
 import packetproxy.util.PacketProxyUtility;
 
 public class GUIOption {
@@ -171,7 +172,7 @@ public class GUIOption {
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("PacketProxy CA Certificates", I18nString.get("Export CA certificate used to view SSL packets. It needs to be registered in trusted CA list of PC/Mac/Linux/Android/iOS")));
+		panel.add(createElement("PacketProxy CA Certificates & Private Keys", I18nString.get("Export CA certificate used to view SSL packets. It needs to be registered in trusted CA list of PC/Mac/Linux/Android/iOS")));
 
 		JPanel caPanel = new JPanel();
 		caPanel.setBackground(Color.WHITE);
@@ -185,8 +186,8 @@ public class GUIOption {
 		ca_combo.setMaximumRowCount(CAFactory.queryExportable().size());
 		ca_combo.setMaximumSize(new Dimension(ca_combo.getPreferredSize().width, ca_combo.getMinimumSize().height));
 
-		JButton b = new JButton(I18nString.get("Export"));
-		b.addActionListener(new ActionListener() {
+		JButton exportCertButton = new JButton(I18nString.get("Export"));
+		exportCertButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
@@ -205,7 +206,7 @@ public class GUIOption {
 								}
 							} catch (Exception e1) {
 								e1.printStackTrace();
-								JOptionPane.showMessageDialog(null, I18nString.get("[Error] can't export"));
+								JOptionPane.showMessageDialog(owner, I18nString.get("[Error] can't export"));
 							}
 						}
 
@@ -215,7 +216,7 @@ public class GUIOption {
 
 						@Override
 						public void onError() {
-							JOptionPane.showMessageDialog(null, I18nString.get("[Error] can't export"));
+							JOptionPane.showMessageDialog(owner, I18nString.get("[Error] can't export"));
 						}
 					});
 					filechooser.showSaveDialog();
@@ -233,7 +234,7 @@ public class GUIOption {
 				try {
 					String name = ca_combo.getSelectedItem().toString();
 					CA ca = CAFactory.find(name).orElseThrow();
-					int option = JOptionPane.showConfirmDialog(null,
+					int option = JOptionPane.showConfirmDialog(owner,
 							String.format(I18nString.get("Regenerate %s?"), name),
 							String.format(I18nString.get("Regenerate CA certificate"), name),
 							JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
@@ -247,9 +248,20 @@ public class GUIOption {
 			}
 		});
 
+		JButton importCertButton = new JButton(I18nString.get("Import another certificate and private key"));
+		importCertButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				PacketProxyCAPerUser ca = (PacketProxyCAPerUser) CAFactory.findByUTF8Name("PacketProxy per-user CA").get();
+				GUIOptionImportCertificateAndPrivateKeyDialog dlg = new GUIOptionImportCertificateAndPrivateKeyDialog(owner, ca);
+				dlg.showDialog();
+			}
+		});
+
 		caPanel.add(ca_combo);
-		caPanel.add(b);
+		caPanel.add(exportCertButton);
 		caPanel.add(regenerateCertButton);
+		caPanel.add(importCertButton);
 		caPanel.setMaximumSize(new Dimension(Short.MAX_VALUE, caPanel.getMaximumSize().height));
 		caPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 

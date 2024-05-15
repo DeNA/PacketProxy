@@ -24,20 +24,26 @@ import packetproxy.model.CAs.CA;
 
 public class CertCacheManager {
 	private static CertCacheManager instance;
-	
+
 	public static CertCacheManager getInstance() throws Exception {
 		if (instance == null) {
 			instance = new CertCacheManager();
 		}
 		return instance;
 	}
-	
+
 	private Map<String,KeyStore> certCache;
-	
+
 	private CertCacheManager() throws Exception {
 		certCache = new HashMap<String,KeyStore>();
 	}
-	
+
+	public static void clearCache() {
+		if (instance != null) {
+			instance.certCache.clear();
+		}
+	}
+
 	public KeyStore getKeyStore(String commonName, String[] domainNames, CA ca) throws Exception {
 		synchronized (instance) {
 			String key = commonName;
