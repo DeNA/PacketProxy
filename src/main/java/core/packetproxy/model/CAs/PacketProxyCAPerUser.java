@@ -80,19 +80,6 @@ public class PacketProxyCAPerUser extends CA {
 	}
 
 	@Override
-	public byte[] getCACertificate() {
-		try (InputStream input = new FileInputStream(ksPath)) {
-			KeyStore ks = KeyStore.getInstance("JKS");
-			ks.load(input, password);
-			Certificate caRoot = ks.getCertificate("root");
-			return caRoot.getEncoded();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	@Override
 	public void regenerateCA() throws Exception {
 		new File(ksPath).delete();
 		generateKeyStore(ksPath);
@@ -214,5 +201,80 @@ public class PacketProxyCAPerUser extends CA {
 		);
 		super.load(ksPath);
 		CertCacheManager.clearCache();
+	}
+
+	@Override
+	public boolean isExportable() {
+		return true;
+	}
+
+	@Override
+	public void exportCertificatePEM(String certificatePath) throws Exception {
+		InputStream is = new FileInputStream(ksPath);
+		KeyStore ks = KeyStore.getInstance("JKS");
+		ks.load(is, password);
+		Certificate caRoot = ks.getCertificate("root");
+		String s = "-----BEGIN CERTIFICATE-----\n"
+			+ Base64.getMimeEncoder(64, "\n".getBytes()).encodeToString(caRoot.getEncoded())
+			+ "\n-----END CERTIFICATE-----";
+		FileOutputStream fos = new FileOutputStream(certificatePath);
+		fos.write(s.getBytes());
+		fos.close();
+	}
+
+	@Override
+	public void exportCertificateDER(String certificatePath) throws Exception {
+		InputStream is = new FileInputStream(ksPath);
+		KeyStore ks = KeyStore.getInstance("JKS");
+		ks.load(is, password);
+		Certificate caRoot = ks.getCertificate("root");
+		FileOutputStream fos = new FileOutputStream(certificatePath);
+		fos.write(caRoot.getEncoded());
+		fos.close();
+	}
+
+	@Override
+	public void exportPrivateKeyPEM(String privateKeyPath) throws Exception {
+		InputStream is = new FileInputStream(ksPath);
+		KeyStore ks = KeyStore.getInstance("JKS");
+		ks.load(is, password);
+		PrivateKey privateKey = (PrivateKey) ks.getKey("root", password);
+		String s = "-----BEGIN PRIVATE KEY-----\n"
+			+ Base64.getMimeEncoder(64, "\n".getBytes()).encodeToString(privateKey.getEncoded())
+			+ "\n-----END PRIVATE KEY-----";
+		FileOutputStream fos = new FileOutputStream(privateKeyPath);
+		fos.write(s.getBytes());
+		fos.close();
+	}
+
+	@Override
+	public void exportPrivateKeyDER(String privateKeyPath) throws Exception {
+		InputStream is = new FileInputStream(ksPath);
+		KeyStore ks = KeyStore.getInstance("JKS");
+		ks.load(is, password);
+		PrivateKey privateKey = (PrivateKey) ks.getKey("root", password);
+		FileOutputStream fos = new FileOutputStream(privateKeyPath);
+		fos.write(privateKey.getEncoded());
+		fos.close();
+	}
+
+	@Override
+	public void exportP12(String p12Path, char[] enteredPassword) throws Exception {
+		InputStream is = new FileInputStream(ksPath);
+		KeyStore ks = KeyStore.getInstance("JKS");
+		ks.load(is, password);
+		Certificate caRoot = ks.getCertificate("root");
+		PrivateKey privateKey = (PrivateKey) ks.getKey("root", password);
+		KeyStore newks = KeyStore.getInstance("PKCS12");
+		newks.load(null, enteredPassword);
+		newks.setKeyEntry(
+			"root",
+			privateKey,
+			enteredPassword,
+			new Certificate[]{ caRoot }
+		);
+		FileOutputStream fos = new FileOutputStream(p12Path);
+		newks.store(fos, enteredPassword);
+		fos.close();
 	}
 }

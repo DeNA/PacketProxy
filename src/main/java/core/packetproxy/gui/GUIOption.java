@@ -172,7 +172,7 @@ public class GUIOption {
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("PacketProxy CA Certificates & Private Keys", I18nString.get("Export CA certificate used to view SSL packets. It needs to be registered in trusted CA list of PC/Mac/Linux/Android/iOS")));
+		panel.add(createTitle("PacketProxy CA Certificates & Private Keys"));
 
 		JPanel caPanel = new JPanel();
 		caPanel.setBackground(Color.WHITE);
@@ -189,40 +189,10 @@ public class GUIOption {
 		JButton exportCertButton = new JButton(I18nString.get("Export"));
 		exportCertButton.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				try {
-					WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "crt", "PacketProxyCA.crt");
-					filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
-						@Override
-						public void onApproved(File file, String extension) {
-							try {
-								CA ca = CAFactory.findByUTF8Name((String) ca_combo.getSelectedItem()).get();
-								byte[] derData = ca.getCACertificate();
-								String derPath = file.getAbsolutePath();
-								try (FileOutputStream fos = new FileOutputStream(derPath)) {
-									fos.write(derData);
-									fos.close();
-									JOptionPane.showMessageDialog(owner, I18nString.get("Successfully exported to %s", derPath));
-								}
-							} catch (Exception e1) {
-								e1.printStackTrace();
-								JOptionPane.showMessageDialog(owner, I18nString.get("[Error] can't export"));
-							}
-						}
-
-						@Override
-						public void onCanceled() {
-						}
-
-						@Override
-						public void onError() {
-							JOptionPane.showMessageDialog(owner, I18nString.get("[Error] can't export"));
-						}
-					});
-					filechooser.showSaveDialog();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+			public void actionPerformed(ActionEvent e) {
+				CA ca = CAFactory.findByUTF8Name((String) ca_combo.getSelectedItem()).get();
+				GUIOptionExportCertificateAndPrivateKeyDialog dlg = new GUIOptionExportCertificateAndPrivateKeyDialog(owner, ca);
+				dlg.showDialog();
 			}
 		});
 

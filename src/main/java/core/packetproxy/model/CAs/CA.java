@@ -158,11 +158,11 @@ abstract public class CA
 
 		return ks;
 	}
-	
+
 	protected String createSubject(String commonName) {
 		return String.format("C=PacketProxy, ST=PacketProxy, L=PacketProxy, O=PacketProxy, OU=PacketProxy, CN=%s", commonName);
 	}
-	
+
 	protected String createCNforSAN(String commonName) {
 		return commonName;
 	}
@@ -185,12 +185,37 @@ abstract public class CA
 		return "Unknown CA";
 	}
 
-	// export可能なCAのとき、継承して実装すること
-	public byte[] getCACertificate() {
-		return null;
+	public void regenerateCA() throws Exception {
+		throw new RuntimeException("Not Implemented.");
 	}
 
-	public void regenerateCA() throws Exception {
+	// export可能なCAのとき、継承してtrueを返すこと
+	public boolean isExportable() {
+		return false;
+	}
+
+	// export可能なCAのとき、継承して実装すること
+	public void exportCertificatePEM(String certificatePath) throws Exception {
+		throw new RuntimeException("Not Implemented.");
+	}
+
+	// export可能なCAのとき、継承して実装すること
+	public void exportCertificateDER(String certificatePath) throws Exception {
+		throw new RuntimeException("Not Implemented.");
+	}
+
+	// export可能なCAのとき、継承して実装すること
+	public void exportPrivateKeyPEM(String privateKeyPath) throws Exception {
+		throw new RuntimeException("Not Implemented.");
+	}
+
+	// export可能なCAのとき、継承して実装すること
+	public void exportPrivateKeyDER(String privateKeyPath) throws Exception {
+		throw new RuntimeException("Not Implemented.");
+	}
+
+	// export可能なCAのとき、継承して実装すること
+	public void exportP12(String p12Path, char[] enteredPassword) throws Exception {
 		throw new RuntimeException("Not Implemented.");
 	}
 }

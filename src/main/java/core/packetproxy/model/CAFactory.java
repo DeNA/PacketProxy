@@ -86,7 +86,7 @@ public class CAFactory
 		return ca_list.stream().filter(ca -> ca.getName().equalsIgnoreCase(name)).findFirst();
 	}
 	public static List<CA> queryExportable() {
-		return ca_list.stream().filter(ca -> ca.getCACertificate() != null).collect(Collectors.toList());
+		return ca_list.stream().filter(ca -> ca.isExportable()).collect(Collectors.toList());
 	}
 	public static List<CA> queryAll() {
 		return ca_list;
