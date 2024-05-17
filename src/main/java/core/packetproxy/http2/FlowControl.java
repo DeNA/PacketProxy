@@ -75,15 +75,16 @@ public class FlowControl {
 
 		// 最初にheadersFrameを送信する
 		if (!this.headersFrameSent && this.headersFrame != null) {
-			//System.out.printf("[%d] HeadersFrame sent!\n", streamId);
+			// System.out.printf("[%d] HeadersFrame sent!\n", streamId);
 			stream.write(this.headersFrame);
 			this.headersFrameSent = true;
 			return stream;
 		}
 
 		// データの送信が終わっていたら、grpcヘッダを送信する
-		if (this.headersFrameSent && this.dataFrameSent && !this.grpcHeadersFrameSent && this.grpcHeaderFrame != null) {
-			//System.out.printf("[%d] gRPC HeadersFrame sent!\n", streamId);
+		if (this.headersFrameSent && (this.dataFrameSent || queue.size() == 0) && !this.grpcHeadersFrameSent
+				&& this.grpcHeaderFrame != null) {
+			// System.out.printf("[%d] gRPC HeadersFrame sent!\n", streamId);
 			stream.write(this.grpcHeaderFrame);
 			this.grpcHeadersFrameSent = true;
 			return stream;
