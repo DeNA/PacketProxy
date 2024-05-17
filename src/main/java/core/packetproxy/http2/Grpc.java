@@ -106,68 +106,77 @@ public class Grpc extends FramesBase
 	}
 
 	@Override
-	protected byte[] encodeClientRequestToFrames(byte[] http) throws Exception { return encodeToFrames(http, super.getClientHpackEncoder()); }
+	protected byte[] encodeClientRequestToFrames(byte[] http) throws Exception {
+		return encodeToFrames(http, super.getClientHpackEncoder());
+	}
+
 	@Override
-	protected byte[] encodeServerResponseToFrames(byte[] http) throws Exception { return encodeToFrames(http, super.getServerHpackEncoder()); }
-	
+	protected byte[] encodeServerResponseToFrames(byte[] http) throws Exception {
+		return encodeToFrames(http, super.getServerHpackEncoder());
+	}
+
 	private byte[] encodeToFrames(byte[] data, HpackEncoder encoder) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		Http http = Http.create(data);
 		int flags = Integer.valueOf(http.getFirstHeader("X-PacketProxy-HTTP2-Flags"));
+		HttpFields.Mutable GRPC2ndHeaderHttpFields = HttpFields.build();
+
+		List<String> unusedHeaders = new ArrayList<>();
+		for (HeaderField field : http.getHeader().getFields()) {
+			if (field.getName().startsWith("x-trailer-")) {
+				unusedHeaders.add(field.getName());
+				GRPC2ndHeaderHttpFields.add(field.getName().substring(10), field.getValue());
+			}
+		}
+
+		for (String name : unusedHeaders) {
+			http.removeHeader(name);
+		}
+		boolean has_second_frame = (http.getBody() != null && http.getBody().length > 0)
+				|| GRPC2ndHeaderHttpFields.size() > 0;
+
+		int first_flags = flags & 0xff | HeadersFrame.FLAG_END_STREAM;
+		if (has_second_frame) {
+			first_flags = flags & 0xff & ~HeadersFrame.FLAG_END_STREAM;
+		}
+		http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(first_flags));
+
+		HeadersFrame headersFrame = new HeadersFrame(http);
+		out.write(headersFrame.toByteArrayWithoutExtra(encoder));
+
 		if (http.getBody() != null && http.getBody().length > 0) {
-			http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff & ~HeadersFrame.FLAG_END_STREAM));
-			HttpFields.Mutable GRPC2ndHeaderHttpFields = HttpFields.build();
-
-			List<String> unusedHeaders = new ArrayList<>();
-			for (HeaderField field : http.getHeader().getFields()) {
-				if (field.getName().startsWith("x-trailer-")) {
-					unusedHeaders.add(field.getName());
-					GRPC2ndHeaderHttpFields.add(field.getName().substring(10), field.getValue());
-				}
-			}
-			
-			for (String name: unusedHeaders) {
-				http.removeHeader(name);
-			}
-			
-			HeadersFrame headersFrame = new HeadersFrame(http);
-			out.write(headersFrame.toByteArrayWithoutExtra(encoder));
-
 			DataFrame dataFrame = new DataFrame(http);
-			if(GRPC2ndHeaderHttpFields.size()>0){
+			if (GRPC2ndHeaderHttpFields.size() > 0) {
 				dataFrame.setFlags(dataFrame.getFlags() & 0xff & ~DataFrame.FLAG_END_STREAM);
 			}
 			out.write(dataFrame.toByteArrayWithoutExtra());
+		}
 
-			if(GRPC2ndHeaderHttpFields.size()>0) {
-				Http althttp = http;
-				althttp.setBody(new byte[0]);
-				althttp.removeMatches("^(?!X-PacketProxy-HTTP2).*$");
+		if (GRPC2ndHeaderHttpFields.size() > 0) {
+			Http althttp = http;
+			althttp.setBody(new byte[0]);
+			althttp.removeMatches("^(?!X-PacketProxy-HTTP2).*$");
 
-				for (HttpField headerField : GRPC2ndHeaderHttpFields) {
-					althttp.updateHeader(headerField.getName(), headerField.getValue());
-				}
-				althttp.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff | HeadersFrame.FLAG_END_STREAM));
-				HeadersFrame headers2ndFrame = new HeadersFrame(althttp);
-				out.write(headers2ndFrame.toByteArrayWithoutExtra(encoder));
+			for (HttpField headerField : GRPC2ndHeaderHttpFields) {
+				althttp.updateHeader(headerField.getName(), headerField.getValue());
 			}
-		} else {
-			http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff | HeadersFrame.FLAG_END_STREAM));
-			HeadersFrame headersFrame = new HeadersFrame(http);
-			out.write(headersFrame.toByteArrayWithoutExtra(encoder));
+			althttp.updateHeader("X-PacketProxy-HTTP2-Flags",
+					String.valueOf(flags & 0xff | HeadersFrame.FLAG_END_STREAM));
+			HeadersFrame headers2ndFrame = new HeadersFrame(althttp);
+			out.write(headers2ndFrame.toByteArrayWithoutExtra(encoder));
 		}
 		return out.toByteArray();
 	}
 
 	/* key: streamId, value: groupId */
-	private Map<Long,Long> groupMap = new HashMap<>();
+	private Map<Long, Long> groupMap = new HashMap<>();
 
 	public void setGroupId(Packet packet) throws Exception {
 		byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
 		Http http = Http.create(data);
 		String streamIdStr = http.getFirstHeader("X-PacketProxy-HTTP2-Stream-Id");
 		if (streamIdStr != null && streamIdStr.length() > 0) {
-			long streamId = Long.parseLong(streamIdStr); 
+			long streamId = Long.parseLong(streamIdStr);
 			if (groupMap.containsKey(streamId)) {
 				packet.setGroup(groupMap.get(streamId));
 			} else {
