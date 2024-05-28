@@ -31,15 +31,20 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoManager;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import packetproxy.common.BinaryBuffer;
 import packetproxy.common.FontManager;
 import packetproxy.common.Range;
 import packetproxy.common.Utils;
+import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
 
 abstract class ExtendedTextPane extends JTextPane
 {
 	private static final long serialVersionUID = 3879881178060039018L;
+	private static final int TEXT_TRIMMING_SIZE = 300000;
+	private static final int BINARY_TRIMMING_SIZE = 10000; // バイナリデータの表示はテキストデータの表示に比べ大幅に時間がかかることを考慮して設定
 	private static final int DEFAULT_SHOW_SIZE = 2000;
 	private static final int FONT_SIZE = 12;
 	private WrapEditorKit editor = new WrapEditorKit(new byte[]{});
@@ -153,11 +158,16 @@ abstract class ExtendedTextPane extends JTextPane
 	public void setData(byte[] data, boolean trimming) throws Exception {
 		setFont(FontManager.getInstance().getFont());
 		this.data = data;
-		// バイナリのデータが多いと遅いので長いデータをトリミングする
-		if (trimming && data.length > DEFAULT_SHOW_SIZE && PacketProxyUtility.getInstance().isBinaryData(data, DEFAULT_SHOW_SIZE))  {
+		// データが多いと遅いので長いデータをトリミングする
+		if (trimming && (data.length > TEXT_TRIMMING_SIZE || (PacketProxyUtility.getInstance().isBinaryData(data, BINARY_TRIMMING_SIZE) && data.length > BINARY_TRIMMING_SIZE)))  {
 			show_all = false;
-			//			byte[] head = ArrayUtils.subarray(data, 0, DEFAULT_SHOW_SIZE);
-			setText("********************\n  This request is too long binary data.\n  If you want to show all message, please click this panel\n********************\n\n\n\n\n\n");
+			byte[] head = ArrayUtils.subarray(data, 0, DEFAULT_SHOW_SIZE);
+			CharSetUtility charSetUtility = CharSetUtility.getInstance();
+			if (charSetUtility.isAuto()) {
+				charSetUtility.setGuessedCharSet(getData());
+			}
+			String charSetName = charSetUtility.getCharSet();
+			setText("********************\n  This data is too long.\n  If you want to show all message, please click this panel\n********************\n\n\n\n\n\n" + new String(head, charSetName));
 		} else {
 			show_all = true;
 			setData(data);

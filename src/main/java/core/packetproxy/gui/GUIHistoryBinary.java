@@ -38,6 +38,7 @@ import packetproxy.common.StringUtils;
 
 public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.DataChangedListener
 {
+	private final int TRIMMING_SIZE = 100000;
 	private final int DEFAULT_SHOW_SIZE = 2000;
 	private BinaryTextPane binary_text;
 	@Override
@@ -175,13 +176,13 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 			search_text.setFont(FontManager.getInstance().getFont());
 			hex_text.setData(data, false);
 			this.data = data;
-			// データが多いと遅いので長いデータをリミングする
-			if (trimming && data.length > DEFAULT_SHOW_SIZE) {
+			// データが多いと遅いので長いデータをトリミングする
+			if (trimming && data.length > TRIMMING_SIZE) {
 				show_all = false;
 				byte[] head = ArrayUtils.subarray(data, 0, DEFAULT_SHOW_SIZE);
 				Binary b = new Binary(head);
-				hex_text.setText("********************\n  This request is too long.\n  If you want to show all message, please click this panel\n********************\n\n\n\n\n\n" + b.toHexString(16).toString());
-				ascii_text.setText("********************\n  This request is too long.\n  If you want to show all message, please click this panel\n********************\n\n\n\n\n\n" + b.toAsciiString(16).toString());
+				hex_text.setText("********************\n  This data is too long.\n  If you want to show all message, please click this panel\n********************\n\n\n\n\n\n" + b.toHexString(16).toString());
+				ascii_text.setText("********************\n  This data is too long.\n  If you want to show all message, please click this panel\n********************\n\n\n\n\n\n" + b.toAsciiString(16).toString());
 			} else {
 				show_all = true;
 				Binary b = new Binary(data);
