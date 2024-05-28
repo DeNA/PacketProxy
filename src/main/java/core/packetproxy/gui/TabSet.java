@@ -157,9 +157,20 @@ public class TabSet extends Observable {
 			return;
 		}
 		try {
-			raw_panel.setData(data);
-			binary_panel.setData(data);
-			json_panel.setData(PacketProxyUtility.getInstance().prettyFormatJSONInRawData(data));
+			switch (getSelectedIndex()) {
+				case 0:
+					raw_panel.setData(data);
+					break;
+				case 1:
+					binary_panel.setData(data);
+					break;
+				case 2:
+					json_panel.setData(PacketProxyUtility.getInstance().prettyFormatJSONInRawData(data));
+					break;
+				default:
+					PacketProxyUtility.getInstance().packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
+					break;
+			}
 			if (searchBox == null) {
 				return;
 			}
