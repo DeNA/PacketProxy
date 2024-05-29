@@ -79,7 +79,7 @@ public class HeadersFrame extends Frame
 				super.streamId = Integer.parseInt(field.getValue());
 			} else if (field.getName().equals("X-PacketProxy-HTTP2-Flags")) {
 				super.flags |= (byte)Integer.parseInt(field.getValue());
-			} else if (field.getName().equals("grpc-status")) {
+			} else if (field.getName().equals("X-PacketProxy-HTTP2-GRPC-2nd-Frame-Header")) {
 				this.bTrailer = true;
 			}
 		}
@@ -252,6 +252,8 @@ public class HeadersFrame extends Frame
 			buf.write(String.format("X-PacketProxy-HTTP2-Stream-Id: %d\r\n", streamId).getBytes());
 			buf.write(String.format("X-PacketProxy-HTTP2-Flags: %d\r\n", flags).getBytes());
 			buf.write(String.format("X-PacketProxy-HTTP2-UUID: %s\r\n", StringUtils.randomUUID()).getBytes());
+		} else {
+			buf.write(String.format("X-PacketProxy-HTTP2-GRPC-2nd-Frame-Header: 1\r\n").getBytes());
 		}
 		buf.write("\r\n".getBytes());
 
