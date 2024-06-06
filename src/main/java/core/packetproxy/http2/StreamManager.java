@@ -26,10 +26,10 @@ import packetproxy.http2.frames.Frame;
 
 public class StreamManager {
 	private Map<Integer, List<Frame>> streamMap = new HashMap<>();
-	
+
 	public StreamManager() {
 	}
-	
+
 	public void write(Frame frame) {
 		List<Frame> stream = streamMap.get(frame.getStreamId());
 		if (stream == null) {
@@ -38,19 +38,19 @@ public class StreamManager {
 		}
 		stream.add(frame);
 	}
-	
+
 	public List<Frame> read(int streamId) {
 		return streamMap.get(streamId);
 	}
-	
-	public Set<Map.Entry<Integer,List<Frame>>> entrySet() {
+
+	public Set<Map.Entry<Integer, List<Frame>>> entrySet() {
 		return streamMap.entrySet();
 	}
-	
+
 	public void clear(int streamId) {
 		streamMap.remove(streamId);
 	}
-	
+
 	public byte[] mergePayload(int streamId) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		for (Frame frame : read(streamId)) {
@@ -58,7 +58,7 @@ public class StreamManager {
 		}
 		return out.toByteArray();
 	}
-	
+
 	public byte[] toByteArray(int streamId) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		for (Frame frame : read(streamId)) {
@@ -67,4 +67,22 @@ public class StreamManager {
 		return out.toByteArray();
 	}
 
+	// streamIdは任意で1つフレームを返して削除する
+	// frameが1つもない場合はnullを返す
+	public Frame popOneFrame() {
+		if (streamMap.size() == 0) {
+			return null;
+		}
+		Integer streamId = streamMap.keySet().stream().findFirst().get();
+		return popOneFrame(streamId);
+	}
+
+	// 指定したstreamIdから1つフレームを返して削除する
+	public Frame popOneFrame(int streamId) {
+		Frame frame = streamMap.get(streamId).remove(0);
+		if (streamMap.get(streamId).size() == 0) {
+			clear(streamId);
+		}
+		return frame;
+	}
 }
