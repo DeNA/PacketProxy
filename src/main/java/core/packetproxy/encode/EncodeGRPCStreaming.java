@@ -15,119 +15,158 @@
  */
 package packetproxy.encode;
 
-import packetproxy.http.Http;
-import packetproxy.http2.FramesBase;
-import packetproxy.http2.GrpcStreaming;
-import packetproxy.model.Packet;
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
-public class EncodeGRPCStreaming extends Encoder
-{
-	private FramesBase http2 = new GrpcStreaming();
-	
-	@Override
-	public String getName() {
-		return "gRPC Streaming";
-	}
-	
+import org.apache.commons.lang3.ArrayUtils;
+import packetproxy.common.Protobuf3;
+import packetproxy.common.Utils;
+import packetproxy.http.Http;
+import packetproxy.http2.GrpcStreaming;
+
+// gRPCでデータフレーム1つずつをメッセージと解釈して送受信するエンコーダ
+public class EncodeGRPCStreaming extends EncodeHTTPBase {
+
+	private byte compressedFlag;
+
 	public EncodeGRPCStreaming() throws Exception {
 		super();
 	}
 
 	public EncodeGRPCStreaming(String ALPN) throws Exception {
-		super("h2");
+		super(ALPN, new GrpcStreaming());
 	}
 
 	@Override
-	public int checkDelimiter(byte[] data) throws Exception {
-		return http2.checkDelimiter(data);
+	public String getName() {
+		return "gRPC Streaming";
 	}
 
 	@Override
-	public void clientRequestArrived(byte[] frames) throws Exception {
-		http2.clientRequestArrived(frames);
-	}
-
-	@Override
-	public void serverResponseArrived(byte[] frames) throws Exception {
-		http2.serverResponseArrived(frames);
-	}
-
-	@Override
-	public byte[] passThroughClientRequest() throws Exception {
-		return http2.passThroughClientRequest();
-	}
-
-	@Override
-	public byte[] passThroughServerResponse() throws Exception {
-		return http2.passThroughServerResponse();
-	}
-
-	@Override
-	public byte[] clientRequestAvailable() throws Exception {
-		return http2.clientRequestAvailable();
-	}
-
-	@Override
-	public byte[] serverResponseAvailable() throws Exception {
-		return http2.serverResponseAvailable();
-	}
-
-	@Override
-	public byte[] decodeClientRequest(byte[] input) throws Exception {
-		return http2.decodeClientRequest(input);
-	}
-
-	@Override
-	public byte[] encodeClientRequest(byte[] input) throws Exception {
-		return http2.encodeClientRequest(input);
-	}
-
-	@Override
-	public byte[] decodeServerResponse(byte[] input) throws Exception {
-		return http2.decodeServerResponse(input);
-	}
-
-	@Override
-	public byte[] encodeServerResponse(byte[] input) throws Exception {
-		return http2.encodeServerResponse(input);
-	}
-
-	@Override
-	public String getSummarizedResponse(Packet packet)
-	{
-		String summary = "";
-		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
-		try {
-			byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
-			Http http = Http.create(data);
-			String statusCode = http.getStatusCode();
-			summary = statusCode;
-		} catch (Exception e) {
-			e.printStackTrace();
-			summary = "Headlineを生成できません・・・";
-		}
-		return summary;
-	}
-
-	@Override
-	public String getSummarizedRequest(Packet packet)
-	{
-		String summary = "";
-		String statusCode = "";
-		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
-		try {
-			byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();                                                                                                                                                              
-			Http http = Http.create(data);
-			statusCode = http.getStatusCode();
-			summary = http.getMethod() + " " + http.getURL(packet.getServerPort(), packet.getUseSSL());
-		} catch (Exception e) { 
-			if (statusCode != null && statusCode.length() > 0) {
-				summary = statusCode;
-			} else {
-				e.printStackTrace();
-				summary = "Headlineを生成できません・・・";
+	protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
+		byte[] raw = inputHttp.getBody();
+		ByteArrayOutputStream body = new ByteArrayOutputStream();
+		int pos = 0;
+		while (pos < raw.length) {
+			compressedFlag = raw[pos];
+			if (compressedFlag != 0) {
+				throw new Exception("gRPC: compressed flag in gRPC message is not supported yet");
 			}
+			pos += 1;
+			int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, pos, pos + 4)).getInt();
+			pos += 4;
+			byte[] grpcMsg = Arrays.copyOfRange(raw, pos, pos + messageLength);
+			byte[] decodedMsg = decodeGrpcClientPayload(grpcMsg);
+			if (body.size() > 0) {
+				body.write("\n".getBytes());
+			}
+			body.write(Protobuf3.decode(decodedMsg).getBytes(StandardCharsets.UTF_8));
+			pos += messageLength;
 		}
-		return summary;
+		inputHttp.setBody(body.toByteArray());
+		return inputHttp;
+	}
+
+	@Override
+	protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
+		byte[] body = inputHttp.getBody();
+		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();
+		int pos = 0;
+		while (pos < body.length) {
+			byte[] subBody;
+			int idx;
+			if ((idx = Utils.indexOf(body, pos, body.length, "\n}".getBytes())) > 0) { // split into gRPC messages
+				subBody = ArrayUtils.subarray(body, pos, idx + 2);
+				pos = idx + 2;
+			} else {
+				subBody = ArrayUtils.subarray(body, pos, body.length);
+				pos = body.length;
+			}
+			String msg = new String(subBody, StandardCharsets.UTF_8);
+			byte[] data = Protobuf3.encode(msg);
+			byte[] encodedData = encodeGrpcClientPayload(data);
+			int encodedDataLen = encodedData.length;
+			rawStream.write((byte) 0); // always compressed flag is zero
+			rawStream.write(ByteBuffer.allocate(4).putInt(encodedDataLen).array());
+			rawStream.write(encodedData);
+		}
+		inputHttp.setBody(rawStream.toByteArray());
+		return inputHttp;
+	}
+
+	@Override
+	protected Http decodeServerResponseHttp(Http inputHttp) throws Exception {
+		byte[] raw = inputHttp.getBody();
+		if (raw.length == 0) {
+			return inputHttp;
+		}
+		ByteArrayOutputStream body = new ByteArrayOutputStream();
+		int pos = 0;
+		while (pos < raw.length) {
+			compressedFlag = raw[pos];
+			if (compressedFlag != 0) {
+				throw new Exception("gRPC: compressed flag in gRPC message is not supported yet");
+			}
+			pos += 1;
+			int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, pos, pos + 4)).getInt();
+			pos += 4;
+			byte[] grpcMsg = Arrays.copyOfRange(raw, pos, pos + messageLength);
+			byte[] decodedMsg = decodeGrpcServerPayload(grpcMsg);
+			if (body.size() > 0) {
+				body.write("\n".getBytes());
+			}
+			body.write(Protobuf3.decode(decodedMsg).getBytes(StandardCharsets.UTF_8));
+			pos += messageLength;
+		}
+		inputHttp.setBody(body.toByteArray());
+		return inputHttp;
+	}
+
+	@Override
+	protected Http encodeServerResponseHttp(Http inputHttp) throws Exception {
+		byte[] body = inputHttp.getBody();
+		if (body.length == 0) {
+			return inputHttp;
+		}
+		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();
+		int pos = 0;
+		while (pos < body.length) {
+			byte[] subBody;
+			int idx;
+			if ((idx = Utils.indexOf(body, pos, body.length, "\n}".getBytes())) > 0) { // split into gRPC messages
+				subBody = ArrayUtils.subarray(body, pos, idx + 2);
+				pos = idx + 2;
+			} else {
+				subBody = ArrayUtils.subarray(body, pos, body.length);
+				pos = body.length;
+			}
+			String msg = new String(subBody, StandardCharsets.UTF_8);
+			byte[] data = Protobuf3.encode(msg);
+			byte[] encodedData = encodeGrpcServerPayload(data);
+			int encodedDataLen = encodedData.length;
+			rawStream.write((byte) 0); // always compressed flag is zero
+			rawStream.write(ByteBuffer.allocate(4).putInt(encodedDataLen).array());
+			rawStream.write(encodedData);
+		}
+		inputHttp.setBody(rawStream.toByteArray());
+		return inputHttp;
+	}
+
+	public byte[] decodeGrpcClientPayload(byte[] payload) throws Exception {
+		return payload;
+	}
+
+	public byte[] encodeGrpcClientPayload(byte[] payload) throws Exception {
+		return payload;
+	}
+
+	public byte[] decodeGrpcServerPayload(byte[] payload) throws Exception {
+		return payload;
+	}
+
+	public byte[] encodeGrpcServerPayload(byte[] payload) throws Exception {
+		return payload;
 	}
 }
