@@ -36,6 +36,7 @@ public class FlowControl {
 	private boolean grpcHeadersFrameSent = false;
 	private ByteArrayOutputStream queue;
 	private boolean end_flag;
+	private boolean empty_data_end_flag = false;
 
 	public FlowControl(int streamId, int initialWindowSize) {
 		this.streamId = streamId;
@@ -43,7 +44,7 @@ public class FlowControl {
 		this.queue = new ByteArrayOutputStream();
 		this.end_flag = false;
 	}
-	
+
 	public void appendWindowSize(int appendWindowSize) {
 		synchronized (queue) {
 			windowSize += appendWindowSize;
@@ -59,13 +60,16 @@ public class FlowControl {
 			this.grpcHeaderFrame = headersFrame;
 		}
 	}
-	
+
 	public void enqueue(Frame frame) throws Exception {
 		synchronized (queue) {
 			queue.write(frame.getPayload());
 			queue.flush();
 			if ((frame.getFlags() & DataFrame.FLAG_END_STREAM) > 0) {
 				end_flag = true;
+				if (queue.size() == 0) {
+					empty_data_end_flag = true;
+				}
 			}
 		}
 	}
@@ -91,8 +95,16 @@ public class FlowControl {
 		}
 
 		if (queue.size() == 0) {
+			if (empty_data_end_flag) {
+				empty_data_end_flag = false;
+				int flags = DataFrame.FLAG_END_STREAM;
+				Frame frame = FrameFactory.create(DataFrame.TYPE, flags, streamId, new byte[0]);
+				stream.write(frame);
+				return stream;
+			}
 			return null; /* no data */
 		}
+
 		int capacity = Math.min(windowSize, connectionWindowSize);
 		if (capacity == 0) {
 			System.err.printf("[HTTP/2 FlowControl] try to send %d data, but running out of window (streamId: %d)\n", queue.size(), this.streamId);
@@ -145,7 +157,7 @@ public class FlowControl {
 
 		return stream;
 	}
-	
+
 	public int size() {
 		synchronized (queue) {
 			return queue.size();
