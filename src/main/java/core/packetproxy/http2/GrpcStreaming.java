@@ -93,7 +93,8 @@ public class GrpcStreaming extends FramesBase {
 		}
 		for (Frame frame : parsedFrames) {
 			HeadersFrame firstHeaderFrame = streamFirstHeaderMap.get(frame.getStreamId());
-			if (firstHeaderFrame == null) {
+			boolean isFirstHeaderFrame = firstHeaderFrame == null;
+			if (isFirstHeaderFrame) {
 				// Header Frame
 				if (!(frame instanceof HeadersFrame)) {
 					throw new Exception("ヘッダフレームの前にデータフレームがあります");
@@ -104,21 +105,37 @@ public class GrpcStreaming extends FramesBase {
 			} else if (frame instanceof HeadersFrame) {
 				// Trailer Header Frame
 				httpHeaderSums = Http.create(firstHeaderFrame.getHttp());
-				httpHeaderSums.updateHeader("X-PacketProxy-HTTP2-TrailerHeaderFrame", "true");
 				HeadersFrame headersFrame = (HeadersFrame) frame;
 				Http http = Http.create(headersFrame.getHttp());
 				for (HeaderField field : http.getHeader().getFields()) {
 					httpHeaderSums.updateHeader("x-trailer-" + field.getName(), field.getValue());
 				}
+				httpHeaderSums.updateHeader("X-PacketProxy-HTTP2-TrailerHeaderFrame", "true");
+				httpHeaderSums.setPath("/trailer-header-frame");
 			} else {
 				// Data Frame
 				httpHeaderSums = Http.create(firstHeaderFrame.getHttp());
-				httpHeaderSums.updateHeader("X-PacketProxy-HTTP2-DataFrame", "true");
 				DataFrame dataFrame = (DataFrame) frame;
 				outData.write(dataFrame.getPayload());
+				httpHeaderSums.setPath("/data-frame");
+				httpHeaderSums.updateHeader("X-PacketProxy-HTTP2-Type", "0");
 			}
 			int flags = frame.getFlags();
 			httpHeaderSums.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff));
+			if (!isFirstHeaderFrame) {
+				// 余分なヘッダを削除
+				List<String> unusedHeaders = new ArrayList<>();
+				for (HeaderField field : httpHeaderSums.getHeader().getFields()) {
+					if (field.getName().startsWith("X-PacketProxy") ||
+							field.getName().startsWith("x-trailer-")) {
+						continue;
+					}
+					unusedHeaders.add(field.getName());
+				}
+				for (String name : unusedHeaders) {
+					httpHeaderSums.removeHeader(name);
+				}
+			}
 		}
 		outHeader.write(httpHeaderSums.toByteArray());
 		outData.writeTo(outHeader);
@@ -152,7 +169,7 @@ public class GrpcStreaming extends FramesBase {
 				GRPC2ndHeaderHttpFields.add(field.getName().substring(10), field.getValue());
 			} else if (field.getName().equals("X-PacketProxy-HTTP2-TrailerHeaderFrame")) {
 				isTrailerHeaderFrame = true;
-			} else if (field.getName().equals("X-PacketProxy-HTTP2-DataFrame")) {
+			} else if (field.getName().equals("X-PacketProxy-HTTP2-Type") && Integer.valueOf(field.getValue()) == 0) {
 				isDataFrame = true;
 			}
 		}

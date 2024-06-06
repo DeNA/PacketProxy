@@ -26,6 +26,7 @@ import packetproxy.common.Utils;
 import packetproxy.http.Http;
 import packetproxy.http2.GrpcStreaming;
 
+// gRPCでデータフレーム1つずつをメッセージと解釈して送受信するエンコーダ
 public class EncodeGRPCStreaming extends EncodeHTTPBase {
 
 	private byte compressedFlag;
