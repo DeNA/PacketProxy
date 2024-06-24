@@ -162,6 +162,8 @@ public abstract class PnSpace {
                     this.conn.getPnSpace(PnSpaceHandshake).close();
                 }
             } else if (frame instanceof ConnectionCloseFrame) {
+                ConnectionCloseFrame connCloseFrame = (ConnectionCloseFrame) frame;
+                PacketProxyUtility.getInstance().packetProxyLogErr(String.format("HTTP3 connection closed (%s)", connCloseFrame.getReasonPhraseString()));
                 this.conn.close();
             } else if (frame instanceof NewConnectionIdFrame) {
                 /* not implemented yet */

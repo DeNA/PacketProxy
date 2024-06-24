@@ -19,6 +19,7 @@ package packetproxy.quic.value.frame;
 import com.google.common.collect.ImmutableList;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.apache.commons.codec.binary.Hex;
 import packetproxy.quic.value.SimpleBytes;
 import packetproxy.quic.value.VariableLengthInteger;
 
@@ -71,4 +72,15 @@ public class ConnectionCloseFrame extends Frame {
         return false;
     }
 
+    public String getReasonPhraseString() {
+        return this.reasonPhrase != null ? new String(reasonPhrase) : "";
+    }
+
+    @Override
+    public String toString() {
+        return String.format("ConnectionCloseFrame(errorCode=%d, frameType=%d, reason=%s)",
+                this.errorCode,
+                this.frameType,
+                new String(this.reasonPhrase));
+    }
 }
