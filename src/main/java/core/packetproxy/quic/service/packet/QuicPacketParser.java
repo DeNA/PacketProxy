@@ -85,22 +85,22 @@ public class QuicPacketParser {
         byte type = getTypeWithoutIncrement(buffer);
 
         if (InitialPacket.is(type) && this.roleKeys.hasInitialKey()) {
-            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceInitial).getLargestAckedPnrInitiatedByPeer();
+            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceInitial).getAckFrameGenerator().getLargestAckedPn();
             InitialPacket initialPacket = new InitialPacket(buffer, this.roleKeys.getInitialKey(), largestAckedPn);
             return Optional.of(initialPacket);
 
         } else if (HandshakePacket.is(type) && this.roleKeys.hasHandshakeKey()) {
-            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceHandshake).getLargestAckedPnrInitiatedByPeer();
+            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceHandshake).getAckFrameGenerator().getLargestAckedPn();
             HandshakePacket handshakePacket = new HandshakePacket(buffer, this.roleKeys.getHandshakeKey(), largestAckedPn);
             return Optional.of(handshakePacket);
 
         } else if (ShortHeaderPacket.is(type) && this.roleKeys.hasApplicationKey()) {
-            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceApplicationData).getLargestAckedPnrInitiatedByPeer();
+            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceApplicationData).getAckFrameGenerator().getLargestAckedPn();
             ShortHeaderPacket shortHeaderPacket = new ShortHeaderPacket(buffer, this.roleKeys.getApplicationKey(), largestAckedPn);
             return Optional.of(shortHeaderPacket);
 
         } else if (ZeroRttPacket.is(type) && this.roleKeys.hasZeroRttKey()) {
-            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceApplicationData).getLargestAckedPnrInitiatedByPeer();
+            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceApplicationData).getAckFrameGenerator().getLargestAckedPn();
             ZeroRttPacket zeroRttPacket = new ZeroRttPacket(buffer, this.roleKeys.getZeroRttKey(), largestAckedPn);
             return Optional.of(zeroRttPacket);
 
