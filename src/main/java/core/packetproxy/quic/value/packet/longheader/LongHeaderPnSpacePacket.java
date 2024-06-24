@@ -102,8 +102,8 @@ public class LongHeaderPnSpacePacket extends LongHeaderPacket implements PnSpace
             header[packetNumberPosition - startPosition + i] = truncatedPn[i];
         }
 
-        this.payload = key.decryptPayload(truncatedPn, encodedPayload, header);
         this.packetNumber = new TruncatedPacketNumber(truncatedPn).getPacketNumber(largestAckedPn);
+        this.payload = key.decryptPayload(this.packetNumber.toBytes(), encodedPayload, header);
 
         buffer.position(positionPacketEnd);
     }
