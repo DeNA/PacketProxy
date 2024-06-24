@@ -71,9 +71,11 @@ public class Packet implements PacketInfo
 	private int conn;
 	@DatabaseField
 	private long group;
+	@DatabaseField
+	private String color;
 
 	public Packet() {
-		// ORMLite needs a no-arg constructor 
+		// ORMLite needs a no-arg constructor
 	}
 	public Packet(int listen_port, InetSocketAddress client_addr, InetSocketAddress server_addr, String server_name, boolean use_ssl, String encoder, String alpn, Direction dir, int conn, long group) {
 		initialize(listen_port,
@@ -244,6 +246,12 @@ public class Packet implements PacketInfo
 	}
 	public void setGroup(long group) {
 		this.group = group;
+	}
+	public String getColor() {
+		return this.color;
+	}
+	public void setColor(String color) {
+		this.color = color;
 	}
 	public String getSummarizedRequest() throws Exception {
 		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name, null);
