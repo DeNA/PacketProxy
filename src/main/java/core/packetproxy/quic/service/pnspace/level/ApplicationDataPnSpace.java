@@ -17,20 +17,18 @@
 package packetproxy.quic.service.pnspace.level;
 
 import lombok.Getter;
+import packetproxy.quic.service.connection.Connection;
 import packetproxy.quic.service.frame.Frames;
+import packetproxy.quic.service.frame.FramesBuilder;
 import packetproxy.quic.service.framegenerator.MessagesToStreamFrames;
-import packetproxy.quic.utils.Constants;
+import packetproxy.quic.service.packet.QuicPacketBuilder;
 import packetproxy.quic.service.pnspace.PnSpace;
+import packetproxy.quic.utils.Constants;
 import packetproxy.quic.value.QuicMessage;
 import packetproxy.quic.value.frame.Frame;
-import packetproxy.quic.service.frame.FramesBuilder;
-import packetproxy.quic.service.packet.QuicPacketBuilder;
-import packetproxy.quic.service.connection.Connection;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static packetproxy.quic.utils.Constants.QuicPacketType.PacketApplication;
 
 @Getter
 public class ApplicationDataPnSpace extends PnSpace {

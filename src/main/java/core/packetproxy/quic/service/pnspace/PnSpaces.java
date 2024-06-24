@@ -87,7 +87,7 @@ public class PnSpaces {
         builder.setPacketNumber(pnSpace.getNextPacketNumberAndIncrement());
         QuicPacket packet = builder.setConnectionIdPair(this.conn.getConnIdPair()).build();
         pnSpace.addSentPacket(packet);
-        return new ArrayList<>(List.of(packet));
+        return List.of(packet);
     }
 
     public ImmutablePair<Instant, PnSpaceType> getEarliestLossTimeAndSpace() {

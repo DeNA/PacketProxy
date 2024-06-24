@@ -22,13 +22,10 @@ import packetproxy.quic.service.frame.FramesBuilder;
 import packetproxy.quic.service.packet.QuicPacketBuilder;
 import packetproxy.quic.service.pnspace.PnSpace;
 import packetproxy.quic.utils.Constants;
-import packetproxy.quic.value.frame.AckFrame;
 import packetproxy.quic.value.frame.Frame;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static packetproxy.quic.service.handshake.HandshakeState.State.AckReceived;
 
 @Getter
 public class HandshakePnSpace extends PnSpace {

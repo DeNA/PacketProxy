@@ -23,6 +23,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static packetproxy.util.Throwing.rethrow;
@@ -43,6 +45,9 @@ public final class QuicMessages {
     }
     static public QuicMessages of(QuicMessage msg1, QuicMessage msg2, QuicMessage msg3) {
         return new QuicMessages(List.of(msg1, msg2, msg3));
+    }
+    static public QuicMessages of(List<QuicMessage> msgs) {
+        return new QuicMessages(msgs);
     }
 
     static public QuicMessages parse(byte[] bytes) {
@@ -96,6 +101,14 @@ public final class QuicMessages {
 
     public void forEach(Consumer<QuicMessage> action) {
         this.messages.forEach(action);
+    }
+
+    public QuicMessages map(Function<QuicMessage, QuicMessage> mapper) {
+        return QuicMessages.of(this.messages.stream().map(mapper).collect(Collectors.toList()));
+    }
+
+    public QuicMessages filter(Predicate<QuicMessage> predicate) {
+        return QuicMessages.of(this.messages.stream().filter(predicate).collect(Collectors.toList()));
     }
 
     public byte[] getBytes() {

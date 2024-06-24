@@ -54,8 +54,6 @@ public class QuicMessage {
 
     @Override
     public String toString() {
-        return String.format("QuicMessage(streamId=%s data=[%s])",
-                this.streamId,
-                Hex.encodeHexString(this.data));
+        return String.format("QuicMessage(streamId=%s, dataLen=%d)", this.streamId, this.data.length);
     }
 }

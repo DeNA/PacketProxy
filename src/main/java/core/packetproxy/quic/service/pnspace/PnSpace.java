@@ -51,7 +51,6 @@ import static packetproxy.quic.utils.Constants.PnSpaceType.PnSpaceInitial;
 import static packetproxy.util.Throwing.rethrow;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.NONE)
 public abstract class PnSpace {
 
     protected final CryptoFramesToMessages frameToMsgCryptoStream = new CryptoFramesToMessages();
@@ -63,7 +62,6 @@ public abstract class PnSpace {
     protected final SendFrameQueue sendFrameQueue = new SendFrameQueue();
     protected final Connection conn;
     protected PacketNumber largestAckedPn = PacketNumber.Infinite;
-    protected PacketNumber largestAckedPnrInitiatedByPeer = PacketNumber.Infinite;
     protected Instant lossTime = Instant.MAX; /* パケットが欠落することになる未来時刻 */
     protected Instant timeOfLastAckElicitingPacket = Instant.MIN; /* 最後にAckを誘発するPacketを送信した時刻 */
     protected PacketNumber nextPacketNumber = PacketNumber.of(0);
@@ -130,19 +128,6 @@ public abstract class PnSpace {
     public synchronized void receivePacket(QuicPacket quicPacket) {
         if (quicPacket instanceof PnSpacePacket) {
             PnSpacePacket packet = (PnSpacePacket)quicPacket;
-            packet.getAckFrame().ifPresent(ackFrame -> {
-                ackFrame.getAckedPacketNumbers().stream().forEach(pn -> {
-                    SentPacket sp = this.sentPackets.get(pn);
-                    if (sp != null) {
-                        PnSpacePacket pnPacket = sp.getPacket();
-                        if (pnPacket != null) {
-                            pnPacket.getAckFrame().ifPresent(ackFrame1 -> {
-                                this.largestAckedPnrInitiatedByPeer = ackFrame1.getLargestAckedPn();
-                            });
-                        }
-                    }
-                });
-            });
             this.ackFrameGenerator.received(packet.getPacketNumber());
             if (packet.isAckEliciting()) {
                 this.addSendFrameFirst(this.ackFrameGenerator.generateAckFrame());
