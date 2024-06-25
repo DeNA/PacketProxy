@@ -28,7 +28,7 @@ import packetproxy.util.PacketProxyUtility;
 
 public class Packets extends Observable implements Observer {
 	private static Packets instance;
-	
+
 	public static Packets getInstance(boolean restore) throws Exception {
 		if (instance == null) {
 			instance = new Packets(restore);
@@ -43,7 +43,7 @@ public class Packets extends Observable implements Observer {
 		}
 		return instance;
 	}
-	
+
 	private PacketProxyUtility util;
 	private Database database;
 	private Dao<Packet,Integer> dao;
@@ -120,9 +120,9 @@ public class Packets extends Observable implements Observer {
 	public Packet query(int id) throws Exception {
 		return dao.queryForId(id);
 	}
-	
-	public List<Packet> queryAllIds() throws Exception {
-		return dao.queryBuilder().selectColumns("id").orderBy("id", true).query();
+
+	public List<Packet> queryAllIdsAndColors() throws Exception {
+		return dao.queryBuilder().selectColumns("id", "color").orderBy("id", true).query();
 	}
 
 	public List<Packet> queryRange(long offset, long limit) throws Exception {
@@ -188,6 +188,11 @@ public class Packets extends Observable implements Observer {
 			case RECONNECT:
 				database = Database.getInstance();
 				dao = database.createTable(Packet.class, this);
+				// ファイル読み込み時にpacketsテーブルの中にcolorカラムがなかったら追加する
+				String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='packets'").getFirstResult()[0];
+				if (!result.contains("`color` VARCHAR")) {
+					dao.executeRaw("ALTER TABLE `packets` ADD COLUMN color VARCHAR");
+				}
 				notifyObservers(arg);
 				break;
 			case RECREATE:
@@ -204,7 +209,7 @@ public class Packets extends Observable implements Observer {
 	private boolean isLatestVersion() throws Exception {
 		String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='packets'").getFirstResult()[0];
 		//System.out.println(result);
-		return result.equals("CREATE TABLE `packets` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `direction` VARCHAR , `decoded_data` BLOB , `modified_data` BLOB , `sent_data` BLOB , `received_data` BLOB , `listen_port` INTEGER , `client_ip` VARCHAR , `client_port` INTEGER , `server_ip` VARCHAR , `server_name` VARCHAR , `server_port` INTEGER , `use_ssl` BOOLEAN , `content_type` VARCHAR , `encoder_name` VARCHAR , `alpn` VARCHAR , `modified` BOOLEAN , `resend` BOOLEAN , `date` BIGINT , `conn` INTEGER , `group` BIGINT )");
+		return result.equals("CREATE TABLE `packets` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `direction` VARCHAR , `decoded_data` BLOB , `modified_data` BLOB , `sent_data` BLOB , `received_data` BLOB , `listen_port` INTEGER , `client_ip` VARCHAR , `client_port` INTEGER , `server_ip` VARCHAR , `server_name` VARCHAR , `server_port` INTEGER , `use_ssl` BOOLEAN , `content_type` VARCHAR , `encoder_name` VARCHAR , `alpn` VARCHAR , `modified` BOOLEAN , `resend` BOOLEAN , `date` BIGINT , `conn` INTEGER , `group` BIGINT , `color` VARCHAR )");
 	}
 	private void RecreateTable() throws Exception {
 		int option = JOptionPane.showConfirmDialog(null,

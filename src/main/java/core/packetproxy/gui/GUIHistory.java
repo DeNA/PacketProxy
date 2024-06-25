@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Objects;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.ExecutorService;
@@ -133,6 +134,10 @@ public class GUIHistory implements Observer
 	private boolean dialogOnce = false;
 	private GUIHistoryAutoScroll autoScroll;
 	private JPopupMenu menu;
+
+	private Color packetColorGreen = new Color(0x7f, 0xff, 0xd4);
+	private Color packetColorBrown = new Color(0xd2, 0x69, 0x1e);
+	private Color packetColorYellow = new Color(0xff, 0xd7, 0x00);
 
 	private GUIHistory(boolean restore) throws Exception {
 		packets = Packets.getInstance(restore);
@@ -261,7 +266,7 @@ public class GUIHistory implements Observer
 				}
 			}
 		});
-		
+
 		JPanel filter_panel = new JPanel();
 		filter_panel.setLayout(new BoxLayout(filter_panel, BoxLayout.X_AXIS));
 		filter_panel.add(gui_filter);
@@ -530,14 +535,15 @@ public class GUIHistory implements Observer
 		JMenuItem addColorG = createMenuItem ("add color (green)", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					Color color = new Color(0x7f, 0xff, 0xd4);
 					int[] selected_rows = table.getSelectedRows();
 					for (int i = 0; i < selected_rows.length; i++)
 					{
 						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
-						colorManager.add(id, color);
+						colorManager.add(id, packetColorGreen);
+						Packet packet = Packets.getInstance().query(id);
+						packet.setColor("green");
+						Packets.getInstance().update(packet);
 					}
-					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -547,12 +553,14 @@ public class GUIHistory implements Observer
 		JMenuItem addColorB = createMenuItem ("add color (brown)", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					Color color = new Color(0xd2, 0x69, 0x1e);
 					int[] selected_rows = table.getSelectedRows();
 					for (int i = 0; i < selected_rows.length; i++)
 					{
 						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
-						colorManager.add(id, color);
+						colorManager.add(id, packetColorBrown);
+						Packet packet = Packets.getInstance().query(id);
+						packet.setColor("brown");
+						Packets.getInstance().update(packet);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -563,12 +571,14 @@ public class GUIHistory implements Observer
 		JMenuItem addColorY = createMenuItem ("add color (yellow)", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					Color color = new Color(0xff, 0xd7, 0x00);
 					int[] selected_rows = table.getSelectedRows();
 					for (int i = 0; i < selected_rows.length; i++)
 					{
 						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
-						colorManager.add(id, color);
+						colorManager.add(id, packetColorYellow);
+						Packet packet = Packets.getInstance().query(id);
+						packet.setColor("yellow");
+						Packets.getInstance().update(packet);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -593,7 +603,7 @@ public class GUIHistory implements Observer
 
 		JMenuItem delete_selected_items = createMenuItem ("delete selected items", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
-				try {		
+				try {
 					int[] selected_rows = table.getSelectedRows();
 					for (int i = 0; i < selected_rows.length; i++)
 					{
@@ -964,13 +974,25 @@ TODO: support --data-binary
 	}
 
 	public void updateAllAsync() throws Exception {
-		List<Packet> packetList = packets.queryAllIds();
+		List<Packet> packetList = packets.queryAllIdsAndColors();
 		tableModel.setRowCount(0);
+		colorManager.clear();
 		for(Packet packet : packetList) {
+			int id = packet.getId();
+			String color = packet.getColor();
+
 			tableModel.addRow(new Object[] {
 				packet.getId(),"Loading...","Loading...",0,"Loading...","","Loading...","","00:00:00 1900/01/01 Z",false,false,"","","",(long)-1
 			});
-			id_row.put(packet.getId(), tableModel.getRowCount() - 1);
+			id_row.put(id, tableModel.getRowCount() - 1);
+
+			if (Objects.equals(color, "green")) {
+				colorManager.add(id, packetColorGreen);
+			} else if (Objects.equals(color, "brown")) {
+				colorManager.add(id, packetColorBrown);
+			} else if (Objects.equals(color, "yellow")) {
+				colorManager.add(id, packetColorYellow);
+			}
 		}
 		update_packet_ids.clear();
 

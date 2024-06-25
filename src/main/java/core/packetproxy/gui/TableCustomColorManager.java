@@ -19,8 +19,6 @@ import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
-import packetproxy.util.PacketProxyUtility;
-
 public class TableCustomColorManager {
 
 	class LineColor {
@@ -44,77 +42,36 @@ public class TableCustomColorManager {
 	}
 
 	private Map<Integer,LineColor> coloredLines;
-	private Map<Integer,LineColor> clearedLines;
 
 	public TableCustomColorManager() {
 		this.coloredLines = new HashMap<Integer, LineColor>();
-		this.clearedLines = new HashMap<Integer, LineColor>();
 	}
 
 	public void add(int packetId, Color color) {
 		coloredLines.put(packetId, new LineColor(packetId, color));
-		clearedLines.remove(packetId);
 	}
 
 	public void clear(int packetId) {
-		LineColor lc = coloredLines.get(packetId);
-		clearedLines.put(packetId, lc);
 		coloredLines.remove(packetId);
 	}
 
 	public void clear() {
-		coloredLines.forEach((key, value) -> {
-			clearedLines.putIfAbsent(key, value);
-		});
 		coloredLines.clear();
 	}
 
 	public boolean contains(int packetId) {
-		return (coloredLines.containsKey(packetId) || clearedLines.containsKey(packetId)) ? true : false;
+		return coloredLines.containsKey(packetId) ? true : false;
 	}
 
 	public Color getColor(int packetId) throws Exception {
 		if (coloredLines.containsKey(packetId)) {
 			return coloredLines.get(packetId).getColor();
-		} else if (clearedLines.containsKey(packetId)) {
-			return Color.WHITE;
 		}
 		throw new Exception("line color is not registered.");
 	}
 
 	@Override
 	public String toString() {
-		return "coloredLines: " + coloredLines.toString() + " clearedLines: " + clearedLines.toString();
+		return "coloredLines: " + coloredLines.toString();
 	}
-
-	/*
-	public static void main(String[] args) {
-		PacketProxyUtility util = PacketProxyUtility.getInstance();
-		try {
-			TableCustomColorManager manager = new TableCustomColorManager();
-			manager.add(1, Color.BLACK);
-			manager.add(2, Color.BLUE);
-			util.packetProxyLog(manager.toString());
-			util.packetProxyLog(manager.getColor(1).toString());
-			util.packetProxyLog(manager.getColor(2).toString());
-			manager.clear();
-			util.packetProxyLog(manager.toString());
-			util.packetProxyLog(manager.getColor(1).toString());
-			util.packetProxyLog(manager.getColor(2).toString());
-			util.packetProxyLog(manager.getColor(1).toString());
-			util.packetProxyLog(manager.getColor(2).toString());
-			manager.clear();
-			util.packetProxyLog(manager.toString());
-			util.packetProxyLog(manager.getColor(1).toString());
-			util.packetProxyLog(manager.getColor(2).toString());
-			manager.add(1, Color.BLACK);
-			util.packetProxyLog(manager.toString());
-			util.packetProxyLog(manager.getColor(1).toString());
-			util.packetProxyLog(manager.getColor(2).toString());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	*/
-
 }
