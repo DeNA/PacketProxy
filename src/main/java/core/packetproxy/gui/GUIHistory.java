@@ -976,6 +976,7 @@ TODO: support --data-binary
 	public void updateAllAsync() throws Exception {
 		List<Packet> packetList = packets.queryAllIdsAndColors();
 		tableModel.setRowCount(0);
+		colorManager.clear();
 		for(Packet packet : packetList) {
 			int id = packet.getId();
 			String color = packet.getColor();
