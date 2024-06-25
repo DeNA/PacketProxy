@@ -188,6 +188,11 @@ public class Packets extends Observable implements Observer {
 			case RECONNECT:
 				database = Database.getInstance();
 				dao = database.createTable(Packet.class, this);
+				// ファイル読み込み時にpacketsテーブルの中にcolorカラムがなかったら追加する
+				String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='packets'").getFirstResult()[0];
+				if (!result.contains("`color` VARCHAR")) {
+					dao.executeRaw("ALTER TABLE `packets` ADD COLUMN color VARCHAR");
+				}
 				notifyObservers(arg);
 				break;
 			case RECREATE:
