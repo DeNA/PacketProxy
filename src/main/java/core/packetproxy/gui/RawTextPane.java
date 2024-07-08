@@ -54,68 +54,12 @@ public class RawTextPane extends ExtendedTextPane
 
 	public RawTextPane() throws Exception {
 		charSetUtility = CharSetUtility.getInstance();
-		
+
 		int mask_key = ActionEvent.META_MASK;
 		if (!PacketProxyUtility.getInstance().isMac()) {
 			mask_key = ActionEvent.CTRL_MASK;
 		}
 		JPopupMenu menu = new JPopupMenu();
-
-		JMenuItem send = new JMenuItem("send");
-		send.setMnemonic(KeyEvent.VK_S);
-		send.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, mask_key));
-		send.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent actionEvent) {
-				try {
-					JButton parentSend = getParentSend();
-					if (parentSend != null) {
-						parentSend.doClick();
-					} else {
-						Packet packet = GUIPacket.getInstance().getPacket();
-						ResendController.getInstance().resend(packet.getOneShotPacket(getData()));
-						packet.setSentData(getData());
-						packet.setResend();
-						Packets.getInstance().update(packet);
-						GUIHistory.getInstance().updateRequestOne(GUIHistory.getInstance().getSelectedPacketId());
-					}
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		menu.add(send);
-
-		JMenuItem sendBulkSender = new JMenuItem("send to BulkSender");
-		sendBulkSender.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent actionEvent) {
-				try {
-					Packet packet = GUIPacket.getInstance().getPacket();
-					GUIBulkSender.getInstance().add(packet.getOneShotPacket(getData()), packet.getId());
-					GUIHistory.getInstance().updateRequestOne(GUIHistory.getInstance().getSelectedPacketId());
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		menu.add(sendBulkSender);
-
-		JMenuItem sendRepeater = new JMenuItem("send to Resender");
-		sendRepeater.setMnemonic(KeyEvent.VK_R);
-		sendRepeater.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, mask_key));
-		sendRepeater.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent actionEvent) {
-				try {
-					Packet packet = GUIPacket.getInstance().getPacket();
-					packet.setResend();
-					Packets.getInstance().update(packet);
-					GUIRepeater.getInstance().addRepeats(packet.getOneShotPacket(getData()));
-					GUIHistory.getInstance().updateRequestOne(GUIHistory.getInstance().getSelectedPacketId());
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		menu.add(sendRepeater);
 
 		addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent e) {
@@ -143,21 +87,10 @@ public class RawTextPane extends ExtendedTextPane
 							e.consume();
 						}
 						break;
-					case KeyEvent.VK_S:
-						if ((e.getModifiers() & mask_key) == mask_key) {
-							send.doClick();
-						}
-						break;
-					case KeyEvent.VK_R:
-						if ((e.getModifiers() & mask_key) == mask_key) {
-							sendRepeater.doClick();
-						}
-						break;
 				}
 			}
 		});
 
-		menu.addSeparator();
 		JMenuItem vulCheckers = new JMenuItem(I18nString.get("VulCheck Helpers"));
 		vulCheckers.setFont(FontManager.getInstance().getUICaptionFont());
 		vulCheckers.setEnabled(false);
