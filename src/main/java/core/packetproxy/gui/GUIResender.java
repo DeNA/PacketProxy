@@ -37,30 +37,30 @@ import packetproxy.controller.ResendController;
 import packetproxy.controller.ResendController.ResendWorker;
 import packetproxy.model.OneShotPacket;
 
-public class GUIRepeater
+public class GUIResender
 {
 	private JPanel main_panel;
-	private CloseButtonTabbedPane repeat_tab;
-	private List<Repeats> list;
+	private CloseButtonTabbedPane resend_tab;
+	private List<Resends> list;
 	private int previousTabIndex;
 
-	private static GUIRepeater instance;
-	
-	public static GUIRepeater getInstance() throws Exception {
+	private static GUIResender instance;
+
+	public static GUIResender getInstance() throws Exception {
 		if (instance == null) {
-			instance = new GUIRepeater();
+			instance = new GUIResender();
 		}
 		return instance;
 	}
 
-	private GUIRepeater() {
+	private GUIResender() {
 		main_panel = new JPanel();
-		repeat_tab = new CloseButtonTabbedPane();
-		previousTabIndex = repeat_tab.getSelectedIndex();
-		repeat_tab.addChangeListener(new ChangeListener() {
+		resend_tab = new CloseButtonTabbedPane();
+		previousTabIndex = resend_tab.getSelectedIndex();
+		resend_tab.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				int currentTabIndex = repeat_tab.getSelectedIndex();
+				int currentTabIndex = resend_tab.getSelectedIndex();
 				if(previousTabIndex<0){
 					previousTabIndex = currentTabIndex;
 					return;
@@ -69,41 +69,41 @@ public class GUIRepeater
 			}
 		});
 		main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
-		main_panel.add(repeat_tab);
-		list = new ArrayList<Repeats>();
+		main_panel.add(resend_tab);
+		list = new ArrayList<Resends>();
 	}
-	
+
 	public JComponent createPanel() {
 		return main_panel;
 	}
-	
-	public void addRepeats(OneShotPacket send_packet) throws Exception {
-		Repeats repeats = new Repeats(this);
-		list.add(repeats);
-		repeat_tab.addTab(String.valueOf(list.size()+1), repeats.getComponent());
-		repeat_tab.setSelectedComponent(repeats.getComponent());
-		repeats.addRepeat(send_packet, null);
+
+	public void addResends(OneShotPacket send_packet) throws Exception {
+		Resends resends = new Resends(this);
+		list.add(resends);
+		resend_tab.addTab(String.valueOf(list.size()+1), resends.getComponent());
+		resend_tab.setSelectedComponent(resends.getComponent());
+		resends.addResend(send_packet, null);
 	}
-	
-	public Repeats get(int index) {
+
+	public Resends get(int index) {
 		return list.get(index);
 	}
-	
-	class Repeats {
-		private GUIRepeater parent;
+
+	class Resends {
+		private GUIResender parent;
 		private JPanel main_panel;
-		private CloseButtonTabbedPane repeat_tab;
-		private List<Repeat> list;
+		private CloseButtonTabbedPane resend_tab;
+		private List<Resend> list;
 		private int previousTabIndex;
-		
-		public Repeats(GUIRepeater parent) {
+
+		public Resends(GUIResender parent) {
 			this.parent = parent;
-			repeat_tab = new CloseButtonTabbedPane();
-			previousTabIndex = repeat_tab.getSelectedIndex();
-			repeat_tab.addChangeListener(new ChangeListener() {
+			resend_tab = new CloseButtonTabbedPane();
+			previousTabIndex = resend_tab.getSelectedIndex();
+			resend_tab.addChangeListener(new ChangeListener() {
 				@Override
 				public void stateChanged(ChangeEvent e) {
-					int currentTabIndex = repeat_tab.getSelectedIndex();
+					int currentTabIndex = resend_tab.getSelectedIndex();
 					if(previousTabIndex<0){
 						previousTabIndex = currentTabIndex;
 						return;
@@ -113,19 +113,19 @@ public class GUIRepeater
 			});
 		    main_panel = new JPanel();
 			main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
-			main_panel.add(repeat_tab);
-			list = new ArrayList<Repeat>();
+			main_panel.add(resend_tab);
+			list = new ArrayList<Resend>();
 		}
 
-		public void addRepeat(OneShotPacket send_packet, OneShotPacket recv_packet) throws Exception {
-			Repeat repeat = new Repeat(this);
-			list.add(repeat);
-			repeat_tab.addTab(String.valueOf(list.size() + 1), repeat.getComponent());
-			repeat_tab.setSelectedComponent(repeat.getComponent());
-			repeat.setOneShotPacket(send_packet, recv_packet);
+		public void addResend(OneShotPacket send_packet, OneShotPacket recv_packet) throws Exception {
+			Resend resend = new Resend(this);
+			list.add(resend);
+			resend_tab.addTab(String.valueOf(list.size() + 1), resend.getComponent());
+			resend_tab.setSelectedComponent(resend.getComponent());
+			resend.setOneShotPacket(send_packet, recv_packet);
 		}
 
-		public Repeat get(int index) {
+		public Resend get(int index) {
 			return list.get(index);
 		}
 
@@ -133,8 +133,8 @@ public class GUIRepeater
 			return main_panel;
 		}
 	}
-	
-	class Repeat implements Observer {
+
+	class Resend implements Observer {
 		private GUIServerNamePanel server_name_panel;
 		private OneShotPacket send_saved;
 		private OneShotPacket recv_saved;
@@ -145,8 +145,7 @@ public class GUIRepeater
 		private JButton resend_multiple_button;
 		private JPanel main_panel;
 
-		public Repeat(Repeats parent) throws Exception {
-		
+		public Resend(Resends parent) throws Exception {
 			server_name_panel = new GUIServerNamePanel();
 			send_panel = new GUIPacketData();
 			recv_panel = new GUIPacketData();
@@ -171,7 +170,7 @@ public class GUIRepeater
 								try {
 									OneShotPacket recvPacket = packets.get(0);
 									recv_panel.setOneShotPacket(recvPacket);
-									parent.addRepeat(sendPacket, recvPacket);
+									parent.addResend(sendPacket, recvPacket);
 									rollback();
 								} catch (Exception e) {
 									e.printStackTrace();
@@ -184,7 +183,7 @@ public class GUIRepeater
 				}
 			});
 			send_panel.setParentSend(resend_button);
-		
+
 		    resend_multiple_button = new JButton("send x 20");
 			resend_multiple_button.addActionListener(new ActionListener() {
 				@Override
@@ -199,12 +198,12 @@ public class GUIRepeater
 					}
 				}
 			});
-			
+
 		    JPanel button_panel = new JPanel();
 			button_panel.add(resend_button);
 			button_panel.add(resend_multiple_button);
 		    button_panel.setMaximumSize(new Dimension(Short.MAX_VALUE, 10));
-		
+
 		    main_panel = new JPanel();
 			main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
 			main_panel.add(server_name_panel);
@@ -216,7 +215,7 @@ public class GUIRepeater
 			log += "\n";
 			recv_panel.appendData(log.getBytes());
 		}
-		
+
 		private void clearLog() throws Exception {
 			recv_panel.setData("".getBytes());
 		}
@@ -224,7 +223,7 @@ public class GUIRepeater
 		public JComponent getComponent() {
 			return main_panel;
 		}
-		
+
 		public void rollback() throws Exception {
 			send_panel.setOneShotPacket(send_saved == null ? null : (OneShotPacket)send_saved.clone());
 			recv_panel.setOneShotPacket(recv_saved == null ? null : (OneShotPacket)recv_saved.clone());

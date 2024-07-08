@@ -51,7 +51,7 @@ public class GUIData {
 	private TabSet tabs;
 	private JButton resend_button;
 	private JButton resend_multiple_button;
-	private JButton repeater_button;
+	private JButton send_to_resender_button;
 	private JButton copy_url_body_button;
 	private JButton copy_url_button;
 	private JButton copy_body_button;
@@ -190,9 +190,9 @@ public class GUIData {
 			}
 		});
 
-		repeater_button = new JButton("send to Resender");
-		repeater_button.setAlignmentX(0.5f);
-		repeater_button.addActionListener(new ActionListener() {
+		send_to_resender_button = new JButton("send to Resender");
+		send_to_resender_button.setAlignmentX(0.5f);
+		send_to_resender_button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
@@ -208,7 +208,7 @@ public class GUIData {
 						Packet packet = Packets.getInstance().query(id);
 						packet.setResend();
 						Packets.getInstance().update(packet);
-						GUIRepeater.getInstance().addRepeats(packet.getOneShotPacket(data));
+						GUIResender.getInstance().addResends(packet.getOneShotPacket(data));
 						GUIHistory.getInstance().updateRequestOne(id);
 					}
 				} catch (Exception e1) {
@@ -329,7 +329,7 @@ public class GUIData {
 		button_panel.add(copy_url_button);
 		button_panel.add(resend_button);
 		button_panel.add(resend_multiple_button);
-		button_panel.add(repeater_button);
+		button_panel.add(send_to_resender_button);
 		button_panel.add(new JLabel("  diff: "));
 		button_panel.add(diff_panel);
 		button_panel.setLayout(new BoxLayout(button_panel, BoxLayout.LINE_AXIS));

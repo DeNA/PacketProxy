@@ -413,13 +413,13 @@ public class GUIHistory implements Observer
 			}
 		});
 
-		JMenuItem sendRepeater = createMenuItem ("send to Resender", KeyEvent.VK_R, KeyStroke.getKeyStroke(KeyEvent.VK_R, mask_key), new ActionListener() {
+		JMenuItem sendToResender = createMenuItem ("send to Resender", KeyEvent.VK_R, KeyStroke.getKeyStroke(KeyEvent.VK_R, mask_key), new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					Packet packet = gui_packet.getPacket();
 					packet.setResend();
 					Packets.getInstance().update(packet);
-					GUIRepeater.getInstance().addRepeats(packet.getOneShotFromModifiedData());
+					GUIResender.getInstance().addResends(packet.getOneShotFromModifiedData());
 					GUIHistory.getInstance().updateRequestOne(GUIHistory.getInstance().getSelectedPacketId());
 				} catch (Exception e1) {
 					e1.printStackTrace();
@@ -682,7 +682,7 @@ TODO: support --data-binary
 		});
 
 		menu.add(send);
-		menu.add(sendRepeater);
+		menu.add(sendToResender);
 		menu.add(copyAll);
 		menu.add(copy);
 		menu.add(bulkSender);
@@ -731,7 +731,7 @@ TODO: support --data-binary
 							break;
 						case KeyEvent.VK_R:
 							if ((e.getModifiers() & mask_key) == mask_key) {
-								sendRepeater.doClick();
+								sendToResender.doClick();
 							}
 							break;
 						case KeyEvent.VK_M:
@@ -779,7 +779,7 @@ TODO: support --data-binary
 							if (retryCount-- <= 0) {
 								break;
 							}
-							Thread.sleep(100); 
+							Thread.sleep(100);
 							packet = packets.query(packetId);
 						}
 						gui_packet.setPacket(packet);
@@ -794,7 +794,7 @@ TODO: support --data-binary
 
 		JScrollPane scrollpane = new JScrollPane(table);
 		scrollpane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		scrollpane.setCorner(JScrollPane.UPPER_RIGHT_CORNER, autoScroll); 
+		scrollpane.setCorner(JScrollPane.UPPER_RIGHT_CORNER, autoScroll);
 
 		split_panel = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		split_panel.add(scrollpane);
@@ -812,7 +812,7 @@ TODO: support --data-binary
 	}
 
 	public List<Integer> searchFromRequest(String searchWord) {
-		List<Integer> ids = new ArrayList<Integer>(); 
+		List<Integer> ids = new ArrayList<Integer>();
 		for (int i = 0; i < table.getRowCount(); i++) {
 			String req = (String)tableModel.getValueAt(i, 1);
 			if (req.matches(String.format(".*%s.*", searchWord))) {
