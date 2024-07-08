@@ -30,19 +30,33 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import packetproxy.controller.ResendController;
 import packetproxy.controller.ResendController.ResendWorker;
 import packetproxy.model.OneShotPacket;
+import packetproxy.model.Packet;
+import packetproxy.model.ResenderPacket;
+import packetproxy.model.ResenderPackets;
 
-public class GUIResender
+public class GUIResender implements Observer
 {
+	class ResendsCloseButtonTabbedPane extends CloseButtonTabbedPane {
+		@Override
+		public void removeTabAt(int index) {
+			super.removeTabAt(index);
+			try {
+				int resends_index = resends_indexes.get(index);
+				resends_indexes.remove(index);
+				ResenderPackets.getInstance().deleteResends(resends_index);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	private JPanel main_panel;
-	private CloseButtonTabbedPane resend_tab;
-	private List<Resends> list;
-	private int previousTabIndex;
+	private ResendsCloseButtonTabbedPane resends_tabs; // 上側のタブ一覧
+	private List<Integer> resends_indexes; // 上側のタブの番号一覧
 
 	private static GUIResender instance;
 
@@ -53,24 +67,62 @@ public class GUIResender
 		return instance;
 	}
 
-	private GUIResender() {
+	private GUIResender() throws Exception {
 		main_panel = new JPanel();
-		resend_tab = new CloseButtonTabbedPane();
-		previousTabIndex = resend_tab.getSelectedIndex();
-		resend_tab.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				int currentTabIndex = resend_tab.getSelectedIndex();
-				if(previousTabIndex<0){
-					previousTabIndex = currentTabIndex;
-					return;
-				}
-				previousTabIndex = currentTabIndex;
-			}
-		});
+		resends_tabs = new ResendsCloseButtonTabbedPane();
 		main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
-		main_panel.add(resend_tab);
-		list = new ArrayList<Resends>();
+		main_panel.add(resends_tabs);
+		resends_indexes = new ArrayList<Integer>();
+		ResenderPackets.getInstance().addObserver(this);
+		loadResenderPackets();
+	}
+
+	@Override
+	public void update(Observable arg0, Object arg1) {
+		main_panel.remove(resends_tabs);
+		resends_tabs = new ResendsCloseButtonTabbedPane();
+		main_panel.add(resends_tabs);
+		resends_indexes.clear();
+		loadResenderPackets();
+	}
+
+	private void loadResenderPackets() {
+		try {
+			List<ResenderPacket> resender_packets = ResenderPackets.getInstance().queryAllOrdered();
+			int before_resends_index = -1;
+			Resends resends = null;
+
+			for (int i = 0; i < resender_packets.size(); i++) {
+				ResenderPacket resender_packet = resender_packets.get(i);
+				int resends_index = resender_packet.getResendsIndex();
+				int resend_index = resender_packet.getResendIndex();
+
+				if (resends_index != before_resends_index) {
+					resends = new Resends();
+					resends_tabs.addTab(String.valueOf(resends_index), resends.getComponent());
+					resends_indexes.add(resends_index);
+					before_resends_index = resends_index;
+				}
+
+				Resend resend = new Resend(resends);
+				resends.resend_tabs.addTab(String.valueOf(resend_index), resend.getComponent());
+				resends.resend_indexes.add(resend_index);
+
+				if (resend_index == 1) {
+					resend.setOneShotPacket(resender_packet.getOneShotPacket(), null);
+				} else {
+					ResenderPacket next_resender_packet = resender_packets.get(i+1);
+					if (resender_packet.getDirection() == Packet.Direction.CLIENT) {
+						resend.setOneShotPacket(resender_packet.getOneShotPacket(), next_resender_packet.getOneShotPacket());
+					} else {
+						resend.setOneShotPacket(next_resender_packet.getOneShotPacket(), resender_packet.getOneShotPacket());
+					}
+					i++;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public JComponent createPanel() {
@@ -78,55 +130,55 @@ public class GUIResender
 	}
 
 	public void addResends(OneShotPacket send_packet) throws Exception {
-		Resends resends = new Resends(this);
-		list.add(resends);
-		resend_tab.addTab(String.valueOf(list.size()+1), resends.getComponent());
-		resend_tab.setSelectedComponent(resends.getComponent());
+		Resends resends = new Resends();
+		int resends_index = resends_indexes.size() == 0 ? 1 : resends_indexes.get(resends_indexes.size()-1) + 1;
+		resends_indexes.add(resends_index);
+		resends_tabs.addTab(String.valueOf(resends_index), resends.getComponent());
+		resends_tabs.setSelectedComponent(resends.getComponent());
 		resends.addResend(send_packet, null);
 	}
 
-	public Resends get(int index) {
-		return list.get(index);
-	}
-
 	class Resends {
-		private GUIResender parent;
-		private JPanel main_panel;
-		private CloseButtonTabbedPane resend_tab;
-		private List<Resend> list;
-		private int previousTabIndex;
-
-		public Resends(GUIResender parent) {
-			this.parent = parent;
-			resend_tab = new CloseButtonTabbedPane();
-			previousTabIndex = resend_tab.getSelectedIndex();
-			resend_tab.addChangeListener(new ChangeListener() {
-				@Override
-				public void stateChanged(ChangeEvent e) {
-					int currentTabIndex = resend_tab.getSelectedIndex();
-					if(previousTabIndex<0){
-						previousTabIndex = currentTabIndex;
-						return;
-					}
-					previousTabIndex = currentTabIndex;
+		class ResendCloseButtonTabbedPane extends CloseButtonTabbedPane {
+			@Override
+			public void removeTabAt(int index) {
+				super.removeTabAt(index);
+				try {
+					int resend_index = resend_indexes.get(index);
+					resend_indexes.remove(index);
+					int resends_index = resends_indexes.get(resends_tabs.getSelectedIndex());
+					ResenderPackets.getInstance().deleteResend(resends_index, resend_index);
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-			});
+			}
+		}
+
+		private JPanel main_panel;
+		private CloseButtonTabbedPane resend_tabs; // 下側のタブ一覧
+		private List<Integer> resend_indexes; // 下側のタブの番号一覧
+
+		public Resends() {
+			resend_tabs = new ResendCloseButtonTabbedPane();
 		    main_panel = new JPanel();
 			main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
-			main_panel.add(resend_tab);
-			list = new ArrayList<Resend>();
+			main_panel.add(resend_tabs);
+			resend_indexes = new ArrayList<Integer>();
 		}
 
 		public void addResend(OneShotPacket send_packet, OneShotPacket recv_packet) throws Exception {
 			Resend resend = new Resend(this);
-			list.add(resend);
-			resend_tab.addTab(String.valueOf(list.size() + 1), resend.getComponent());
-			resend_tab.setSelectedComponent(resend.getComponent());
+			int resend_index = resend_indexes.size() == 0 ? 1 : resend_indexes.get(resend_indexes.size()-1) + 1;
+			resend_indexes.add(resend_index);
+			resend_tabs.addTab(String.valueOf(resend_index), resend.getComponent());
+			resend_tabs.setSelectedComponent(resend.getComponent());
 			resend.setOneShotPacket(send_packet, recv_packet);
-		}
 
-		public Resend get(int index) {
-			return list.get(index);
+			int resends_index = resends_indexes.get(resends_tabs.getSelectedIndex());
+			ResenderPackets.getInstance().createResend(send_packet.getResenderPacket(resends_index, resend_index));
+			if (recv_packet != null) {
+				ResenderPackets.getInstance().createResend(recv_packet.getResenderPacket(resends_index, resend_index));
+			}
 		}
 
 		public JComponent getComponent() {

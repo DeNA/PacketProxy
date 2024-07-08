@@ -82,6 +82,7 @@ import packetproxy.model.Filters;
 import packetproxy.model.OptionTableModel;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
+import packetproxy.model.ResenderPackets;
 import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
 
@@ -142,6 +143,7 @@ public class GUIHistory implements Observer
 	private GUIHistory(boolean restore) throws Exception {
 		packets = Packets.getInstance(restore);
 		packets.addObserver(this);
+		ResenderPackets.getInstance().initTable(restore);
 		Filters.getInstance().addObserver(this);
 		gui_packet = GUIPacket.getInstance();
 		colorManager = new TableCustomColorManager();

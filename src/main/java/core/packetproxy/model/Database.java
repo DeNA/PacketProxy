@@ -97,7 +97,7 @@ public class Database extends Observable
 
 		setChanged();
 		notifyObservers(DatabaseMessage.RECONNECT);
-		clearChanged();	
+		clearChanged();
 	}
 
 	public void dropConfigs() throws Exception {
@@ -141,6 +141,7 @@ public class Database extends Observable
 		createTable(Modification.class, Modifications.getInstance());
 		createTable(SSLPassThrough.class, SSLPassThroughs.getInstance());
 		createTable(CharSet.class, CharSets.getInstance());
+		createTable(ResenderPacket.class, ResenderPackets.getInstance());
 		notifyObservers(DatabaseMessage.RECREATE);
 
 		migrateTableWithoutHistory(src, dst);
@@ -176,6 +177,7 @@ public class Database extends Observable
 					"INSERT OR REPLACE INTO dstDB.modifications (id, enabled, server_id, direction, pattern, method, replaced) SELECT id, enabled, server_id, direction, pattern, method, replaced FROM srcDB.modifications",
 					"INSERT OR REPLACE INTO dstDB.sslpassthroughs (id, enabled, server_name, listen_port) SELECT id, enabled, server_name, listen_port FROM srcDB.sslpassthroughs",
 					"INSERT OR REPLACE INTO dstDB.charsets (id, charsetname) SELECT id, charsetname FROM srcDB.charsets",
+					"INSERT OR REPLACE INTO dstDB.resender_packets (id, resends_index, resend_index, direction, data, listen_port, client_ip, client_port, server_ip, server_port, server_name, use_ssl, encoder_name, alpn, auto_modified, conn, `group`) SELECT id, resends_index, resend_index, direction, data, listen_port, client_ip, client_port, server_ip, server_port, server_name, use_ssl, encoder_name, alpn, auto_modified, conn, `group` FROM srcDB.resender_packets",
 			};
 			for (String query : queries){
 				try {
