@@ -30,111 +30,163 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import packetproxy.controller.ResendController;
 import packetproxy.controller.ResendController.ResendWorker;
 import packetproxy.model.OneShotPacket;
+import packetproxy.model.Packet;
+import packetproxy.model.ResenderPacket;
+import packetproxy.model.ResenderPackets;
 
-public class GUIRepeater
+public class GUIResender implements Observer
 {
-	private JPanel main_panel;
-	private CloseButtonTabbedPane repeat_tab;
-	private List<Repeats> list;
-	private int previousTabIndex;
+	class ResendsCloseButtonTabbedPane extends CloseButtonTabbedPane {
+		@Override
+		public void removeTabAt(int index) {
+			super.removeTabAt(index);
+			try {
+				int resends_index = resends_indexes.get(index);
+				resends_indexes.remove(index);
+				ResenderPackets.getInstance().deleteResends(resends_index);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
-	private static GUIRepeater instance;
-	
-	public static GUIRepeater getInstance() throws Exception {
+	private JPanel main_panel;
+	private ResendsCloseButtonTabbedPane resends_tabs; // 上側のタブ一覧
+	private List<Integer> resends_indexes; // 上側のタブの番号一覧
+
+	private static GUIResender instance;
+
+	public static GUIResender getInstance() throws Exception {
 		if (instance == null) {
-			instance = new GUIRepeater();
+			instance = new GUIResender();
 		}
 		return instance;
 	}
 
-	private GUIRepeater() {
+	private GUIResender() throws Exception {
 		main_panel = new JPanel();
-		repeat_tab = new CloseButtonTabbedPane();
-		previousTabIndex = repeat_tab.getSelectedIndex();
-		repeat_tab.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				int currentTabIndex = repeat_tab.getSelectedIndex();
-				if(previousTabIndex<0){
-					previousTabIndex = currentTabIndex;
-					return;
-				}
-				previousTabIndex = currentTabIndex;
-			}
-		});
+		resends_tabs = new ResendsCloseButtonTabbedPane();
 		main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
-		main_panel.add(repeat_tab);
-		list = new ArrayList<Repeats>();
+		main_panel.add(resends_tabs);
+		resends_indexes = new ArrayList<Integer>();
+		ResenderPackets.getInstance().addObserver(this);
+		loadResenderPackets();
 	}
-	
+
+	@Override
+	public void update(Observable arg0, Object arg1) {
+		main_panel.remove(resends_tabs);
+		resends_tabs = new ResendsCloseButtonTabbedPane();
+		main_panel.add(resends_tabs);
+		resends_indexes.clear();
+		loadResenderPackets();
+	}
+
+	private void loadResenderPackets() {
+		try {
+			List<ResenderPacket> resender_packets = ResenderPackets.getInstance().queryAllOrdered();
+			int before_resends_index = -1;
+			Resends resends = null;
+
+			for (int i = 0; i < resender_packets.size(); i++) {
+				ResenderPacket resender_packet = resender_packets.get(i);
+				int resends_index = resender_packet.getResendsIndex();
+				int resend_index = resender_packet.getResendIndex();
+
+				if (resends_index != before_resends_index) {
+					resends = new Resends();
+					resends_tabs.addTab(String.valueOf(resends_index), resends.getComponent());
+					resends_indexes.add(resends_index);
+					before_resends_index = resends_index;
+				}
+
+				Resend resend = new Resend(resends);
+				resends.resend_tabs.addTab(String.valueOf(resend_index), resend.getComponent());
+				resends.resend_indexes.add(resend_index);
+
+				if (resend_index == 1) {
+					resend.setOneShotPacket(resender_packet.getOneShotPacket(), null);
+				} else {
+					ResenderPacket next_resender_packet = resender_packets.get(i+1);
+					if (resender_packet.getDirection() == Packet.Direction.CLIENT) {
+						resend.setOneShotPacket(resender_packet.getOneShotPacket(), next_resender_packet.getOneShotPacket());
+					} else {
+						resend.setOneShotPacket(next_resender_packet.getOneShotPacket(), resender_packet.getOneShotPacket());
+					}
+					i++;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	public JComponent createPanel() {
 		return main_panel;
 	}
-	
-	public void addRepeats(OneShotPacket send_packet) throws Exception {
-		Repeats repeats = new Repeats(this);
-		list.add(repeats);
-		repeat_tab.addTab(String.valueOf(list.size()+1), repeats.getComponent());
-		repeat_tab.setSelectedComponent(repeats.getComponent());
-		repeats.addRepeat(send_packet, null);
+
+	public void addResends(OneShotPacket send_packet) throws Exception {
+		Resends resends = new Resends();
+		int resends_index = resends_indexes.size() == 0 ? 1 : resends_indexes.get(resends_indexes.size()-1) + 1;
+		resends_indexes.add(resends_index);
+		resends_tabs.addTab(String.valueOf(resends_index), resends.getComponent());
+		resends_tabs.setSelectedComponent(resends.getComponent());
+		resends.addResend(send_packet, null);
 	}
-	
-	public Repeats get(int index) {
-		return list.get(index);
-	}
-	
-	class Repeats {
-		private GUIRepeater parent;
-		private JPanel main_panel;
-		private CloseButtonTabbedPane repeat_tab;
-		private List<Repeat> list;
-		private int previousTabIndex;
-		
-		public Repeats(GUIRepeater parent) {
-			this.parent = parent;
-			repeat_tab = new CloseButtonTabbedPane();
-			previousTabIndex = repeat_tab.getSelectedIndex();
-			repeat_tab.addChangeListener(new ChangeListener() {
-				@Override
-				public void stateChanged(ChangeEvent e) {
-					int currentTabIndex = repeat_tab.getSelectedIndex();
-					if(previousTabIndex<0){
-						previousTabIndex = currentTabIndex;
-						return;
-					}
-					previousTabIndex = currentTabIndex;
+
+	class Resends {
+		class ResendCloseButtonTabbedPane extends CloseButtonTabbedPane {
+			@Override
+			public void removeTabAt(int index) {
+				super.removeTabAt(index);
+				try {
+					int resend_index = resend_indexes.get(index);
+					resend_indexes.remove(index);
+					int resends_index = resends_indexes.get(resends_tabs.getSelectedIndex());
+					ResenderPackets.getInstance().deleteResend(resends_index, resend_index);
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-			});
+			}
+		}
+
+		private JPanel main_panel;
+		private CloseButtonTabbedPane resend_tabs; // 下側のタブ一覧
+		private List<Integer> resend_indexes; // 下側のタブの番号一覧
+
+		public Resends() {
+			resend_tabs = new ResendCloseButtonTabbedPane();
 		    main_panel = new JPanel();
 			main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
-			main_panel.add(repeat_tab);
-			list = new ArrayList<Repeat>();
+			main_panel.add(resend_tabs);
+			resend_indexes = new ArrayList<Integer>();
 		}
 
-		public void addRepeat(OneShotPacket send_packet, OneShotPacket recv_packet) throws Exception {
-			Repeat repeat = new Repeat(this);
-			list.add(repeat);
-			repeat_tab.addTab(String.valueOf(list.size() + 1), repeat.getComponent());
-			repeat_tab.setSelectedComponent(repeat.getComponent());
-			repeat.setOneShotPacket(send_packet, recv_packet);
-		}
+		public void addResend(OneShotPacket send_packet, OneShotPacket recv_packet) throws Exception {
+			Resend resend = new Resend(this);
+			int resend_index = resend_indexes.size() == 0 ? 1 : resend_indexes.get(resend_indexes.size()-1) + 1;
+			resend_indexes.add(resend_index);
+			resend_tabs.addTab(String.valueOf(resend_index), resend.getComponent());
+			resend_tabs.setSelectedComponent(resend.getComponent());
+			resend.setOneShotPacket(send_packet, recv_packet);
 
-		public Repeat get(int index) {
-			return list.get(index);
+			int resends_index = resends_indexes.get(resends_tabs.getSelectedIndex());
+			ResenderPackets.getInstance().createResend(send_packet.getResenderPacket(resends_index, resend_index));
+			if (recv_packet != null) {
+				ResenderPackets.getInstance().createResend(recv_packet.getResenderPacket(resends_index, resend_index));
+			}
 		}
 
 		public JComponent getComponent() {
 			return main_panel;
 		}
 	}
-	
-	class Repeat implements Observer {
+
+	class Resend implements Observer {
 		private GUIServerNamePanel server_name_panel;
 		private OneShotPacket send_saved;
 		private OneShotPacket recv_saved;
@@ -145,8 +197,7 @@ public class GUIRepeater
 		private JButton resend_multiple_button;
 		private JPanel main_panel;
 
-		public Repeat(Repeats parent) throws Exception {
-		
+		public Resend(Resends parent) throws Exception {
 			server_name_panel = new GUIServerNamePanel();
 			send_panel = new GUIPacketData();
 			recv_panel = new GUIPacketData();
@@ -171,7 +222,7 @@ public class GUIRepeater
 								try {
 									OneShotPacket recvPacket = packets.get(0);
 									recv_panel.setOneShotPacket(recvPacket);
-									parent.addRepeat(sendPacket, recvPacket);
+									parent.addResend(sendPacket, recvPacket);
 									rollback();
 								} catch (Exception e) {
 									e.printStackTrace();
@@ -184,7 +235,7 @@ public class GUIRepeater
 				}
 			});
 			send_panel.setParentSend(resend_button);
-		
+
 		    resend_multiple_button = new JButton("send x 20");
 			resend_multiple_button.addActionListener(new ActionListener() {
 				@Override
@@ -199,12 +250,12 @@ public class GUIRepeater
 					}
 				}
 			});
-			
+
 		    JPanel button_panel = new JPanel();
 			button_panel.add(resend_button);
 			button_panel.add(resend_multiple_button);
 		    button_panel.setMaximumSize(new Dimension(Short.MAX_VALUE, 10));
-		
+
 		    main_panel = new JPanel();
 			main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
 			main_panel.add(server_name_panel);
@@ -216,7 +267,7 @@ public class GUIRepeater
 			log += "\n";
 			recv_panel.appendData(log.getBytes());
 		}
-		
+
 		private void clearLog() throws Exception {
 			recv_panel.setData("".getBytes());
 		}
@@ -224,7 +275,7 @@ public class GUIRepeater
 		public JComponent getComponent() {
 			return main_panel;
 		}
-		
+
 		public void rollback() throws Exception {
 			send_panel.setOneShotPacket(send_saved == null ? null : (OneShotPacket)send_saved.clone());
 			recv_panel.setOneShotPacket(recv_saved == null ? null : (OneShotPacket)recv_saved.clone());

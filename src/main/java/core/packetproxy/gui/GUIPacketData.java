@@ -67,7 +67,7 @@ public class GUIPacketData
 	}
 
 	public OneShotPacket getOneShotPacket() {
-		byte[] data = tabs.getData(); 
+		byte[] data = tabs.getData();
 		if (data != null) {
 			showing_packet.setData(data);
 		}
@@ -84,9 +84,5 @@ public class GUIPacketData
 
 	public void setParentSend(JButton parentSend) {
 		tabs.setParentSend (parentSend);
-	}
-
-	public void setParentSendRepeater(JButton parentSendRepeater) {
-		tabs.setParentSendRepeater (parentSendRepeater);
 	}
 }

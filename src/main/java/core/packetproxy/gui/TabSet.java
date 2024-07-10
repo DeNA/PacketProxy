@@ -39,7 +39,6 @@ public class TabSet extends Observable {
 	private JComponent json_text;
 	private JButton copyButton = null;
 	private JButton parentSend = null;
-	private JButton parentSendRepeater = null;
 	private byte[] data;
 	private Range emphasis;
 
@@ -142,14 +141,6 @@ public class TabSet extends Observable {
 
 	public void setParentSend (JButton parentSend) {
 		this.parentSend = parentSend;
-	}
-
-	public JButton getParentSendRepeater () {
-		return parentSendRepeater;
-	}
-
-	public void setParentSendRepeater (JButton parentSendRepeater) {
-		this.parentSendRepeater = parentSendRepeater;
 	}
 
 	private void update() {

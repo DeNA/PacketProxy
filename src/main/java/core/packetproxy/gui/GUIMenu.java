@@ -41,7 +41,7 @@ public class GUIMenu extends JMenuBar {
 	final static private String defaultDir = System.getProperty("user.home");
 	GUIMenu self;
 	JFrame owner;
-	private enum Panes {HISTORY, INTERCEPT, REPEATER, BULKSENDER, OPTIONS, LOG};
+	private enum Panes {HISTORY, INTERCEPT, RESENDER, BULKSENDER, OPTIONS, LOG};
 	public GUIMenu(JFrame owner) {
 		self = this;
 		this.owner = owner;
@@ -159,20 +159,20 @@ public class GUIMenu extends JMenuBar {
 					e1.printStackTrace();
 				}
 			}
-		});		
-		JMenuItem view_repeater = new JMenuItem(I18nString.get("View Resender")+"  "+cmd_key+"R");
-		view_menu.add(view_repeater);
-		view_repeater.addActionListener(new ActionListener() {
+		});
+		JMenuItem view_resender = new JMenuItem(I18nString.get("View Resender")+"  "+cmd_key+"R");
+		view_menu.add(view_resender);
+		view_resender.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					GUIMain.getInstance().getTabbedPane().setSelectedIndex(Panes.REPEATER.ordinal());
+					GUIMain.getInstance().getTabbedPane().setSelectedIndex(Panes.RESENDER.ordinal());
 
 				} catch (Exception e1) {
-					e1.printStackTrace();	
+					e1.printStackTrace();
 				}
 			}
-		});		
+		});
 		JMenuItem view_bulk_sender = new JMenuItem(I18nString.get("View BulkSender")+"  "+cmd_key+"B");
 		view_menu.add(view_bulk_sender);
 		view_bulk_sender.addActionListener(new ActionListener() {
@@ -184,7 +184,7 @@ public class GUIMenu extends JMenuBar {
 					e1.printStackTrace();
 				}
 			}
-		});		
+		});
 		JMenuItem view_options = new JMenuItem(I18nString.get("View Options")+"  "+cmd_key+"O");
 		view_menu.add(view_options);
 		view_options.addActionListener(new ActionListener() {

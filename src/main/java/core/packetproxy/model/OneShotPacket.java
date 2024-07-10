@@ -147,7 +147,7 @@ public class OneShotPacket implements PacketInfo, Cloneable
 	public long getGroup() {
 		return this.group;
 	}
-	public void encode(){    	
+	public void encode(){
 	}
 	public Packet toPacket() throws Exception {
 		Packet packet = new Packet(listen_port, client_ip, client_port, server_ip, server_port, server_name, use_ssl, encoder_name, alpn, direction, conn, group);
@@ -169,5 +169,9 @@ public class OneShotPacket implements PacketInfo, Cloneable
 			encoder = EncoderManager.getInstance().createInstance("Sample", alpn);
 		}
 		return (getDirection() == Direction.SERVER) ? encoder.getSummarizedResponse(toPacket()) : "";
+	}
+	public ResenderPacket getResenderPacket(int resends_index, int resend_index) throws Exception {
+		ResenderPacket resenderPacket = new ResenderPacket(resends_index, resend_index, direction, data, listen_port, client_ip, client_port, server_ip, server_port, server_name, use_ssl, encoder_name, alpn, auto_modified, conn, group);
+		return resenderPacket;
 	}
 }

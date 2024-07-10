@@ -44,13 +44,13 @@ public class GUIMain extends JFrame implements Observer
 	private GUIOption gui_option;
 	private GUIHistory gui_history;
 	private GUIIntercept gui_intercept;
-	private GUIRepeater gui_repeater;
+	private GUIResender gui_resender;
 	private GUIBulkSender gui_bulksender;
 	private GUIExtensions gui_extensions;
 	private GUIVulCheckHelper gui_vulcheckhelper;
 	private GUILog gui_log;
 	private InterceptModel interceptModel;
-	public enum Panes {HISTORY, INTERCEPT, REPEATER, VULCHECKHELPER, BULKSENDER, EXTENSIONS, OPTIONS, LOG};
+	public enum Panes {HISTORY, INTERCEPT, RESENDER, VULCHECKHELPER, BULKSENDER, EXTENSIONS, OPTIONS, LOG};
 
 	public static GUIMain getInstance(String title) throws Exception
 	{
@@ -72,14 +72,14 @@ public class GUIMain extends JFrame implements Observer
 	{
 		return this.tabbedpane;
 	}
-	
+
 	private String getPaneString(Panes num) {
 		switch (num) {
 		case HISTORY:
 			return "History";
 		case INTERCEPT:
 			return "Interceptor";
-		case REPEATER:
+		case RESENDER:
 			return "Resender";
 		case VULCHECKHELPER:
 			return "VulCheck Helper";
@@ -108,7 +108,7 @@ public class GUIMain extends JFrame implements Observer
 			gui_option = new GUIOption(this);
 			gui_history = getGUIHistory();
 			gui_intercept = new GUIIntercept(this);
-			gui_repeater = GUIRepeater.getInstance();
+			gui_resender = GUIResender.getInstance();
 			gui_bulksender = GUIBulkSender.getInstance();
 			gui_extensions = GUIExtensions.getInstance();
 			gui_vulcheckhelper = GUIVulCheckHelper.getInstance();
@@ -117,7 +117,7 @@ public class GUIMain extends JFrame implements Observer
 			tabbedpane = new JTabbedPane();
 			tabbedpane.addTab(getPaneString(Panes.HISTORY), gui_history.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.INTERCEPT), gui_intercept.createPanel());
-			tabbedpane.addTab(getPaneString(Panes.REPEATER), gui_repeater.createPanel());
+			tabbedpane.addTab(getPaneString(Panes.RESENDER), gui_resender.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.VULCHECKHELPER), gui_vulcheckhelper.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.BULKSENDER), gui_bulksender.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.EXTENSIONS), gui_extensions.createPanel());
@@ -168,12 +168,11 @@ public class GUIMain extends JFrame implements Observer
 	}
 
 	private void setLookandFeel() throws Exception {
-		
-		if (PacketProxyUtility.getInstance().isUnix()) {	
+		if (PacketProxyUtility.getInstance().isUnix()) {
 			System.setProperty("awt.useSystemAAFontSettings", "on");
 			System.setProperty("swing.aatext", "true");
 		}
-		
+
 		for (LookAndFeelInfo clInfo : UIManager.getInstalledLookAndFeels()) {
 			if ("Nimbus".equals(clInfo.getName())) {
 				UIManager.setLookAndFeel(clInfo.getClassName());
@@ -191,7 +190,7 @@ public class GUIMain extends JFrame implements Observer
 		addShortcutForMac();
 		addDockIconForMac();
 	}
-	
+
 	/**
 	 * Windowsにアイコンを表示する
 	 */
@@ -227,7 +226,7 @@ public class GUIMain extends JFrame implements Observer
 		int hotkey = (KeyEvent.CTRL_MASK | KeyEvent.META_MASK);
 		registerTabShortcut(KeyEvent.VK_H, hotkey, im, am, Panes.HISTORY.ordinal());
 		registerTabShortcut(KeyEvent.VK_I, hotkey, im, am, Panes.INTERCEPT.ordinal());
-		registerTabShortcut(KeyEvent.VK_R, hotkey, im, am, Panes.REPEATER.ordinal());
+		registerTabShortcut(KeyEvent.VK_R, hotkey, im, am, Panes.RESENDER.ordinal());
 		registerTabShortcut(KeyEvent.VK_B, hotkey, im, am, Panes.BULKSENDER.ordinal());
 		registerTabShortcut(KeyEvent.VK_O, hotkey, im, am, Panes.OPTIONS.ordinal());
 		registerTabShortcut(KeyEvent.VK_L, hotkey, im, am, Panes.LOG.ordinal());
@@ -270,7 +269,7 @@ public class GUIMain extends JFrame implements Observer
 		int hotkey = (KeyEvent.CTRL_MASK);
 		registerTabShortcut(KeyEvent.VK_H, hotkey, im, am, Panes.HISTORY.ordinal());
 		registerTabShortcut(KeyEvent.VK_I, hotkey, im, am, Panes.INTERCEPT.ordinal());
-		registerTabShortcut(KeyEvent.VK_R, hotkey, im, am, Panes.REPEATER.ordinal());
+		registerTabShortcut(KeyEvent.VK_R, hotkey, im, am, Panes.RESENDER.ordinal());
 		registerTabShortcut(KeyEvent.VK_B, hotkey, im, am, Panes.BULKSENDER.ordinal());
 		registerTabShortcut(KeyEvent.VK_O, hotkey, im, am, Panes.OPTIONS.ordinal());
 		registerTabShortcut(KeyEvent.VK_L, hotkey, im, am, Panes.LOG.ordinal());
