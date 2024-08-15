@@ -33,6 +33,7 @@ public class JWTVulChecker extends VulChecker {
                 .add(new JWTHeaderJKUModifiedGenerator())
                 .add(new JWTHeaderJWKGenerator())
                 .add(new JWTHeaderRS256toHS256Generator())
+                .add(new JWTHeaderAddSpecifiedJKUGenerator())
                 .add(new JWTSignWithAppleOtherTokenGenerator())
                 .build();
     }
