@@ -26,6 +26,7 @@ Map znames;
 Map TSIGs;
 String spoofIP = null;
 Record answer = null;
+Record[] answers = null;
 
 private static String
 addrport(InetAddress addr, int port) {
@@ -40,7 +41,7 @@ jnamed() throws IOException, ZoneTransferException {
 }
 
 public
-jnamed(String ip) throws IOException, ZoneTransferException {
+jnamed(String ip) throws IOException {
 	caches = new HashMap();
 	znames = new HashMap();
 	TSIGs = new HashMap();
@@ -48,11 +49,19 @@ jnamed(String ip) throws IOException, ZoneTransferException {
 }
 
 public
-jnamed(Record answer) throws IOException, ZoneTransferException {
+jnamed(Record answer) throws IOException {
 	caches = new HashMap();
 	znames = new HashMap();
 	TSIGs = new HashMap();
 	this.answer = answer;
+}
+
+public
+jnamed(Record[] answers) {
+	caches = new HashMap();
+	znames = new HashMap();
+	TSIGs = new HashMap();
+	this.answers = answers;
 }
 
 public void
@@ -289,16 +298,19 @@ addAnswer(Message response, Name name, int type, int dclass,
 
 	try {
 		if (this.answer != null) {
-			RRset rrset;
-			rrset = new RRset(this.answer);
-			addRRset(name, response, rrset, Section.ANSWER, flags);
+			addRRset(name, response, new RRset(this.answer), Section.ANSWER, flags);
 		}
-		if (spoofIP != null) {
+		if (this.answers != null) {
+			for (Record record : this.answers) {
+				addRRset(name, response, new RRset(record), Section.ANSWER, flags);
+			}
+		}
+		if (this.spoofIP != null) {
 			RRset rrset;
 			if(type == 1){
-				rrset = new RRset(new ARecord(name, dclass, 0, InetAddress.getByName(spoofIP)));
+				rrset = new RRset(new ARecord(name, dclass, 0, InetAddress.getByName(this.spoofIP)));
 			} else {
-				rrset = new RRset(new AAAARecord(name, dclass, 0, InetAddress.getByName(spoofIP)));
+				rrset = new RRset(new AAAARecord(name, dclass, 0, InetAddress.getByName(this.spoofIP)));
 			}
 			addRRset(name, response, rrset, Section.ANSWER, flags);
 		}

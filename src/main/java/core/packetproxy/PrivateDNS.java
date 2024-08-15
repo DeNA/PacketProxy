@@ -253,15 +253,22 @@ public class PrivateDNS
 							if (addr == null) {
 								throw new UnknownHostException();
 							}
-						} else if (queryRecType == Type.HTTPS && isTargetHost(queryHostName)) {
-							util.packetProxyLog(String.format("[DNS Query] HTTPS: '%s'", queryHostName));
-							Name label = Name.fromString(queryHostName + ".");
-							Name svcDomain = Name.fromString(".");
-							HTTPSRecord.ParameterAlpn alpn = new HTTPSRecord.ParameterAlpn();
-							alpn.fromString("h1,h2,h3");
-							List<HTTPSRecord.ParameterBase> params = List.of(alpn);
-							HTTPSRecord record = new HTTPSRecord(label, DClass.IN, 300, 1, svcDomain, params);
-							jnamed jn = new jnamed(record);
+						} else if (queryRecType == Type.HTTPS) {
+							util.packetProxyLog(String.format("[DNS Query] '%s' [HTTPS]", queryHostName));
+							jnamed jn;
+							if (isTargetHost(queryHostName)) {
+								Name label = Name.fromString(queryHostName + ".");
+								Name svcDomain = Name.fromString(".");
+								HTTPSRecord.ParameterAlpn alpn = new HTTPSRecord.ParameterAlpn();
+								alpn.fromString("h1,h2,h3");
+								List<HTTPSRecord.ParameterBase> params = List.of(alpn);
+								HTTPSRecord record = new HTTPSRecord(label, DClass.IN, 300, 1, svcDomain, params);
+								jn = new jnamed(record);
+								util.packetProxyLog(String.format("Force to access '%s' with HTTP3", queryHostName));
+							} else {
+								Record[] records = PrivateDNSClient.getHTTPSRecord(queryHostName);
+								jn = new jnamed(records);
+							}
 							res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 							sendPacket = new DatagramPacket(res, res.length, cAddr, cPort);
 							soc.send(sendPacket);

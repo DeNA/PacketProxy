@@ -30,6 +30,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 
 import packetproxy.model.Resolution;
@@ -138,5 +139,10 @@ public class PrivateDNSClient {
             throw new IllegalStateException(ex);
         }
         return hostIP;
+    }
+
+    public static Record[] getHTTPSRecord(String host) throws Exception {
+        Lookup lookup = new Lookup(host, Type.HTTPS);
+        return lookup.run();
     }
 }
