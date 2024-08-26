@@ -31,6 +31,7 @@ import java.util.*;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.commons.net.util.SubnetUtils.SubnetInfo;
 import org.xbill.DNS.*;
+import org.xbill.DNS.Record;
 
 import packetproxy.model.ConfigBoolean;
 import packetproxy.model.Server;
