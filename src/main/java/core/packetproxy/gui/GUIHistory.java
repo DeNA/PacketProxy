@@ -421,7 +421,11 @@ public class GUIHistory implements Observer
 					Packet packet = gui_packet.getPacket();
 					packet.setResend();
 					Packets.getInstance().update(packet);
-					GUIResender.getInstance().addResends(packet.getOneShotFromModifiedData());
+					if (packet.getModifiedData().length == 0) { // dropしたパケットの場合
+						GUIResender.getInstance().addResends(packet.getOneShotFromDecodedData());
+					} else {
+						GUIResender.getInstance().addResends(packet.getOneShotFromModifiedData());
+					}
 					GUIHistory.getInstance().updateRequestOne(GUIHistory.getInstance().getSelectedPacketId());
 				} catch (Exception e1) {
 					e1.printStackTrace();
@@ -470,7 +474,12 @@ public class GUIHistory implements Observer
 		JMenuItem bulkSender = createMenuItem ("send to Bulk Sender", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					GUIBulkSender.getInstance().add(gui_packet.getPacket().getOneShotFromModifiedData(), gui_packet.getPacket().getId());
+					Packet packet = gui_packet.getPacket();
+					if (packet.getModifiedData().length == 0) { // dropしたパケットの場合
+						GUIBulkSender.getInstance().add(packet.getOneShotFromDecodedData(), packet.getId());
+					} else {
+						GUIBulkSender.getInstance().add(packet.getOneShotFromModifiedData(), packet.getId());
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
