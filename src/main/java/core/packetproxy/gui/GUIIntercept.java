@@ -81,6 +81,7 @@ public class GUIIntercept implements Observer
 			cmd_key="Ctrl+";
 		}
 		forward_button = new JButton("forward "+cmd_key+"F");
+		forward_button.setEnabled(false);
 		forward_button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
@@ -88,6 +89,7 @@ public class GUIIntercept implements Observer
 			}
 		});
 		forward_multi_button = new JButton("forward x 20");
+		forward_multi_button.setEnabled(false);
 		forward_multi_button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -95,6 +97,7 @@ public class GUIIntercept implements Observer
 			}
 		});
 		drop_button = new JButton("drop "+cmd_key+"D");
+		drop_button.setEnabled(false);
 		drop_button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -102,6 +105,7 @@ public class GUIIntercept implements Observer
 			}
 		});
 		send_to_resender_button = new JButton("send to Resender");
+		send_to_resender_button.setEnabled(false);
 		send_to_resender_button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -116,6 +120,7 @@ public class GUIIntercept implements Observer
 			}
 		});
 		send_to_bulk_sender_button = new JButton("send to Bulk Sender");
+		send_to_bulk_sender_button.setEnabled(false);
 		send_to_bulk_sender_button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -213,6 +218,26 @@ public class GUIIntercept implements Observer
 			Packet client_packet = interceptModel.getClientPacket();
 			Packet server_packet = interceptModel.getServerPacket();
 			setInterceptData(data, client_packet, server_packet);
+
+			if (client_packet == null && server_packet == null) { // パケットが来ていない時
+				forward_button.setEnabled(false);
+				forward_multi_button.setEnabled(false);
+				drop_button.setEnabled(false);
+				send_to_resender_button.setEnabled(false);
+				send_to_bulk_sender_button.setEnabled(false);
+			} else if (server_packet == null) { // クライアントからサーバへのパケットの表示時
+				forward_button.setEnabled(true);
+				forward_multi_button.setEnabled(true);
+				drop_button.setEnabled(true);
+				send_to_resender_button.setEnabled(true);
+				send_to_bulk_sender_button.setEnabled(true);
+			} else { // サーバからクライアントへのパケット表示時
+				forward_button.setEnabled(true);
+				forward_multi_button.setEnabled(false);
+				drop_button.setEnabled(true);
+				send_to_resender_button.setEnabled(false);
+				send_to_bulk_sender_button.setEnabled(false);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
