@@ -184,6 +184,21 @@ public class Packet implements PacketInfo
 	public byte[] getDecodedData() {
 		return this.decoded_data == null ? new byte[]{} : this.decoded_data;
 	}
+	public OneShotPacket getOneShotFromDecodedData() {
+		return new OneShotPacket(
+				getId(),
+				getListenPort(),
+				getClient(),
+				getServer(),
+				getServerName(),
+				getUseSSL(),
+				getDecodedData(),
+				getEncoder(),
+				getAlpn(),
+				getDirection(),
+				getConn(),
+				getGroup());
+	}
 	public void setModified() {
 		this.modified = true;
 	}
