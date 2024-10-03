@@ -36,4 +36,8 @@ public class SimpleBytes {
     }
 
     byte[] bytes;
+
+    public ByteBuffer toByteBuffer() {
+        return ByteBuffer.wrap(bytes);
+    }
 }
