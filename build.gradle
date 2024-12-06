@@ -73,7 +73,7 @@ dependencies {
   izpack 'org.codehaus.izpack:izpack-dist:5.1.3'
 
   // load additional dena modules if it exists
-  ['dena/', 'denaN/'].each { def dir ->
+  ['dena/', 'denaN/', 'denaL/'].each { def dir ->
     def libs = file(dir + 'libraries.gradle')
     if (libs.exists()) {
       Eval.me(libs.text).each { def lib ->
@@ -176,7 +176,7 @@ sourceSets {
       def list = ['src/main/java/core']
 
       // load additional dena sources if it exists
-      ['dena/', 'denaN/'].each { def dir ->
+      ['dena/', 'denaN/', 'denaL/'].each { def dir ->
         def srcs = file(dir + 'sources.gradle')
         if (srcs.exists()) {
           Eval.me(srcs.text).each { def src ->
@@ -191,7 +191,7 @@ sourceSets {
     resources {
       def list = ['src/main/resources']
       // load additional dena resources if it exists
-      ['dena/', 'denaN/'].each { def dir ->
+      ['dena/', 'denaN/', 'denaL/'].each { def dir ->
         def srcs = file(dir + 'resources.gradle')
         if (srcs.exists()) {
           Eval.me(srcs.text).each { def src ->
@@ -208,7 +208,7 @@ sourceSets {
     java {
       def list = ['src/test/java']
       // load additional dena tests if it exists
-      ['dena/', 'denaN/'].each { def dir ->
+      ['dena/', 'denaN/', 'denaL/'].each { def dir ->
         def srcs = file(dir + 'tests.gradle')
         if (srcs.exists()) {
           Eval.me(srcs.text).each { def src ->
