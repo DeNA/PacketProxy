@@ -18,6 +18,7 @@ package packetproxy.model;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import packetproxy.PrivateDNSClient;
+import packetproxy.util.PacketProxyUtility;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -154,14 +155,17 @@ public class Server
     
     public List<InetAddress> getIps(){
     	try {
-    		if(specifiedByHostName){
-    			List<InetAddress> ips = Arrays.asList(PrivateDNSClient.getAllByName(ip));
-    			return ips;
-    		}else{
-    			List<InetAddress> ips = new ArrayList<InetAddress>();
-    			ips.add(InetAddress.getByName(ip));
-    			return ips;
-    		}
+            if (specifiedByHostName) {
+                List<InetAddress> ips = Arrays.asList(PrivateDNSClient.getAllByName(ip));
+                return ips;
+            } else {
+                List<InetAddress> ips = new ArrayList<InetAddress>();
+                ips.add(InetAddress.getByName(ip));
+                return ips;
+            }
+        } catch (UnknownHostException e) {
+            PacketProxyUtility.getInstance().packetProxyLogErr(String.format("Nonexistent server '%s' is specified in config [DNS resolv error]", ip));
+            return new ArrayList<InetAddress>();
     	} catch (Exception e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();
