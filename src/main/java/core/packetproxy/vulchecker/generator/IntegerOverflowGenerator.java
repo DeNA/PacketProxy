@@ -18,7 +18,7 @@ package packetproxy.vulchecker.generator;
 public class IntegerOverflowGenerator extends Generator {
     @Override
     public String getName() {
-        return "2^32: 0 as int, 0 as uint";
+        return "2^32";
     }
 
     @Override

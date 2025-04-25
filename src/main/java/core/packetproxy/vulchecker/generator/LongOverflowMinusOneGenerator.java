@@ -18,7 +18,7 @@ package packetproxy.vulchecker.generator;
 public class LongOverflowMinusOneGenerator extends Generator {
     @Override
     public String getName() {
-        return "2^64-1: -1 as long, 18446744073709551615 as ulong";
+        return "2^64 - 1";
     }
 
     @Override
