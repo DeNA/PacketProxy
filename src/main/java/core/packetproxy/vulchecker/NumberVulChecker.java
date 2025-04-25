@@ -32,8 +32,10 @@ public class NumberVulChecker extends VulChecker {
                 .add(new DecimalsGenerator())
                 .add(new IntegerOverflowMinusOneGenerator())
                 .add(new IntegerOverflowGenerator())
+                .add(new IntegerOverflowPlusOneGenerator())
                 .add(new LongOverflowMinusOneGenerator())
                 .add(new LongOverflowGenerator())
+                .add(new LongOverflowPlusOneGenerator())
                 .build();
     }
 }
