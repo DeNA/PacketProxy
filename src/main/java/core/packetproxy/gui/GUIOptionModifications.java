@@ -36,11 +36,11 @@ import packetproxy.model.Modification;
 import packetproxy.model.Modifications;
 import packetproxy.util.PacketProxyUtility;
 
-public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
-{
+public class GUIOptionModifications extends GUIOptionComponentBase<Modification> {
 	private GUIOptionModificationDialog dlg;
 	private Modifications modifications;
 	private List<Modification> table_ext_list;
+
 	public GUIOptionModifications(JFrame owner) throws Exception {
 		super(owner);
 		modifications = Modifications.getInstance();
@@ -52,10 +52,10 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					int columnIndex= table.columnAtPoint(e.getPoint());
-					int rowIndex= table.rowAtPoint(e.getPoint());
+					int columnIndex = table.columnAtPoint(e.getPoint());
+					int rowIndex = table.rowAtPoint(e.getPoint());
 					if (columnIndex == 0) { /* check box area */
-						boolean enable_checkbox = (Boolean)table.getValueAt(rowIndex, 0);
+						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 0);
 						Modification mod = getSelectedTableContent();
 						if (enable_checkbox == true) {
 							mod.setDisabled();
@@ -122,7 +122,7 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 		table_ext_list.add(mod);
 		try {
 			option_model.addRow(new Object[] {
-				mod.isEnabled(),
+					mod.isEnabled(),
 					mod.getDirection(),
 					mod.getMethod(),
 					mod.getPattern(),
@@ -133,6 +133,7 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 			e.printStackTrace();
 		}
 	}
+
 	@Override
 	protected void updateTable(List<Modification> modList) {
 		clearTableContents();
@@ -140,6 +141,7 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 			addTableContent(mod);
 		}
 	}
+
 	@Override
 	protected void updateImpl() {
 		try {
@@ -148,15 +150,18 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 			e.printStackTrace();
 		}
 	}
+
 	@Override
 	protected void clearTableContents() {
 		option_model.setRowCount(0);
 		table_ext_list.clear();
 	}
+
 	@Override
 	protected Modification getSelectedTableContent() {
 		return getTableContent(table.getSelectedRow());
 	}
+
 	@Override
 	protected Modification getTableContent(int rowIndex) {
 		return table_ext_list.get(rowIndex);

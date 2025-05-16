@@ -28,18 +28,18 @@ import packetproxy.util.PacketProxyUtility;
 public class Resolutions extends Observable implements Observer {
 
 	private static Resolutions instance;
-	
+
 	public static Resolutions getInstance() throws Exception {
 		if (instance == null) {
 			instance = new Resolutions();
 		}
 		return instance;
 	}
-	
+
 	private Database database;
-	private Dao<Resolution,Integer> dao;
+	private Dao<Resolution, Integer> dao;
 	private DaoQueryCache<Resolution> cache;
-	
+
 	private Resolutions() throws Exception {
 		database = Database.getInstance();
 		dao = database.createTable(Resolution.class, this);
@@ -48,17 +48,17 @@ public class Resolutions extends Observable implements Observer {
 			setResolutionsBySystem();
 		}
 	}
-	
+
 	public void setResolutionsBySystem() throws Exception {
 		List<String> fileLines;
 		if (PacketProxyUtility.getInstance().isWindows()) {
 			fileLines = Files.readAllLines(Paths.get("C:\\Windows\\System32\\drivers\\etc\\hosts"));
-		} else{
+		} else {
 			fileLines = Files.readAllLines(Paths.get("/etc/hosts"));
 		}
 		fileLines.stream().forEach(line -> {
 			if (!(line.startsWith("#"))) {
-				try{
+				try {
 					String[] parts = line.split("[\\s]+");
 					if (parts.length >= 2) {
 						String ip = parts[0];
@@ -77,11 +77,13 @@ public class Resolutions extends Observable implements Observer {
 		cache.clear();
 		notifyObservers();
 	}
+
 	public void delete(Resolution resolution) throws Exception {
 		dao.delete(resolution);
 		cache.clear();
 		notifyObservers();
 	}
+
 	public Resolution queryByString(String str) throws Exception {
 		List<Resolution> all = this.queryAll();
 		for (Resolution resolution : all) {
@@ -91,79 +93,94 @@ public class Resolutions extends Observable implements Observer {
 		}
 		return null;
 	}
+
 	public Resolution queryByHostName(String hostname) throws Exception {
 		List<Resolution> ret = cache.query("queryByHostName", hostname);
-		if (ret != null) { return ret.get(0); }
+		if (ret != null) {
+			return ret.get(0);
+		}
 
 		Resolution resolution = dao.queryBuilder().where().eq("ip", hostname).queryForFirst();
 
 		cache.set("queryByHostName", hostname, resolution);
 		return resolution;
 	}
+
 	public Resolution query(int id) throws Exception {
 		List<Resolution> ret = cache.query("query", id);
-		if (ret != null) { return ret.get(0); }
+		if (ret != null) {
+			return ret.get(0);
+		}
 
 		Resolution resolution = dao.queryForId(id);
 
 		cache.set("query", id, resolution);
 		return resolution;
 	}
+
 	public List<Resolution> queryAll() throws Exception {
 		List<Resolution> ret = cache.query("queryAll", 0);
-		if (ret != null) { return ret; }
+		if (ret != null) {
+			return ret;
+		}
 
 		ret = dao.queryBuilder().orderBy("ip", true).query();
 
 		cache.set("queryAll", 0, ret);
 		return ret;
 	}
+
 	public List<Resolution> queryEnabled() throws Exception {
 		List<Resolution> ret = cache.query("queryEnabled", 0);
-		if (ret != null) { return ret; }
+		if (ret != null) {
+			return ret;
+		}
 
 		ret = dao.queryBuilder().where().eq("enabled", true).query();
 
 		cache.set("queryEnabled", 0, ret);
 		return ret;
 	}
+
 	public void update(Resolution resolution) throws Exception {
 		dao.update(resolution);
 		cache.clear();
 		notifyObservers();
 	}
+
 	@Override
 	public void notifyObservers(Object arg) {
 		setChanged();
 		super.notifyObservers(arg);
 		clearChanged();
 	}
+
 	@Override
 	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage)arg;
+		DatabaseMessage message = (DatabaseMessage) arg;
 		try {
 			switch (message) {
-			case PAUSE:
-				// TODO ロックを取る
-				break;
-			case RESUME:
-				// TODO ロックを解除
-				break;
-			case DISCONNECT_NOW:
-				break;
-			case RECONNECT:
-				database = Database.getInstance();
-				dao = database.createTable(Resolution.class, this);
-				cache.clear();
-				notifyObservers(arg);
-				break;
-			case RECREATE:
-				database = Database.getInstance();
-				dao = database.createTable(Resolution.class, this);
-				cache.clear();
-				break;
-			default:
-				break;
+				case PAUSE:
+					// TODO ロックを取る
+					break;
+				case RESUME:
+					// TODO ロックを解除
+					break;
+				case DISCONNECT_NOW:
+					break;
+				case RECONNECT:
+					database = Database.getInstance();
+					dao = database.createTable(Resolution.class, this);
+					cache.clear();
+					notifyObservers(arg);
+					break;
+				case RECREATE:
+					database = Database.getInstance();
+					dao = database.createTable(Resolution.class, this);
+					cache.clear();
+					break;
+				default:
+					break;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

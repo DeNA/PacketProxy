@@ -41,8 +41,7 @@ import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 import packetproxy.util.PacketProxyUtility;
 
-public class GUIIntercept implements Observer
-{
+public class GUIIntercept implements Observer {
 	private JFrame owner;
 	private JButton forward_button;
 	private JButton forward_multi_button;
@@ -78,14 +77,18 @@ public class GUIIntercept implements Observer
 		});
 		String cmd_key = "⌘";
 		if (!PacketProxyUtility.getInstance().isMac()) {
-			cmd_key="Ctrl+";
+			cmd_key = "Ctrl+";
 		}
-		forward_button = new JButton("forward "+cmd_key+"F");
+		forward_button = new JButton("forward " + cmd_key + "F");
 		forward_button.setEnabled(false);
 		forward_button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
-				try { intercept_controller.forward(getInterceptData()); } catch (Exception e1) { e1.printStackTrace(); }
+				try {
+					intercept_controller.forward(getInterceptData());
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
 			}
 		});
 		forward_multi_button = new JButton("forward x 20");
@@ -93,15 +96,23 @@ public class GUIIntercept implements Observer
 		forward_multi_button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try { intercept_controller.forward_multiple(getInterceptData()); } catch (Exception e1) { e1.printStackTrace(); }
+				try {
+					intercept_controller.forward_multiple(getInterceptData());
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
 			}
 		});
-		drop_button = new JButton("drop "+cmd_key+"D");
+		drop_button = new JButton("drop " + cmd_key + "D");
 		drop_button.setEnabled(false);
 		drop_button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try { intercept_controller.drop(); } catch (Exception e1) { e1.printStackTrace(); }
+				try {
+					intercept_controller.drop();
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
 			}
 		});
 		send_to_resender_button = new JButton("send to Resender");
@@ -182,14 +193,16 @@ public class GUIIntercept implements Observer
 
 		return panel;
 	}
+
 	private void setInterceptData(byte[] data, Packet client_packet, Packet server_packet) throws Exception {
 		if (data == null)
-			data = new byte[]{};
+			data = new byte[] {};
 		server_name_panel.updateServerName(client_packet, server_packet);
 		tabs.setData(data);
 		raw_original_data = tabs.getRaw().getData();
 		original_data = data;
 	}
+
 	private byte[] getInterceptData() {
 		byte[] data = null;
 		int index = tabs.getSelectedIndex();
@@ -199,13 +212,14 @@ public class GUIIntercept implements Observer
 			} else {
 				data = tabs.getRaw().getData();
 			}
-		} else if (index == 1){
+		} else if (index == 1) {
 			data = tabs.getBinary().getData();
 		} else if (index == 2) {
 			data = tabs.getJson().getData();
 		}
 		return data;
 	}
+
 	@Override
 	public void update(Observable arg0, Object arg1) {
 		try {

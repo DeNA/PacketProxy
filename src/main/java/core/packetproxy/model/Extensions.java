@@ -38,7 +38,7 @@ import packetproxy.model.Database.DatabaseMessage;
 
 public class Extensions extends Observable implements Observer {
     private static Extensions instance;
-    
+
     public static Extensions getInstance() throws Exception {
         if (instance == null) {
             instance = new Extensions();
@@ -46,10 +46,12 @@ public class Extensions extends Observable implements Observer {
         return instance;
     }
 
-    private static Map<String, Class<?>> presetExtensions = new HashMap<>(){{
-        put((new RandomnessExtension()).getName(), RandomnessExtension.class);
-        put((new SampleEncoders()).getName(), SampleEncoders.class);
-    }};
+    private static Map<String, Class<?>> presetExtensions = new HashMap<>() {
+        {
+            put((new RandomnessExtension()).getName(), RandomnessExtension.class);
+            put((new SampleEncoders()).getName(), SampleEncoders.class);
+        }
+    };
 
     // Extensionではなく、継承先のインスタンスを保持する必要がある
     // enabledになっている際にのみext_instancesに保持されるようにする
@@ -57,7 +59,7 @@ public class Extensions extends Observable implements Observer {
     private Database database;
     private Dao<Extension, String> dao;
     private DaoQueryCache<Extension> cache;
-    
+
     private Extensions() throws Exception {
         ext_instances = new HashMap<>();
         database = Database.getInstance();
@@ -68,9 +70,9 @@ public class Extensions extends Observable implements Observer {
         }
 
         // load presets
-        for (Class clazz: presetExtensions.values()) {
-            Constructor<Extension> constructor = clazz.getConstructor(); 
-            Extension extension = (Extension)constructor.newInstance(); 
+        for (Class clazz : presetExtensions.values()) {
+            Constructor<Extension> constructor = clazz.getConstructor();
+            Extension extension = (Extension) constructor.newInstance();
             create(extension);
         }
     }
@@ -81,14 +83,14 @@ public class Extensions extends Observable implements Observer {
             Extension extension = null;
             try {
                 Class clazz = presetExtensions.get(name);
-                Constructor<Extension> constructor = clazz.getConstructor(); 
-                extension = (Extension)constructor.newInstance();
+                Constructor<Extension> constructor = clazz.getConstructor();
+                extension = (Extension) constructor.newInstance();
             } catch (Exception e) {
                 e.printStackTrace();
             }
             return extension;
         }
-         try {
+        try {
             File file = new File(path);
             URL[] urls = { file.toURI().toURL() };
             URLClassLoader urlClassLoader = new URLClassLoader(urls);
@@ -97,13 +99,15 @@ public class Extensions extends Observable implements Observer {
             for (Enumeration<JarEntry> entries = jar.entries(); entries.hasMoreElements();) {
                 JarEntry entry = entries.nextElement();
                 String entryName = entry.getName();
-                if (!entryName.endsWith(".class"))   continue;
+                if (!entryName.endsWith(".class"))
+                    continue;
                 String className = entryName.replace("/", ".").substring(0, entryName.length() - 6);
                 try {
                     Class clazz = urlClassLoader.loadClass(className);
-                    if (!Extension.class.isAssignableFrom(clazz))   continue;
+                    if (!Extension.class.isAssignableFrom(clazz))
+                        continue;
                     Constructor<Extension> constructor = clazz.getConstructor(String.class, String.class);
-                    extension = (Extension)constructor.newInstance(name, path);
+                    extension = (Extension) constructor.newInstance(name, path);
                 } catch (ClassNotFoundException e1) {
                     // e1.printStackTrace();
                 }
@@ -128,18 +132,21 @@ public class Extensions extends Observable implements Observer {
         cache.clear();
         notifyObservers();
     }
+
     public void delete(String id) throws Exception {
         dao.deleteById(id);
         ext_instances.remove(id);
         cache.clear();
         notifyObservers();
     }
+
     public void delete(Extension ext) throws Exception {
         dao.delete(ext);
         ext_instances.remove(ext.getName());
         cache.clear();
         notifyObservers();
     }
+
     public Extension update(Extension ext) throws Exception {
         dao.update(ext);
         if (ext.isEnabled() && !ext_instances.containsKey(ext.getName())) {
@@ -157,12 +164,15 @@ public class Extensions extends Observable implements Observer {
         notifyObservers();
         return ext;
     }
+
     public void refresh() {
         notifyObservers();
     }
+
     public Extension query(String id) throws Exception {
         List<Extension> ret = cache.query("query", id);
-        if (ret != null) return ret.get(0);
+        if (ret != null)
+            return ret.get(0);
         Extension ext = null;
         if (ext_instances.containsKey(id)) {
             ext = ext_instances.get(id);
@@ -180,14 +190,18 @@ public class Extensions extends Observable implements Observer {
         cache.set("query", id, ext);
         return ext;
     }
+
     public List<Extension> queryAll() throws Exception {
         List<Extension> ret = cache.query("queryAll", 0);
-        if (ret != null) { return ret; }
+        if (ret != null) {
+            return ret;
+        }
         ret = dao.queryBuilder().query();
         Map<String, Extension> newHash = new HashMap<>();
         for (int i = 0; i < ret.size(); i++) {
             Extension ext = ret.get(i);
-            if (!ext.isEnabled()) continue;
+            if (!ext.isEnabled())
+                continue;
             if (ext_instances.containsKey(ext.getName())) {
                 Extension loadedExt = ext_instances.get(ext.getName());
                 ret.set(i, loadedExt);
@@ -212,6 +226,7 @@ public class Extensions extends Observable implements Observer {
         super.notifyObservers(arg);
         clearChanged();
     }
+
     @Override
     public void update(Observable o, Object arg) {
         DatabaseMessage message = (DatabaseMessage) arg;
@@ -243,17 +258,20 @@ public class Extensions extends Observable implements Observer {
             e.printStackTrace();
         }
     }
+
     private boolean isLatestVersion() throws Exception {
         String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='extensions'").getFirstResult()[0];
-        return result.equals("CREATE TABLE `extensions` (`name` VARCHAR , `enabled` BOOLEAN , `path` VARCHAR , PRIMARY KEY (`name`) )");
+        return result.equals(
+                "CREATE TABLE `extensions` (`name` VARCHAR , `enabled` BOOLEAN , `path` VARCHAR , PRIMARY KEY (`name`) )");
     }
+
     private void RecreateTable() throws Exception {
         int option = JOptionPane.showConfirmDialog(null, "Extensionsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",
-            "テーブルの更新",
-            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                "テーブルの更新",
+                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (option == JOptionPane.YES_OPTION) {
             database.dropTable(Extension.class);
             dao = database.createTable(Extension.class, this);
-        } 
+        }
     }
 }

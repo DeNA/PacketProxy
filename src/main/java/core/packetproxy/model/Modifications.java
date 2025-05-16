@@ -23,22 +23,21 @@ import javax.swing.JOptionPane;
 import packetproxy.model.DaoQueryCache;
 import packetproxy.model.Database.DatabaseMessage;
 
-public class Modifications extends Observable implements Observer
-{
+public class Modifications extends Observable implements Observer {
 	private static Modifications instance;
-	
+
 	public static Modifications getInstance() throws Exception {
 		if (instance == null) {
 			instance = new Modifications();
 		}
 		return instance;
 	}
-	
+
 	private Database database;
-	private Dao<Modification,Integer> dao;
+	private Dao<Modification, Integer> dao;
 	private Servers servers;
 	private DaoQueryCache<Modification> cache;
-	
+
 	private Modifications() throws Exception {
 		database = Database.getInstance();
 		servers = Servers.getInstance();
@@ -48,41 +47,52 @@ public class Modifications extends Observable implements Observer
 			RecreateTable();
 		}
 	}
+
 	public void create(Modification modification) throws Exception {
 		dao.createIfNotExists(modification);
 		cache.clear();
 		notifyObservers();
 	}
+
 	public void delete(int id) throws Exception {
 		dao.deleteById(id);
 		cache.clear();
 		notifyObservers();
 	}
+
 	public void delete(Modification modification) throws Exception {
 		dao.delete(modification);
 		cache.clear();
 		notifyObservers();
 	}
+
 	public void update(Modification modification) throws Exception {
 		dao.update(modification);
 		cache.clear();
 		notifyObservers();
 	}
+
 	public void refresh() {
 		notifyObservers();
 	}
+
 	public Modification query(int id) throws Exception {
 		List<Modification> ret = cache.query("query", 0);
-		if (ret != null) { return ret.get(0); }
+		if (ret != null) {
+			return ret.get(0);
+		}
 
 		Modification modification = dao.queryForId(id);
 
 		cache.set("query", id, modification);
 		return modification;
 	}
+
 	public List<Modification> queryAll() throws Exception {
 		List<Modification> ret = cache.query("queryAll", 0);
-		if (ret != null) { return ret; }
+		if (ret != null) {
+			return ret;
+		}
 
 		ret = dao.queryBuilder().query();
 
@@ -92,15 +102,19 @@ public class Modifications extends Observable implements Observer
 
 	public List<Modification> queryEnabled(Server server) throws Exception {
 		int server_id = Modification.ALL_SERVER;
-		if (server != null) { server_id = server.getId(); }
+		if (server != null) {
+			server_id = server.getId();
+		}
 
 		List<Modification> ret = cache.query("queryEnabled", server_id);
-		if (ret != null) { return ret; }
+		if (ret != null) {
+			return ret;
+		}
 
 		ret = dao.queryBuilder().where()
-				.eq("server_id",  server_id)
+				.eq("server_id", server_id)
 				.or()
-				.eq("server_id",  Modification.ALL_SERVER)
+				.eq("server_id", Modification.ALL_SERVER)
 				.and()
 				.eq("enabled", true)
 				.query();
@@ -108,67 +122,77 @@ public class Modifications extends Observable implements Observer
 		cache.set("queryEnabled", server_id, ret);
 		return ret;
 	}
+
 	public byte[] replaceOnRequest(byte[] data, Server server, Packet client_packet) throws Exception {
 		for (Modification mod : queryEnabled(server)) {
-			if (mod.getDirection() == Modification.Direction.CLIENT_REQUEST || mod.getDirection() == Modification.Direction.ALL)
+			if (mod.getDirection() == Modification.Direction.CLIENT_REQUEST
+					|| mod.getDirection() == Modification.Direction.ALL)
 				data = mod.replace(data, client_packet);
 		}
 		return data;
 	}
+
 	public byte[] replaceOnResponse(byte[] data, Server server, Packet server_packet) throws Exception {
 		for (Modification mod : queryEnabled(server)) {
-			if (mod.getDirection() == Modification.Direction.SERVER_RESPONSE || mod.getDirection() == Modification.Direction.ALL)
+			if (mod.getDirection() == Modification.Direction.SERVER_RESPONSE
+					|| mod.getDirection() == Modification.Direction.ALL)
 				data = mod.replace(data, server_packet);
 		}
 		return data;
 	}
+
 	@Override
 	public void notifyObservers(Object arg) {
 		setChanged();
 		super.notifyObservers(arg);
 		clearChanged();
 	}
+
 	@Override
 	public void addObserver(Observer observer) {
 		super.addObserver(observer);
 		servers.addObserver(observer);
 	}
+
 	@Override
 	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage)arg;
+		DatabaseMessage message = (DatabaseMessage) arg;
 		try {
 			switch (message) {
-			case PAUSE:
-				// TODO ロックを取る
-				break;
-			case RESUME:
-				// TODO ロックを解除
-				break;
-			case DISCONNECT_NOW:
-				break;
-			case RECONNECT:
-				database = Database.getInstance();
-				dao = database.createTable(Modification.class, this);
-				cache.clear();
-				notifyObservers(arg);
-				break;
-			case RECREATE:
-				database = Database.getInstance();
-				dao = database.createTable(Modification.class, this);
-				cache.clear();
-				break;
-			default:
-				break;
+				case PAUSE:
+					// TODO ロックを取る
+					break;
+				case RESUME:
+					// TODO ロックを解除
+					break;
+				case DISCONNECT_NOW:
+					break;
+				case RECONNECT:
+					database = Database.getInstance();
+					dao = database.createTable(Modification.class, this);
+					cache.clear();
+					notifyObservers(arg);
+					break;
+				case RECREATE:
+					database = Database.getInstance();
+					dao = database.createTable(Modification.class, this);
+					cache.clear();
+					break;
+				default:
+					break;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+
 	private boolean isLatestVersion() throws Exception {
 		String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='modifications'").getFirstResult()[0];
-//		System.out.println(result);
-		return result.equals("CREATE TABLE `modifications` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `enabled` BOOLEAN , `server_id` INTEGER , `direction` VARCHAR , `pattern` VARCHAR , `method` VARCHAR , `replaced` VARCHAR , UNIQUE (`server_id`,`direction`,`pattern`,`method`) )");
+		// System.out.println(result);
+		return result.equals(
+				"CREATE TABLE `modifications` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `enabled` BOOLEAN , `server_id` INTEGER , `direction` VARCHAR , `pattern` VARCHAR , `method` VARCHAR , `replaced` VARCHAR , UNIQUE (`server_id`,`direction`,`pattern`,`method`) )");
 	}
+
 	private void RecreateTable() throws Exception {
 		int option = JOptionPane.showConfirmDialog(null,
 				"Modificationsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",

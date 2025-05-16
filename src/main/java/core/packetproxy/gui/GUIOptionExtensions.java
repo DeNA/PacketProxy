@@ -40,9 +40,9 @@ public class GUIOptionExtensions extends GUIOptionComponentBase<Extension> {
         String[] menu = { "Enabled", "Name", "Path" };
         int[] menuWidth = { 30, 300, 300 };
         MouseAdapter tableAction = new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				try {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                try {
                     int columnIndex = table.columnAtPoint(e.getPoint());
                     int rowIndex = table.rowAtPoint(e.getPoint());
                     if (columnIndex == 0) { /* check box area */
@@ -113,9 +113,9 @@ public class GUIOptionExtensions extends GUIOptionComponentBase<Extension> {
         table_ext_list.add(ext);
         try {
             option_model.addRow(new Object[] {
-                ext.isEnabled(),
-                ext.getName(),
-                ext.getPath(),
+                    ext.isEnabled(),
+                    ext.getName(),
+                    ext.getPath(),
             });
         } catch (Exception e) {
             e.printStackTrace();
@@ -125,7 +125,7 @@ public class GUIOptionExtensions extends GUIOptionComponentBase<Extension> {
     @Override
     protected void updateTable(List<Extension> exts) {
         clearTableContents();
-        for(Extension ext: exts) {
+        for (Extension ext : exts) {
             addTableContent(ext);
         }
     }
@@ -144,10 +144,12 @@ public class GUIOptionExtensions extends GUIOptionComponentBase<Extension> {
         option_model.setRowCount(0);
         table_ext_list.clear();
     }
+
     @Override
     protected Extension getSelectedTableContent() {
         return getTableContent(table.getSelectedRow());
     }
+
     @Override
     protected Extension getTableContent(int rowIndex) {
         return table_ext_list.get(rowIndex);

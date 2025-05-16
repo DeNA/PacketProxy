@@ -20,52 +20,61 @@ import java.util.Observable;
 public class InterceptModel extends Observable {
 
 	private static InterceptModel instance;
-	
+
 	public static InterceptModel getInstance() throws Exception {
 		if (instance == null) {
 			instance = new InterceptModel();
 		}
 		return instance;
 	}
-	
+
 	private byte[] data;
 	private Packet client_packet;
 	private Packet server_packet;
 	private boolean intercept_mode = false;
-	
+
 	private InterceptModel() {
 		clear();
 	}
+
 	public void enableInterceptMode() {
 		this.intercept_mode = true;
 		notifyObservers();
 	}
+
 	public void disableInterceptMode() {
 		this.intercept_mode = false;
 		notifyObservers();
 	}
+
 	public boolean isInterceptEnabled() {
 		return this.intercept_mode;
 	}
+
 	public void setData(byte[] data, Packet client_packet, Packet server_packet) {
 		this.data = data;
 		this.client_packet = client_packet;
 		this.server_packet = server_packet;
 		notifyObservers();
 	}
+
 	public byte[] getData() {
 		return data;
 	}
+
 	public Packet getClientPacket() {
 		return this.client_packet;
 	}
+
 	public Packet getServerPacket() {
 		return this.server_packet;
 	}
+
 	public void clearData() {
 		clear();
 		notifyObservers();
 	}
+
 	@Override
 	public void notifyObservers(Object arg) {
 		setChanged();

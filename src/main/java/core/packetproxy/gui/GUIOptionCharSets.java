@@ -26,11 +26,11 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet>
-{
+public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet> {
 	private GUIOptionCharSetDialog dlg;
 	private CharSets charsets;
 	private List<CharSet> charsets_list;
+
 	public GUIOptionCharSets(JFrame owner) throws Exception {
 		super(owner);
 		charsets = CharSets.getInstance();
@@ -42,10 +42,10 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet>
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					int columnIndex= table.columnAtPoint(e.getPoint());
-					int rowIndex= table.rowAtPoint(e.getPoint());
+					int columnIndex = table.columnAtPoint(e.getPoint());
+					int rowIndex = table.rowAtPoint(e.getPoint());
 					if (columnIndex == 4) { /* Spoof DNS area */
-						boolean enable_checkbox = (Boolean)table.getValueAt(rowIndex, 4);
+						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 4);
 						CharSet charset = getSelectedTableContent();
 						charsets.update(charset);
 					}
@@ -61,7 +61,7 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet>
 				try {
 					dlg = new GUIOptionCharSetDialog(owner);
 					List<CharSet> charsetList = dlg.showDialog();
-					for(CharSet charset:charsetList){
+					for (CharSet charset : charsetList) {
 						charsets.create(charset);
 					}
 				} catch (Exception e1) {
@@ -88,8 +88,9 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet>
 	protected void addTableContent(CharSet charSet) {
 		charsets_list.add(charSet);
 		option_model.addRow(new Object[] {
-				charSet.getCharSetName()});
+				charSet.getCharSetName() });
 	}
+
 	@Override
 	protected void updateTable(List<CharSet> charsetList) {
 		clearTableContents();

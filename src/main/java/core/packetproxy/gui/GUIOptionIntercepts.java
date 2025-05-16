@@ -30,8 +30,7 @@ import packetproxy.model.InterceptOption;
 import packetproxy.model.InterceptOption.Direction;
 import packetproxy.model.InterceptOptions;
 
-public class GUIOptionIntercepts extends GUIOptionComponentBase<InterceptOption>
-{
+public class GUIOptionIntercepts extends GUIOptionComponentBase<InterceptOption> {
 	InterceptOptions intercept_options;
 	List<InterceptOption> table_ext_list;
 
@@ -47,10 +46,10 @@ public class GUIOptionIntercepts extends GUIOptionComponentBase<InterceptOption>
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					int columnIndex= table.columnAtPoint(e.getPoint());
-					int rowIndex= table.rowAtPoint(e.getPoint());
+					int columnIndex = table.columnAtPoint(e.getPoint());
+					int rowIndex = table.rowAtPoint(e.getPoint());
 					if (columnIndex == 0) { /* check box area */
-						boolean enable_checkbox = (Boolean)table.getValueAt(rowIndex, 0);
+						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 0);
 						InterceptOption intercept = getSelectedTableContent();
 						if (enable_checkbox == true) {
 							if (intercept.isDirection(Direction.ALL_THE_OTHER_REQUESTS) ||
@@ -131,7 +130,7 @@ public class GUIOptionIntercepts extends GUIOptionComponentBase<InterceptOption>
 		table_ext_list.add(intercept);
 		try {
 			option_model.addRow(new Object[] {
-				intercept.isEnabled(),
+					intercept.isEnabled(),
 					intercept.getDirectionAsString(),
 					intercept.getRelationshipAsString(),
 					intercept.getMethodAsString(),

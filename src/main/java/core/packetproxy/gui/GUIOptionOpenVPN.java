@@ -53,7 +53,7 @@ import packetproxy.model.OpenVPNForwardPorts;
 public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort> {
 	private GUIOptionOpenVPNDialog dig;
 	private JCheckBox checkBox;
-    private JComboBox<String> vpnProtocol;
+	private JComboBox<String> vpnProtocol;
 	private JTextField textField;
 	private JRadioButton auto, manual;
 	OpenVPNForwardPorts openVPNForwardPorts;
@@ -256,8 +256,7 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 			if (checkBox.isSelected()) {
 				String proto = vpnProtocol.getSelectedItem().toString();
 				openVPN.startServer(this.getSpoofingIP(), proto);
-			}
-			else
+			} else
 				openVPN.stopServer();
 		});
 		checkBox.setMinimumSize(new Dimension(Short.MAX_VALUE, checkBox.getMaximumSize().height));
@@ -270,17 +269,18 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
 		vpnProtocol = new JComboBox<>();
-        vpnProtocol.setPrototypeDisplayValue("xxxxxxx");
-        vpnProtocol.addItem("TCP");
-        vpnProtocol.addItem("UDP");
+		vpnProtocol.setPrototypeDisplayValue("xxxxxxx");
+		vpnProtocol.addItem("TCP");
+		vpnProtocol.addItem("UDP");
 		vpnProtocol.setMaximumRowCount(vpnProtocol.getItemCount());
 		vpnProtocol.setSelectedItem("UDP");
-		vpnProtocol.setMaximumSize(new Dimension(vpnProtocol.getMinimumSize().width, vpnProtocol.getMinimumSize().height));
+		vpnProtocol
+				.setMaximumSize(new Dimension(vpnProtocol.getMinimumSize().width, vpnProtocol.getMinimumSize().height));
 		panel.add(vpnProtocol);
 		panel.add(new JLabel(I18nString.get("will be used for VPN")));
 		panel.setMaximumSize(new Dimension(Short.MAX_VALUE, panel.getMaximumSize().height));
-        return panel;
-    }
+		return panel;
+	}
 
 	private JTextField createAddressField() {
 		JTextField text = new JTextField("");

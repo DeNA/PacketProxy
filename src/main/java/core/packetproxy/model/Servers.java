@@ -29,33 +29,36 @@ import packetproxy.model.Database.DatabaseMessage;
 public class Servers extends Observable implements Observer {
 
 	private static Servers instance;
-	
+
 	public static Servers getInstance() throws Exception {
 		if (instance == null) {
 			instance = new Servers();
 		}
 		return instance;
 	}
-	
+
 	private Database database;
-	private Dao<Server,Integer> dao;
+	private Dao<Server, Integer> dao;
 	private DaoQueryCache<Server> cache;
-	
+
 	private Servers() throws Exception {
 		database = Database.getInstance();
 		dao = database.createTable(Server.class, this);
 		cache = new DaoQueryCache();
 	}
+
 	public void create(Server server) throws Exception {
 		dao.createIfNotExists(server);
 		cache.clear();
 		notifyObservers();
 	}
+
 	public void delete(Server server) throws Exception {
 		dao.delete(server);
 		cache.clear();
 		notifyObservers();
 	}
+
 	public Server queryByString(String str) throws Exception {
 		List<Server> all = this.queryAll();
 		for (Server server : all) {
@@ -65,10 +68,13 @@ public class Servers extends Observable implements Observer {
 		}
 		return null;
 	}
+
 	public Server queryByHostNameAndPort(String hostname, int port) throws Exception {
 		String cache_key = hostname + String.valueOf(port);
 		List<Server> ret = cache.query("queryByHostNameAndPort", cache_key);
-		if (ret != null) { return ret.get(0); }
+		if (ret != null) {
+			return ret.get(0);
+		}
 
 		List<Server> servers = dao.queryBuilder().where().eq("ip", hostname).and().eq("port", port).query();
 		Server server = null;
@@ -81,6 +87,7 @@ public class Servers extends Observable implements Observer {
 		cache.set("queryByHostNameAndPort", cache_key, server);
 		return server;
 	}
+
 	public Server queryByAddress(InetSocketAddress addr) throws Exception {
 		List<Server> all = this.queryAll();
 		if (addr.getAddress() == null) {
@@ -92,114 +99,138 @@ public class Servers extends Observable implements Observer {
 		String target = addr.getAddress().getHostAddress();
 		for (Server server : all) {
 			List<InetAddress> ips = server.getIps();
-			for ( InetAddress ip : ips) {
-				if (ip.getHostAddress().equals(target) && server.getPort()==addr.getPort()){
+			for (InetAddress ip : ips) {
+				if (ip.getHostAddress().equals(target) && server.getPort() == addr.getPort()) {
 					return server;
 				}
 			}
 		}
 		return null;
 	}
+
 	public Server queryByHostName(String hostname) throws Exception {
 		List<Server> ret = cache.query("queryByHostName", hostname);
-		if (ret != null) { return ret.get(0); }
+		if (ret != null) {
+			return ret.get(0);
+		}
 
 		Server server = dao.queryBuilder().where().eq("ip", hostname).queryForFirst();
 
 		cache.set("queryByHostName", hostname, server);
 		return server;
 	}
+
 	public Server query(int id) throws Exception {
 		List<Server> ret = cache.query("query", id);
-		if (ret != null) { return ret.get(0); }
+		if (ret != null) {
+			return ret.get(0);
+		}
 
 		Server server = dao.queryForId(id);
 
 		cache.set("query", id, server);
 		return server;
 	}
+
 	public List<Server> queryAll() throws Exception {
 		List<Server> ret = cache.query("queryAll", 0);
-		if (ret != null) { return ret; }
+		if (ret != null) {
+			return ret;
+		}
 
 		ret = dao.queryBuilder().orderBy("ip", true).query();
 
 		cache.set("queryAll", 0, ret);
 		return ret;
 	}
+
 	public List<Server> queryNonHttpProxies() throws Exception {
 		List<Server> ret = cache.query("queryNonHttpProxies", 0);
-		if (ret != null) { return ret; }
+		if (ret != null) {
+			return ret;
+		}
 
 		ret = dao.queryBuilder().orderBy("ip", true).where().eq("http_proxy", false).query();
 
 		cache.set("queryNonHttpProxies", 0, ret);
 		return ret;
 	}
+
 	public List<Server> queryHttpProxies() throws Exception {
 		List<Server> ret = cache.query("queryHttpProxies", 0);
-		if (ret != null) { return ret; }
+		if (ret != null) {
+			return ret;
+		}
 
 		ret = dao.queryBuilder().orderBy("ip", true).where().eq("http_proxy", true).query();
 
 		cache.set("queryHttpProxies", 0, ret);
 		return ret;
 	}
+
 	public List<Server> queryResolvedByDNS() throws Exception {
 		List<Server> ret = cache.query("queryResolvedByDNS", 0);
-		if (ret != null) { return ret; }
+		if (ret != null) {
+			return ret;
+		}
 
 		ret = dao.queryBuilder().where().eq("resolved_by_dns", true).query();
 
 		cache.set("queryResolvedByDNS", 0, ret);
 		return ret;
 	}
+
 	public List<Server> queryResolvedByDNS6() throws Exception {
 		List<Server> ret = cache.query("queryResolvedByDNS6", 0);
-		if (ret != null) { return ret; }
+		if (ret != null) {
+			return ret;
+		}
 
 		ret = dao.queryBuilder().where().eq("resolved_by_dns6", true).query();
 
 		cache.set("queryResolvedByDNS6", 0, ret);
 		return ret;
 	}
+
 	public void update(Server server) throws Exception {
 		dao.update(server);
 		cache.clear();
 		notifyObservers();
 	}
+
 	@Override
 	public void notifyObservers(Object arg) {
 		setChanged();
 		super.notifyObservers(arg);
 		clearChanged();
 	}
+
 	@Override
 	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage)arg;
+		DatabaseMessage message = (DatabaseMessage) arg;
 		try {
 			switch (message) {
-			case PAUSE:
-				// TODO ロックを取る
-				break;
-			case RESUME:
-				// TODO ロックを解除
-				break;
-			case DISCONNECT_NOW:
-				break;
-			case RECONNECT:
-				database = Database.getInstance();
-				dao = database.createTable(Server.class, this);
-				cache.clear();
-				notifyObservers(arg);
-				break;
-			case RECREATE:
-				database = Database.getInstance();
-				dao = database.createTable(Server.class, this);
-				cache.clear();
-				break;
-			default:
-				break;
+				case PAUSE:
+					// TODO ロックを取る
+					break;
+				case RESUME:
+					// TODO ロックを解除
+					break;
+				case DISCONNECT_NOW:
+					break;
+				case RECONNECT:
+					database = Database.getInstance();
+					dao = database.createTable(Server.class, this);
+					cache.clear();
+					notifyObservers(arg);
+					break;
+				case RECREATE:
+					database = Database.getInstance();
+					dao = database.createTable(Server.class, this);
+					cache.clear();
+					break;
+				default:
+					break;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

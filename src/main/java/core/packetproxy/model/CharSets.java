@@ -26,7 +26,8 @@ import java.util.Observer;
 public class CharSets extends Observable implements Observer {
 
 	private static CharSets instance;
-	private List<String> defaultCharSetList = Arrays.asList(new String[]{"UTF-8", "Shift_JIS", "x-euc-jp-linux", "ISO-2022-JP", "ISO-8859-1"});
+	private List<String> defaultCharSetList = Arrays
+			.asList(new String[] { "UTF-8", "Shift_JIS", "x-euc-jp-linux", "ISO-2022-JP", "ISO-8859-1" });
 
 	public static CharSets getInstance() throws Exception {
 		if (instance == null) {
@@ -34,11 +35,11 @@ public class CharSets extends Observable implements Observer {
 		}
 		return instance;
 	}
-	
+
 	private void setDefaultCharSetIfNotFound() throws Exception {
 		if (dao.queryBuilder().query().size() == 0) {
-			for(String charSetName : defaultCharSetList){
-				if(null == queryByCharSetName(charSetName)){
+			for (String charSetName : defaultCharSetList) {
+				if (null == queryByCharSetName(charSetName)) {
 					create(new CharSet(charSetName));
 				}
 			}
@@ -46,20 +47,23 @@ public class CharSets extends Observable implements Observer {
 	}
 
 	private Database database;
-	private Dao<CharSet,Integer> dao;
+	private Dao<CharSet, Integer> dao;
 
 	private CharSets() throws Exception {
 		database = Database.getInstance();
 		dao = database.createTable(CharSet.class, this);
 	}
+
 	public void create(CharSet charset) throws Exception {
 		dao.createIfNotExists(charset);
 		notifyObservers();
 	}
+
 	public void delete(CharSet charset) throws Exception {
 		dao.delete(charset);
 		notifyObservers();
 	}
+
 	public CharSet queryByString(String str) throws Exception {
 		List<CharSet> all = this.queryAll();
 		for (CharSet server : all) {
@@ -69,56 +73,63 @@ public class CharSets extends Observable implements Observer {
 		}
 		return null;
 	}
+
 	public CharSet queryByCharSetName(String charsetname) throws Exception {
 		return dao.queryBuilder().where().eq("charsetname", charsetname).queryForFirst();
 	}
+
 	public CharSet query(int id) throws Exception {
 		return dao.queryForId(id);
 	}
+
 	public List<CharSet> queryAll() throws Exception {
 		setDefaultCharSetIfNotFound();
 		return dao.queryBuilder().orderBy("charsetname", true).query();
 	}
+
 	public void update(List<CharSet> charsets) throws Exception {
-		for(CharSet charset:charsets){
+		for (CharSet charset : charsets) {
 			dao.update(charset);
 			notifyObservers();
 		}
 	}
+
 	public void update(CharSet charset) throws Exception {
 		dao.update(charset);
 		notifyObservers();
 	}
+
 	@Override
 	public void notifyObservers(Object arg) {
 		setChanged();
 		super.notifyObservers(arg);
 		clearChanged();
 	}
+
 	@Override
 	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage)arg;
+		DatabaseMessage message = (DatabaseMessage) arg;
 		try {
 			switch (message) {
-			case PAUSE:
-				// TODO ロックを取る
-				break;
-			case RESUME:
-				// TODO ロックを解除
-				break;
-			case DISCONNECT_NOW:
-				break;
-			case RECONNECT:
-				database = Database.getInstance();
-				dao = database.createTable(CharSet.class, this);
-				notifyObservers(arg);
-				break;
-			case RECREATE:
-				database = Database.getInstance();
-				dao = database.createTable(CharSet.class, this);
-				break;
-			default:
-				break;
+				case PAUSE:
+					// TODO ロックを取る
+					break;
+				case RESUME:
+					// TODO ロックを解除
+					break;
+				case DISCONNECT_NOW:
+					break;
+				case RECONNECT:
+					database = Database.getInstance();
+					dao = database.createTable(CharSet.class, this);
+					notifyObservers(arg);
+					break;
+				case RECREATE:
+					database = Database.getInstance();
+					dao = database.createTable(CharSet.class, this);
+					break;
+				default:
+					break;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

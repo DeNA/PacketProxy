@@ -51,9 +51,9 @@ public class ResenderPackets extends Observable implements Observer {
 	}
 
 	public void deleteResend(int resends_index, int resend_index) throws Exception {
-	   DeleteBuilder<ResenderPacket, Integer> deleteBuilder = dao.deleteBuilder();
-	   deleteBuilder.where().eq("resends_index", resends_index).and().eq("resend_index", resend_index);
-	   dao.delete(deleteBuilder.prepare());
+		DeleteBuilder<ResenderPacket, Integer> deleteBuilder = dao.deleteBuilder();
+		deleteBuilder.where().eq("resends_index", resends_index).and().eq("resend_index", resend_index);
+		dao.delete(deleteBuilder.prepare());
 	}
 
 	public List<ResenderPacket> queryAllOrdered() throws Exception {
@@ -99,7 +99,8 @@ public class ResenderPackets extends Observable implements Observer {
 
 	private boolean isLatestVersion() throws Exception {
 		String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='resender_packets'").getFirstResult()[0];
-		return result.equals("CREATE TABLE `resender_packets` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `resends_index` INTEGER , `resend_index` INTEGER , `direction` VARCHAR , `data` BLOB , `listen_port` INTEGER , `client_ip` VARCHAR , `client_port` INTEGER , `server_ip` VARCHAR , `server_port` INTEGER , `server_name` VARCHAR , `use_ssl` BOOLEAN , `encoder_name` VARCHAR , `alpn` VARCHAR , `auto_modified` BOOLEAN , `conn` INTEGER , `group` BIGINT , UNIQUE (`resends_index`,`resend_index`,`direction`) )");
+		return result.equals(
+				"CREATE TABLE `resender_packets` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `resends_index` INTEGER , `resend_index` INTEGER , `direction` VARCHAR , `data` BLOB , `listen_port` INTEGER , `client_ip` VARCHAR , `client_port` INTEGER , `server_ip` VARCHAR , `server_port` INTEGER , `server_name` VARCHAR , `use_ssl` BOOLEAN , `encoder_name` VARCHAR , `alpn` VARCHAR , `auto_modified` BOOLEAN , `conn` INTEGER , `group` BIGINT , UNIQUE (`resends_index`,`resend_index`,`direction`) )");
 	}
 
 	private void RecreateTable() throws Exception {

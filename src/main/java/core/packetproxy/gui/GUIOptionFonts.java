@@ -34,18 +34,17 @@ import javax.swing.JTextField;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
 
-public class GUIOptionFonts implements Observer
-{
+public class GUIOptionFonts implements Observer {
 	private JFrame owner;
 	private JTextField uiFontInfo;
 	private JTextField fontInfo;
-	
+
 	public GUIOptionFonts(JFrame owner) throws Exception {
 		this.owner = owner;
 	}
 
 	public JPanel createPanel() throws Exception {
-		
+
 		uiFontInfo = new JTextField(String.format("%s (size: %d)",
 				FontManager.getInstance().getUIFont().getName(),
 				FontManager.getInstance().getUIFont().getSize()));
@@ -53,40 +52,40 @@ public class GUIOptionFonts implements Observer
 		uiFontInfo.setMaximumSize(new Dimension(Short.MAX_VALUE, uiFontInfo.getMinimumSize().height));
 
 		JButton uiButton = new JButton(I18nString.get("choose..."));
-	    uiButton.addMouseListener(new MouseAdapter() {
-	    	@Override
+		uiButton.addMouseListener(new MouseAdapter() {
+			@Override
 			public void mousePressed(MouseEvent e) {
-	    		try {
-	    			JFontChooser jfc = new JFontChooser(FontManager.getInstance().getUIFont());
-	    			int result = jfc.showDialog(owner);
-	    			if (result == JFontChooser.OK_OPTION) {
-	    				Font font = jfc.getSelectedFont(); 
-	    				FontManager.getInstance().setUIFont(font);
-	    				uiFontInfo.setText(String.format("%s (size: %d)",
-	    						FontManager.getInstance().getUIFont().getName(),
-	    						FontManager.getInstance().getUIFont().getSize()));
-	    			}
-	    		} catch (Exception e1) {
-	    			e1.printStackTrace();
-	    		}
-	    	}
-	    });
+				try {
+					JFontChooser jfc = new JFontChooser(FontManager.getInstance().getUIFont());
+					int result = jfc.showDialog(owner);
+					if (result == JFontChooser.OK_OPTION) {
+						Font font = jfc.getSelectedFont();
+						FontManager.getInstance().setUIFont(font);
+						uiFontInfo.setText(String.format("%s (size: %d)",
+								FontManager.getInstance().getUIFont().getName(),
+								FontManager.getInstance().getUIFont().getSize()));
+					}
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
 
 		JButton uiRestore = new JButton(I18nString.get("restore default"));
-	    uiRestore.addMouseListener(new MouseAdapter() {
-	    	@Override
+		uiRestore.addMouseListener(new MouseAdapter() {
+			@Override
 			public void mousePressed(MouseEvent e) {
-	    		try {
-	    			FontManager.getInstance().restoreUIFont();
-    				uiFontInfo.setText(String.format("%s (size: %d)",
-    						FontManager.getInstance().getUIFont().getName(),
-    						FontManager.getInstance().getUIFont().getSize()));
-	    		} catch (Exception e1) {
-	    			e1.printStackTrace();
-	    		}
-	    	}
-	    });
-		
+				try {
+					FontManager.getInstance().restoreUIFont();
+					uiFontInfo.setText(String.format("%s (size: %d)",
+							FontManager.getInstance().getUIFont().getName(),
+							FontManager.getInstance().getUIFont().getSize()));
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
+
 		JPanel uiPanel = new JPanel();
 		uiPanel.setBackground(Color.WHITE);
 		uiPanel.setLayout(new BoxLayout(uiPanel, BoxLayout.X_AXIS));
@@ -94,7 +93,7 @@ public class GUIOptionFonts implements Observer
 		uiPanel.add(uiFontInfo);
 		uiPanel.add(uiButton);
 		uiPanel.add(uiRestore);
-		
+
 		fontInfo = new JTextField(String.format("%s (size: %d)",
 				FontManager.getInstance().getFont().getName(),
 				FontManager.getInstance().getFont().getSize()));
@@ -102,39 +101,39 @@ public class GUIOptionFonts implements Observer
 		fontInfo.setMaximumSize(new Dimension(Short.MAX_VALUE, fontInfo.getMinimumSize().height));
 
 		JButton button = new JButton(I18nString.get("choose..."));
-	    button.addMouseListener(new MouseAdapter() {
-	    	@Override
+		button.addMouseListener(new MouseAdapter() {
+			@Override
 			public void mousePressed(MouseEvent e) {
-	    		try {
-	    			JFontChooser jfc = new JFontChooser(FontManager.getInstance().getFont());
-	    			int result = jfc.showDialog(owner);
-	    			if (result == JFontChooser.OK_OPTION) {
-	    				Font font = jfc.getSelectedFont(); 
-	    				FontManager.getInstance().setFont(font);
-	    				fontInfo.setText(String.format("%s (size: %d)",
-	    						FontManager.getInstance().getFont().getName(),
-	    						FontManager.getInstance().getFont().getSize()));
-	    			}
-	    		} catch (Exception e1) {
-	    			e1.printStackTrace();
-	    		}
-	    	}
-	    });
+				try {
+					JFontChooser jfc = new JFontChooser(FontManager.getInstance().getFont());
+					int result = jfc.showDialog(owner);
+					if (result == JFontChooser.OK_OPTION) {
+						Font font = jfc.getSelectedFont();
+						FontManager.getInstance().setFont(font);
+						fontInfo.setText(String.format("%s (size: %d)",
+								FontManager.getInstance().getFont().getName(),
+								FontManager.getInstance().getFont().getSize()));
+					}
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
 
 		JButton restore = new JButton(I18nString.get("restore default"));
-	    restore.addMouseListener(new MouseAdapter() {
-	    	@Override
+		restore.addMouseListener(new MouseAdapter() {
+			@Override
 			public void mousePressed(MouseEvent e) {
-	    		try {
-	    			FontManager.getInstance().restoreFont();
-    				fontInfo.setText(String.format("%s (size: %d)",
-    						FontManager.getInstance().getFont().getName(),
-    						FontManager.getInstance().getFont().getSize()));
-	    		} catch (Exception e1) {
-	    			e1.printStackTrace();
-	    		}
-	    	}
-	    });
+				try {
+					FontManager.getInstance().restoreFont();
+					fontInfo.setText(String.format("%s (size: %d)",
+							FontManager.getInstance().getFont().getName(),
+							FontManager.getInstance().getFont().getSize()));
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
 
 		JPanel fPanel = new JPanel();
 		fPanel.setBackground(Color.WHITE);
@@ -143,7 +142,7 @@ public class GUIOptionFonts implements Observer
 		fPanel.add(fontInfo);
 		fPanel.add(button);
 		fPanel.add(restore);
-		
+
 		JPanel panel = new JPanel();
 		panel.setBackground(Color.WHITE);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));

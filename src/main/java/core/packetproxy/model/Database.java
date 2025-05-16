@@ -34,38 +34,34 @@ import com.j256.ormlite.table.TableUtils;
 
 import packetproxy.util.PacketProxyUtility;
 
-public class Database extends Observable
-{
+public class Database extends Observable {
 	private static Database instance;
 
-	public static Database getInstance() throws Exception
-	{
+	public static Database getInstance() throws Exception {
 		if (instance == null) {
 			instance = new Database();
 		}
 		return instance;
 	}
 
-	private static int ALERT_DB_FILE_SIZE_MB = 1536;//1.5GB (LIMIT = 2GB)
-	private Path databaseDir  = Paths.get(System.getProperty("user.home")+"/.packetproxy/db");//FileSystems.getDefault().getPath("db");
+	private static int ALERT_DB_FILE_SIZE_MB = 1536;// 1.5GB (LIMIT = 2GB)
+	private Path databaseDir = Paths.get(System.getProperty("user.home") + "/.packetproxy/db");// FileSystems.getDefault().getPath("db");
 	private Path databasePath = Paths.get(databaseDir.toString() + "/resources.sqlite3");
 	private ConnectionSource source;
 
-	private Database() throws Exception
-	{
+	private Database() throws Exception {
 		createDB();
 	}
 
-	private void createDB() throws Exception
-	{
+	private void createDB() throws Exception {
 		PacketProxyUtility util = PacketProxyUtility.getInstance();
-		if (! Files.exists(databaseDir)) {
+		if (!Files.exists(databaseDir)) {
 			util.packetProxyLog(databaseDir.toAbsolutePath() + " directory is not found...");
 			util.packetProxyLog("creating the directory...");
 			Files.createDirectories(databaseDir);
 			System.out.println("success!");
 		} else {
-			if (! Files.isDirectory(databaseDir)) {
+			if (!Files.isDirectory(databaseDir)) {
 				util.packetProxyLogErr(databaseDir.toAbsolutePath() + " file is not directory...");
 				util.packetProxyLogErr("Must be a directory");
 				System.exit(1);
@@ -78,15 +74,14 @@ public class Database extends Observable
 		conn.executeStatement("pragma auto_vacuum = full", DatabaseConnection.DEFAULT_RESULT_FLAGS);
 	}
 
-	public <T,ID> Dao<T, ID> createTable(Class<T> c, Observer observer) throws Exception
-	{
+	public <T, ID> Dao<T, ID> createTable(Class<T> c, Observer observer) throws Exception {
 		addObserver(observer);
 		TableUtils.createTableIfNotExists(source, c);
 		Dao<T, ID> dao = DaoManager.createDao(source, c);
 		return dao;
 	}
 
-	public void dropFilters() throws Exception{
+	public void dropFilters() throws Exception {
 		setChanged();
 		notifyObservers(DatabaseMessage.DISCONNECT_NOW);
 		clearChanged();
@@ -120,8 +115,8 @@ public class Database extends Observable
 		clearChanged();
 	}
 
-	public void dropPacketTableFaster()throws Exception{
-		Path src = Paths.get(instance.databasePath.getParent().toAbsolutePath().toString()+"/tmp.sqlite3");
+	public void dropPacketTableFaster() throws Exception {
+		Path src = Paths.get(instance.databasePath.getParent().toAbsolutePath().toString() + "/tmp.sqlite3");
 		Path dst = instance.databasePath.toAbsolutePath();
 		setChanged();
 		notifyObservers(DatabaseMessage.DISCONNECT_NOW);
@@ -150,21 +145,22 @@ public class Database extends Observable
 		Files.delete(src);
 	}
 
-	public <T> void dropTable(Class<T> c) throws Exception
-	{
-		if(c==Packet.class){
+	public <T> void dropTable(Class<T> c) throws Exception {
+		if (c == Packet.class) {
 			dropPacketTableFaster();
-		}else {
+		} else {
 			TableUtils.dropTable(source, c, true);
 		}
 	}
 
-	private static void migrateTableWithoutHistory(Path srcDBPath, Path dstDBPath){
+	private static void migrateTableWithoutHistory(Path srcDBPath, Path dstDBPath) {
 		try {
-			ConnectionSource source = new JdbcConnectionSource("jdbc:sqlite:"+srcDBPath);
+			ConnectionSource source = new JdbcConnectionSource("jdbc:sqlite:" + srcDBPath);
 			DatabaseConnection conn = source.getReadWriteConnection();
-			conn.executeStatement("attach database '" + dstDBPath.toAbsolutePath() + "' as 'dstDB'", DatabaseConnection.DEFAULT_RESULT_FLAGS);
-			conn.executeStatement("attach database '" + srcDBPath.toAbsolutePath() + "' as 'srcDB'", DatabaseConnection.DEFAULT_RESULT_FLAGS);
+			conn.executeStatement("attach database '" + dstDBPath.toAbsolutePath() + "' as 'dstDB'",
+					DatabaseConnection.DEFAULT_RESULT_FLAGS);
+			conn.executeStatement("attach database '" + srcDBPath.toAbsolutePath() + "' as 'srcDB'",
+					DatabaseConnection.DEFAULT_RESULT_FLAGS);
 			String queries[] = {
 					"DELETE FROM dstDB.interceptOptions",
 					"DELETE FROM dstDB.charsets",
@@ -179,22 +175,22 @@ public class Database extends Observable
 					"INSERT OR REPLACE INTO dstDB.charsets (id, charsetname) SELECT id, charsetname FROM srcDB.charsets",
 					"INSERT OR REPLACE INTO dstDB.resender_packets (id, resends_index, resend_index, direction, data, listen_port, client_ip, client_port, server_ip, server_port, server_name, use_ssl, encoder_name, alpn, auto_modified, conn, `group`) SELECT id, resends_index, resend_index, direction, data, listen_port, client_ip, client_port, server_ip, server_port, server_name, use_ssl, encoder_name, alpn, auto_modified, conn, `group` FROM srcDB.resender_packets",
 			};
-			for (String query : queries){
+			for (String query : queries) {
 				try {
 					conn.executeStatement(query, DatabaseConnection.DEFAULT_RESULT_FLAGS);
 				} catch (Exception e) {
-					PacketProxyUtility.getInstance().packetProxyLog("Database format may have been changed. Simply ignore this type of errors.");
+					PacketProxyUtility.getInstance().packetProxyLog(
+							"Database format may have been changed. Simply ignore this type of errors.");
 					PacketProxyUtility.getInstance().packetProxyLog(String.format("[Error] %s", query));
 				}
 			}
 			conn.close();
-		}catch (Exception e){
+		} catch (Exception e) {
 			e.getStackTrace();
 		}
 	}
 
-	public void close() throws Exception
-	{
+	public void close() throws Exception {
 		source.close();
 	}
 
@@ -212,31 +208,31 @@ public class Database extends Observable
 		RECONNECT,
 		RECREATE,
 	}
+
 	// TODO 保存中にファイルが更新されない様にする
-	public void Save(String path) throws Exception
-	{
+	public void Save(String path) throws Exception {
 		setChanged();
 		notifyObservers(DatabaseMessage.PAUSE);
 		clearChanged();
 
 		Path src = databasePath;
 		Path dest = FileSystems.getDefault().getPath(path);
-		Files.copy(src,  dest, StandardCopyOption.REPLACE_EXISTING);
+		Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
 
 		setChanged();
 		notifyObservers(DatabaseMessage.RESUME);
 		clearChanged();
 	}
-	public void Load(String path) throws Exception
-	{
+
+	public void Load(String path) throws Exception {
 		setChanged();
 		notifyObservers(DatabaseMessage.DISCONNECT_NOW);
 		clearChanged();
 		source.close();
 
 		Path src = FileSystems.getDefault().getPath(path);
-		Path dest = FileSystems.getDefault().getPath(databaseDir.toString() +"/resources_temp.sqlite3");
-		Files.copy(src,  dest, StandardCopyOption.REPLACE_EXISTING);
+		Path dest = FileSystems.getDefault().getPath(databaseDir.toString() + "/resources_temp.sqlite3");
+		Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
 		databasePath = dest;
 		source = new JdbcConnectionSource(getDatabaseURL());
 
@@ -244,16 +240,16 @@ public class Database extends Observable
 		notifyObservers(DatabaseMessage.RECONNECT);
 		clearChanged();
 	}
-	public void saveWithoutLog(String path) throws Exception
-	{
+
+	public void saveWithoutLog(String path) throws Exception {
 		setChanged();
 		notifyObservers(DatabaseMessage.PAUSE);
 		clearChanged();
 
 		Path src = databasePath;
 		Path dest = FileSystems.getDefault().getPath(path);
-		Files.copy(src,  dest, StandardCopyOption.REPLACE_EXISTING);
-		JdbcConnectionSource new_db = new JdbcConnectionSource("jdbc:sqlite:"+dest);
+		Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
+		JdbcConnectionSource new_db = new JdbcConnectionSource("jdbc:sqlite:" + dest);
 		DatabaseConnection conn = new_db.getReadWriteConnection();
 		conn.executeStatement("delete from packets", DatabaseConnection.DEFAULT_RESULT_FLAGS);
 		conn.close();
@@ -263,8 +259,8 @@ public class Database extends Observable
 		notifyObservers(DatabaseMessage.RESUME);
 		clearChanged();
 	}
-	public void LoadAndReplace(String path) throws Exception
-	{
+
+	public void LoadAndReplace(String path) throws Exception {
 		setChanged();
 		notifyObservers(DatabaseMessage.DISCONNECT_NOW);
 		clearChanged();
@@ -272,7 +268,7 @@ public class Database extends Observable
 		source.close();
 		Path src = FileSystems.getDefault().getPath(path);
 		Path dest = databasePath;
-		Files.move(src,  dest, StandardCopyOption.REPLACE_EXISTING);
+		Files.move(src, dest, StandardCopyOption.REPLACE_EXISTING);
 		databasePath = dest;
 		source = new JdbcConnectionSource(getDatabaseURL());
 
@@ -280,16 +276,17 @@ public class Database extends Observable
 		notifyObservers(DatabaseMessage.RECONNECT);
 		clearChanged();
 	}
-	public Path getDatabasePath()
-	{
+
+	public Path getDatabasePath() {
 		return databasePath;
 	}
+
 	private String getDatabaseURL() {
 		return "jdbc:sqlite:" + databasePath;
 	}
 
-	public boolean isAlertFileSize(){
+	public boolean isAlertFileSize() {
 		File dbFile = new File(databasePath.toString());
-		return dbFile.length()/1048576>ALERT_DB_FILE_SIZE_MB;
+		return dbFile.length() / 1048576 > ALERT_DB_FILE_SIZE_MB;
 	}
 }

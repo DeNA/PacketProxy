@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.Color;
@@ -34,8 +35,7 @@ import javax.swing.table.DefaultTableModel;
 import packetproxy.model.Resolution;
 import packetproxy.model.Resolutions;
 
-public class GUIOptionResolutions extends GUIOptionComponentBase<Resolution>
-{
+public class GUIOptionResolutions extends GUIOptionComponentBase<Resolution> {
 	private GUIOptionResolutionDialog dlg;
 	Resolutions resolutions;
 	List<Resolution> table_ext_list;
@@ -47,15 +47,15 @@ public class GUIOptionResolutions extends GUIOptionComponentBase<Resolution>
 		this.table_ext_list = new ArrayList<Resolution>();
 		String[] menu = { "IP Addr", "Host", "Override", "Comment" };
 		int[] menuWidth = { 200, 200, 50, 100 };
-		
+
 		MouseAdapter tableAction = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					int columnIndex= table.columnAtPoint(e.getPoint());
-					int rowIndex= table.rowAtPoint(e.getPoint());
-					if (columnIndex == 2){ /* Override area */
-						boolean enable_checkbox = (Boolean)table.getValueAt(rowIndex, 2);
+					int columnIndex = table.columnAtPoint(e.getPoint());
+					int rowIndex = table.rowAtPoint(e.getPoint());
+					if (columnIndex == 2) { /* Override area */
+						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 2);
 						Resolution resolution = getSelectedTableContent();
 						if (enable_checkbox == true) {
 							resolution.disableResolution();
@@ -117,10 +117,10 @@ public class GUIOptionResolutions extends GUIOptionComponentBase<Resolution>
 		table_ext_list.add(resolution);
 		try {
 			option_model.addRow(new Object[] {
-				resolution.getIp(),
-				resolution.getHostName(),
-				resolution.isEnabled(),
-				resolution.getComment()
+					resolution.getIp(),
+					resolution.getHostName(),
+					resolution.isEnabled(),
+					resolution.getComment()
 			});
 		} catch (Exception e) {
 			e.printStackTrace();
