@@ -35,8 +35,7 @@ import java.util.Observer;
 
 import static javax.swing.JOptionPane.YES_NO_OPTION;
 
-public class GUIMain extends JFrame implements Observer
-{
+public class GUIMain extends JFrame implements Observer {
 	private static final long serialVersionUID = 1L;
 	private static GUIMain instance;
 	private GUIMenu menu_bar;
@@ -50,47 +49,47 @@ public class GUIMain extends JFrame implements Observer
 	private GUIVulCheckHelper gui_vulcheckhelper;
 	private GUILog gui_log;
 	private InterceptModel interceptModel;
-	public enum Panes {HISTORY, INTERCEPT, RESENDER, VULCHECKHELPER, BULKSENDER, EXTENSIONS, OPTIONS, LOG};
 
-	public static GUIMain getInstance(String title) throws Exception
-	{
+	public enum Panes {
+		HISTORY, INTERCEPT, RESENDER, VULCHECKHELPER, BULKSENDER, EXTENSIONS, OPTIONS, LOG
+	};
+
+	public static GUIMain getInstance(String title) throws Exception {
 		if (instance == null) {
 			instance = new GUIMain(title);
 		}
 		return instance;
 	}
 
-	public static GUIMain getInstance() throws Exception
-	{
+	public static GUIMain getInstance() throws Exception {
 		if (instance == null) {
 			throw new Exception("GUIMain instance not found.");
 		}
 		return instance;
 	}
 
-	public JTabbedPane getTabbedPane()
-	{
+	public JTabbedPane getTabbedPane() {
 		return this.tabbedpane;
 	}
 
 	private String getPaneString(Panes num) {
 		switch (num) {
-		case HISTORY:
-			return "History";
-		case INTERCEPT:
-			return "Interceptor";
-		case RESENDER:
-			return "Resender";
-		case VULCHECKHELPER:
-			return "VulCheck Helper";
-		case BULKSENDER:
-			return "Bulk Sender";
-		case EXTENSIONS:
-			return "Extensions";
-		case OPTIONS:
-			return "Options";
-		case LOG:
-			return "Log";
+			case HISTORY:
+				return "History";
+			case INTERCEPT:
+				return "Interceptor";
+			case RESENDER:
+				return "Resender";
+			case VULCHECKHELPER:
+				return "VulCheck Helper";
+			case BULKSENDER:
+				return "Bulk Sender";
+			case EXTENSIONS:
+				return "Extensions";
+			case OPTIONS:
+				return "Options";
+			case LOG:
+				return "Log";
 		}
 		return null;
 	}
@@ -232,18 +231,18 @@ public class GUIMain extends JFrame implements Observer
 		registerTabShortcut(KeyEvent.VK_L, hotkey, im, am, Panes.LOG.ordinal());
 
 		JTextComponent.KeyBinding[] bindings1 = {
-			new JTextComponent.KeyBinding(
-					KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
-					DefaultEditorKit.copyAction),
-			new JTextComponent.KeyBinding(
-					KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
-					DefaultEditorKit.pasteAction),
-			new JTextComponent.KeyBinding(
-					KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
-					DefaultEditorKit.cutAction),
-			new JTextComponent.KeyBinding(
-					KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
-					DefaultEditorKit.selectAllAction),
+				new JTextComponent.KeyBinding(
+						KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
+						DefaultEditorKit.copyAction),
+				new JTextComponent.KeyBinding(
+						KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
+						DefaultEditorKit.pasteAction),
+				new JTextComponent.KeyBinding(
+						KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
+						DefaultEditorKit.cutAction),
+				new JTextComponent.KeyBinding(
+						KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
+						DefaultEditorKit.selectAllAction),
 		};
 
 		JTextPane component_tp = new JTextPane();
@@ -298,22 +297,22 @@ public class GUIMain extends JFrame implements Observer
 
 	// Nimbusのバグでjava1.6系列ではsetForegroundAt, setBackgroundAtが効かない
 	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6939001
-	private void setInterceptHighLight()
-	{
+	private void setInterceptHighLight() {
 		JLabel label = new JLabel(tabbedpane.getTitleAt(1));
 		label.setForeground(Color.ORANGE);
 		tabbedpane.setTabComponentAt(1, label);
 		tabbedpane.revalidate();
 		tabbedpane.repaint();
 	}
-	private void setInterceptDownLight()
-	{
+
+	private void setInterceptDownLight() {
 		JLabel label = new JLabel(tabbedpane.getTitleAt(1));
 		label.setForeground(Color.BLACK);
 		tabbedpane.setTabComponentAt(1, label);
 		tabbedpane.revalidate();
 		tabbedpane.repaint();
 	}
+
 	@Override
 	public void update(Observable arg0, Object arg1) {
 		if (interceptModel.getData() == null) {

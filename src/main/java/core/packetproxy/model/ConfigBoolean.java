@@ -15,8 +15,7 @@
  */
 package packetproxy.model;
 
-public class ConfigBoolean
-{
+public class ConfigBoolean {
 	private String key;
 	private Configs configs;
 	private Config config;

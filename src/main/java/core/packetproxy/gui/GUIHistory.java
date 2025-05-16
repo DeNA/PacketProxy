@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -86,8 +87,7 @@ import packetproxy.model.ResenderPackets;
 import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
 
-public class GUIHistory implements Observer
-{
+public class GUIHistory implements Observer {
 	private static GUIHistory instance;
 	private static JFrame owner;
 
@@ -95,29 +95,27 @@ public class GUIHistory implements Observer
 		return owner;
 	}
 
-	public static GUIHistory getInstance(JFrame frame) throws Exception
-	{
+	public static GUIHistory getInstance(JFrame frame) throws Exception {
 		owner = frame;
 		GUIHistory history = getInstance();
 		return history;
 	}
 
-	public static GUIHistory getInstance() throws Exception
-	{
+	public static GUIHistory getInstance() throws Exception {
 		if (instance == null) {
 			instance = new GUIHistory(false);
 		}
 		return instance;
 	}
 
-	public static GUIHistory restoreLastInstance(JFrame frame) throws Exception
-	{
+	public static GUIHistory restoreLastInstance(JFrame frame) throws Exception {
 		owner = frame;
 		instance = new GUIHistory(true);
 		return instance;
 	}
 
-	private String[] columnNames = { "#", "Client Request", "Server Response", "Length", "Client IP", "Client Port", "Server IP", "Server Port", "Time", "Resend", "Modified", "Type", "Encode", "ALPN", "Group"};
+	private String[] columnNames = { "#", "Client Request", "Server Response", "Length", "Client IP", "Client Port",
+			"Server IP", "Server Port", "Time", "Resend", "Modified", "Type", "Encode", "ALPN", "Group" };
 	private int[] columnWidth = { 60, 550, 50, 80, 160, 80, 160, 80, 100, 30, 30, 100, 100, 50, 30 };
 	private JSplitPane split_panel;
 	private JPanel main_panel;
@@ -158,14 +156,14 @@ public class GUIHistory implements Observer
 	}
 
 	public void filter() {
-		boolean result = sortByText((String)gui_filter.getText());
+		boolean result = sortByText((String) gui_filter.getText());
 		if (result == true) {
 			for (int i = 0; i < table.getRowCount(); i++) {
-				int id = (int)table.getValueAt(i, 0);
+				int id = (int) table.getValueAt(i, 0);
 				if (id == preferredPosition) {
 					table.changeSelection(i, 0, false, false);
-					int rowsVisible = table.getParent().getHeight()/table.getRowHeight()/2;
-					Rectangle cellRect = table.getCellRect(i+rowsVisible, 0, true);
+					int rowsVisible = table.getParent().getHeight() / table.getRowHeight() / 2;
+					Rectangle cellRect = table.getCellRect(i + rowsVisible, 0, true);
 					table.scrollRectToVisible(cellRect);
 				}
 			}
@@ -173,7 +171,8 @@ public class GUIHistory implements Observer
 	}
 
 	private JComponent createFilterPanel() throws Exception {
-		gui_filter = new HintTextField(I18nString.get("filter string... (ex: request == example.com && type == image)"));
+		gui_filter = new HintTextField(
+				I18nString.get("filter string... (ex: request == example.com && type == image)"));
 		gui_filter.setMaximumSize(new Dimension(Short.MAX_VALUE, gui_filter.getMinimumSize().height));
 
 		gui_filter.addKeyListener(new KeyAdapter() {
@@ -195,8 +194,10 @@ public class GUIHistory implements Observer
 			public void focusLost(FocusEvent e) {
 				filter();
 			}
+
 			@Override
-			public void focusGained(FocusEvent e) {}
+			public void focusGained(FocusEvent e) {
+			}
 		});
 
 		JButton filterConfigAdd = new JButton(new ImageIcon(getClass().getResource("/gui/plus.png")));
@@ -215,10 +216,12 @@ public class GUIHistory implements Observer
 		});
 
 		JToggleButton filterDropDown = new JToggleButton(new ImageIcon(getClass().getResource("/gui/arrow.png")));
-		filterDropDown.setMaximumSize(new Dimension(filterConfigAdd.getMaximumSize().width, gui_filter.getMaximumSize().height));
+		filterDropDown.setMaximumSize(
+				new Dimension(filterConfigAdd.getMaximumSize().width, gui_filter.getMaximumSize().height));
 		filterDropDown.setBackground(filterDropDown.getBackground());
 		filterDropDown.addMouseListener(new MouseAdapter() {
 			GUIFilterDropDownList dlg = null;
+
 			@Override
 			public void mouseReleased(MouseEvent arg0) {
 				try {
@@ -255,7 +258,8 @@ public class GUIHistory implements Observer
 
 		ImageIcon icon = new ImageIcon(getClass().getResource("/gui/config.png"));
 		JButton filterConfig = new JButton(icon);
-		filterConfig.setMaximumSize(new Dimension(filterConfigAdd.getMaximumSize().width, gui_filter.getMaximumSize().height));
+		filterConfig.setMaximumSize(
+				new Dimension(filterConfigAdd.getMaximumSize().width, gui_filter.getMaximumSize().height));
 		filterConfig.setBackground(filterConfig.getBackground());
 		filterConfig.addActionListener(new ActionListener() {
 			@Override
@@ -280,7 +284,7 @@ public class GUIHistory implements Observer
 	}
 
 	private JMenuItem createMenuItem(String name, int key, KeyStroke hotkey, ActionListener l) {
-		JMenuItem out = new JMenuItem (name);
+		JMenuItem out = new JMenuItem(name);
 		if (key >= 0) {
 			out.setMnemonic(key);
 		}
@@ -294,21 +298,25 @@ public class GUIHistory implements Observer
 	public JComponent createPanel() throws Exception {
 		tableModel = new OptionTableModel(columnNames, 0) {
 			private static final long serialVersionUID = 1L;
+
 			@Override
-			public boolean isCellEditable(int row, int column) { return false; }
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
 		};
 		tableModel.addTableModelListener(new TableModelListener() {
 			@Override
 			public void tableChanged(TableModelEvent e) {
 				if (e.getType() == TableModelEvent.INSERT) {
-					//List<Integer> ids = searchFromRequest("google");
-					//System.out.println(ids.toString());
+					// List<Integer> ids = searchFromRequest("google");
+					// System.out.println(ids.toString());
 				}
 			}
 		});
 
 		table = new JTable(tableModel) {
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Component prepareRenderer(TableCellRenderer tcr, int row, int column) {
 				Component c = super.prepareRenderer(tcr, row, column);
@@ -316,34 +324,27 @@ public class GUIHistory implements Observer
 					int[] selected_rows = table.getSelectedRows();
 					boolean selected = false;
 					boolean first_selected = false;
-					if(selected_rows.length>=2)
-					{
-						for (int i = 0; i < selected_rows.length; i++)
-				   		{
-							if(selected_rows[i]==row)
-							{
-								selected=true;
+					if (selected_rows.length >= 2) {
+						for (int i = 0; i < selected_rows.length; i++) {
+							if (selected_rows[i] == row) {
+								selected = true;
 								first_selected = (table.getSelectedRow() == row);
 								break;
 							}
 						}
-					}
-					else
-					{
+					} else {
 						selected = (table.getSelectedRow() == row);
 						first_selected = selected;
 					}
-					int packetId = (int)table.getValueAt(row, 0);
-					boolean modified = (boolean)table.getValueAt(row, table.getColumnModel().getColumnIndex("Modified"));
-					boolean resend = (boolean)table.getValueAt(row, table.getColumnModel().getColumnIndex("Resend"));
+					int packetId = (int) table.getValueAt(row, 0);
+					boolean modified = (boolean) table.getValueAt(row,
+							table.getColumnModel().getColumnIndex("Modified"));
+					boolean resend = (boolean) table.getValueAt(row, table.getColumnModel().getColumnIndex("Resend"));
 					if (selected) {
-						if(first_selected)
-						{
+						if (first_selected) {
 							c.setForeground(new Color(0xff, 0xff, 0xff));
 							c.setBackground(new Color(0x80, 0x80, 0xff));
-						}
-						else
-						{
+						} else {
 							c.setForeground(new Color(0xff, 0xff, 0xff));
 							c.setBackground(new Color(0xc0, 0xc0, 0xff));
 						}
@@ -396,82 +397,86 @@ public class GUIHistory implements Observer
 		}
 		menu = new JPopupMenu();
 
-		JMenuItem send = createMenuItem ("send", KeyEvent.VK_S, KeyStroke.getKeyStroke(KeyEvent.VK_S, mask_key), new ActionListener() {
-			public void actionPerformed(ActionEvent actionEvent) {
-				try {
-					int id = GUIHistory.getInstance().getSelectedPacketId();
-					Packet packet = Packets.getInstance().query(id);
-					byte[] data = GUIPacket.getInstance().getData();
-					if (packet == null) {
-						return;
+		JMenuItem send = createMenuItem("send", KeyEvent.VK_S, KeyStroke.getKeyStroke(KeyEvent.VK_S, mask_key),
+				new ActionListener() {
+					public void actionPerformed(ActionEvent actionEvent) {
+						try {
+							int id = GUIHistory.getInstance().getSelectedPacketId();
+							Packet packet = Packets.getInstance().query(id);
+							byte[] data = GUIPacket.getInstance().getData();
+							if (packet == null) {
+								return;
+							}
+							ResendController.getInstance().resend(packet.getOneShotPacket(data));
+							packet.setResend();
+							Packets.getInstance().update(packet);
+							GUIHistory.getInstance().updateRequestOne(GUIHistory.getInstance().getSelectedPacketId());
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}
 					}
-					ResendController.getInstance().resend(packet.getOneShotPacket(data));
-					packet.setResend();
-					Packets.getInstance().update(packet);
-					GUIHistory.getInstance().updateRequestOne(GUIHistory.getInstance().getSelectedPacketId());
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
+				});
 
-		JMenuItem sendToResender = createMenuItem ("send to Resender", KeyEvent.VK_R, KeyStroke.getKeyStroke(KeyEvent.VK_R, mask_key), new ActionListener() {
-			public void actionPerformed(ActionEvent actionEvent) {
-				try {
-					Packet packet = gui_packet.getPacket();
-					packet.setResend();
-					Packets.getInstance().update(packet);
-					if (packet.getModifiedData().length == 0) { // dropしたパケットの場合
-						GUIResender.getInstance().addResends(packet.getOneShotFromDecodedData());
-					} else {
-						GUIResender.getInstance().addResends(packet.getOneShotFromModifiedData());
+		JMenuItem sendToResender = createMenuItem("send to Resender", KeyEvent.VK_R,
+				KeyStroke.getKeyStroke(KeyEvent.VK_R, mask_key), new ActionListener() {
+					public void actionPerformed(ActionEvent actionEvent) {
+						try {
+							Packet packet = gui_packet.getPacket();
+							packet.setResend();
+							Packets.getInstance().update(packet);
+							if (packet.getModifiedData().length == 0) { // dropしたパケットの場合
+								GUIResender.getInstance().addResends(packet.getOneShotFromDecodedData());
+							} else {
+								GUIResender.getInstance().addResends(packet.getOneShotFromModifiedData());
+							}
+							GUIHistory.getInstance().updateRequestOne(GUIHistory.getInstance().getSelectedPacketId());
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}
 					}
-					GUIHistory.getInstance().updateRequestOne(GUIHistory.getInstance().getSelectedPacketId());
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
+				});
 
-		JMenuItem copyAll = createMenuItem ("copy Method + URL + Body", KeyEvent.VK_M, KeyStroke.getKeyStroke(KeyEvent.VK_M, mask_key), new ActionListener() {
-			public void actionPerformed(ActionEvent actionEvent) {
-				try {
-					Packet packet = gui_packet.getPacket();
-					Http http = Http.create(packet.getDecodedData());
-					CharSetUtility charsetutil = CharSetUtility.getInstance();
-					if(charsetutil.isAuto()){
-						charsetutil.setGuessedCharSet(http.getBody());
+		JMenuItem copyAll = createMenuItem("copy Method + URL + Body", KeyEvent.VK_M,
+				KeyStroke.getKeyStroke(KeyEvent.VK_M, mask_key), new ActionListener() {
+					public void actionPerformed(ActionEvent actionEvent) {
+						try {
+							Packet packet = gui_packet.getPacket();
+							Http http = Http.create(packet.getDecodedData());
+							CharSetUtility charsetutil = CharSetUtility.getInstance();
+							if (charsetutil.isAuto()) {
+								charsetutil.setGuessedCharSet(http.getBody());
+							}
+							String copyData = http.getMethod() + "\t" +
+									http.getURL(packet.getServerPort(), packet.getUseSSL()) + "\t" +
+									new String(http.getBody(), charsetutil.getCharSet());
+							Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+							StringSelection selection = new StringSelection(copyData);
+							clipboard.setContents(selection, selection);
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}
 					}
-					String copyData = http.getMethod() + "\t" +
-						http.getURL(packet.getServerPort(), packet.getUseSSL()) + "\t" +
-						new String(http.getBody(), charsetutil.getCharSet());
-					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-					StringSelection selection = new StringSelection(copyData);
-					clipboard.setContents(selection, selection);
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
+				});
 
-		JMenuItem copy = createMenuItem ("copy URL", KeyEvent.VK_Y, KeyStroke.getKeyStroke(KeyEvent.VK_Y, mask_key), new ActionListener() {
-			public void actionPerformed(ActionEvent actionEvent) {
-				try {
-					int id = GUIHistory.getInstance().getSelectedPacketId();
-					Packet packet = Packets.getInstance().query(id);
-					Http http = Http.create(packet.getDecodedData());
-					String url = http.getURL(packet.getServerPort(), packet.getUseSSL());
-					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-					StringSelection selection = new StringSelection(url);
-					clipboard.setContents(selection, selection);
+		JMenuItem copy = createMenuItem("copy URL", KeyEvent.VK_Y, KeyStroke.getKeyStroke(KeyEvent.VK_Y, mask_key),
+				new ActionListener() {
+					public void actionPerformed(ActionEvent actionEvent) {
+						try {
+							int id = GUIHistory.getInstance().getSelectedPacketId();
+							Packet packet = Packets.getInstance().query(id);
+							Http http = Http.create(packet.getDecodedData());
+							String url = http.getURL(packet.getServerPort(), packet.getUseSSL());
+							Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+							StringSelection selection = new StringSelection(url);
+							clipboard.setContents(selection, selection);
 
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}
+					}
+				});
 
-		JMenuItem bulkSender = createMenuItem ("send to Bulk Sender", -1, null, new ActionListener() {
+		JMenuItem bulkSender = createMenuItem("send to Bulk Sender", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					Packet packet = gui_packet.getPacket();
@@ -486,35 +491,37 @@ public class GUIHistory implements Observer
 			}
 		});
 
-		JMenuItem saveAll = createMenuItem ("save all data to file", -1, null, new ActionListener() {
+		JMenuItem saveAll = createMenuItem("save all data to file", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "dat", "packet.dat");
 				filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
-				   @Override
-				   public void onApproved(File file, String extension) {
-					   try {
-						   byte[] data = gui_packet.getPacket().getReceivedData();
-						   FileUtils.writeByteArrayToFile(file, data);
-						   JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", file.getPath()));
-					   } catch (Exception e1) {
-						   e1.printStackTrace();
-						   JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
-					   }
-					   dialogOnce = false;
-				   }
-				   @Override
-				   public void onCanceled() {}
+					@Override
+					public void onApproved(File file, String extension) {
+						try {
+							byte[] data = gui_packet.getPacket().getReceivedData();
+							FileUtils.writeByteArrayToFile(file, data);
+							JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", file.getPath()));
+						} catch (Exception e1) {
+							e1.printStackTrace();
+							JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+						}
+						dialogOnce = false;
+					}
 
-				   @Override
-				   public void onError() {
-					   JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
-				   }
-			   });
+					@Override
+					public void onCanceled() {
+					}
+
+					@Override
+					public void onError() {
+						JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+					}
+				});
 				filechooser.showSaveDialog();
 			}
 		});
 
-		JMenuItem saveHttpBody = createMenuItem ("save HTTP body to file", -1, null, new ActionListener() {
+		JMenuItem saveHttpBody = createMenuItem("save HTTP body to file", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "dat", "body.dat");
 				filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
@@ -531,8 +538,10 @@ public class GUIHistory implements Observer
 						}
 						dialogOnce = false;
 					}
+
 					@Override
-					public void onCanceled() {}
+					public void onCanceled() {
+					}
 
 					@Override
 					public void onError() {
@@ -543,12 +552,11 @@ public class GUIHistory implements Observer
 			}
 		});
 
-		JMenuItem addColorG = createMenuItem ("add color (green)", -1, null, new ActionListener() {
+		JMenuItem addColorG = createMenuItem("add color (green)", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					int[] selected_rows = table.getSelectedRows();
-					for (int i = 0; i < selected_rows.length; i++)
-					{
+					for (int i = 0; i < selected_rows.length; i++) {
 						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
 						colorManager.add(id, packetColorGreen);
 						Packet packet = Packets.getInstance().query(id);
@@ -561,12 +569,11 @@ public class GUIHistory implements Observer
 			}
 		});
 
-		JMenuItem addColorB = createMenuItem ("add color (brown)", -1, null, new ActionListener() {
+		JMenuItem addColorB = createMenuItem("add color (brown)", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					int[] selected_rows = table.getSelectedRows();
-					for (int i = 0; i < selected_rows.length; i++)
-					{
+					for (int i = 0; i < selected_rows.length; i++) {
 						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
 						colorManager.add(id, packetColorBrown);
 						Packet packet = Packets.getInstance().query(id);
@@ -579,12 +586,11 @@ public class GUIHistory implements Observer
 			}
 		});
 
-		JMenuItem addColorY = createMenuItem ("add color (yellow)", -1, null, new ActionListener() {
+		JMenuItem addColorY = createMenuItem("add color (yellow)", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					int[] selected_rows = table.getSelectedRows();
-					for (int i = 0; i < selected_rows.length; i++)
-					{
+					for (int i = 0; i < selected_rows.length; i++) {
 						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
 						colorManager.add(id, packetColorYellow);
 						Packet packet = Packets.getInstance().query(id);
@@ -597,12 +603,11 @@ public class GUIHistory implements Observer
 			}
 		});
 
-		JMenuItem clearColor = createMenuItem ("clear color", -1, null, new ActionListener() {
+		JMenuItem clearColor = createMenuItem("clear color", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					int[] selected_rows = table.getSelectedRows();
-					for (int i = 0; i < selected_rows.length; i++)
-					{
+					for (int i = 0; i < selected_rows.length; i++) {
 						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
 						colorManager.clear(id);
 					}
@@ -612,12 +617,11 @@ public class GUIHistory implements Observer
 			}
 		});
 
-		JMenuItem delete_selected_items = createMenuItem ("delete selected items", -1, null, new ActionListener() {
+		JMenuItem delete_selected_items = createMenuItem("delete selected items", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					int[] selected_rows = table.getSelectedRows();
-					for (int i = 0; i < selected_rows.length; i++)
-					{
+					for (int i = 0; i < selected_rows.length; i++) {
 						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
 						colorManager.clear(id);
 						packets.delete(packets.query(id));
@@ -629,10 +633,10 @@ public class GUIHistory implements Observer
 			}
 		});
 
-		JMenuItem delete_all = createMenuItem ("delete all items", -1, null, new ActionListener() {
+		JMenuItem delete_all = createMenuItem("delete all items", -1, null, new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					for(int i=0;i<table.getRowCount();++i) {
+					for (int i = 0; i < table.getRowCount(); ++i) {
 						Integer id = (Integer) table.getValueAt(i, 0);
 						colorManager.clear(id);
 					}
@@ -645,12 +649,12 @@ public class GUIHistory implements Observer
 		});
 
 		/*
-		   Copy HTTP request as curl command:
-		   $ curl 'http://example.com' -X POST -H 'Cookie: hoge=huga; foo=bar' -H ...
-
-TODO: support --data-binary
-*/
-		JMenuItem copyAsCurl = createMenuItem ("copy as curl", -1, null, new ActionListener() {
+		 * Copy HTTP request as curl command:
+		 * $ curl 'http://example.com' -X POST -H 'Cookie: hoge=huga; foo=bar' -H ...
+		 * 
+		 * TODO: support --data-binary
+		 */
+		JMenuItem copyAsCurl = createMenuItem("copy as curl", -1, null, new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
@@ -660,7 +664,8 @@ TODO: support --data-binary
 					commandList.add("curl");
 
 					// 'http://example.com'
-					String url = http.getURL(gui_packet.getPacket().getServerPort(), gui_packet.getPacket().getUseSSL());
+					String url = http.getURL(gui_packet.getPacket().getServerPort(),
+							gui_packet.getPacket().getUseSSL());
 					commandList.add(String.format("'%s'", url));
 
 					// -X POST
@@ -721,12 +726,12 @@ TODO: support --data-binary
 					StringSelection selection;
 					switch (e.getKeyCode()) {
 						case KeyEvent.VK_J:
-							p = table.getSelectedRow()+1;
-							p = p >= table.getRowCount() ? table.getRowCount()-1 : p;
+							p = table.getSelectedRow() + 1;
+							p = p >= table.getRowCount() ? table.getRowCount() - 1 : p;
 							table.changeSelection(p, 0, false, false);
 							break;
 						case KeyEvent.VK_K:
-							p = table.getSelectedRow()-1;
+							p = table.getSelectedRow() - 1;
 							p = p < 0 ? 0 : p;
 							table.changeSelection(p, 0, false, false);
 							break;
@@ -757,7 +762,6 @@ TODO: support --data-binary
 			}
 		});
 
-
 		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent event) {
@@ -766,6 +770,7 @@ TODO: support --data-binary
 				}
 				autoScroll.doDisable();
 			}
+
 			@Override
 			public void mousePressed(MouseEvent event) {
 				try {
@@ -781,8 +786,8 @@ TODO: support --data-binary
 			public void componentResized(ComponentEvent e) {
 				try {
 					if (autoScroll.isEnabled()) {
-						table.scrollRectToVisible(table.getCellRect(table.getRowCount()-1, 0, true));
-						table.changeSelection(table.getRowCount()-1, 0, false, false);
+						table.scrollRectToVisible(table.getCellRect(table.getRowCount() - 1, 0, true));
+						table.changeSelection(table.getRowCount() - 1, 0, false, false);
 						int packetId = getSelectedPacketId();
 						Packet packet = packets.query(packetId);
 						int retryCount = 10;
@@ -818,14 +823,13 @@ TODO: support --data-binary
 		main_panel.add(createFilterPanel());
 		main_panel.add(split_panel);
 
-
 		return main_panel;
 	}
 
 	public List<Integer> searchFromRequest(String searchWord) {
 		List<Integer> ids = new ArrayList<Integer>();
 		for (int i = 0; i < table.getRowCount(); i++) {
-			String req = (String)tableModel.getValueAt(i, 1);
+			String req = (String) tableModel.getValueAt(i, 1);
 			if (req.matches(String.format(".*%s.*", searchWord))) {
 				ids.add(i);
 			}
@@ -836,14 +840,14 @@ TODO: support --data-binary
 	public int getSelectedPacketId() {
 		int idx = table.getSelectedRow();
 		if (0 <= idx && idx < table.getRowCount()) {
-			return (Integer)table.getValueAt(idx, 0);
+			return (Integer) table.getValueAt(idx, 0);
 		} else {
 			return 0;
 		}
 	}
 
-	private void saveHistoryWithAlertDialog(){
-		if(dialogOnce){
+	private void saveHistoryWithAlertDialog() {
+		if (dialogOnce) {
 			return;
 
 		}
@@ -869,7 +873,8 @@ TODO: support --data-binary
 			}
 
 			@Override
-			public void onCanceled() {}
+			public void onCanceled() {
+			}
 
 			@Override
 			public void onError() {
@@ -885,7 +890,8 @@ TODO: support --data-binary
 			@Override
 			public void run() {
 				try {
-					if (null!=arg1 && arg1.getClass() == DatabaseMessage.class && (DatabaseMessage)arg1 == DatabaseMessage.RECONNECT) {
+					if (null != arg1 && arg1.getClass() == DatabaseMessage.class
+							&& (DatabaseMessage) arg1 == DatabaseMessage.RECONNECT) {
 						updateAllAsync();
 						return;
 					}
@@ -893,19 +899,19 @@ TODO: support --data-binary
 						return;
 					}
 					if (arg0.getClass() == Packets.class) {
-						if(arg1 instanceof  Boolean) {
-							if(true==(boolean)arg1){//sqlite3のファイル上限(2GB)回避(model/Packets.javaから通知)
+						if (arg1 instanceof Boolean) {
+							if (true == (boolean) arg1) {// sqlite3のファイル上限(2GB)回避(model/Packets.javaから通知)
 								saveHistoryWithAlertDialog();
 							}
 						}
 						if (arg1 instanceof Integer) {
-							if ((int)arg1 < 0) {
-								tableModel.addRow(makeRowDataFromPacket(packets.query((int)arg1 * -1)));
-								id_row.put((int)arg1 * -1, tableModel.getRowCount() - 1);
+							if ((int) arg1 < 0) {
+								tableModel.addRow(makeRowDataFromPacket(packets.query((int) arg1 * -1)));
+								id_row.put((int) arg1 * -1, tableModel.getRowCount() - 1);
 								return;
 							} else {
-								//problematic func
-								updateRequestOne((int)arg1);
+								// problematic func
+								updateRequestOne((int) arg1);
 							}
 						} else {
 							updateRequest(true);
@@ -937,7 +943,7 @@ TODO: support --data-binary
 			protected Packet doInBackground() throws Exception {
 				HashSet<Integer> update_targets = new HashSet<Integer>();
 				synchronized (update_packet_ids) {
-					update_targets = (HashSet<Integer>)update_packet_ids.clone();
+					update_targets = (HashSet<Integer>) update_packet_ids.clone();
 					update_packet_ids.clear();
 				}
 				for (int id : update_targets) {
@@ -946,6 +952,7 @@ TODO: support --data-binary
 				}
 				return cursor_update ? packets.query(select_id) : null;
 			}
+
 			@Override
 			protected void process(List<Packet> packets) {
 				try {
@@ -956,6 +963,7 @@ TODO: support --data-binary
 					e.printStackTrace();
 				}
 			}
+
 			@Override
 			protected void done() {
 				try {
@@ -963,7 +971,7 @@ TODO: support --data-binary
 					if (packet != null) {
 						gui_packet.setPacket(packet);
 					}
-					//sortByText(gui_filter.getText());
+					// sortByText(gui_filter.getText());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -988,12 +996,13 @@ TODO: support --data-binary
 		List<Packet> packetList = packets.queryAllIdsAndColors();
 		tableModel.setRowCount(0);
 		colorManager.clear();
-		for(Packet packet : packetList) {
+		for (Packet packet : packetList) {
 			int id = packet.getId();
 			String color = packet.getColor();
 
 			tableModel.addRow(new Object[] {
-				packet.getId(),"Loading...","Loading...",0,"Loading...","","Loading...","","00:00:00 1900/01/01 Z",false,false,"","","",(long)-1
+					packet.getId(), "Loading...", "Loading...", 0, "Loading...", "", "Loading...", "",
+					"00:00:00 1900/01/01 Z", false, false, "", "", "", (long) -1
 			});
 			id_row.put(id, tableModel.getRowCount() - 1);
 
@@ -1010,10 +1019,11 @@ TODO: support --data-binary
 		new Thread(new Runnable() {
 			GUIHistory history = null;
 			int count = 0;
+
 			@Override
 			public void run() {
 				long limit = 100;
-				for(long i=count; i>0; i-=limit) {
+				for (long i = count; i > 0; i -= limit) {
 					try {
 						long offset;
 						if (i - limit < 0) {
@@ -1023,15 +1033,17 @@ TODO: support --data-binary
 							offset = i - limit;
 						}
 						List<Packet> packetList = history.packets.queryRange(offset, limit);
-						for(Packet packet : packetList) {
+						for (Packet packet : packetList) {
 							SwingUtilities.invokeLater(new Runnable() {
 								GUIHistory history = null;
 								Packet packet = null;
+
 								public Runnable set(GUIHistory history, Packet packet) {
 									this.history = history;
 									this.packet = packet;
 									return this;
 								}
+
 								public void run() {
 									try {
 										updateOne(packet);
@@ -1047,6 +1059,7 @@ TODO: support --data-binary
 					}
 				}
 			}
+
 			public Runnable set(GUIHistory history, int count) {
 				this.history = history;
 				this.count = count;
@@ -1063,9 +1076,8 @@ TODO: support --data-binary
 		Integer row_index = id_row.getOrDefault(packet.getId(), tableModel.getRowCount() - 1);
 		Object[] row_data = makeRowDataFromPacket(packet);
 
-
 		for (int i = 0; i < columnNames.length; i++) {
-			if(row_data[i]==tableModel.getValueAt(row_index, i)){
+			if (row_data[i] == tableModel.getValueAt(row_index, i)) {
 				continue;
 			}
 			tableModel.setValueAt(row_data[i], row_index, i);
@@ -1089,7 +1101,7 @@ TODO: support --data-binary
 
 		SimpleDateFormat date_format = new SimpleDateFormat("HH:mm:ss yyyy/MM/dd Z");
 		return new Object[] {
-			packet.getId(),
+				packet.getId(),
 				packet.getSummarizedRequest(),
 				packet.getSummarizedResponse(),
 				length,
@@ -1116,11 +1128,11 @@ TODO: support --data-binary
 			sorter.setRowFilter(FilterTextParser.parse(text));
 			return true;
 		} catch (ParseException e) {
-			//			// ignore
-			//			e.printStackTrace();
+			// // ignore
+			// e.printStackTrace();
 		} catch (NumberFormatException e) {
-			//			// ignore
-			//			e.printStackTrace();
+			// // ignore
+			// e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1131,19 +1143,24 @@ TODO: support --data-binary
 		colorManager.clear();
 		table.repaint();
 	}
+
 	public void addCustomColoring(int packetId, Color color) {
 		colorManager.add(packetId, color);
 		table.repaint();
 	}
+
 	public void addCustomColoringToCursorPos(Color color) {
 		addCustomColoring(getSelectedPacketId(), color);
 	}
+
 	public boolean containsColor() {
 		return colorManager.contains(getSelectedPacketId());
 	}
+
 	public Color getColor() throws Exception {
 		return colorManager.getColor(getSelectedPacketId());
 	}
+
 	public int getSelectedIndex() {
 		return table.getSelectedRow();
 	}

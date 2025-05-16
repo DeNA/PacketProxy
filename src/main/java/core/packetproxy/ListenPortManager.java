@@ -26,25 +26,26 @@ import packetproxy.model.ListenPort;
 import packetproxy.model.ListenPorts;
 import packetproxy.util.PacketProxyUtility;
 
-public class ListenPortManager implements Observer
-{
+public class ListenPortManager implements Observer {
 	private ListenPorts listenPorts;
-	private Map<String,Listen> listen_map;
+	private Map<String, Listen> listen_map;
 
 	private static ListenPortManager instance;
-	
+
 	public static ListenPortManager getInstance() throws Exception {
 		if (instance == null) {
 			instance = new ListenPortManager();
 		}
 		return instance;
 	}
+
 	private ListenPortManager() throws Exception {
-		listen_map = new HashMap<String,Listen>();
+		listen_map = new HashMap<String, Listen>();
 		listenPorts = ListenPorts.getInstance();
 		listenPorts.addObserver(this);
 		listenPorts.refresh();
 	}
+
 	public void rebootIfHTTPProxyRunning() throws Exception {
 		List<ListenPort> list = listenPorts.queryEnabledHttpProxis();
 		for (ListenPort lp : list) {
@@ -56,26 +57,27 @@ public class ListenPortManager implements Observer
 			listen_map.put(lp.getProtoPort(), new_listen);
 		}
 	}
-	private void stopIfRunning() throws Exception
-	{
+
+	private void stopIfRunning() throws Exception {
 		List<ListenPort> list = listenPorts.queryEnabled();
 		for (Iterator<String> port = listen_map.keySet().iterator(); port.hasNext();) {
 			boolean found = false;
 			String p = port.next();
 			for (ListenPort l : list) {
 				if (l.getProtoPort().equals(p)) {
-					found = true; break;
+					found = true;
+					break;
 				}
 			}
 			if (found == false) {
-				//System.out.println("## close:"+p);
+				// System.out.println("## close:"+p);
 				listen_map.get(p).close();
 				port.remove();
 			}
 		}
 	}
-	private void startListen(ListenPort listen_port) throws Exception
-	{
+
+	private void startListen(ListenPort listen_port) throws Exception {
 		try {
 			Listen listen = listen_map.get(listen_port.getProtoPort());
 			if (listen != null) {
@@ -83,26 +85,28 @@ public class ListenPortManager implements Observer
 					listen.close();
 					Listen new_listen = new Listen(listen_port);
 					listen_map.put(listen_port.getProtoPort(), new_listen);
-					PacketProxyUtility.getInstance().packetProxyLog("## restart:"+listen_port.getProtoPort());
+					PacketProxyUtility.getInstance().packetProxyLog("## restart:" + listen_port.getProtoPort());
 				}
 			} else {
-				PacketProxyUtility.getInstance().packetProxyLog("## start:"+listen_port.getProtoPort());
+				PacketProxyUtility.getInstance().packetProxyLog("## start:" + listen_port.getProtoPort());
 				Listen new_listen = new Listen(listen_port);
 				listen_map.put(listen_port.getProtoPort(), new_listen);
 			}
 		} catch (BindException e) {
-			PacketProxyUtility.getInstance().packetProxyLogErr("cannot listen port. (permission issue or already listened)");
+			PacketProxyUtility.getInstance()
+					.packetProxyLogErr("cannot listen port. (permission issue or already listened)");
 			listen_port.setDisabled();
 			listenPorts.update(listen_port);
 		}
 	}
-	private void startIfStateChanged() throws Exception
-	{
+
+	private void startIfStateChanged() throws Exception {
 		List<ListenPort> list = listenPorts.queryEnabled();
 		for (ListenPort listen_port : list) {
 			startListen(listen_port);
 		}
 	}
+
 	@Override
 	public void update(Observable arg0, Object arg1) {
 		try {

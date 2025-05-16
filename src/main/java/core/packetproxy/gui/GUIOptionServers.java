@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.Color;
@@ -34,26 +35,27 @@ import javax.swing.table.DefaultTableModel;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
 
-public class GUIOptionServers extends GUIOptionComponentBase<Server>
-{
+public class GUIOptionServers extends GUIOptionComponentBase<Server> {
 	private GUIOptionServerDialog dlg;
 	private Servers servers;
 	private List<Server> server_list;
+
 	public GUIOptionServers(JFrame owner) throws Exception {
 		super(owner);
 		servers = Servers.getInstance();
 		servers.addObserver(this);
 		server_list = new ArrayList<Server>();
-		String[] menu = { "Host", "Port", "Use SSL", "Encode Module", "Spoof DNS(A)", "Spoof DNS(AAAA)", "HttpProxy", "Comment" };
+		String[] menu = { "Host", "Port", "Use SSL", "Encode Module", "Spoof DNS(A)", "Spoof DNS(AAAA)", "HttpProxy",
+				"Comment" };
 		int[] menuWidth = { 200, 80, 50, 160, 60, 60, 60, 100 };
 		MouseAdapter tableAction = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					int columnIndex= table.columnAtPoint(e.getPoint());
-					int rowIndex= table.rowAtPoint(e.getPoint());
+					int columnIndex = table.columnAtPoint(e.getPoint());
+					int rowIndex = table.rowAtPoint(e.getPoint());
 					if (columnIndex == 4) { /* Spoof DNS area */
-						boolean enable_checkbox = (Boolean)table.getValueAt(rowIndex, 4);
+						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 4);
 						Server server = getSelectedTableContent();
 						if (enable_checkbox == true) {
 							server.disableResolved();
@@ -63,7 +65,7 @@ public class GUIOptionServers extends GUIOptionComponentBase<Server>
 						servers.update(server);
 					}
 					if (columnIndex == 5) { /* Spoof DNS area */
-						boolean enable_checkbox = (Boolean)table.getValueAt(rowIndex, 5);
+						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 5);
 						Server server = getSelectedTableContent();
 						if (enable_checkbox == true) {
 							server.disableResolved6();
@@ -129,8 +131,9 @@ public class GUIOptionServers extends GUIOptionComponentBase<Server>
 				server.isResolved(),
 				server.isResolved6(),
 				server.isHttpProxy(),
-				server.getComment()});
+				server.getComment() });
 	}
+
 	@Override
 	protected void updateTable(List<Server> serverList) {
 		clearTableContents();

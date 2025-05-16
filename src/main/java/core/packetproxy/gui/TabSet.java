@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import java.awt.BorderLayout;
 import java.util.Observable;
 
@@ -42,7 +43,7 @@ public class TabSet extends Observable {
 	private byte[] data;
 	private Range emphasis;
 
-	//Options
+	// Options
 	private SearchBox searchBox = null;
 
 	public TabSet(boolean search, boolean copy) throws Exception {
@@ -108,7 +109,7 @@ public class TabSet extends Observable {
 
 	public byte[] getData() {
 		if (data == null) {
-			return new byte[]{};
+			return new byte[] {};
 		}
 		switch (getSelectedIndex()) {
 			case 0:
@@ -118,7 +119,8 @@ public class TabSet extends Observable {
 			case 2:
 				return json_panel.getData();
 			default:
-				PacketProxyUtility.getInstance().packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
+				PacketProxyUtility.getInstance()
+						.packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
 				return raw_panel.getData();
 		}
 	}
@@ -135,11 +137,11 @@ public class TabSet extends Observable {
 		update();
 	}
 
-	public JButton getParentSend () {
+	public JButton getParentSend() {
 		return parentSend;
 	}
 
-	public void setParentSend (JButton parentSend) {
+	public void setParentSend(JButton parentSend) {
 		this.parentSend = parentSend;
 	}
 
@@ -159,7 +161,8 @@ public class TabSet extends Observable {
 					json_panel.setData(PacketProxyUtility.getInstance().prettyFormatJSONInRawData(data));
 					break;
 				default:
-					PacketProxyUtility.getInstance().packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
+					PacketProxyUtility.getInstance()
+							.packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
 					break;
 			}
 			if (searchBox == null) {
@@ -172,14 +175,15 @@ public class TabSet extends Observable {
 					break;
 				case 1:
 					searchBox.setVisible(false);
-					//searchBox.setBaseText(binary_panel.getTextPane());
+					// searchBox.setBaseText(binary_panel.getTextPane());
 					break;
 				case 2:
 					searchBox.setVisible(true);
 					searchBox.setBaseText(json_panel.getTextPane(), emphasis);
 					break;
 				default:
-					PacketProxyUtility.getInstance().packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
+					PacketProxyUtility.getInstance()
+							.packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
 					break;
 			}
 			searchBox.textChanged();
@@ -188,6 +192,7 @@ public class TabSet extends Observable {
 		}
 		notifyObservers(getSelectedIndex());
 	}
+
 	@Override
 	public void notifyObservers(Object arg) {
 		setChanged();

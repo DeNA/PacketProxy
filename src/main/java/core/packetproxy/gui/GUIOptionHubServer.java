@@ -140,4 +140,3 @@ public class GUIOptionHubServer implements Observer {
         refresh();
     }
 }
-

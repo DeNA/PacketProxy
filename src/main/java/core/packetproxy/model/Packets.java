@@ -46,18 +46,18 @@ public class Packets extends Observable implements Observer {
 
 	private PacketProxyUtility util;
 	private Database database;
-	private Dao<Packet,Integer> dao;
+	private Dao<Packet, Integer> dao;
 	private ExecutorService executor;
 
 	private Packets(boolean restore) throws Exception {
 		util = PacketProxyUtility.getInstance();
 		database = Database.getInstance();
-		if(!restore){
+		if (!restore) {
 			util.packetProxyLog("drop history...");
 			database.dropPacketTableFaster();
 		}
 		dao = database.createTable(Packet.class, this);
-		if(restore){
+		if (restore) {
 			if (!isLatestVersion()) {
 				RecreateTable();
 			}
@@ -66,6 +66,7 @@ public class Packets extends Observable implements Observer {
 		}
 		executor = Executors.newSingleThreadExecutor();
 	}
+
 	// TODO できれば非同期でやる（大きいデータのときに数秒止まってしまうので）
 	public void create(Packet packet) throws Exception {
 		synchronized (dao) {
@@ -73,11 +74,13 @@ public class Packets extends Observable implements Observer {
 		}
 		notifyObservers();
 	}
+
 	public void refresh() {
 		notifyObservers();
 	}
+
 	public void updateSync(Packet packet) throws Exception {
-		if(database.isAlertFileSize()){
+		if (database.isAlertFileSize()) {
 			notifyObservers(true);
 		}
 		Dao.CreateOrUpdateStatus status;
@@ -90,6 +93,7 @@ public class Packets extends Observable implements Observer {
 			notifyObservers(packet.getId());
 		}
 	}
+
 	public void update(Packet packet) throws Exception {
 		Runnable task = new Runnable() {
 			public void run() {
@@ -102,21 +106,25 @@ public class Packets extends Observable implements Observer {
 		};
 		executor.execute(task);
 	}
+
 	public void deleteAll() throws Exception {
 		synchronized (dao) {
 			dao.deleteBuilder().delete();
 		}
 		notifyObservers();
 	}
+
 	public void delete(Packet packet) throws Exception {
 		synchronized (dao) {
 			dao.delete(packet);
 		}
 		notifyObservers();
 	}
+
 	public long countOf() throws Exception {
 		return dao.countOf();
 	}
+
 	public Packet query(int id) throws Exception {
 		return dao.queryForId(id);
 	}
@@ -132,31 +140,36 @@ public class Packets extends Observable implements Observer {
 	public List<Packet> queryAll() throws Exception {
 		return dao.queryBuilder().orderBy("id", true).query();
 	}
+
 	public List<Packet> queryMoreThan(int date) throws Exception {
 		return dao.queryBuilder().where().gt("id", date).query();
 	}
+
 	public List<Packet> queryFullText(String search, int start) throws Exception {
 		return dao.queryBuilder().selectColumns("group").where()
 				.ge("id", start)
 				.and()
-				.like("decoded_data",String.format("%%%s%%", search)).query();
+				.like("decoded_data", String.format("%%%s%%", search)).query();
 	}
+
 	public List<Packet> queryFullTextById(String search, int id) throws Exception {
 		return dao.queryBuilder().selectColumns("group").where()
 				.eq("id", id)
 				.and()
-				.like("decoded_data",String.format("%%%s%%", search)).query();
+				.like("decoded_data", String.format("%%%s%%", search)).query();
 	}
-	//case sensitive full text search
+
+	// case sensitive full text search
 	public List<Packet> queryFullText(String search) throws Exception {
-		//ORMLite does not support glob statement.
+		// ORMLite does not support glob statement.
 		String query = String.format("SELECT `group`,`id` FROM `packets` WHERE `decoded_data` GLOB '*%s*';", search);
-		return dao.queryRaw(query,dao.getRawRowMapper()).getResults();
+		return dao.queryRaw(query, dao.getRawRowMapper()).getResults();
 	}
-	//case insensitive full text search
+
+	// case insensitive full text search
 	public List<Packet> queryFullText_i(String search) throws Exception {
 		return dao.queryBuilder().selectColumns("group").where()
-				.like("decoded_data",String.format("%%%s%%", search)).query();
+				.like("decoded_data", String.format("%%%s%%", search)).query();
 	}
 
 	@Override
@@ -165,52 +178,59 @@ public class Packets extends Observable implements Observer {
 		super.notifyObservers(arg);
 		clearChanged();
 	}
+
 	public String outputAllPackets(String filename) throws Exception {
 		Logger logger = new Logger(queryAll());
 		return logger.outputToFile(filename);
 	}
+
 	public boolean isEmpty() throws Exception {
 		return dao.queryBuilder().limit(1L).query().isEmpty();
 	}
+
 	@Override
 	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage)arg;
+		DatabaseMessage message = (DatabaseMessage) arg;
 		try {
 			switch (message) {
-			case PAUSE:
-				// TODO ロックを取る
-				break;
-			case RESUME:
-				// TODO ロックを解除
-				break;
-			case DISCONNECT_NOW:
-				break;
-			case RECONNECT:
-				database = Database.getInstance();
-				dao = database.createTable(Packet.class, this);
-				// ファイル読み込み時にpacketsテーブルの中にcolorカラムがなかったら追加する
-				String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='packets'").getFirstResult()[0];
-				if (!result.contains("`color` VARCHAR")) {
-					dao.executeRaw("ALTER TABLE `packets` ADD COLUMN color VARCHAR");
-				}
-				notifyObservers(arg);
-				break;
-			case RECREATE:
-				database = Database.getInstance();
-				dao = database.createTable(Packet.class, this);
-				break;
-			default:
-				break;
+				case PAUSE:
+					// TODO ロックを取る
+					break;
+				case RESUME:
+					// TODO ロックを解除
+					break;
+				case DISCONNECT_NOW:
+					break;
+				case RECONNECT:
+					database = Database.getInstance();
+					dao = database.createTable(Packet.class, this);
+					// ファイル読み込み時にpacketsテーブルの中にcolorカラムがなかったら追加する
+					String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='packets'")
+							.getFirstResult()[0];
+					if (!result.contains("`color` VARCHAR")) {
+						dao.executeRaw("ALTER TABLE `packets` ADD COLUMN color VARCHAR");
+					}
+					notifyObservers(arg);
+					break;
+				case RECREATE:
+					database = Database.getInstance();
+					dao = database.createTable(Packet.class, this);
+					break;
+				default:
+					break;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+
 	private boolean isLatestVersion() throws Exception {
 		String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='packets'").getFirstResult()[0];
-		//System.out.println(result);
-		return result.equals("CREATE TABLE `packets` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `direction` VARCHAR , `decoded_data` BLOB , `modified_data` BLOB , `sent_data` BLOB , `received_data` BLOB , `listen_port` INTEGER , `client_ip` VARCHAR , `client_port` INTEGER , `server_ip` VARCHAR , `server_name` VARCHAR , `server_port` INTEGER , `use_ssl` BOOLEAN , `content_type` VARCHAR , `encoder_name` VARCHAR , `alpn` VARCHAR , `modified` BOOLEAN , `resend` BOOLEAN , `date` BIGINT , `conn` INTEGER , `group` BIGINT , `color` VARCHAR )");
+		// System.out.println(result);
+		return result.equals(
+				"CREATE TABLE `packets` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `direction` VARCHAR , `decoded_data` BLOB , `modified_data` BLOB , `sent_data` BLOB , `received_data` BLOB , `listen_port` INTEGER , `client_ip` VARCHAR , `client_port` INTEGER , `server_ip` VARCHAR , `server_name` VARCHAR , `server_port` INTEGER , `use_ssl` BOOLEAN , `content_type` VARCHAR , `encoder_name` VARCHAR , `alpn` VARCHAR , `modified` BOOLEAN , `resend` BOOLEAN , `date` BIGINT , `conn` INTEGER , `group` BIGINT , `color` VARCHAR )");
 	}
+
 	private void RecreateTable() throws Exception {
 		int option = JOptionPane.showConfirmDialog(null,
 				"packetsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",

@@ -28,11 +28,11 @@ import packetproxy.model.ListenPort;
 import packetproxy.model.ListenPort.TYPE;
 import packetproxy.model.ListenPorts;
 
-public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort>
-{
+public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort> {
 	private GUIOptionListenPortDialog dlg;
 	private ListenPorts listenPorts;
 	private List<ListenPort> table_ext_list;
+
 	public GUIOptionListenPorts(JFrame owner) throws Exception {
 		super(owner);
 		listenPorts = ListenPorts.getInstance();
@@ -45,10 +45,10 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort>
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					int columnIndex= table.columnAtPoint(e.getPoint());
-					int rowIndex= table.rowAtPoint(e.getPoint());
+					int columnIndex = table.columnAtPoint(e.getPoint());
+					int rowIndex = table.rowAtPoint(e.getPoint());
 					if (columnIndex == 0) { /* check box area */
-						boolean enable_checkbox = (Boolean)table.getValueAt(rowIndex, 0);
+						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 0);
 						ListenPort lp = getSelectedTableContent();
 						if (enable_checkbox == true) {
 							lp.setDisabled();
@@ -115,15 +115,16 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort>
 		try {
 			String serverNullStr = "";
 			TYPE type = listenPort.getType();
-			if(type==TYPE.FORWARDER || type==TYPE.SSL_FORWARDER || type==TYPE.UDP_FORWARDER || type==TYPE.QUIC_FORWARDER)
+			if (type == TYPE.FORWARDER || type == TYPE.SSL_FORWARDER || type == TYPE.UDP_FORWARDER
+					|| type == TYPE.QUIC_FORWARDER)
 				serverNullStr = "Deleted";
 			option_model.addRow(new Object[] {
-				listenPort.isEnabled(),
+					listenPort.isEnabled(),
 					listenPort.getProtocol(),
 					listenPort.getPort(),
 					listenPort.getType(),
 					listenPort.getCA().map(ca -> ca.getName()).orElse("Error"),
-					listenPort.getServer() != null ? listenPort.getServer().toString() : serverNullStr});
+					listenPort.getServer() != null ? listenPort.getServer().toString() : serverNullStr });
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -151,10 +152,12 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort>
 		option_model.setRowCount(0);
 		table_ext_list.clear();
 	}
+
 	@Override
 	protected ListenPort getSelectedTableContent() {
 		return getTableContent(table.getSelectedRow());
 	}
+
 	@Override
 	protected ListenPort getTableContent(int rowIndex) {
 		return table_ext_list.get(rowIndex);

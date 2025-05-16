@@ -38,8 +38,7 @@ import packetproxy.model.Packet;
 import packetproxy.model.ResenderPacket;
 import packetproxy.model.ResenderPackets;
 
-public class GUIResender implements Observer
-{
+public class GUIResender implements Observer {
 	class ResendsCloseButtonTabbedPane extends CloseButtonTabbedPane {
 		@Override
 		public void removeTabAt(int index) {
@@ -111,11 +110,13 @@ public class GUIResender implements Observer
 				if (resend_index == 1) {
 					resend.setOneShotPacket(resender_packet.getOneShotPacket(), null);
 				} else {
-					ResenderPacket next_resender_packet = resender_packets.get(i+1);
+					ResenderPacket next_resender_packet = resender_packets.get(i + 1);
 					if (resender_packet.getDirection() == Packet.Direction.CLIENT) {
-						resend.setOneShotPacket(resender_packet.getOneShotPacket(), next_resender_packet.getOneShotPacket());
+						resend.setOneShotPacket(resender_packet.getOneShotPacket(),
+								next_resender_packet.getOneShotPacket());
 					} else {
-						resend.setOneShotPacket(next_resender_packet.getOneShotPacket(), resender_packet.getOneShotPacket());
+						resend.setOneShotPacket(next_resender_packet.getOneShotPacket(),
+								resender_packet.getOneShotPacket());
 					}
 					i++;
 				}
@@ -131,7 +132,7 @@ public class GUIResender implements Observer
 
 	public void addResends(OneShotPacket send_packet) throws Exception {
 		Resends resends = new Resends();
-		int resends_index = resends_indexes.size() == 0 ? 1 : resends_indexes.get(resends_indexes.size()-1) + 1;
+		int resends_index = resends_indexes.size() == 0 ? 1 : resends_indexes.get(resends_indexes.size() - 1) + 1;
 		resends_indexes.add(resends_index);
 		resends_tabs.addTab(String.valueOf(resends_index), resends.getComponent());
 		resends_tabs.setSelectedComponent(resends.getComponent());
@@ -160,7 +161,7 @@ public class GUIResender implements Observer
 
 		public Resends() {
 			resend_tabs = new ResendCloseButtonTabbedPane();
-		    main_panel = new JPanel();
+			main_panel = new JPanel();
 			main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
 			main_panel.add(resend_tabs);
 			resend_indexes = new ArrayList<Integer>();
@@ -168,7 +169,7 @@ public class GUIResender implements Observer
 
 		public void addResend(OneShotPacket send_packet, OneShotPacket recv_packet) throws Exception {
 			Resend resend = new Resend(this);
-			int resend_index = resend_indexes.size() == 0 ? 1 : resend_indexes.get(resend_indexes.size()-1) + 1;
+			int resend_index = resend_indexes.size() == 0 ? 1 : resend_indexes.get(resend_indexes.size() - 1) + 1;
 			resend_indexes.add(resend_index);
 			resend_tabs.addTab(String.valueOf(resend_index), resend.getComponent());
 			resend_tabs.setSelectedComponent(resend.getComponent());
@@ -202,7 +203,6 @@ public class GUIResender implements Observer
 			send_panel = new GUIPacketData();
 			recv_panel = new GUIPacketData();
 
-
 			send_panel.getTabs().addObserver(this);
 			split_panel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 			split_panel.setBackground(Color.WHITE);
@@ -211,9 +211,9 @@ public class GUIResender implements Observer
 			split_panel.setAlignmentX(Component.CENTER_ALIGNMENT);
 			split_panel.setResizeWeight(0.5);
 			resend_button = new JButton("send");
-			resend_button.addActionListener(new ActionListener(){
+			resend_button.addActionListener(new ActionListener() {
 				@Override
-				  public void actionPerformed(ActionEvent e) {
+				public void actionPerformed(ActionEvent e) {
 					try {
 						OneShotPacket sendPacket = send_panel.getOneShotPacket();
 						ResendController.getInstance().resend(new ResendWorker(sendPacket, 1) {
@@ -236,7 +236,7 @@ public class GUIResender implements Observer
 			});
 			send_panel.setParentSend(resend_button);
 
-		    resend_multiple_button = new JButton("send x 20");
+			resend_multiple_button = new JButton("send x 20");
 			resend_multiple_button.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -251,16 +251,16 @@ public class GUIResender implements Observer
 				}
 			});
 
-		    JPanel button_panel = new JPanel();
+			JPanel button_panel = new JPanel();
 			button_panel.add(resend_button);
 			button_panel.add(resend_multiple_button);
-		    button_panel.setMaximumSize(new Dimension(Short.MAX_VALUE, 10));
+			button_panel.setMaximumSize(new Dimension(Short.MAX_VALUE, 10));
 
-		    main_panel = new JPanel();
+			main_panel = new JPanel();
 			main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
 			main_panel.add(server_name_panel);
-		    main_panel.add(split_panel);
-		    main_panel.add(button_panel);
+			main_panel.add(split_panel);
+			main_panel.add(button_panel);
 		}
 
 		private void showLog(String log) throws Exception {
@@ -277,13 +277,13 @@ public class GUIResender implements Observer
 		}
 
 		public void rollback() throws Exception {
-			send_panel.setOneShotPacket(send_saved == null ? null : (OneShotPacket)send_saved.clone());
-			recv_panel.setOneShotPacket(recv_saved == null ? null : (OneShotPacket)recv_saved.clone());
+			send_panel.setOneShotPacket(send_saved == null ? null : (OneShotPacket) send_saved.clone());
+			recv_panel.setOneShotPacket(recv_saved == null ? null : (OneShotPacket) recv_saved.clone());
 		}
 
 		public void setOneShotPacket(OneShotPacket send_packet, OneShotPacket recv_packet) throws Exception {
-			send_saved = send_packet == null ? null : (OneShotPacket)send_packet.clone();
-			recv_saved = recv_packet == null ? null : (OneShotPacket)recv_packet.clone();
+			send_saved = send_packet == null ? null : (OneShotPacket) send_packet.clone();
+			recv_saved = recv_packet == null ? null : (OneShotPacket) recv_packet.clone();
 			send_panel.setOneShotPacket(send_packet);
 			recv_panel.setOneShotPacket(recv_packet);
 			server_name_panel.updateServerName(send_packet);
@@ -292,7 +292,7 @@ public class GUIResender implements Observer
 		@Override
 		public void update(Observable arg0, Object arg1) {
 			if (arg0.getClass() == TabSet.class) {
-				if ((int)arg1 == 2) {
+				if ((int) arg1 == 2) {
 					resend_button.setEnabled(false);
 					resend_multiple_button.setEnabled(false);
 				} else {

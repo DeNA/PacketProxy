@@ -26,8 +26,7 @@ import com.j256.ormlite.dao.Dao;
 /**
  * DAO for ClientCertificate
  */
-public class ClientCertificates extends Observable implements Observer
-{
+public class ClientCertificates extends Observable implements Observer {
 	private static ClientCertificates instance;
 
 	public static ClientCertificates getInstance() throws Exception {
@@ -36,9 +35,9 @@ public class ClientCertificates extends Observable implements Observer
 		}
 		return instance;
 	}
-	
+
 	private Database database;
-	private Dao<ClientCertificate,Integer> dao;
+	private Dao<ClientCertificate, Integer> dao;
 	private Servers servers;
 
 	private ClientCertificates() throws Exception {
@@ -49,6 +48,7 @@ public class ClientCertificates extends Observable implements Observer
 			RecreateTable();
 		}
 	}
+
 	public boolean hasCorrectSecretKey(ClientCertificate certificate) throws Exception {
 		try {
 			ClientKeyManager.setKeyManagers(certificate.getServer(), certificate.load());
@@ -57,31 +57,37 @@ public class ClientCertificates extends Observable implements Observer
 			return false;
 		}
 	}
+
 	public void create(ClientCertificate certificate) throws Exception {
 		ClientKeyManager.setKeyManagers(certificate.getServer(), certificate.load());
 		certificate.setEnabled();
 		dao.createIfNotExists(certificate);
 		notifyObservers();
 	}
+
 	public void delete(ClientCertificate certificate) throws Exception {
 		dao.delete(certificate);
 		ClientKeyManager.removeKeyManagers(certificate.getServer());
 		notifyObservers();
 	}
+
 	public void update(ClientCertificate certificate) throws Exception {
 		dao.update(certificate);
-		if(certificate.isEnabled())
+		if (certificate.isEnabled())
 			ClientKeyManager.setKeyManagers(certificate.getServer(), certificate.load());
 		else
 			ClientKeyManager.removeKeyManagers(certificate.getServer());
 		notifyObservers();
 	}
+
 	public void refresh() {
 		notifyObservers();
 	}
+
 	public ClientCertificate query(int id) throws Exception {
 		return dao.queryForId(id);
 	}
+
 	public List<ClientCertificate> queryAll() throws Exception {
 		return dao.queryBuilder().query();
 	}
@@ -98,44 +104,50 @@ public class ClientCertificates extends Observable implements Observer
 		super.notifyObservers(arg);
 		clearChanged();
 	}
+
 	@Override
 	public void addObserver(Observer observer) {
 		super.addObserver(observer);
 		servers.addObserver(observer);
 	}
+
 	@Override
 	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage)arg;
+		DatabaseMessage message = (DatabaseMessage) arg;
 		try {
 			switch (message) {
-			case PAUSE:
-				// TODO ロックを取る
-				break;
-			case RESUME:
-				// TODO ロックを解除
-				break;
-			case DISCONNECT_NOW:
-				break;
-			case RECONNECT:
-				database = Database.getInstance();
-				dao = database.createTable(ClientCertificate.class, this);
-				notifyObservers(arg);
-				break;
-			case RECREATE:
-				database = Database.getInstance();
-				dao = database.createTable(ClientCertificate.class, this);
-				break;
-			default:
-				break;
+				case PAUSE:
+					// TODO ロックを取る
+					break;
+				case RESUME:
+					// TODO ロックを解除
+					break;
+				case DISCONNECT_NOW:
+					break;
+				case RECONNECT:
+					database = Database.getInstance();
+					dao = database.createTable(ClientCertificate.class, this);
+					notifyObservers(arg);
+					break;
+				case RECREATE:
+					database = Database.getInstance();
+					dao = database.createTable(ClientCertificate.class, this);
+					break;
+				default:
+					break;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+
 	private boolean isLatestVersion() throws Exception {
-		String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='clientCertificates'").getFirstResult()[0];
-		return result.equals("CREATE TABLE `clientCertificates` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `enabled` BOOLEAN , `type` VARCHAR , `serverId` INTEGER , `subject` VARCHAR , `issuer` VARCHAR , `path` VARCHAR , `storePassword` VARCHAR , `keyPassword` VARCHAR , UNIQUE (`type`,`serverId`,`path`) )");
+		String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='clientCertificates'")
+				.getFirstResult()[0];
+		return result.equals(
+				"CREATE TABLE `clientCertificates` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `enabled` BOOLEAN , `type` VARCHAR , `serverId` INTEGER , `subject` VARCHAR , `issuer` VARCHAR , `path` VARCHAR , `storePassword` VARCHAR , `keyPassword` VARCHAR , UNIQUE (`type`,`serverId`,`path`) )");
 	}
+
 	private void RecreateTable() throws Exception {
 		int option = JOptionPane.showConfirmDialog(null,
 				"client_certificatesテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",

@@ -36,8 +36,7 @@ import javax.swing.table.DefaultTableModel;
 import packetproxy.model.SSLPassThrough;
 import packetproxy.model.SSLPassThroughs;
 
-public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrough>
-{
+public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrough> {
 	private GUIOptionSSLPassThroughDialog dlg;
 	SSLPassThroughs sslPassThroughs;
 	List<SSLPassThrough> table_ext_list;
@@ -48,16 +47,16 @@ public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrou
 		this.sslPassThroughs.addObserver(this);
 		this.table_ext_list = new ArrayList<SSLPassThrough>();
 
-		String[] menu = { "Enabled", "Server Name", "Applied Listen Port"};
+		String[] menu = { "Enabled", "Server Name", "Applied Listen Port" };
 		int[] menuWidth = { 80, 570, 150 };
 		MouseAdapter tableAction = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					int columnIndex= table.columnAtPoint(e.getPoint());
-					int rowIndex= table.rowAtPoint(e.getPoint());
+					int columnIndex = table.columnAtPoint(e.getPoint());
+					int rowIndex = table.rowAtPoint(e.getPoint());
 					if (columnIndex == 0) { /* check box area */
-						boolean enable_checkbox = (Boolean)table.getValueAt(rowIndex, 0);
+						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 0);
 						SSLPassThrough ssl = getSelectedTableContent();
 						if (enable_checkbox == true) {
 							ssl.setDisabled();
@@ -123,7 +122,7 @@ public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrou
 		table_ext_list.add(ssl);
 		try {
 			option_model.addRow(new Object[] {
-				ssl.isEnabled(),
+					ssl.isEnabled(),
 					ssl.getServerName(),
 					(ssl.getListenPort() == SSLPassThrough.ALL_PORTS) ? "*" : ssl.getListenPort()
 			});

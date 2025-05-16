@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -38,8 +39,7 @@ import packetproxy.common.I18nString;
 import packetproxy.common.FontManager;
 import packetproxy.model.OptionTableModel;
 
-public abstract class GUIOptionComponentBase<T> implements Observer
-{
+public abstract class GUIOptionComponentBase<T> implements Observer {
 	protected JFrame owner;
 	protected OptionTableModel option_model;
 	protected JTable table;
@@ -54,11 +54,15 @@ public abstract class GUIOptionComponentBase<T> implements Observer
 		return jcomponent;
 	}
 
-	protected JComponent createComponent(String[] menu, int[] menuWidth, MouseAdapter tableAction, ActionListener addAction, ActionListener editAction, ActionListener removeAction) throws Exception {
+	protected JComponent createComponent(String[] menu, int[] menuWidth, MouseAdapter tableAction,
+			ActionListener addAction, ActionListener editAction, ActionListener removeAction) throws Exception {
 		option_model = new OptionTableModel(menu, 0) {
 			private static final long serialVersionUID = 1L;
+
 			@Override
-			public boolean isCellEditable(int row, int column) { return false; }
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
 		};
 
 		JPanel panel = new JPanel();
@@ -86,48 +90,51 @@ public abstract class GUIOptionComponentBase<T> implements Observer
 		return panel;
 	}
 
-	protected JComponent createComponentForServers(String[] menu, int[] menuWidth, MouseAdapter tableAction, ActionListener addAction, ActionListener editAction, ActionListener removeAction) throws Exception {
+	protected JComponent createComponentForServers(String[] menu, int[] menuWidth, MouseAdapter tableAction,
+			ActionListener addAction, ActionListener editAction, ActionListener removeAction) throws Exception {
 		option_model = new OptionTableModel(menu, 0) {
 			private static final long serialVersionUID = 1L;
+
 			@Override
-			public boolean isCellEditable(int row, int column) { return false; }
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
 		};
-	
+
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
 		HintTextField filterText = new HintTextField(I18nString.get("Incremental Search for Host"));
 		filterText.setMinimumSize(new Dimension(800, 30));
 		filterText.setMaximumSize(new Dimension(800, 30));
-		
+
 		TableRowSorter<OptionTableModel> sorter = new TableRowSorter<OptionTableModel>(option_model);
-		
+
 		filterText.getDocument().addDocumentListener(new DocumentListener() {
 
-		  @Override
-		  public void insertUpdate(DocumentEvent e) {
-			handleUpdate();
-		  }
-
-		  @Override
-		  public void removeUpdate(DocumentEvent e) {        
-			handleUpdate();
-		  }
-
-		  @Override
-		  public void changedUpdate(DocumentEvent e) {
-			handleUpdate();
-		  }
-			  
-		  void handleUpdate() {
-			RowFilter<OptionTableModel, Object> filter = null;
-			try {
-			  filter = RowFilter.regexFilter(filterText.getText(), 0);
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				handleUpdate();
 			}
-			catch(Exception ex) {
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				handleUpdate();
 			}
-			sorter.setRowFilter(filter);
-		  }
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				handleUpdate();
+			}
+
+			void handleUpdate() {
+				RowFilter<OptionTableModel, Object> filter = null;
+				try {
+					filter = RowFilter.regexFilter(filterText.getText(), 0);
+				} catch (Exception ex) {
+				}
+				sorter.setRowFilter(filter);
+			}
 		});
 
 		table = new JTable(option_model);
@@ -140,7 +147,7 @@ public abstract class GUIOptionComponentBase<T> implements Observer
 
 		table.setRowSorter(sorter);
 		table.setModel(option_model);
-		
+
 		CustomScrollPane scrollpane1 = new CustomScrollPane();
 		scrollpane1.setViewportView(table);
 		scrollpane1.setBackground(Color.WHITE);
@@ -154,14 +161,13 @@ public abstract class GUIOptionComponentBase<T> implements Observer
 		sub_panel.add(filterText);
 		sub_panel.setAlignmentY(Component.TOP_ALIGNMENT);
 		sub_panel.setBackground(Color.WHITE);
-		
+
 		panel.add(createTableButton(addAction, editAction, removeAction));
 		panel.add(sub_panel);
 		panel.setBackground(Color.WHITE);
 		panel.setMaximumSize(new Dimension(Short.MAX_VALUE, panel.getMinimumSize().height));
 		return panel;
 	}
-
 
 	private JPanel createTableButton(ActionListener addAction, ActionListener editAction, ActionListener removeAction) {
 		JPanel panel = new JPanel();
@@ -172,21 +178,21 @@ public abstract class GUIOptionComponentBase<T> implements Observer
 
 		int height = button_add.getMinimumSize().height;
 
-		button_add.setMaximumSize(new Dimension(100,height));
-		button_edit.setMaximumSize(new Dimension(100,height));
-		button_remove.setMaximumSize(new Dimension(100,height));
+		button_add.setMaximumSize(new Dimension(100, height));
+		button_edit.setMaximumSize(new Dimension(100, height));
+		button_remove.setMaximumSize(new Dimension(100, height));
 
-		if(null!=addAction) {
+		if (null != addAction) {
 			panel.add(button_add);
 			button_add.addActionListener(addAction);
 		}
 
-		if(null!=editAction) {
+		if (null != editAction) {
 			panel.add(button_edit);
 			button_edit.addActionListener(editAction);
 		}
 
-		if(null!=removeAction) {
+		if (null != removeAction) {
 			panel.add(button_remove);
 			button_remove.addActionListener(removeAction);
 		}
@@ -204,9 +210,14 @@ public abstract class GUIOptionComponentBase<T> implements Observer
 	}
 
 	protected abstract void clearTableContents();
+
 	protected abstract T getTableContent(int rowIndex);
+
 	protected abstract T getSelectedTableContent();
+
 	protected abstract void addTableContent(T t);
+
 	protected abstract void updateTable(List<T> t);
+
 	protected abstract void updateImpl();
 }

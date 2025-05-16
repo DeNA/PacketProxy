@@ -30,8 +30,7 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
-public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCertificate>
-{
+public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCertificate> {
 	private GUIOptionClientCertificateDialog dlg;
 	private ClientCertificates clientCertificates;
 	private List<ClientCertificate> table_ext_list;
@@ -42,8 +41,8 @@ public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCer
 		clientCertificates.addObserver(this);
 		table_ext_list = new ArrayList<>();
 
-		String[] menu = {"Enabled", "Type", "Host", "Subject(CN)", "Issuer"};
-		int[] menuWidth = {50, 50, 200, 100, 350};
+		String[] menu = { "Enabled", "Type", "Host", "Subject(CN)", "Issuer" };
+		int[] menuWidth = { 50, 50, 200, 100, 350 };
 
 		MouseAdapter tableAction = new MouseAdapter() {
 			@Override
@@ -115,8 +114,8 @@ public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCer
 	protected void addTableContent(ClientCertificate certificate) {
 		table_ext_list.add(certificate);
 		try {
-			option_model.addRow(new Object[]{
-				certificate.isEnabled(),
+			option_model.addRow(new Object[] {
+					certificate.isEnabled(),
 					certificate.getType().getText(),
 					certificate.getServerName(),
 					certificate.getSubject(),
