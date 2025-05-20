@@ -37,7 +37,7 @@ public class GUIOptionIntercepts extends GUIOptionComponentBase<InterceptOption>
 	public GUIOptionIntercepts(JFrame owner) throws Exception {
 		super(owner);
 		intercept_options = InterceptOptions.getInstance();
-		intercept_options.addObserver(this);
+		intercept_options.addPropertyChangeListener(this);
 		table_ext_list = new ArrayList<InterceptOption>();
 
 		String[] menu = { "Enabled", "Direction", "Action and Condition", "Type", "Pattern", "Target Server" };

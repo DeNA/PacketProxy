@@ -18,14 +18,18 @@ package packetproxy.model;
 import com.j256.ormlite.dao.Dao;
 import packetproxy.model.Database.DatabaseMessage;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
+import static packetproxy.model.PropertyChangeEventType.CHARSET_UPDATED;
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 
-public class CharSets extends Observable implements Observer {
+public class CharSets implements PropertyChangeListener {
 
 	private static CharSets instance;
+	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
 	private List<String> defaultCharSetList = Arrays
 			.asList(new String[] { "UTF-8", "Shift_JIS", "x-euc-jp-linux", "ISO-2022-JP", "ISO-8859-1" });
 
@@ -54,14 +58,22 @@ public class CharSets extends Observable implements Observer {
 		dao = database.createTable(CharSet.class, this);
 	}
 
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		pcs.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		pcs.removePropertyChangeListener(listener);
+	}
+
 	public void create(CharSet charset) throws Exception {
 		dao.createIfNotExists(charset);
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void delete(CharSet charset) throws Exception {
 		dao.delete(charset);
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public CharSet queryByString(String str) throws Exception {
@@ -90,25 +102,26 @@ public class CharSets extends Observable implements Observer {
 	public void update(List<CharSet> charsets) throws Exception {
 		for (CharSet charset : charsets) {
 			dao.update(charset);
-			notifyObservers();
+			firePropertyChange();
 		}
 	}
 
 	public void update(CharSet charset) throws Exception {
 		dao.update(charset);
-		notifyObservers();
+		firePropertyChange();
+	}
+
+	private void firePropertyChange() {
+		pcs.firePropertyChange(CHARSET_UPDATED.toString(), null, null);
 	}
 
 	@Override
-	public void notifyObservers(Object arg) {
-		setChanged();
-		super.notifyObservers(arg);
-		clearChanged();
-	}
+	public void propertyChange(java.beans.PropertyChangeEvent evt) {
+		if (!(evt.getSource() instanceof Database)) {
+			return;
+		}
 
-	@Override
-	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage) arg;
+		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
 			switch (message) {
 				case PAUSE:
@@ -122,7 +135,7 @@ public class CharSets extends Observable implements Observer {
 				case RECONNECT:
 					database = Database.getInstance();
 					dao = database.createTable(CharSet.class, this);
-					notifyObservers(arg);
+					firePropertyChange();
 					break;
 				case RECREATE:
 					database = Database.getInstance();

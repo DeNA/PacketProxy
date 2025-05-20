@@ -22,13 +22,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -67,7 +69,7 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 		super(owner);
 		this.openVPN = OpenVPN.getInstance();
 		this.openVPNForwardPorts = OpenVPNForwardPorts.getInstance();
-		this.openVPNForwardPorts.addObserver(this);
+		this.openVPNForwardPorts.addPropertyChangeListener(this);
 		this.table_ext_list = new ArrayList<OpenVPNForwardPort>();
 
 		String[] menu = { "Proto", "src port", "dst port" };
@@ -304,12 +306,6 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	@Override
-	public void update(Observable o, Object arg) {
-		updateImpl();
-		updateState();
 	}
 
 	private String getLocalIP() throws Exception {

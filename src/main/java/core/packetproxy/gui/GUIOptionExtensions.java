@@ -19,6 +19,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,14 +29,14 @@ import javax.swing.JFrame;
 import packetproxy.model.Extension;
 import packetproxy.model.Extensions;
 
-public class GUIOptionExtensions extends GUIOptionComponentBase<Extension> {
+public class GUIOptionExtensions extends GUIOptionComponentBase<Extension> implements PropertyChangeListener {
     Extensions extensions;
     List<Extension> table_ext_list;
 
     public GUIOptionExtensions(JFrame owner) throws Exception {
         super(owner);
         extensions = Extensions.getInstance();
-        extensions.addObserver(this);
+        extensions.addPropertyChangeListener(this);
         table_ext_list = new ArrayList<Extension>();
 
         String[] menu = { "Enabled", "Name", "Path" };
@@ -153,5 +155,10 @@ public class GUIOptionExtensions extends GUIOptionComponentBase<Extension> {
     @Override
     protected Extension getTableContent(int rowIndex) {
         return table_ext_list.get(rowIndex);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        updateImpl();
     }
 }

@@ -23,8 +23,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -43,7 +41,7 @@ public class GUIOptionResolutions extends GUIOptionComponentBase<Resolution> {
 	public GUIOptionResolutions(JFrame owner) throws Exception {
 		super(owner);
 		this.resolutions = Resolutions.getInstance();
-		this.resolutions.addObserver(this);
+		this.resolutions.addPropertyChangeListener(this);
 		this.table_ext_list = new ArrayList<Resolution>();
 		String[] menu = { "IP Addr", "Host", "Override", "Comment" };
 		int[] menuWidth = { 200, 200, 50, 100 };

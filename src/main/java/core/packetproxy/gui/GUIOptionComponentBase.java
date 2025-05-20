@@ -20,9 +20,9 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -39,7 +39,7 @@ import packetproxy.common.I18nString;
 import packetproxy.common.FontManager;
 import packetproxy.model.OptionTableModel;
 
-public abstract class GUIOptionComponentBase<T> implements Observer {
+public abstract class GUIOptionComponentBase<T> implements PropertyChangeListener {
 	protected JFrame owner;
 	protected OptionTableModel option_model;
 	protected JTable table;
@@ -205,7 +205,7 @@ public abstract class GUIOptionComponentBase<T> implements Observer {
 	}
 
 	@Override
-	public void update(Observable arg0, Object arg1) {
+	public void propertyChange(PropertyChangeEvent evt) {
 		updateImpl();
 	}
 

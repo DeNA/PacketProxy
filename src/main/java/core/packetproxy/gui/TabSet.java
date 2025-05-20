@@ -16,7 +16,13 @@
 package packetproxy.gui;
 
 import java.awt.BorderLayout;
-import java.util.Observable;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.EventObject;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -28,8 +34,10 @@ import javax.swing.event.ChangeListener;
 import packetproxy.common.Range;
 import packetproxy.util.PacketProxyUtility;
 import packetproxy.util.SearchBox;
+import static packetproxy.model.PropertyChangeEventType.SELECTED_INDEX;
 
-public class TabSet extends Observable {
+public class TabSet {
+	private PropertyChangeSupport changes = new PropertyChangeSupport(this);
 	private JPanel basePanel;
 	private JTabbedPane data_pane;
 	private GUIHistoryRaw raw_panel;
@@ -145,6 +153,14 @@ public class TabSet extends Observable {
 		this.parentSend = parentSend;
 	}
 
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		changes.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		changes.removePropertyChangeListener(listener);
+	}
+
 	private void update() {
 		if (data == null) {
 			return;
@@ -190,13 +206,10 @@ public class TabSet extends Observable {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		notifyObservers(getSelectedIndex());
+		firePropertyChange(getSelectedIndex());
 	}
 
-	@Override
-	public void notifyObservers(Object arg) {
-		setChanged();
-		super.notifyObservers(arg);
-		clearChanged();
+	public void firePropertyChange(Object newValue) {
+		changes.firePropertyChange(SELECTED_INDEX.toString(), null, newValue);
 	}
 }

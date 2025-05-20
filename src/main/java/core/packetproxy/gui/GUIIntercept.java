@@ -19,9 +19,9 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Arrays;
-import java.util.Observable;
-import java.util.Observer;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -41,7 +41,7 @@ import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 import packetproxy.util.PacketProxyUtility;
 
-public class GUIIntercept implements Observer {
+public class GUIIntercept implements PropertyChangeListener {
 	private JFrame owner;
 	private JButton forward_button;
 	private JButton forward_multi_button;
@@ -60,7 +60,7 @@ public class GUIIntercept implements Observer {
 		this.owner = owner;
 		this.intercept_controller = InterceptController.getInstance();
 		this.interceptModel = InterceptModel.getInstance();
-		this.interceptModel.addObserver(this);
+		this.interceptModel.addPropertyChangeListener(this);
 	}
 
 	public JComponent createPanel() throws Exception {
@@ -221,7 +221,7 @@ public class GUIIntercept implements Observer {
 	}
 
 	@Override
-	public void update(Observable arg0, Object arg1) {
+	public void propertyChange(PropertyChangeEvent evt) {
 		try {
 			if (interceptModel.isInterceptEnabled() == true) {
 				forward_enable.setText("intercept is on");

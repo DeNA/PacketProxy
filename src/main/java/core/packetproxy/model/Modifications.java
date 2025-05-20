@@ -16,15 +16,19 @@
 package packetproxy.model;
 
 import com.j256.ormlite.dao.Dao;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 import javax.swing.JOptionPane;
 import packetproxy.model.DaoQueryCache;
 import packetproxy.model.Database.DatabaseMessage;
+import static packetproxy.model.PropertyChangeEventType.MODIFICATIONS_UPDATED;
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 
-public class Modifications extends Observable implements Observer {
+public class Modifications implements PropertyChangeListener {
 	private static Modifications instance;
+	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 	public static Modifications getInstance() throws Exception {
 		if (instance == null) {
@@ -48,32 +52,42 @@ public class Modifications extends Observable implements Observer {
 		}
 	}
 
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		pcs.addPropertyChangeListener(listener);
+		servers.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		pcs.removePropertyChangeListener(listener);
+		servers.removePropertyChangeListener(listener);
+	}
+
 	public void create(Modification modification) throws Exception {
 		dao.createIfNotExists(modification);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void delete(int id) throws Exception {
 		dao.deleteById(id);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void delete(Modification modification) throws Exception {
 		dao.delete(modification);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void update(Modification modification) throws Exception {
 		dao.update(modification);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void refresh() {
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public Modification query(int id) throws Exception {
@@ -141,22 +155,17 @@ public class Modifications extends Observable implements Observer {
 		return data;
 	}
 
-	@Override
-	public void notifyObservers(Object arg) {
-		setChanged();
-		super.notifyObservers(arg);
-		clearChanged();
+	private void firePropertyChange() {
+		pcs.firePropertyChange(MODIFICATIONS_UPDATED.toString(), null, null);
 	}
 
 	@Override
-	public void addObserver(Observer observer) {
-		super.addObserver(observer);
-		servers.addObserver(observer);
-	}
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (!(evt.getSource() instanceof Database)) {
+			return;
+		}
 
-	@Override
-	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage) arg;
+		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
 			switch (message) {
 				case PAUSE:
@@ -171,7 +180,7 @@ public class Modifications extends Observable implements Observer {
 					database = Database.getInstance();
 					dao = database.createTable(Modification.class, this);
 					cache.clear();
-					notifyObservers(arg);
+					firePropertyChange();
 					break;
 				case RECREATE:
 					database = Database.getInstance();

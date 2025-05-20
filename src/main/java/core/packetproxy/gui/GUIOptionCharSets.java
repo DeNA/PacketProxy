@@ -34,7 +34,7 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet> {
 	public GUIOptionCharSets(JFrame owner) throws Exception {
 		super(owner);
 		charsets = CharSets.getInstance();
-		charsets.addObserver(this);
+		charsets.addPropertyChangeListener(this);
 		charsets_list = new ArrayList<CharSet>();
 		String[] menu = { "CharSetName" };
 		int[] menuWidth = { 200, 80, 50, 160, 60, 60, 100 };

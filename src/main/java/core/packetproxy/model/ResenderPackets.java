@@ -1,8 +1,9 @@
 package packetproxy.model;
 
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.beans.PropertyChangeEvent;
 
 import javax.swing.JOptionPane;
 
@@ -10,9 +11,12 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.DeleteBuilder;
 
 import packetproxy.model.Database.DatabaseMessage;
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+import static packetproxy.model.PropertyChangeEventType.RESENDER_PACKETS;
 
-public class ResenderPackets extends Observable implements Observer {
+public class ResenderPackets implements PropertyChangeListener {
 	private static ResenderPackets instance;
+	private PropertyChangeSupport changes = new PropertyChangeSupport(this);
 
 	public static ResenderPackets getInstance() throws Exception {
 		if (instance == null) {
@@ -60,16 +64,25 @@ public class ResenderPackets extends Observable implements Observer {
 		return dao.queryBuilder().orderBy("resends_index", true).orderBy("resend_index", true).query();
 	}
 
-	@Override
-	public void notifyObservers(Object arg) {
-		setChanged();
-		super.notifyObservers(arg);
-		clearChanged();
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		changes.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		changes.removePropertyChangeListener(listener);
+	}
+
+	public void firePropertyChange(Object newValue) {
+		changes.firePropertyChange(RESENDER_PACKETS.toString(), null, newValue);
 	}
 
 	@Override
-	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage) arg;
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (!DATABASE_MESSAGE.matches(evt)) {
+			return;
+		}
+
+		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
 			switch (message) {
 				case PAUSE:
@@ -83,7 +96,7 @@ public class ResenderPackets extends Observable implements Observer {
 				case RECONNECT:
 					database = Database.getInstance();
 					dao = database.createTable(ResenderPacket.class, this);
-					notifyObservers(arg);
+					firePropertyChange(message);
 					break;
 				case RECREATE:
 					database = Database.getInstance();

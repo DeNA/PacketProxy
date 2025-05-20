@@ -20,10 +20,10 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -37,8 +37,10 @@ import packetproxy.model.OneShotPacket;
 import packetproxy.model.Packet;
 import packetproxy.model.ResenderPacket;
 import packetproxy.model.ResenderPackets;
+import static packetproxy.model.PropertyChangeEventType.RESENDER_PACKETS;
+import static packetproxy.model.PropertyChangeEventType.SELECTED_INDEX;
 
-public class GUIResender implements Observer {
+public class GUIResender implements PropertyChangeListener {
 	class ResendsCloseButtonTabbedPane extends CloseButtonTabbedPane {
 		@Override
 		public void removeTabAt(int index) {
@@ -72,12 +74,16 @@ public class GUIResender implements Observer {
 		main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
 		main_panel.add(resends_tabs);
 		resends_indexes = new ArrayList<Integer>();
-		ResenderPackets.getInstance().addObserver(this);
+		ResenderPackets.getInstance().addPropertyChangeListener(this);
 		loadResenderPackets();
 	}
 
 	@Override
-	public void update(Observable arg0, Object arg1) {
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (!RESENDER_PACKETS.matches(evt)) {
+			return;
+		}
+
 		main_panel.remove(resends_tabs);
 		resends_tabs = new ResendsCloseButtonTabbedPane();
 		main_panel.add(resends_tabs);
@@ -187,7 +193,7 @@ public class GUIResender implements Observer {
 		}
 	}
 
-	class Resend implements Observer {
+	class Resend implements PropertyChangeListener {
 		private GUIServerNamePanel server_name_panel;
 		private OneShotPacket send_saved;
 		private OneShotPacket recv_saved;
@@ -203,7 +209,7 @@ public class GUIResender implements Observer {
 			send_panel = new GUIPacketData();
 			recv_panel = new GUIPacketData();
 
-			send_panel.getTabs().addObserver(this);
+			send_panel.getTabs().addPropertyChangeListener(this);
 			split_panel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 			split_panel.setBackground(Color.WHITE);
 			split_panel.add(send_panel.createPanel());
@@ -290,15 +296,18 @@ public class GUIResender implements Observer {
 		}
 
 		@Override
-		public void update(Observable arg0, Object arg1) {
-			if (arg0.getClass() == TabSet.class) {
-				if ((int) arg1 == 2) {
-					resend_button.setEnabled(false);
-					resend_multiple_button.setEnabled(false);
-				} else {
-					resend_button.setEnabled(true);
-					resend_multiple_button.setEnabled(true);
-				}
+		public void propertyChange(PropertyChangeEvent evt) {
+			if (!(evt.getSource() instanceof TabSet) || !SELECTED_INDEX.matches(evt)) {
+				return;
+			}
+
+			int selectedIndex = (int) evt.getNewValue();
+			if (selectedIndex == 2) {
+				resend_button.setEnabled(false);
+				resend_multiple_button.setEnabled(false);
+			} else {
+				resend_button.setEnabled(true);
+				resend_multiple_button.setEnabled(true);
 			}
 		}
 	}

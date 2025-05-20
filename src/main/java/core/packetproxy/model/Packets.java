@@ -19,15 +19,19 @@ import com.j256.ormlite.dao.Dao;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
+import java.beans.PropertyChangeSupport;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 import javax.swing.JOptionPane;
 import packetproxy.common.Logger;
 import packetproxy.model.Database.DatabaseMessage;
 import packetproxy.util.PacketProxyUtility;
+import static packetproxy.model.PropertyChangeEventType.PACKETS;
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 
-public class Packets extends Observable implements Observer {
+public class Packets implements PropertyChangeListener {
 	private static Packets instance;
+	private PropertyChangeSupport changes = new PropertyChangeSupport(this);
 
 	public static Packets getInstance(boolean restore) throws Exception {
 		if (instance == null) {
@@ -44,6 +48,14 @@ public class Packets extends Observable implements Observer {
 		return instance;
 	}
 
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		changes.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		changes.removePropertyChangeListener(listener);
+	}
+
 	private PacketProxyUtility util;
 	private Database database;
 	private Dao<Packet, Integer> dao;
@@ -52,11 +64,12 @@ public class Packets extends Observable implements Observer {
 	private Packets(boolean restore) throws Exception {
 		util = PacketProxyUtility.getInstance();
 		database = Database.getInstance();
+		database.addPropertyChangeListener(this);
 		if (!restore) {
 			util.packetProxyLog("drop history...");
 			database.dropPacketTableFaster();
 		}
-		dao = database.createTable(Packet.class, this);
+		dao = database.createTable(Packet.class);
 		if (restore) {
 			if (!isLatestVersion()) {
 				RecreateTable();
@@ -72,25 +85,25 @@ public class Packets extends Observable implements Observer {
 		synchronized (dao) {
 			dao.createIfNotExists(packet);
 		}
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void refresh() {
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void updateSync(Packet packet) throws Exception {
 		if (database.isAlertFileSize()) {
-			notifyObservers(true);
+			firePropertyChange(true);
 		}
 		Dao.CreateOrUpdateStatus status;
 		synchronized (dao) {
 			status = dao.createOrUpdate(packet);
 		}
 		if (status.isCreated()) {
-			notifyObservers(packet.getId() * -1);
+			firePropertyChange(packet.getId() * -1);
 		} else {
-			notifyObservers(packet.getId());
+			firePropertyChange(packet.getId());
 		}
 	}
 
@@ -111,14 +124,14 @@ public class Packets extends Observable implements Observer {
 		synchronized (dao) {
 			dao.deleteBuilder().delete();
 		}
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void delete(Packet packet) throws Exception {
 		synchronized (dao) {
 			dao.delete(packet);
 		}
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public long countOf() throws Exception {
@@ -172,11 +185,12 @@ public class Packets extends Observable implements Observer {
 				.like("decoded_data", String.format("%%%s%%", search)).query();
 	}
 
-	@Override
-	public void notifyObservers(Object arg) {
-		setChanged();
-		super.notifyObservers(arg);
-		clearChanged();
+	public void firePropertyChange() {
+		changes.firePropertyChange(PACKETS.toString(), null, null);
+	}
+
+	public void firePropertyChange(Object arg) {
+		changes.firePropertyChange(PACKETS.toString(), null, arg);
 	}
 
 	public String outputAllPackets(String filename) throws Exception {
@@ -188,9 +202,7 @@ public class Packets extends Observable implements Observer {
 		return dao.queryBuilder().limit(1L).query().isEmpty();
 	}
 
-	@Override
-	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage) arg;
+	public void handleDatabaseMessage(DatabaseMessage message) {
 		try {
 			switch (message) {
 				case PAUSE:
@@ -203,18 +215,18 @@ public class Packets extends Observable implements Observer {
 					break;
 				case RECONNECT:
 					database = Database.getInstance();
-					dao = database.createTable(Packet.class, this);
+					dao = database.createTable(Packet.class);
 					// ファイル読み込み時にpacketsテーブルの中にcolorカラムがなかったら追加する
 					String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='packets'")
 							.getFirstResult()[0];
 					if (!result.contains("`color` VARCHAR")) {
 						dao.executeRaw("ALTER TABLE `packets` ADD COLUMN color VARCHAR");
 					}
-					notifyObservers(arg);
+					firePropertyChange(message);
 					break;
 				case RECREATE:
 					database = Database.getInstance();
-					dao = database.createTable(Packet.class, this);
+					dao = database.createTable(Packet.class);
 					break;
 				default:
 					break;
@@ -238,7 +250,15 @@ public class Packets extends Observable implements Observer {
 				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 		if (option == JOptionPane.YES_OPTION) {
 			database.dropTable(Packet.class);
-			dao = database.createTable(Packet.class, this);
+			dao = database.createTable(Packet.class);
+		}
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (DATABASE_MESSAGE.toString().equals(evt.getPropertyName())) {
+			DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
+			handleDatabaseMessage(message);
 		}
 	}
 }

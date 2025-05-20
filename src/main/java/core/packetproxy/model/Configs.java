@@ -17,14 +17,18 @@ package packetproxy.model;
 
 import com.j256.ormlite.dao.Dao;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
+import java.beans.PropertyChangeSupport;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 import packetproxy.model.DaoQueryCache;
 import packetproxy.model.Database.DatabaseMessage;
+import static packetproxy.model.PropertyChangeEventType.CONFIGS;
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 
-public class Configs extends Observable implements Observer {
+public class Configs implements PropertyChangeListener {
 
 	private static Configs instance;
+	private PropertyChangeSupport changes = new PropertyChangeSupport(this);
 
 	public static Configs getInstance() throws Exception {
 		if (instance == null) {
@@ -46,13 +50,13 @@ public class Configs extends Observable implements Observer {
 	public void create(Config config) throws Exception {
 		dao.createIfNotExists(config);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange(CONFIGS.toString(), null, null);
 	}
 
 	public void delete(Config config) throws Exception {
 		dao.delete(config);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange(CONFIGS.toString(), null, null);
 	}
 
 	public Config query(String key) throws Exception {
@@ -82,19 +86,28 @@ public class Configs extends Observable implements Observer {
 	public void update(Config config) throws Exception {
 		dao.update(config);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange(CONFIGS.toString(), null, null);
+	}
+
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		changes.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		changes.removePropertyChangeListener(listener);
+	}
+
+	public void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
+		changes.firePropertyChange(propertyName, oldValue, newValue);
 	}
 
 	@Override
-	public void notifyObservers(Object arg) {
-		setChanged();
-		super.notifyObservers(arg);
-		clearChanged();
-	}
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (!DATABASE_MESSAGE.matches(evt)) {
+			return;
+		}
 
-	@Override
-	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage) arg;
+		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
 			switch (message) {
 				case PAUSE:
@@ -110,7 +123,7 @@ public class Configs extends Observable implements Observer {
 					database = Database.getInstance();
 					dao = database.createTable(Config.class, this);
 					cache.clear();
-					notifyObservers(arg);
+					firePropertyChange(CONFIGS.toString(), null, message);
 					break;
 				case RECREATE:
 					database = Database.getInstance();

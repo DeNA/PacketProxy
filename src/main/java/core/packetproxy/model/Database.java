@@ -21,8 +21,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Observable;
-import java.util.Observer;
+import java.beans.PropertyChangeSupport;
+import java.beans.PropertyChangeListener;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
@@ -33,9 +33,11 @@ import com.j256.ormlite.support.DatabaseConnection;
 import com.j256.ormlite.table.TableUtils;
 
 import packetproxy.util.PacketProxyUtility;
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 
-public class Database extends Observable {
+public class Database {
 	private static Database instance;
+	private PropertyChangeSupport changes = new PropertyChangeSupport(this);
 
 	public static Database getInstance() throws Exception {
 		if (instance == null) {
@@ -74,31 +76,29 @@ public class Database extends Observable {
 		conn.executeStatement("pragma auto_vacuum = full", DatabaseConnection.DEFAULT_RESULT_FLAGS);
 	}
 
-	public <T, ID> Dao<T, ID> createTable(Class<T> c, Observer observer) throws Exception {
-		addObserver(observer);
+	public <T, ID> Dao<T, ID> createTable(Class<T> c, PropertyChangeListener listener) throws Exception {
+		addPropertyChangeListener(listener);
+		return createTable(c);
+	}
+
+	public <T, ID> Dao<T, ID> createTable(Class<T> c) throws Exception {
 		TableUtils.createTableIfNotExists(source, c);
 		Dao<T, ID> dao = DaoManager.createDao(source, c);
 		return dao;
 	}
 
 	public void dropFilters() throws Exception {
-		setChanged();
-		notifyObservers(DatabaseMessage.DISCONNECT_NOW);
-		clearChanged();
+		firePropertyChange(DatabaseMessage.DISCONNECT_NOW);
 
 		dropTable(Filter.class);
 
 		createTable(Filter.class, Filters.getInstance());
 
-		setChanged();
-		notifyObservers(DatabaseMessage.RECONNECT);
-		clearChanged();
+		firePropertyChange(DatabaseMessage.RECONNECT);
 	}
 
 	public void dropConfigs() throws Exception {
-		setChanged();
-		notifyObservers(DatabaseMessage.DISCONNECT_NOW);
-		clearChanged();
+		firePropertyChange(DatabaseMessage.DISCONNECT_NOW);
 
 		dropTable(ListenPort.class);
 		dropTable(Server.class);
@@ -110,22 +110,17 @@ public class Database extends Observable {
 		createTable(Modification.class, Modifications.getInstance());
 		createTable(SSLPassThrough.class, SSLPassThroughs.getInstance());
 
-		setChanged();
-		notifyObservers(DatabaseMessage.RECONNECT);
-		clearChanged();
+		firePropertyChange(DatabaseMessage.RECONNECT);
 	}
 
 	public void dropPacketTableFaster() throws Exception {
 		Path src = Paths.get(instance.databasePath.getParent().toAbsolutePath().toString() + "/tmp.sqlite3");
 		Path dst = instance.databasePath.toAbsolutePath();
-		setChanged();
-		notifyObservers(DatabaseMessage.DISCONNECT_NOW);
+		firePropertyChange(DatabaseMessage.DISCONNECT_NOW);
 		DatabaseConnection conn = source.getReadWriteConnection();
 		conn.close();
 		Files.move(dst, src, StandardCopyOption.REPLACE_EXISTING);
-		clearChanged();
 
-		setChanged();
 		createDB();
 		createTable(Filter.class, Filters.getInstance());
 		createTable(ListenPort.class, ListenPorts.getInstance());
@@ -137,11 +132,10 @@ public class Database extends Observable {
 		createTable(SSLPassThrough.class, SSLPassThroughs.getInstance());
 		createTable(CharSet.class, CharSets.getInstance());
 		createTable(ResenderPacket.class, ResenderPackets.getInstance());
-		notifyObservers(DatabaseMessage.RECREATE);
+		firePropertyChange(DatabaseMessage.RECREATE);
 
 		migrateTableWithoutHistory(src, dst);
-		notifyObservers(DatabaseMessage.RECONNECT);
-		clearChanged();
+		firePropertyChange(DatabaseMessage.RECONNECT);
 		Files.delete(src);
 	}
 
@@ -194,11 +188,16 @@ public class Database extends Observable {
 		source.close();
 	}
 
-	@Override
-	public void notifyObservers(Object arg) {
-		setChanged();
-		super.notifyObservers(arg);
-		clearChanged();
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		changes.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		changes.removePropertyChangeListener(listener);
+	}
+
+	private void firePropertyChange(DatabaseMessage message) {
+		changes.firePropertyChange(DATABASE_MESSAGE.toString(), null, message);
 	}
 
 	public enum DatabaseMessage {
@@ -211,23 +210,17 @@ public class Database extends Observable {
 
 	// TODO 保存中にファイルが更新されない様にする
 	public void Save(String path) throws Exception {
-		setChanged();
-		notifyObservers(DatabaseMessage.PAUSE);
-		clearChanged();
+		firePropertyChange(DatabaseMessage.PAUSE);
 
 		Path src = databasePath;
 		Path dest = FileSystems.getDefault().getPath(path);
 		Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
 
-		setChanged();
-		notifyObservers(DatabaseMessage.RESUME);
-		clearChanged();
+		firePropertyChange(DatabaseMessage.RESUME);
 	}
 
 	public void Load(String path) throws Exception {
-		setChanged();
-		notifyObservers(DatabaseMessage.DISCONNECT_NOW);
-		clearChanged();
+		firePropertyChange(DatabaseMessage.DISCONNECT_NOW);
 		source.close();
 
 		Path src = FileSystems.getDefault().getPath(path);
@@ -236,15 +229,11 @@ public class Database extends Observable {
 		databasePath = dest;
 		source = new JdbcConnectionSource(getDatabaseURL());
 
-		setChanged();
-		notifyObservers(DatabaseMessage.RECONNECT);
-		clearChanged();
+		firePropertyChange(DatabaseMessage.RECONNECT);
 	}
 
 	public void saveWithoutLog(String path) throws Exception {
-		setChanged();
-		notifyObservers(DatabaseMessage.PAUSE);
-		clearChanged();
+		firePropertyChange(DatabaseMessage.PAUSE);
 
 		Path src = databasePath;
 		Path dest = FileSystems.getDefault().getPath(path);
@@ -255,15 +244,11 @@ public class Database extends Observable {
 		conn.close();
 		new_db.close();
 
-		setChanged();
-		notifyObservers(DatabaseMessage.RESUME);
-		clearChanged();
+		firePropertyChange(DatabaseMessage.RESUME);
 	}
 
 	public void LoadAndReplace(String path) throws Exception {
-		setChanged();
-		notifyObservers(DatabaseMessage.DISCONNECT_NOW);
-		clearChanged();
+		firePropertyChange(DatabaseMessage.DISCONNECT_NOW);
 
 		source.close();
 		Path src = FileSystems.getDefault().getPath(path);
@@ -272,9 +257,7 @@ public class Database extends Observable {
 		databasePath = dest;
 		source = new JdbcConnectionSource(getDatabaseURL());
 
-		setChanged();
-		notifyObservers(DatabaseMessage.RECONNECT);
-		clearChanged();
+		firePropertyChange(DatabaseMessage.RECONNECT);
 	}
 
 	public Path getDatabasePath() {
