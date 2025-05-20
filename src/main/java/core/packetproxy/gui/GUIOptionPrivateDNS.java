@@ -193,6 +193,7 @@ public class GUIOptionPrivateDNS implements Observer {
 			e.printStackTrace();
 		}
 		text.setMaximumSize(new Dimension(300, 30));
+		text.setPreferredSize(new Dimension(200, 30));
 		text.setEnabled(false);
 		return text;
 	}
@@ -204,7 +205,8 @@ public class GUIOptionPrivateDNS implements Observer {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		text.setMaximumSize(new Dimension(300, 30));
+		text.setMaximumSize(new Dimension(600, 30));
+		text.setPreferredSize(new Dimension(500, 30));
 		text.setEnabled(false);
 		return text;
 	}
