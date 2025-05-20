@@ -21,10 +21,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -35,6 +35,7 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import packetproxy.model.SSLPassThrough;
 import packetproxy.model.SSLPassThroughs;
+import static packetproxy.model.PropertyChangeEventType.SSL_PASS_THROUGHS;
 
 public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrough> {
 	private GUIOptionSSLPassThroughDialog dlg;
@@ -44,7 +45,7 @@ public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrou
 	public GUIOptionSSLPassThrough(JFrame owner) throws Exception {
 		super(owner);
 		this.sslPassThroughs = SSLPassThroughs.getInstance();
-		this.sslPassThroughs.addObserver(this);
+		this.sslPassThroughs.addPropertyChangeListener(this);
 		this.table_ext_list = new ArrayList<SSLPassThrough>();
 
 		String[] menu = { "Enabled", "Server Name", "Applied Listen Port" };
@@ -162,5 +163,12 @@ public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrou
 	@Override
 	protected SSLPassThrough getTableContent(int rowIndex) {
 		return table_ext_list.get(rowIndex);
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (SSL_PASS_THROUGHS.matches(evt)) {
+			updateImpl();
+		}
 	}
 }

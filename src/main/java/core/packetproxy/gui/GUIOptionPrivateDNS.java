@@ -19,17 +19,18 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.InterfaceAddress;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
-import java.util.Collections;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -44,14 +45,14 @@ import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
 import org.xbill.DNS.DNSSpoofingIPGetter;
-
 import packetproxy.PrivateDNS;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
 import packetproxy.model.ConfigBoolean;
 import packetproxy.model.Configs;
+import static packetproxy.model.PropertyChangeEventType.CONFIGS;
 
-public class GUIOptionPrivateDNS implements Observer {
+public class GUIOptionPrivateDNS implements PropertyChangeListener {
 	private PrivateDNS privateDNS;
 
 	private JCheckBox checkBox;
@@ -69,7 +70,7 @@ public class GUIOptionPrivateDNS implements Observer {
 		textField6 = createAddress6Field();
 		base = createPanel(checkBox, textField, textField6);
 
-		Configs.getInstance().addObserver(this);
+		Configs.getInstance().addPropertyChangeListener(this);
 		updateState();
 	}
 
@@ -246,8 +247,10 @@ public class GUIOptionPrivateDNS implements Observer {
 	}
 
 	@Override
-	public void update(Observable o, Object arg) {
-		updateState();
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (CONFIGS.matches(evt)) {
+			updateState();
+		}
 	}
 
 	private String getLocalIP() throws Exception {
@@ -295,5 +298,4 @@ public class GUIOptionPrivateDNS implements Observer {
 			return "::1";
 		return defaultAddr6.getHostAddress();
 	}
-
 }

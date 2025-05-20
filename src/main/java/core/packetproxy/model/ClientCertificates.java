@@ -15,19 +15,27 @@
  */
 package packetproxy.model;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 import javax.swing.JOptionPane;
 import packetproxy.common.ClientKeyManager;
 import packetproxy.model.Database.DatabaseMessage;
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+import static packetproxy.model.PropertyChangeEventType.CLIENT_CERTIFICATES;
 import com.j256.ormlite.dao.Dao;
 
 /**
  * DAO for ClientCertificate
  */
-public class ClientCertificates extends Observable implements Observer {
+public class ClientCertificates implements PropertyChangeListener {
 	private static ClientCertificates instance;
+	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+
+	private Database database;
+	private Dao<ClientCertificate, Integer> dao;
+	private Servers servers;
 
 	public static ClientCertificates getInstance() throws Exception {
 		if (instance == null) {
@@ -36,16 +44,64 @@ public class ClientCertificates extends Observable implements Observer {
 		return instance;
 	}
 
-	private Database database;
-	private Dao<ClientCertificate, Integer> dao;
-	private Servers servers;
-
 	private ClientCertificates() throws Exception {
 		database = Database.getInstance();
 		servers = Servers.getInstance();
 		dao = database.createTable(ClientCertificate.class, this);
 		if (!isLatestVersion()) {
 			RecreateTable();
+		}
+	}
+
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		pcs.addPropertyChangeListener(listener);
+		servers.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		pcs.removePropertyChangeListener(listener);
+		servers.removePropertyChangeListener(listener);
+	}
+
+	public void firePropertyChange() {
+		firePropertyChange(null);
+	}
+
+	public void firePropertyChange(Object arg) {
+		pcs.firePropertyChange(CLIENT_CERTIFICATES.toString(), null, arg);
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (!DATABASE_MESSAGE.matches(evt)) {
+			return;
+		}
+
+		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
+		try {
+			switch (message) {
+				case PAUSE:
+					// TODO ロックを取る
+					break;
+				case RESUME:
+					// TODO ロックを解除
+					break;
+				case DISCONNECT_NOW:
+					break;
+				case RECONNECT:
+					database = Database.getInstance();
+					dao = database.createTable(ClientCertificate.class, this);
+					firePropertyChange(message);
+					break;
+				case RECREATE:
+					database = Database.getInstance();
+					dao = database.createTable(ClientCertificate.class, this);
+					break;
+				default:
+					break;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -58,17 +114,21 @@ public class ClientCertificates extends Observable implements Observer {
 		}
 	}
 
+	public void refresh() {
+		firePropertyChange();
+	}
+
 	public void create(ClientCertificate certificate) throws Exception {
 		ClientKeyManager.setKeyManagers(certificate.getServer(), certificate.load());
 		certificate.setEnabled();
 		dao.createIfNotExists(certificate);
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void delete(ClientCertificate certificate) throws Exception {
 		dao.delete(certificate);
 		ClientKeyManager.removeKeyManagers(certificate.getServer());
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void update(ClientCertificate certificate) throws Exception {
@@ -77,11 +137,7 @@ public class ClientCertificates extends Observable implements Observer {
 			ClientKeyManager.setKeyManagers(certificate.getServer(), certificate.load());
 		else
 			ClientKeyManager.removeKeyManagers(certificate.getServer());
-		notifyObservers();
-	}
-
-	public void refresh() {
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public ClientCertificate query(int id) throws Exception {
@@ -96,49 +152,6 @@ public class ClientCertificates extends Observable implements Observer {
 		return dao.queryBuilder().where()
 				.eq("enabled", true)
 				.query();
-	}
-
-	@Override
-	public void notifyObservers(Object arg) {
-		setChanged();
-		super.notifyObservers(arg);
-		clearChanged();
-	}
-
-	@Override
-	public void addObserver(Observer observer) {
-		super.addObserver(observer);
-		servers.addObserver(observer);
-	}
-
-	@Override
-	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage) arg;
-		try {
-			switch (message) {
-				case PAUSE:
-					// TODO ロックを取る
-					break;
-				case RESUME:
-					// TODO ロックを解除
-					break;
-				case DISCONNECT_NOW:
-					break;
-				case RECONNECT:
-					database = Database.getInstance();
-					dao = database.createTable(ClientCertificate.class, this);
-					notifyObservers(arg);
-					break;
-				case RECREATE:
-					database = Database.getInstance();
-					dao = database.createTable(ClientCertificate.class, this);
-					break;
-				default:
-					break;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	private boolean isLatestVersion() throws Exception {

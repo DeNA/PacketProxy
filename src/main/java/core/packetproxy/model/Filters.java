@@ -17,14 +17,18 @@ package packetproxy.model;
 
 import com.j256.ormlite.dao.Dao;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeSupport;
 import javax.swing.JOptionPane;
 import packetproxy.model.Database.DatabaseMessage;
+import static packetproxy.model.PropertyChangeEventType.FILTERS;
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 
-public class Filters extends Observable implements Observer {
+public class Filters implements PropertyChangeListener {
 
 	private static Filters instance;
+	private PropertyChangeSupport changes = new PropertyChangeSupport(this);
 
 	public static Filters getInstance() throws Exception {
 		if (instance == null) {
@@ -46,17 +50,17 @@ public class Filters extends Observable implements Observer {
 
 	public void create(Filter filter) throws Exception {
 		dao.createIfNotExists(filter);
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void delete(Filter filter) throws Exception {
 		dao.delete(filter);
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void deleteByName(String name) throws Exception {
 		dao.delete(queryByName(name));
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public Filter query(int id) throws Exception {
@@ -73,19 +77,32 @@ public class Filters extends Observable implements Observer {
 
 	public void update(Filter filter) throws Exception {
 		dao.update(filter);
-		notifyObservers();
+		firePropertyChange();
+	}
+
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		changes.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		changes.removePropertyChangeListener(listener);
+	}
+
+	private void firePropertyChange() {
+		changes.firePropertyChange(FILTERS.toString(), null, null);
+	}
+
+	private void firePropertyChange(Object value) {
+		changes.firePropertyChange(FILTERS.toString(), null, value);
 	}
 
 	@Override
-	public void notifyObservers(Object arg) {
-		setChanged();
-		super.notifyObservers(arg);
-		clearChanged();
-	}
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (!DATABASE_MESSAGE.matches(evt)) {
+			return;
+		}
 
-	@Override
-	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage) arg;
+		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
 			switch (message) {
 				case PAUSE:
@@ -99,7 +116,7 @@ public class Filters extends Observable implements Observer {
 				case RECONNECT:
 					database = Database.getInstance();
 					dao = database.createTable(Filter.class, this);
-					notifyObservers(arg);
+					firePropertyChange(message);
 					break;
 				case RECREATE:
 					database = Database.getInstance();

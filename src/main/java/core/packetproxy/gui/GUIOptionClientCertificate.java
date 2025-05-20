@@ -27,8 +27,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCertificate> {
 	private GUIOptionClientCertificateDialog dlg;
@@ -38,7 +36,7 @@ public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCer
 	public GUIOptionClientCertificate(JFrame owner) throws Exception {
 		super(owner);
 		clientCertificates = ClientCertificates.getInstance();
-		clientCertificates.addObserver(this);
+		clientCertificates.addPropertyChangeListener(this);
 		table_ext_list = new ArrayList<>();
 
 		String[] menu = { "Enabled", "Type", "Host", "Subject(CN)", "Issuer" };

@@ -21,8 +21,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Observable;
-import java.util.Observer;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -34,7 +32,7 @@ import javax.swing.JTextField;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
 
-public class GUIOptionFonts implements Observer {
+public class GUIOptionFonts {
 	private JFrame owner;
 	private JTextField uiFontInfo;
 	private JTextField fontInfo;
@@ -152,9 +150,4 @@ public class GUIOptionFonts implements Observer {
 
 		return panel;
 	}
-
-	@Override
-	public void update(Observable o, Object arg) {
-	}
-
 }

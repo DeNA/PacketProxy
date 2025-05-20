@@ -23,8 +23,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -44,7 +42,7 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 	public GUIOptionModifications(JFrame owner) throws Exception {
 		super(owner);
 		modifications = Modifications.getInstance();
-		modifications.addObserver(this);
+		modifications.addPropertyChangeListener(this);
 		table_ext_list = new ArrayList<Modification>();
 		String[] menu = { "Enabled", "Type", "Method", "Pattern", "Replaced", "Applied Server" };
 		int[] menuWidth = { 50, 100, 50, 180, 180, 150 };

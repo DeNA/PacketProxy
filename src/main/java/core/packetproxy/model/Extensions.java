@@ -15,6 +15,9 @@
  */
 package packetproxy.model;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.net.URL;
@@ -23,8 +26,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -35,9 +36,12 @@ import com.j256.ormlite.dao.Dao;
 import packetproxy.extensions.randomness.RandomnessExtension;
 import packetproxy.extensions.samplehttp.SampleEncoders;
 import packetproxy.model.Database.DatabaseMessage;
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+import static packetproxy.model.PropertyChangeEventType.EXTENSIONS;
 
-public class Extensions extends Observable implements Observer {
+public class Extensions implements PropertyChangeListener {
     private static Extensions instance;
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     public static Extensions getInstance() throws Exception {
         if (instance == null) {
@@ -75,6 +79,14 @@ public class Extensions extends Observable implements Observer {
             Extension extension = (Extension) constructor.newInstance();
             create(extension);
         }
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        pcs.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        pcs.removePropertyChangeListener(listener);
     }
 
     // return loaded extension or null
@@ -130,21 +142,21 @@ public class Extensions extends Observable implements Observer {
             }
         }
         cache.clear();
-        notifyObservers();
+        firePropertyChange();
     }
 
     public void delete(String id) throws Exception {
         dao.deleteById(id);
         ext_instances.remove(id);
         cache.clear();
-        notifyObservers();
+        firePropertyChange();
     }
 
     public void delete(Extension ext) throws Exception {
         dao.delete(ext);
         ext_instances.remove(ext.getName());
         cache.clear();
-        notifyObservers();
+        firePropertyChange();
     }
 
     public Extension update(Extension ext) throws Exception {
@@ -161,12 +173,12 @@ public class Extensions extends Observable implements Observer {
             ext_instances.remove(ext.getName());
         }
         cache.clear();
-        notifyObservers();
+        firePropertyChange();
         return ext;
     }
 
     public void refresh() {
-        notifyObservers();
+        firePropertyChange();
     }
 
     public Extension query(String id) throws Exception {
@@ -220,16 +232,21 @@ public class Extensions extends Observable implements Observer {
         return ret;
     }
 
-    @Override
-    public void notifyObservers(Object arg) {
-        setChanged();
-        super.notifyObservers(arg);
-        clearChanged();
+    public void firePropertyChange() {
+        firePropertyChange(null);
+    }
+
+    public void firePropertyChange(Object arg) {
+        pcs.firePropertyChange(EXTENSIONS.toString(), null, arg);
     }
 
     @Override
-    public void update(Observable o, Object arg) {
-        DatabaseMessage message = (DatabaseMessage) arg;
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (!DATABASE_MESSAGE.matches(evt)) {
+            return;
+        }
+
+        DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
         try {
             switch (message) {
                 case PAUSE:
@@ -244,7 +261,7 @@ public class Extensions extends Observable implements Observer {
                     database = Database.getInstance();
                     dao = database.createTable(Extension.class, this);
                     cache.clear();
-                    notifyObservers(arg);
+                    firePropertyChange(message);
                     break;
                 case RECREATE:
                     database = Database.getInstance();

@@ -21,14 +21,18 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import packetproxy.model.DaoQueryCache;
 import packetproxy.model.Database.DatabaseMessage;
+import static packetproxy.model.PropertyChangeEventType.SERVERS;
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 
-public class Servers extends Observable implements Observer {
+public class Servers implements PropertyChangeListener {
 
 	private static Servers instance;
+	private PropertyChangeSupport changes = new PropertyChangeSupport(this);
 
 	public static Servers getInstance() throws Exception {
 		if (instance == null) {
@@ -50,13 +54,13 @@ public class Servers extends Observable implements Observer {
 	public void create(Server server) throws Exception {
 		dao.createIfNotExists(server);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void delete(Server server) throws Exception {
 		dao.delete(server);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public Server queryByString(String str) throws Exception {
@@ -195,19 +199,32 @@ public class Servers extends Observable implements Observer {
 	public void update(Server server) throws Exception {
 		dao.update(server);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange();
+	}
+
+	private void firePropertyChange() {
+		changes.firePropertyChange(SERVERS.toString(), null, null);
+	}
+
+	private void firePropertyChange(Object arg) {
+		changes.firePropertyChange(SERVERS.toString(), null, arg);
+	}
+
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		changes.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		changes.removePropertyChangeListener(listener);
 	}
 
 	@Override
-	public void notifyObservers(Object arg) {
-		setChanged();
-		super.notifyObservers(arg);
-		clearChanged();
-	}
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (!DATABASE_MESSAGE.matches(evt)) {
+			return;
+		}
 
-	@Override
-	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage) arg;
+		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
 			switch (message) {
 				case PAUSE:
@@ -222,7 +239,7 @@ public class Servers extends Observable implements Observer {
 					database = Database.getInstance();
 					dao = database.createTable(Server.class, this);
 					cache.clear();
-					notifyObservers(arg);
+					firePropertyChange(message);
 					break;
 				case RECREATE:
 					database = Database.getInstance();

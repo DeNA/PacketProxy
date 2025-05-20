@@ -15,20 +15,24 @@
  */
 package packetproxy.model;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
-
 import javax.swing.JOptionPane;
 
 import com.j256.ormlite.dao.Dao;
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+import static packetproxy.model.PropertyChangeEventType.INTERCEPT_OPTIONS;
 
+import packetproxy.model.ConfigBoolean;
 import packetproxy.model.Database.DatabaseMessage;
 import packetproxy.model.InterceptOption.Direction;
 
-public class InterceptOptions extends Observable implements Observer {
+public class InterceptOptions implements PropertyChangeListener {
 	private static InterceptOptions instance;
+	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 	public static InterceptOptions getInstance() throws Exception {
 		if (instance == null) {
@@ -85,33 +89,43 @@ public class InterceptOptions extends Observable implements Observer {
 		}
 	}
 
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		pcs.addPropertyChangeListener(listener);
+		servers.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		pcs.removePropertyChangeListener(listener);
+		servers.removePropertyChangeListener(listener);
+	}
+
 	public void create(InterceptOption intercept_option) throws Exception {
 		intercept_option.setEnabled();
 		dao.createIfNotExists(intercept_option);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void delete(int id) throws Exception {
 		dao.deleteById(id);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void delete(InterceptOption intercept_option) throws Exception {
 		dao.delete(intercept_option);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void update(InterceptOption intercept_option) throws Exception {
 		dao.update(intercept_option);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void refresh() {
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public InterceptOption query(int id) throws Exception {
@@ -257,22 +271,21 @@ public class InterceptOptions extends Observable implements Observer {
 		return true;
 	}
 
-	@Override
-	public void notifyObservers(Object arg) {
-		setChanged();
-		super.notifyObservers(arg);
-		clearChanged();
+	public void firePropertyChange() {
+		firePropertyChange(null);
+	}
+
+	public void firePropertyChange(Object arg) {
+		pcs.firePropertyChange(INTERCEPT_OPTIONS.toString(), null, arg);
 	}
 
 	@Override
-	public void addObserver(Observer observer) {
-		super.addObserver(observer);
-		servers.addObserver(observer);
-	}
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (!DATABASE_MESSAGE.matches(evt)) {
+			return;
+		}
 
-	@Override
-	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage) arg;
+		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
 			switch (message) {
 				case PAUSE:
@@ -287,7 +300,7 @@ public class InterceptOptions extends Observable implements Observer {
 					database = Database.getInstance();
 					dao = database.createTable(InterceptOption.class, this);
 					cache.clear();
-					notifyObservers(arg);
+					firePropertyChange(message);
 					break;
 				case RECREATE:
 					database = Database.getInstance();

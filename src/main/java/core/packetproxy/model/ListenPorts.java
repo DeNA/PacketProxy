@@ -17,14 +17,18 @@ package packetproxy.model;
 
 import com.j256.ormlite.dao.Dao;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
+import java.beans.PropertyChangeSupport;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 import java.util.stream.Collectors;
 
 import packetproxy.model.Database.DatabaseMessage;
+import static packetproxy.model.PropertyChangeEventType.LISTEN_PORTS;
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 
-public class ListenPorts extends Observable implements Observer {
+public class ListenPorts implements PropertyChangeListener {
 	private static ListenPorts instance;
+	private PropertyChangeSupport changes = new PropertyChangeSupport(this);
 
 	public static ListenPorts getInstance() throws Exception {
 		if (instance == null) {
@@ -48,28 +52,28 @@ public class ListenPorts extends Observable implements Observer {
 			listen.setDisabled();
 		}
 		dao.createIfNotExists(listen);
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void delete(int id) throws Exception {
 		dao.deleteById(id);
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void delete(ListenPort listen) throws Exception {
 		dao.delete(listen);
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void update(ListenPort listen) throws Exception {
 		if (listen.isEnabled() && isAlreadyEnabled(listen))
 			return;
 		dao.update(listen);
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void refresh() {
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public ListenPort query(int id) throws Exception {
@@ -133,22 +137,29 @@ public class ListenPorts extends Observable implements Observer {
 				.query();
 	}
 
-	@Override
-	public void notifyObservers(Object arg) {
-		setChanged();
-		super.notifyObservers(arg);
-		clearChanged();
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		changes.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		changes.removePropertyChangeListener(listener);
+	}
+
+	private void firePropertyChange() {
+		changes.firePropertyChange(LISTEN_PORTS.toString(), null, null);
+	}
+
+	private void firePropertyChange(Object value) {
+		changes.firePropertyChange(LISTEN_PORTS.toString(), null, value);
 	}
 
 	@Override
-	public void addObserver(Observer observer) {
-		super.addObserver(observer);
-		servers.addObserver(observer);
-	}
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (!DATABASE_MESSAGE.matches(evt)) {
+			return;
+		}
 
-	@Override
-	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage) arg;
+		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
 			switch (message) {
 				case PAUSE:
@@ -162,7 +173,7 @@ public class ListenPorts extends Observable implements Observer {
 				case RECONNECT:
 					database = Database.getInstance();
 					dao = database.createTable(ListenPort.class, this);
-					notifyObservers(arg);
+					firePropertyChange(message);
 					break;
 				case RECREATE:
 					database = Database.getInstance();

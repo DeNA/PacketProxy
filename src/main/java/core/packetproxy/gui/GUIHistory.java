@@ -40,8 +40,8 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
-import java.util.Observable;
-import java.util.Observer;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -84,10 +84,13 @@ import packetproxy.model.OptionTableModel;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 import packetproxy.model.ResenderPackets;
+import static packetproxy.model.PropertyChangeEventType.PACKETS;
+import static packetproxy.model.PropertyChangeEventType.FILTERS;
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
 
-public class GUIHistory implements Observer {
+public class GUIHistory implements PropertyChangeListener {
 	private static GUIHistory instance;
 	private static JFrame owner;
 
@@ -140,9 +143,9 @@ public class GUIHistory implements Observer {
 
 	private GUIHistory(boolean restore) throws Exception {
 		packets = Packets.getInstance(restore);
-		packets.addObserver(this);
+		packets.addPropertyChangeListener(this);
 		ResenderPackets.getInstance().initTable(restore);
-		Filters.getInstance().addObserver(this);
+		Filters.getInstance().addPropertyChangeListener(this);
 		gui_packet = GUIPacket.getInstance();
 		colorManager = new TableCustomColorManager();
 		preferredPosition = 0;
@@ -885,42 +888,76 @@ public class GUIHistory implements Observer {
 	}
 
 	@Override
-	public void update(Observable arg0, Object arg1) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					if (null != arg1 && arg1.getClass() == DatabaseMessage.class
-							&& (DatabaseMessage) arg1 == DatabaseMessage.RECONNECT) {
-						updateAllAsync();
-						return;
-					}
-					if (arg0.getClass() == Filters.class) {
-						return;
-					}
-					if (arg0.getClass() == Packets.class) {
-						if (arg1 instanceof Boolean) {
-							if (true == (boolean) arg1) {// sqlite3のファイル上限(2GB)回避(model/Packets.javaから通知)
-								saveHistoryWithAlertDialog();
-							}
-						}
-						if (arg1 instanceof Integer) {
-							if ((int) arg1 < 0) {
-								tableModel.addRow(makeRowDataFromPacket(packets.query((int) arg1 * -1)));
-								id_row.put((int) arg1 * -1, tableModel.getRowCount() - 1);
-								return;
-							} else {
-								// problematic func
-								updateRequestOne((int) arg1);
-							}
-						} else {
-							updateRequest(true);
-						}
-						return;
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (PACKETS.matches(evt)) {
+			handlePacketsPropertyChange(evt);
+		} else if (FILTERS.matches(evt)) {
+			handleFiltersPropertyChange(evt);
+		} else if (DATABASE_MESSAGE.matches(evt)) {
+			handleDatabaseMessagePropertyChange(evt);
+		}
+	}
+
+	private void handlePacketsPropertyChange(PropertyChangeEvent evt) {
+		SwingUtilities.invokeLater(() -> {
+			try {
+				Object arg1 = evt.getNewValue();
+				if (arg1 instanceof Boolean) {
+					handleBooleanPacketValue((Boolean) arg1);
+				} else if (arg1 instanceof Integer) {
+					handleIntegerPacketValue((Integer) arg1);
+				} else if (arg1 instanceof DatabaseMessage && (DatabaseMessage) arg1 == DatabaseMessage.RECONNECT) {
+					updateAllAsync();
+				} else {
+					updateRequest(true);
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+	}
+
+	private void handleBooleanPacketValue(boolean value) {
+		if (value) {
+			// sqlite3のファイル上限(2GB)回避(model/Packets.javaから通知)
+			saveHistoryWithAlertDialog();
+		}
+	}
+
+	private void handleIntegerPacketValue(int value) throws Exception {
+		if (value < 0) {
+			int positiveValue = value * -1;
+			tableModel.addRow(makeRowDataFromPacket(packets.query(positiveValue)));
+			id_row.put(positiveValue, tableModel.getRowCount() - 1);
+		} else {
+			updateRequestOne(value);
+		}
+	}
+
+	private void handleFiltersPropertyChange(PropertyChangeEvent evt) {
+		SwingUtilities.invokeLater(() -> {
+			try {
+				Object arg1 = evt.getNewValue();
+				if (arg1 instanceof DatabaseMessage && (DatabaseMessage) arg1 == DatabaseMessage.RECONNECT) {
+					updateAllAsync();
+				} else {
+					filter();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+	}
+
+	private void handleDatabaseMessagePropertyChange(PropertyChangeEvent evt) {
+		SwingUtilities.invokeLater(() -> {
+			try {
+				Object arg1 = evt.getNewValue();
+				if (arg1 instanceof DatabaseMessage && (DatabaseMessage) arg1 == DatabaseMessage.RECONNECT) {
+					updateAllAsync();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		});
 	}

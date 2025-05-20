@@ -30,12 +30,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.Observable;
-import java.util.Observer;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import static javax.swing.JOptionPane.YES_NO_OPTION;
 
-public class GUIMain extends JFrame implements Observer {
+public class GUIMain extends JFrame implements PropertyChangeListener {
 	private static final long serialVersionUID = 1L;
 	private static GUIMain instance;
 	private GUIMenu menu_bar;
@@ -126,7 +126,7 @@ public class GUIMain extends JFrame implements Observer {
 			getContentPane().add(tabbedpane, BorderLayout.CENTER);
 
 			interceptModel = InterceptModel.getInstance();
-			interceptModel.addObserver(this);
+			interceptModel.addPropertyChangeListener(this);
 			final Container cp = getContentPane();
 
 			//// 終了時の処理
@@ -314,7 +314,7 @@ public class GUIMain extends JFrame implements Observer {
 	}
 
 	@Override
-	public void update(Observable arg0, Object arg1) {
+	public void propertyChange(PropertyChangeEvent evt) {
 		if (interceptModel.getData() == null) {
 			setInterceptDownLight();
 		} else {

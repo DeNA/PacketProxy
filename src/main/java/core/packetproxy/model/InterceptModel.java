@@ -15,11 +15,15 @@
  */
 package packetproxy.model;
 
-import java.util.Observable;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import static packetproxy.model.PropertyChangeEventType.INTERCEPT_DATA;
+import static packetproxy.model.PropertyChangeEventType.INTERCEPT_MODE;
 
-public class InterceptModel extends Observable {
+public class InterceptModel {
 
 	private static InterceptModel instance;
+	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 	public static InterceptModel getInstance() throws Exception {
 		if (instance == null) {
@@ -37,14 +41,24 @@ public class InterceptModel extends Observable {
 		clear();
 	}
 
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		pcs.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		pcs.removePropertyChangeListener(listener);
+	}
+
 	public void enableInterceptMode() {
+		boolean oldValue = this.intercept_mode;
 		this.intercept_mode = true;
-		notifyObservers();
+		pcs.firePropertyChange(INTERCEPT_MODE.toString(), oldValue, this.intercept_mode);
 	}
 
 	public void disableInterceptMode() {
+		boolean oldValue = this.intercept_mode;
 		this.intercept_mode = false;
-		notifyObservers();
+		pcs.firePropertyChange(INTERCEPT_MODE.toString(), oldValue, this.intercept_mode);
 	}
 
 	public boolean isInterceptEnabled() {
@@ -52,10 +66,11 @@ public class InterceptModel extends Observable {
 	}
 
 	public void setData(byte[] data, Packet client_packet, Packet server_packet) {
+		byte[] oldData = this.data;
 		this.data = data;
 		this.client_packet = client_packet;
 		this.server_packet = server_packet;
-		notifyObservers();
+		pcs.firePropertyChange(INTERCEPT_DATA.toString(), oldData, this.data);
 	}
 
 	public byte[] getData() {
@@ -71,15 +86,9 @@ public class InterceptModel extends Observable {
 	}
 
 	public void clearData() {
+		byte[] oldData = this.data;
 		clear();
-		notifyObservers();
-	}
-
-	@Override
-	public void notifyObservers(Object arg) {
-		setChanged();
-		super.notifyObservers(null);
-		clearChanged();
+		pcs.firePropertyChange(INTERCEPT_DATA.toString(), oldData, this.data);
 	}
 
 	private void clear() {

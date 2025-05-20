@@ -36,7 +36,7 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort> {
 	public GUIOptionListenPorts(JFrame owner) throws Exception {
 		super(owner);
 		listenPorts = ListenPorts.getInstance();
-		listenPorts.addObserver(this);
+		listenPorts.addPropertyChangeListener(this);
 		table_ext_list = new ArrayList<ListenPort>();
 
 		String[] menu = { "Enabled", "Protocol", "Listen Port", "Port Type", "CA", "Forward Server" };

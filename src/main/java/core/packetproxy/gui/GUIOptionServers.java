@@ -23,8 +23,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -43,7 +41,7 @@ public class GUIOptionServers extends GUIOptionComponentBase<Server> {
 	public GUIOptionServers(JFrame owner) throws Exception {
 		super(owner);
 		servers = Servers.getInstance();
-		servers.addObserver(this);
+		servers.addPropertyChangeListener(this);
 		server_list = new ArrayList<Server>();
 		String[] menu = { "Host", "Port", "Use SSL", "Encode Module", "Spoof DNS(A)", "Spoof DNS(AAAA)", "HttpProxy",
 				"Comment" };

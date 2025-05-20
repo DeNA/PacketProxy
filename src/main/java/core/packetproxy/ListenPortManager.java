@@ -20,13 +20,21 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Observable;
-import java.util.Observer;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+import javax.swing.JOptionPane;
+
+import packetproxy.common.Utils;
 import packetproxy.model.ListenPort;
 import packetproxy.model.ListenPorts;
 import packetproxy.util.PacketProxyUtility;
+import static packetproxy.model.PropertyChangeEventType.LISTEN_PORTS;
 
-public class ListenPortManager implements Observer {
+public class ListenPortManager implements PropertyChangeListener {
 	private ListenPorts listenPorts;
 	private Map<String, Listen> listen_map;
 
@@ -42,7 +50,7 @@ public class ListenPortManager implements Observer {
 	private ListenPortManager() throws Exception {
 		listen_map = new HashMap<String, Listen>();
 		listenPorts = ListenPorts.getInstance();
-		listenPorts.addObserver(this);
+		listenPorts.addPropertyChangeListener(this);
 		listenPorts.refresh();
 	}
 
@@ -108,7 +116,11 @@ public class ListenPortManager implements Observer {
 	}
 
 	@Override
-	public void update(Observable arg0, Object arg1) {
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (!LISTEN_PORTS.matches(evt)) {
+			return;
+		}
+
 		try {
 			synchronized (listen_map) {
 				stopIfRunning();

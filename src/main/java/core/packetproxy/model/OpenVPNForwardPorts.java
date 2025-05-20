@@ -15,22 +15,24 @@
  */
 package packetproxy.model;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.beans.PropertyChangeEvent;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 import javax.swing.JOptionPane;
-
-import org.bouncycastle.asn1.dvcs.Data;
 
 import com.j256.ormlite.dao.Dao;
 
 import packetproxy.ListenPortManager;
 import packetproxy.OpenVPN;
 import packetproxy.model.Database.DatabaseMessage;
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+import static packetproxy.model.PropertyChangeEventType.FORWARD_PORTS;
 
-public class OpenVPNForwardPorts extends Observable implements Observer {
+public class OpenVPNForwardPorts implements PropertyChangeListener {
     private static OpenVPNForwardPorts instance;
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     public static OpenVPNForwardPorts getInstance() throws Exception {
         if (instance == null) {
@@ -56,32 +58,40 @@ public class OpenVPNForwardPorts extends Observable implements Observer {
         }
     }
 
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        pcs.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        pcs.removePropertyChangeListener(listener);
+    }
+
     public void create(OpenVPNForwardPort forwardPort) throws Exception {
         dao.createIfNotExists(forwardPort);
         cache.clear();
-        notifyObservers();
+        firePropertyChange();
     }
 
     public void delete(int id) throws Exception {
         dao.deleteById(id);
         cache.clear();
-        notifyObservers();
+        firePropertyChange();
     }
 
     public void delete(OpenVPNForwardPort forwardPort) throws Exception {
         dao.delete(forwardPort);
         cache.clear();
-        notifyObservers();
+        firePropertyChange();
     }
 
     public void update(OpenVPNForwardPort forwardPort) throws Exception {
         dao.update(forwardPort);
         cache.clear();
-        notifyObservers();
+        firePropertyChange();
     }
 
     public void refresh() {
-        notifyObservers();
+        firePropertyChange();
     }
 
     public OpenVPNForwardPort query(int id) throws Exception {
@@ -108,16 +118,21 @@ public class OpenVPNForwardPorts extends Observable implements Observer {
         return ret;
     }
 
-    @Override
-    public void notifyObservers(Object arg) {
-        setChanged();
-        super.notifyObservers(arg);
-        clearChanged();
+    public void firePropertyChange() {
+        firePropertyChange(null);
+    }
+
+    public void firePropertyChange(Object arg) {
+        pcs.firePropertyChange(FORWARD_PORTS.toString(), null, arg);
     }
 
     @Override
-    public void update(Observable o, Object arg) {
-        DatabaseMessage message = (DatabaseMessage) arg;
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (!DATABASE_MESSAGE.matches(evt)) {
+            return;
+        }
+
+        DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
         try {
             switch (message) {
                 case PAUSE:
@@ -132,7 +147,7 @@ public class OpenVPNForwardPorts extends Observable implements Observer {
                     database = Database.getInstance();
                     dao = database.createTable(OpenVPNForwardPort.class, this);
                     cache.clear();
-                    notifyObservers(arg);
+                    firePropertyChange(message);
                     break;
                 case RECREATE:
                     database = Database.getInstance();

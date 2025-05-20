@@ -16,18 +16,21 @@
 package packetproxy.model;
 
 import com.j256.ormlite.dao.Dao;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 import packetproxy.model.DaoQueryCache;
 import packetproxy.model.Database.DatabaseMessage;
 import packetproxy.util.PacketProxyUtility;
+import static packetproxy.model.PropertyChangeEventType.RESOLUTIONS_UPDATED;
 
-public class Resolutions extends Observable implements Observer {
+public class Resolutions implements PropertyChangeListener {
 
 	private static Resolutions instance;
+	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 	public static Resolutions getInstance() throws Exception {
 		if (instance == null) {
@@ -47,6 +50,14 @@ public class Resolutions extends Observable implements Observer {
 		if (dao.countOf() == 0) {
 			setResolutionsBySystem();
 		}
+	}
+
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		pcs.addPropertyChangeListener(listener);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		pcs.removePropertyChangeListener(listener);
 	}
 
 	public void setResolutionsBySystem() throws Exception {
@@ -75,13 +86,13 @@ public class Resolutions extends Observable implements Observer {
 	public void create(Resolution resolution) throws Exception {
 		dao.createIfNotExists(resolution);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public void delete(Resolution resolution) throws Exception {
 		dao.delete(resolution);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange();
 	}
 
 	public Resolution queryByString(String str) throws Exception {
@@ -145,19 +156,20 @@ public class Resolutions extends Observable implements Observer {
 	public void update(Resolution resolution) throws Exception {
 		dao.update(resolution);
 		cache.clear();
-		notifyObservers();
+		firePropertyChange();
+	}
+
+	private void firePropertyChange() {
+		pcs.firePropertyChange(RESOLUTIONS_UPDATED.toString(), null, null);
 	}
 
 	@Override
-	public void notifyObservers(Object arg) {
-		setChanged();
-		super.notifyObservers(arg);
-		clearChanged();
-	}
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (!(evt.getSource() instanceof Database)) {
+			return;
+		}
 
-	@Override
-	public void update(Observable o, Object arg) {
-		DatabaseMessage message = (DatabaseMessage) arg;
+		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
 			switch (message) {
 				case PAUSE:
@@ -172,7 +184,7 @@ public class Resolutions extends Observable implements Observer {
 					database = Database.getInstance();
 					dao = database.createTable(Resolution.class, this);
 					cache.clear();
-					notifyObservers(arg);
+					firePropertyChange();
 					break;
 				case RECREATE:
 					database = Database.getInstance();

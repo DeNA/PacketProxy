@@ -6,15 +6,16 @@ import packetproxy.common.I18nString;
 import packetproxy.model.ConfigBoolean;
 import packetproxy.model.ConfigString;
 import packetproxy.model.Configs;
+import static packetproxy.model.PropertyChangeEventType.CONFIGS;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Observable;
-import java.util.Observer;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
-public class GUIOptionHubServer implements Observer {
+public class GUIOptionHubServer implements PropertyChangeListener {
 
     private JFrame frame;
     private JPanel panel;
@@ -33,7 +34,7 @@ public class GUIOptionHubServer implements Observer {
         panel.add(createCheckBox());
         panel.add(createAccessTokenPanel());
 
-        Configs.getInstance().addObserver(this);
+        Configs.getInstance().addPropertyChangeListener(this);
     }
 
     private JCheckBox createCheckBox() {
@@ -136,7 +137,9 @@ public class GUIOptionHubServer implements Observer {
     }
 
     @Override
-    public void update(Observable o, Object arg) {
-        refresh();
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (CONFIGS.matches(evt)) {
+            refresh();
+        }
     }
 }
