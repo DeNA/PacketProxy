@@ -43,7 +43,7 @@ dependencies {
   implementation 'org.xerial:sqlite-jdbc:3.7.2'
   implementation 'com.j256.ormlite:ormlite-core:4.48'
   implementation 'com.j256.ormlite:ormlite-jdbc:4.48'
-  implementation 'com.google.protobuf:protobuf-java:2.6.1'
+  implementation 'com.google.protobuf:protobuf-java:4.31.1'
   implementation 'org.slf4j:slf4j-api:1.7.14'
   implementation 'org.slf4j:slf4j-log4j12:1.7.25'
   implementation 'com.googlecode.java-diff-utils:diffutils:1.2.1'
