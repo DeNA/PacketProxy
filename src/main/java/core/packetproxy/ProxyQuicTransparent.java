@@ -42,8 +42,7 @@ public class ProxyQuicTransparent extends Proxy {
 				PacketProxyUtility.getInstance().packetProxyLog("accept");
 
 				String sniServerName = clientConnection.getSNI();
-				PacketProxyUtility.getInstance()
-						.packetProxyLog(String.format("[QUIC-forward! using SNI] %s", sniServerName));
+				PacketProxyUtility.getInstance().packetProxyLog("[QUIC-forward! using SNI] %s", sniServerName);
 
 				ServerConnection serverConnection = new ServerConnection(
 						ConnectionIdPair.generateRandom(),

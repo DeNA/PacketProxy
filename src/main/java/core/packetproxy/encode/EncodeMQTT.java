@@ -165,29 +165,28 @@ public class EncodeMQTT extends Encoder {
 	 * byte[] test1 = {0x00, 0x1c};
 	 * length = mqtt.checkDelimiter(test1);
 	 * if (length != 30) {
-	 * util.packetProxyLog(String.format("Failed Test1: 30 == %d\n", length));
+	 * util.packetProxyLog("Failed Test1: 30 == %d\n", length);
 	 * return;
 	 * }
 	 * 
 	 * byte[] test2 = {0x00, (byte) 0xc6, 0x09};
 	 * length = mqtt.checkDelimiter(test2);
 	 * if (length != 1225) {
-	 * util.packetProxyLog(String.format("Failed Test2: 1222 == %d\n", length));
+	 * util.packetProxyLog("Failed Test2: 1222 == %d\n", length);
 	 * return;
 	 * }
 	 * 
 	 * byte[] test3 = {0x00, (byte) 0x80, (byte) 0x80, (byte) 0x80, 0x01};
 	 * length = mqtt.checkDelimiter(test3);
 	 * if (length != 2097157) {
-	 * util.packetProxyLog(String.format("Failed Test3: 2097152 == %d\n", length));
+	 * util.packetProxyLog("Failed Test3: 2097152 == %d\n", length);
 	 * return;
 	 * }
 	 * 
 	 * byte[] test4 = {0x00, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, 0x7F};
 	 * length = mqtt.checkDelimiter(test4);
 	 * if (length != 268435460) {
-	 * util.packetProxyLog(String.format("Failed Test4: 268435455 == %d\n",
-	 * length));
+	 * util.packetProxyLog("Failed Test4: 268435455 == %d\n", length);
 	 * return;
 	 * }
 	 * 
@@ -195,14 +194,13 @@ public class EncodeMQTT extends Encoder {
 	 * 0x01};
 	 * length = mqtt.checkDelimiter(test5);
 	 * if (length != 268435460) {
-	 * util.packetProxyLog(String.format("Failed Test5: 268435455 == %d\n",
-	 * length));
+	 * util.packetProxyLog("Failed Test5: 268435455 == %d\n", length);
 	 * return;
 	 * }
 	 * } catch (Exception e) {
 	 * e.printStackTrace();
 	 * }
-	 * util.packetProxyLog(String.format("Passed some tests."));
+	 * util.packetProxyLog("Passed some tests.");
 	 * }
 	 */
 }

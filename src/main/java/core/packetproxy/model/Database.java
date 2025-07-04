@@ -175,7 +175,7 @@ public class Database {
 				} catch (Exception e) {
 					PacketProxyUtility.getInstance().packetProxyLog(
 							"Database format may have been changed. Simply ignore this type of errors.");
-					PacketProxyUtility.getInstance().packetProxyLog(String.format("[Error] %s", query));
+					PacketProxyUtility.getInstance().packetProxyLog("[Error] %s", query);
 				}
 			}
 			conn.close();

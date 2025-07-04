@@ -106,8 +106,8 @@ public class BinaryBuffer {
 		// length = 6;
 		// }
 		if (data_size < index + length) {
-			PacketProxyUtility.getInstance()
-					.packetProxyLog(String.format("[Error] Something wrong (%d < %d + %d)", data_size, index, length));
+			PacketProxyUtility.getInstance().packetProxyLog("[Error] Something wrong (%d < %d + %d)", data_size, index,
+					length);
 			return;
 		}
 		data_size_in_utf8 -= new String(buffer, index, length).length();

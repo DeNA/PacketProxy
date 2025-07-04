@@ -91,8 +91,7 @@ public class Http {
 	 * Http http = new Http(test1.getBytes());
 	 * byte[] body = http.getBody();
 	 * util.packetProxyLog(new String(body));
-	 * util.packetProxyLog(String.format("%s:%d\n", http.getProxyHost(),
-	 * http.getProxyPort()));
+	 * util.packetProxyLog("%s:%d\n", http.getProxyHost(), http.getProxyPort());
 	 * util.packetProxyLog(http.getQueryAsString());
 	 * util.packetProxyLog(http.getPath());
 	 * List<Parameter> params = Arrays.asList("a=1", "e=2", "c=3", "a=2", "aa=1",

@@ -138,7 +138,7 @@ public class ProxySSLTransparent extends Proxy {
 			String serverName = "";
 			if (matcher.find()) {
 				serverName = matcher.group(1);
-				PacketProxyUtility.getInstance().packetProxyLog(String.format("[SSL-forward!] %s", serverName));
+				PacketProxyUtility.getInstance().packetProxyLog("[SSL-forward!] %s", serverName);
 			} else {
 				throw new Exception(I18nString.get("[Error] SNI header was not found in SSL packets."));
 			}
@@ -153,11 +153,10 @@ public class ProxySSLTransparent extends Proxy {
 			for (SNIServerName serverE : serverNames) {
 				String serverName = new String(serverE.getEncoded()); // 接続先サーバを取得
 				if (listen_info.getServer() != null) { // upstream proxy
-					PacketProxyUtility.getInstance().packetProxyLog(
-							String.format("[SSL-forward through upstream proxy! using SNI] %s", serverName));
-				} else {
 					PacketProxyUtility.getInstance()
-							.packetProxyLog(String.format("[SSL-forward! using SNI] %s", serverName));
+							.packetProxyLog("[SSL-forward through upstream proxy! using SNI] %s", serverName);
+				} else {
+					PacketProxyUtility.getInstance().packetProxyLog("[SSL-forward! using SNI] %s", serverName);
 				}
 				ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, position);
 

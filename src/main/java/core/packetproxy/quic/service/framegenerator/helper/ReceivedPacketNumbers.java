@@ -42,8 +42,8 @@ public class ReceivedPacketNumbers {
     public long getSmallestOfRange(long largestOfRange, long smallestValid) {
         assert (smallestValid <= largestOfRange);
         if (unreceivedPacketNumbers.contains(largestOfRange)) {
-            PacketProxyUtility.getInstance()
-                    .packetProxyLogErr(String.format("[QUIC] Error: AckRange: %d isn't in ack_range", largestOfRange));
+            PacketProxyUtility.getInstance().packetProxyLogErr("[QUIC] Error: AckRange: %d isn't in ack_range",
+                    largestOfRange);
             return 0;
         }
         return getSmallestReceived(largestOfRange, smallestValid);
@@ -52,8 +52,7 @@ public class ReceivedPacketNumbers {
     public long getSmallestOfGap(long largestOfGap, long smallestValid) {
         assert (smallestValid <= largestOfGap);
         if (!unreceivedPacketNumbers.contains(largestOfGap)) {
-            PacketProxyUtility.getInstance()
-                    .packetProxyLogErr(String.format("[QUIC] Error: AckRange: %d isn't in gap", largestOfGap));
+            PacketProxyUtility.getInstance().packetProxyLogErr("[QUIC] Error: AckRange: %d isn't in gap", largestOfGap);
             return 0;
         }
         return getSmallestUnreceived(largestOfGap, smallestValid);
