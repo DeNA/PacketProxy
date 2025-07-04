@@ -42,8 +42,7 @@ import packetproxy.model.OptionTableModel;
 import packetproxy.model.RegexParam;
 import packetproxy.util.PacketProxyUtility;
 
-public class GUIBulkSenderTable
-{
+public class GUIBulkSenderTable {
 	private String[] columnNames;
 	private int[] columnWidth = { 60, 800 };
 	private OptionTableModel tableModel;
@@ -53,7 +52,10 @@ public class GUIBulkSenderTable
 	private Consumer<Integer> onSelected;
 	private List<RegexParam> regexParams;
 
-	public enum Type { CLIENT, SERVER };
+	public enum Type {
+		CLIENT, SERVER
+	};
+
 	public GUIBulkSenderTable(Type type, Consumer<Integer> onSelected) {
 		this.type = type;
 		this.onSelected = onSelected;
@@ -61,7 +63,7 @@ public class GUIBulkSenderTable
 	}
 
 	private JMenuItem createMenuItem(String name, int key, KeyStroke hotkey, ActionListener l) {
-		JMenuItem out = new JMenuItem (name);
+		JMenuItem out = new JMenuItem(name);
 		if (key >= 0) {
 			out.setMnemonic(key);
 		}
@@ -75,18 +77,22 @@ public class GUIBulkSenderTable
 	public JComponent createPanel() throws Exception {
 
 		if (type == Type.CLIENT)
-			columnNames = new String[]{ "#", "Client Request" };
+			columnNames = new String[] { "#", "Client Request" };
 		else if (type == Type.SERVER)
-			columnNames = new String[]{ "#", "Server Response" };
+			columnNames = new String[] { "#", "Server Response" };
 
 		tableModel = new OptionTableModel(columnNames, 0) {
 			private static final long serialVersionUID = 1L;
+
 			@Override
-			public boolean isCellEditable(int row, int column) { return false; }
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
 		};
 
 		table = new JTable(tableModel) {
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Component prepareRenderer(TableCellRenderer tcr, int row, int column) {
 				Component c = super.prepareRenderer(tcr, row, column);
@@ -119,11 +125,11 @@ public class GUIBulkSenderTable
 			public void keyPressed(KeyEvent e) {
 				try {
 					if (e.getKeyCode() == KeyEvent.VK_J) {
-						int p = table.getSelectedRow()+1;
-						p = p >= table.getRowCount() ? table.getRowCount()-1 : p;
+						int p = table.getSelectedRow() + 1;
+						p = p >= table.getRowCount() ? table.getRowCount() - 1 : p;
 						table.changeSelection(p, 0, false, false);
 					} else if (e.getKeyCode() == KeyEvent.VK_K) {
-						int p = table.getSelectedRow()-1;
+						int p = table.getSelectedRow() - 1;
 						p = p < 0 ? 0 : p;
 						table.changeSelection(p, 0, false, false);
 					}
@@ -172,7 +178,6 @@ public class GUIBulkSenderTable
 			});
 		}
 
-
 		table.getSelectionModel().addListSelectionListener(new javax.swing.event.ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
@@ -191,7 +196,7 @@ public class GUIBulkSenderTable
 	public int getSelectedPacketId() {
 		int idx = table.getSelectedRow();
 		if (0 <= idx && idx < table.getRowCount())
-			return (Integer)table.getValueAt(idx, 0);
+			return (Integer) table.getValueAt(idx, 0);
 		else
 			return 0;
 	}
@@ -208,12 +213,12 @@ public class GUIBulkSenderTable
 	private Object[] makeRowDataFromPacket(OneShotPacket oneshot) throws Exception {
 		if (this.type == Type.CLIENT) {
 			return new Object[] {
-				oneshot.getId(),
+					oneshot.getId(),
 					oneshot.getSummarizedRequest()
 			};
 		} else {
 			return new Object[] {
-				oneshot.getId(),
+					oneshot.getId(),
 					oneshot.getSummarizedResponse()
 			};
 		}

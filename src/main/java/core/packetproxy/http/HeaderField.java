@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 package packetproxy.http;
+
 import packetproxy.util.PacketProxyUtility;
 
 public class HeaderField {
 	private String name, value;
 
-	public HeaderField(String rawLine){
+	public HeaderField(String rawLine) {
 		String[] fields = rawLine.split(":", 2);
 		if (fields.length == 2) {
 			name = fields[0].trim();
@@ -34,12 +35,12 @@ public class HeaderField {
 		this.name = name;
 		this.value = value;
 	}
-	
-	public String getName(){
+
+	public String getName() {
 		return name;
 	}
-	
-	public String getValue(){
+
+	public String getValue() {
 		return value;
 	}
 

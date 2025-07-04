@@ -89,13 +89,15 @@ public class GUIOption {
 		panel.setBackground(Color.WHITE);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-		panel.add(createElement("Listen Ports", I18nString.get("Set listen port and server that packets are forwarded to.")));
+		panel.add(createElement("Listen Ports",
+				I18nString.get("Set listen port and server that packets are forwarded to.")));
 		GUIOptionListenPorts listenPorts = new GUIOptionListenPorts(owner);
 		panel.add(listenPorts.createPanel());
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("Servers", I18nString.get("Set server and encode module to be used to encode packets.")));
+		panel.add(
+				createElement("Servers", I18nString.get("Set server and encode module to be used to encode packets.")));
 		GUIOptionServers servers = new GUIOptionServers(owner);
 		panel.add(servers.createPanel());
 
@@ -142,31 +144,36 @@ public class GUIOption {
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("Client Certificates", I18nString.get("Set client certificate to be used on SSL/TLS.")));
+		panel.add(
+				createElement("Client Certificates", I18nString.get("Set client certificate to be used on SSL/TLS.")));
 		GUIOptionClientCertificate clientCertificate = new GUIOptionClientCertificate(owner);
 		panel.add(clientCertificate.createPanel());
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("SSL PassThrough", I18nString.get("Set HTTPS server that packets are forwarded to without analyzing. These settings are enabled only if 'HTTP_PROXY' type is used.")));
+		panel.add(createElement("SSL PassThrough", I18nString.get(
+				"Set HTTPS server that packets are forwarded to without analyzing. These settings are enabled only if 'HTTP_PROXY' type is used.")));
 		GUIOptionSSLPassThrough ssl = new GUIOptionSSLPassThrough(owner);
 		panel.add(ssl.createPanel());
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("Private DNS server", I18nString.get("Use private DNS server that resolves server name to the IP address of this pc.")));
+		panel.add(createElement("Private DNS server",
+				I18nString.get("Use private DNS server that resolves server name to the IP address of this pc.")));
 		GUIOptionPrivateDNS privateDNS = new GUIOptionPrivateDNS();
 		panel.add(privateDNS.getPanel());
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("OpenVPN Server with Docker", I18nString.get("Use OpenVPN Server as Docker Container to proxy HTTP/HTTPS without DNS Spoofing.")));
+		panel.add(createElement("OpenVPN Server with Docker",
+				I18nString.get("Use OpenVPN Server as Docker Container to proxy HTTP/HTTPS without DNS Spoofing.")));
 		GUIOptionOpenVPN openVPN = new GUIOptionOpenVPN(owner);
 		panel.add(openVPN.getPanel());
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("Priority Order of HTTP Versions", I18nString.get("Set order of priority between HTTP1 and HTTP2.")));
+		panel.add(createElement("Priority Order of HTTP Versions",
+				I18nString.get("Set order of priority between HTTP1 and HTTP2.")));
 		GUIOptionHttp http = new GUIOptionHttp();
 		panel.add(http.createPanel());
 
@@ -191,7 +198,8 @@ public class GUIOption {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				CA ca = CAFactory.findByUTF8Name((String) ca_combo.getSelectedItem()).get();
-				GUIOptionExportCertificateAndPrivateKeyDialog dlg = new GUIOptionExportCertificateAndPrivateKeyDialog(owner, ca);
+				GUIOptionExportCertificateAndPrivateKeyDialog dlg = new GUIOptionExportCertificateAndPrivateKeyDialog(
+						owner, ca);
 				dlg.showDialog();
 			}
 		});
@@ -222,8 +230,10 @@ public class GUIOption {
 		importCertButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				PacketProxyCAPerUser ca = (PacketProxyCAPerUser) CAFactory.findByUTF8Name("PacketProxy per-user CA").get();
-				GUIOptionImportCertificateAndPrivateKeyDialog dlg = new GUIOptionImportCertificateAndPrivateKeyDialog(owner, ca);
+				PacketProxyCAPerUser ca = (PacketProxyCAPerUser) CAFactory.findByUTF8Name("PacketProxy per-user CA")
+						.get();
+				GUIOptionImportCertificateAndPrivateKeyDialog dlg = new GUIOptionImportCertificateAndPrivateKeyDialog(
+						owner, ca);
 				dlg.showDialog();
 			}
 		});
@@ -239,7 +249,8 @@ public class GUIOption {
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("Character encodings", I18nString.get("Add/Remove character encodings to be used to display contents of packet.")));
+		panel.add(createElement("Character encodings",
+				I18nString.get("Add/Remove character encodings to be used to display contents of packet.")));
 		GUIOptionCharSets charsetsGUI = new GUIOptionCharSets(owner);
 		panel.add(charsetsGUI.createPanel());
 
@@ -256,7 +267,8 @@ public class GUIOption {
 		panel.add(fontsGUI.createPanel());
 
 		panel.add(createSeparator());
-		panel.add(createElement("Import/Export configs (Experimental)", I18nString.get("Import/Export configs by GET/POST http://localhost:32349/config with 'Authorization: [AccessToken]' header")));
+		panel.add(createElement("Import/Export configs (Experimental)", I18nString.get(
+				"Import/Export configs by GET/POST http://localhost:32349/config with 'Authorization: [AccessToken]' header")));
 		panel.add(new GUIOptionHubServer(owner).createPanel());
 
 		panel.setMaximumSize(new Dimension(panel.getPreferredSize().width, panel.getMinimumSize().height));

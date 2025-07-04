@@ -25,29 +25,31 @@ import packetproxy.util.PacketProxyUtility;
 public abstract class PPContextMenu {
 	protected JMenuItem menuItem;
 	protected HashMap<String, Object> dependentData;
+
 	public abstract String getLabelName();
+
 	public abstract void action() throws Exception;
-	
-	public void registerItem(){
+
+	public void registerItem() {
 		menuItem = new JMenuItem(getLabelName());
-		menuItem.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent actionEvent){
-				try{
+		menuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent actionEvent) {
+				try {
 					action();
-				}
-				catch(Exception e){
-					PacketProxyUtility.getInstance().packetProxyLog("Error: "+getLabelName()+" module something happened.");
+				} catch (Exception e) {
+					PacketProxyUtility.getInstance()
+							.packetProxyLog("Error: " + getLabelName() + " module something happened.");
 					e.printStackTrace();
 				}
 			}
 		});
 	}
-	
-	public void setDependentData(HashMap<String, Object> hm){
+
+	public void setDependentData(HashMap<String, Object> hm) {
 		this.dependentData = hm;
 	}
-	
-	public JMenuItem getMenuItem(){
+
+	public JMenuItem getMenuItem() {
 		return this.menuItem;
 	}
 }

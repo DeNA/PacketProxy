@@ -22,8 +22,7 @@ import packetproxy.common.UDPSocketEndpoint;
 import packetproxy.model.ListenPort;
 import packetproxy.util.PacketProxyUtility;
 
-public class ProxyUDPForward extends Proxy
-{
+public class ProxyUDPForward extends Proxy {
 	private ListenPort listen_info;
 	private UDPServerSocket listen_socket;
 
@@ -31,7 +30,7 @@ public class ProxyUDPForward extends Proxy
 		this.listen_info = listen_info;
 		listen_socket = new UDPServerSocket(listen_info.getPort());
 	}
-	
+
 	@Override
 	public void run() {
 		try {
@@ -42,7 +41,8 @@ public class ProxyUDPForward extends Proxy
 				InetSocketAddress serverAddr = listen_info.getServer().getAddress();
 				UDPSocketEndpoint server_endpoint = new UDPSocketEndpoint(serverAddr);
 
-				DuplexAsync duplex = DuplexFactory.createDuplexAsync(client_endpoint, server_endpoint, listen_info.getServer().getEncoder());
+				DuplexAsync duplex = DuplexFactory.createDuplexAsync(client_endpoint, server_endpoint,
+						listen_info.getServer().getEncoder());
 				duplex.start();
 				DuplexManager.getInstance().registerDuplex(duplex);
 			}

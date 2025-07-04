@@ -22,6 +22,7 @@ import packetproxy.util.PacketProxyUtility;
 public class UniqueID {
 
 	private static UniqueID instance;
+
 	public static UniqueID getInstance() throws Exception {
 		if (instance == null) {
 			instance = new UniqueID();
@@ -30,9 +31,11 @@ public class UniqueID {
 	}
 
 	private long lastId = 0;
+
 	private UniqueID() throws Exception {
 		lastId = getNow();
 	}
+
 	public synchronized long createId() throws Exception {
 		while (true) {
 			long newId = getNow();
@@ -45,6 +48,7 @@ public class UniqueID {
 			return lastId = newId;
 		}
 	}
+
 	private long getNow() throws Exception {
 		return System.currentTimeMillis();
 	}

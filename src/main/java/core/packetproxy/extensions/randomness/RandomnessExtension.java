@@ -66,7 +66,7 @@ import packetproxy.controller.ResendController;
 import packetproxy.extensions.randomness.test.RandomnessTestManager;
 import packetproxy.gui.GUIBulkSenderData;
 import packetproxy.gui.GUIPacket;
-import  packetproxy.model.Extension;
+import packetproxy.model.Extension;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.Packet;
 import packetproxy.util.PacketProxyUtility;
@@ -133,7 +133,8 @@ public class RandomnessExtension extends Extension {
 
         JLabel regexLabel = new JLabel("RegExp to pickup:");
         regexPanel.add(regexLabel);
-        regexField = new JTextField("X-PacketProxy-HTTP2-UUID: ([0-9a-fA-F]{8})-([0-9a-fA-F]{4})-([0-9a-fA-F]{4})-([0-9a-fA-F]{4})-([0-9a-fA-F]{12})");
+        regexField = new JTextField(
+                "X-PacketProxy-HTTP2-UUID: ([0-9a-fA-F]{8})-([0-9a-fA-F]{4})-([0-9a-fA-F]{4})-([0-9a-fA-F]{4})-([0-9a-fA-F]{12})");
         regexField.setMaximumSize(new Dimension(Short.MAX_VALUE, regexField.getMinimumSize().height));
         regexPanel.add(regexField);
 
@@ -181,13 +182,13 @@ public class RandomnessExtension extends Extension {
                                     @Override
                                     protected void process(List<OneShotPacket> oneshots) {
                                         int id = requestProgressBar.getValue();
-                                        for (OneShotPacket oneshot: oneshots) {
+                                        for (OneShotPacket oneshot : oneshots) {
                                             recvPackets.put(id++, oneshot);
                                         }
                                         requestProgressBar.setValue(requestProgressBar.getValue() + oneshots.size());
                                         if (recvPackets.size() == count) {
                                             PacketProxyUtility.getInstance().packetProxyLog("all packet received");
-                                            for(Map.Entry<Integer, OneShotPacket> entry : recvPackets.entrySet()) {
+                                            for (Map.Entry<Integer, OneShotPacket> entry : recvPackets.entrySet()) {
                                                 OneShotPacket packet = entry.getValue();
                                                 // TODO: auto encoding
                                                 String content = toUTF8(packet.getData());
@@ -204,8 +205,7 @@ public class RandomnessExtension extends Extension {
                                                     owner,
                                                     "get " + tokens.size() + " tokens",
                                                     "Packet collection finished",
-                                                    JOptionPane.PLAIN_MESSAGE
-                                            );
+                                                    JOptionPane.PLAIN_MESSAGE);
                                         }
                                     }
                                 });
@@ -286,8 +286,8 @@ public class RandomnessExtension extends Extension {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    String preprocessKey = (String)preprocess.getSelectedItem();
-                    String testMethodKey = (String)testMethods.getSelectedItem();
+                    String preprocessKey = (String) preprocess.getSelectedItem();
+                    String testMethodKey = (String) testMethods.getSelectedItem();
 
                     // preprocess
                     ArrayList<Integer[]> preprocessed = new ArrayList<>();
@@ -321,7 +321,7 @@ public class RandomnessExtension extends Extension {
                                 long num = Long.parseLong(token);
                                 ArrayList<Integer> arr = new ArrayList<>();
                                 for (int i = 63; i >= 0; i--) {
-                                    arr.add((int)((num >> i) & 1));
+                                    arr.add((int) ((num >> i) & 1));
                                 }
                                 preprocessed.add(arr.toArray(new Integer[0]));
                             }
@@ -376,7 +376,7 @@ public class RandomnessExtension extends Extension {
         xyPlot.addDomainMarker(marker2);
         xyPlot.addDomainMarker(marker3);
         xyPlot.getRenderer().setSeriesStroke(0, new BasicStroke(2.0f));
-        chart = new JFreeChart("p-value and randomized bits", (Plot)xyPlot);
+        chart = new JFreeChart("p-value and randomized bits", (Plot) xyPlot);
         chart.removeLegend();
         ChartPanel chartPanel = new ChartPanel(chart);
 
@@ -390,7 +390,7 @@ public class RandomnessExtension extends Extension {
         return rightHalf;
     }
 
-    private String toUTF8(byte[] raw){
+    private String toUTF8(byte[] raw) {
         try {
             return new String(raw, "UTF-8");
         } catch (UnsupportedEncodingException e) {
@@ -404,7 +404,7 @@ public class RandomnessExtension extends Extension {
     }
 
     private JMenuItem createMenuItem(String name, int key, KeyStroke hotkey, ActionListener l) {
-        JMenuItem out = new JMenuItem (name);
+        JMenuItem out = new JMenuItem(name);
         if (key >= 0) {
             out.setMnemonic(key);
         }
@@ -421,7 +421,7 @@ public class RandomnessExtension extends Extension {
 
     @Override
     public JMenuItem historyClickHandler() {
-        JMenuItem randomness = createMenuItem ("send to Randomness Checker", -1, null, new ActionListener() {
+        JMenuItem randomness = createMenuItem("send to Randomness Checker", -1, null, new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
                 try {
                     Packet packet = GUIPacket.getInstance().getPacket();
@@ -430,7 +430,7 @@ public class RandomnessExtension extends Extension {
                     e.printStackTrace();
                 }
             }
-         });
+        });
         return randomness;
     }
 }

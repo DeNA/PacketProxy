@@ -35,9 +35,9 @@ import packetproxy.model.OneShotPacket;
 import packetproxy.model.Packet;
 import packetproxy.util.PacketProxyUtility;
 
-public class ResendController
-{
+public class ResendController {
 	private static ResendController instance;
+
 	public static ResendController getInstance() throws Exception {
 		if (instance == null) {
 			instance = new ResendController();
@@ -82,6 +82,7 @@ public class ResendController
 	/**
 	 * レスポンスを受け取って処理する必要があるとき用
 	 * ResendUsingNewConnectionを無名クラスでextendsしてprocessでList<OneShotPacket>受け取る
+	 * 
 	 * @param worker
 	 */
 	public void resend(ResendWorker worker) {
@@ -130,7 +131,7 @@ public class ResendController
 					util.packetProxyLogErr("Resend packet is wrong!");
 					return null;
 				}
-				
+
 				list.stream().filter(o -> o.isDirectSend()).forEach(sendData -> {
 					try {
 						sendData.send();
@@ -182,7 +183,8 @@ public class ResendController
 				} else {
 					Duplex original_duplex = DuplexManager.getInstance().getDuplex(oneshot.getConn());
 					if (original_duplex == null) {
-						PacketProxyUtility.getInstance().packetProxyLogErr(I18nString.get("[Error] tried to resend packets, but the connection was already closed."));
+						PacketProxyUtility.getInstance().packetProxyLogErr(I18nString
+								.get("[Error] tried to resend packets, but the connection was already closed."));
 						return;
 					}
 					this.duplex = DuplexFactory.createDuplexFromOriginalDuplex(original_duplex, this.oneshot);
@@ -190,10 +192,10 @@ public class ResendController
 						((DuplexAsync) this.duplex).start();
 					}
 					this.isSync = true;
-				}	
+				}
 				this.preparedData = this.duplex.prepareFastSend(this.oneshot.getData());
 			}
-			
+
 			public boolean isDirectSend() {
 				return this.isDirectSend;
 			}
@@ -201,22 +203,24 @@ public class ResendController
 			public void send() throws Exception {
 				if (duplex == null)
 					return;
-				
+
 				if (this.isDirectSend) {
 					this.duplex.sendToServer(this.preparedData);
 					OneShotPacket result = new OneShotPacket(
-						oneshot.getId(),
-						oneshot.getListenPort(),
-						oneshot.getClient(),
-						oneshot.getServer(),
-						oneshot.getServerName(),
-						oneshot.getUseSSL(),
-						I18nString.get("In case that packets were resend to already connected socket, results can't be displayed in this window. See the history window instead.").getBytes(),
-						oneshot.getEncoder(),
-						oneshot.getAlpn(),
-						Packet.Direction.SERVER,
-						oneshot.getConn(),
-						oneshot.getGroup());
+							oneshot.getId(),
+							oneshot.getListenPort(),
+							oneshot.getClient(),
+							oneshot.getServer(),
+							oneshot.getServerName(),
+							oneshot.getUseSSL(),
+							I18nString.get(
+									"In case that packets were resend to already connected socket, results can't be displayed in this window. See the history window instead.")
+									.getBytes(),
+							oneshot.getEncoder(),
+							oneshot.getAlpn(),
+							Packet.Direction.SERVER,
+							oneshot.getConn(),
+							oneshot.getGroup());
 					this.onReceived.accept(result);
 					return;
 				}
@@ -224,26 +228,29 @@ public class ResendController
 				this.duplex.execFastSend(this.preparedData);
 				if (isSync) {
 					OneShotPacket result = new OneShotPacket(
-						oneshot.getId(),
-						oneshot.getListenPort(),
-						oneshot.getClient(),
-						oneshot.getServer(),
-						oneshot.getServerName(),
-						oneshot.getUseSSL(),
-						I18nString.get("In case that packets were resend to already connected socket, results can't be displayed in this window. See the history window instead.").getBytes(),
-						oneshot.getEncoder(),
-						oneshot.getAlpn(),
-						Packet.Direction.SERVER,
-						oneshot.getConn(),
-						oneshot.getGroup());
+							oneshot.getId(),
+							oneshot.getListenPort(),
+							oneshot.getClient(),
+							oneshot.getServer(),
+							oneshot.getServerName(),
+							oneshot.getUseSSL(),
+							I18nString.get(
+									"In case that packets were resend to already connected socket, results can't be displayed in this window. See the history window instead.")
+									.getBytes(),
+							oneshot.getEncoder(),
+							oneshot.getAlpn(),
+							Packet.Direction.SERVER,
+							oneshot.getConn(),
+							oneshot.getGroup());
 					this.onReceived.accept(result);
 				} else {
 					byte[] data = duplex.receive();
 
 					/* 100 Continue 対策 */
-					Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(), oneshot.getAlpn());
+					Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(),
+							oneshot.getAlpn());
 					if (encoder instanceof EncodeHTTPBase) {
-						EncodeHTTPBase httpEncoder = (EncodeHTTPBase)encoder;
+						EncodeHTTPBase httpEncoder = (EncodeHTTPBase) encoder;
 						if (httpEncoder.getHttpVersion() == EncodeHTTPBase.HTTPVersion.HTTP1) {
 							while (Http.create(data).getStatusCode().equals("100")) {
 								data = duplex.receive();
@@ -252,18 +259,18 @@ public class ResendController
 					}
 
 					OneShotPacket result = new OneShotPacket(
-						oneshot.getId(),
-						oneshot.getListenPort(),
-						oneshot.getClient(),
-						oneshot.getServer(),
-						oneshot.getServerName(),
-						oneshot.getUseSSL(),
-						data,
-						oneshot.getEncoder(),
-						oneshot.getAlpn(),
-						Packet.Direction.SERVER,
-						oneshot.getConn(),
-						oneshot.getGroup());
+							oneshot.getId(),
+							oneshot.getListenPort(),
+							oneshot.getClient(),
+							oneshot.getServer(),
+							oneshot.getServerName(),
+							oneshot.getUseSSL(),
+							data,
+							oneshot.getEncoder(),
+							oneshot.getAlpn(),
+							Packet.Direction.SERVER,
+							oneshot.getConn(),
+							oneshot.getGroup());
 
 					this.onReceived.accept(result);
 				}
