@@ -28,8 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @DatabaseTable(tableName = "servers")
-public class Server
-{
+public class Server {
     @DatabaseField(generatedId = true)
     private int id;
     @DatabaseField(uniqueCombo = true)
@@ -48,19 +47,24 @@ public class Server
     private boolean http_proxy;
     @DatabaseField
     private String comment;
-    
+
     private boolean specifiedByHostName;
 
     public Server() {
-        // ORMLite needs a no-arg constructor 
+        // ORMLite needs a no-arg constructor
     }
+
     public Server(String ip, int port, String encoder) {
         initialize(ip, port, false, encoder, false, false, false, "");
     }
-    public Server(String ip, int port, boolean use_ssl, String encoder, boolean resolved_by_dns, boolean resolved_by_dns6, boolean http_proxy, String comment) {
+
+    public Server(String ip, int port, boolean use_ssl, String encoder, boolean resolved_by_dns,
+            boolean resolved_by_dns6, boolean http_proxy, String comment) {
         initialize(ip, port, use_ssl, encoder, resolved_by_dns, resolved_by_dns6, http_proxy, comment);
     }
-    private void initialize(String ip, int port, boolean use_ssl, String encoder, boolean resolved_by_dns, boolean resolved_by_dns6, boolean http_proxy, String comment) {
+
+    private void initialize(String ip, int port, boolean use_ssl, String encoder, boolean resolved_by_dns,
+            boolean resolved_by_dns6, boolean http_proxy, String comment) {
         this.ip = ip;
         this.port = port;
         this.use_ssl = use_ssl;
@@ -71,90 +75,115 @@ public class Server
         this.comment = comment;
         this.specifiedByHostName = isHostName(ip);
     }
-    static private boolean isHostName(String host){
-    	try {
-    		return !(InetAddress.getByName(host).getHostAddress().equals(host));
-    	} catch (UnknownHostException e) {
-    		e.printStackTrace();
-    		return true;
-    	}
+
+    static private boolean isHostName(String host) {
+        try {
+            return !(InetAddress.getByName(host).getHostAddress().equals(host));
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return true;
+        }
     }
+
     @Override
-	public String toString() {
-    	return String.format("%s:%d(%s)", ip, port, encoder);
+    public String toString() {
+        return String.format("%s:%d(%s)", ip, port, encoder);
     }
+
     public InetSocketAddress getAddress() throws Exception {
-    	return new InetSocketAddress(PrivateDNSClient.getByName(ip), port);
+        return new InetSocketAddress(PrivateDNSClient.getByName(ip), port);
     }
+
     public int getId() {
-    	return this.id;
+        return this.id;
     }
+
     public void setId(int id) {
-         this.id = id;
+        this.id = id;
     }
+
     public String getIp() {
         return this.ip;
     }
+
     public void setIp(String ip) {
         this.ip = ip;
     }
+
     public int getPort() {
         return port;
     }
+
     public void setPort(int port) {
         this.port = port;
     }
+
     public String getEncoder() {
         return encoder;
     }
+
     public void setEncoder(String encoder) {
         this.encoder = encoder;
     }
+
     public void setUseSSL(boolean ssl) {
         this.use_ssl = ssl;
     }
+
     public boolean getUseSSL() {
         return this.use_ssl;
     }
+
     public void setHttpProxy(boolean http_proxy) {
         this.http_proxy = http_proxy;
     }
+
     public boolean isHttpProxy() {
         return this.http_proxy;
     }
+
     public void enableResolved() {
         this.resolved_by_dns = true;
     }
+
     public void disableResolved() {
         this.resolved_by_dns = false;
     }
+
     public boolean isResolved() {
-    	return this.resolved_by_dns;
+        return this.resolved_by_dns;
     }
+
     public void setResolved(boolean resolved_by_dns) {
         this.resolved_by_dns = resolved_by_dns;
     }
+
     public void enableResolved6() {
         this.resolved_by_dns6 = true;
     }
+
     public void disableResolved6() {
         this.resolved_by_dns6 = false;
     }
+
     public boolean isResolved6() {
         return this.resolved_by_dns6;
     }
+
     public void setResolved6(boolean resolved_by_dns6) {
         this.resolved_by_dns6 = resolved_by_dns6;
     }
+
     public String getComment() {
-    	return this.comment;
+        return this.comment;
     }
+
     public void setComment(String comment) {
-    	this.comment = comment;
+        this.comment = comment;
     }
-    
-    public List<InetAddress> getIps(){
-    	try {
+
+    public List<InetAddress> getIps() {
+        try {
             if (specifiedByHostName) {
                 List<InetAddress> ips = Arrays.asList(PrivateDNSClient.getAllByName(ip));
                 return ips;
@@ -164,12 +193,13 @@ public class Server
                 return ips;
             }
         } catch (UnknownHostException e) {
-            PacketProxyUtility.getInstance().packetProxyLogErr(String.format("Nonexistent server '%s' is specified in config [DNS resolv error]", ip));
+            PacketProxyUtility.getInstance().packetProxyLogErr(
+                    String.format("Nonexistent server '%s' is specified in config [DNS resolv error]", ip));
             return new ArrayList<InetAddress>();
-    	} catch (Exception e) {
-    		// TODO Auto-generated catch block
-    		e.printStackTrace();
-    		return new ArrayList<InetAddress>();
-    	}
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return new ArrayList<InetAddress>();
+        }
     }
 }

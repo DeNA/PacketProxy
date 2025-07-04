@@ -100,9 +100,13 @@ public abstract class PnSpace {
             return;
         }
 
-        /* Update the RTT if the largest acknowledged is newly acked, and at least one ack-eliciting was newly acked. */
+        /*
+         * Update the RTT if the largest acknowledged is newly acked, and at least one
+         * ack-eliciting was newly acked.
+         */
         newlyAckedPackets.getLargest().ifPresent(packet -> {
-            if (packet.getPacketNumber() == ackFrame.getLargestAckedPn() && newlyAckedPackets.hasAnyAckElicitingPacket()) {
+            if (packet.getPacketNumber() == ackFrame.getLargestAckedPn()
+                    && newlyAckedPackets.hasAnyAckElicitingPacket()) {
                 this.conn.getRttEstimator().updateRtt(packet.getTimeSent(), ackFrame.getAckDelay());
             }
         });
@@ -114,11 +118,15 @@ public abstract class PnSpace {
 
         LostPackets lostPackets = this.detectAndRemoveLostPackets();
         if (!lostPackets.isEmpty()) {
-            //PacketProxyUtility.getInstance().packetProxyLogErr("[QUIC] lost packets: " + lostPackets);
+            // PacketProxyUtility.getInstance().packetProxyLogErr("[QUIC] lost packets: " +
+            // lostPackets);
             OnPacketsLost(lostPackets);
         }
 
-        /* Reset pto_count unless the client is unsure if the server has validated the client's address. */
+        /*
+         * Reset pto_count unless the client is unsure if the server has validated the
+         * client's address.
+         */
         if (this.conn.peerCompletedAddressValidation()) {
             this.conn.getPto().clearPtoCount();
         }
@@ -127,7 +135,7 @@ public abstract class PnSpace {
 
     public synchronized void receivePacket(QuicPacket quicPacket) {
         if (quicPacket instanceof PnSpacePacket) {
-            PnSpacePacket packet = (PnSpacePacket)quicPacket;
+            PnSpacePacket packet = (PnSpacePacket) quicPacket;
             this.ackFrameGenerator.received(packet.getPacketNumber());
             if (packet.isAckEliciting()) {
                 this.addSendFrameFirst(this.ackFrameGenerator.generateAckFrame());
@@ -163,7 +171,8 @@ public abstract class PnSpace {
                 }
             } else if (frame instanceof ConnectionCloseFrame) {
                 ConnectionCloseFrame connCloseFrame = (ConnectionCloseFrame) frame;
-                PacketProxyUtility.getInstance().packetProxyLogErr(String.format("HTTP3 connection closed (%s)", connCloseFrame.getReasonPhraseString()));
+                PacketProxyUtility.getInstance().packetProxyLogErr(
+                        String.format("HTTP3 connection closed (%s)", connCloseFrame.getReasonPhraseString()));
                 this.conn.close();
             } else if (frame instanceof NewConnectionIdFrame) {
                 /* not implemented yet */
@@ -204,6 +213,7 @@ public abstract class PnSpace {
         this.sendFrameQueue.add(frames);
         this.conn.getPnSpaces().addSendPackets(this.getAndRemoveSendFramesAndConvertPacketBuilders());
     }
+
     public abstract List<QuicPacketBuilder> getAndRemoveSendFramesAndConvertPacketBuilders();
 
     public synchronized void addSentPacket(QuicPacket quicPacket) {
@@ -240,9 +250,11 @@ public abstract class PnSpace {
             }
             /*
              * Mark packet as lost, or set time when it should be marked.
-             * Note: The use of kPacketThreshold here assumes that there were no sender-induced gaps in the packet number space.
+             * Note: The use of kPacketThreshold here assumes that there were no
+             * sender-induced gaps in the packet number space.
              */
-            if (unAcked.getTimeSent().isBefore(lostSendTime) || largestAckedPn.isLargerThanOrEquals(unAckedPn.plus(Constants.kPacketThreshold))) {
+            if (unAcked.getTimeSent().isBefore(lostSendTime)
+                    || largestAckedPn.isLargerThanOrEquals(unAckedPn.plus(Constants.kPacketThreshold))) {
                 this.sentPackets.removePacket(unAcked);
                 lostPackets.add(unAcked);
             } else {

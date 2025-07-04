@@ -39,8 +39,7 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-public class Http
-{
+public class Http {
 	private HttpHeader header;
 	private HttpHeader originalHeader;
 	private byte[] rawBody;
@@ -51,11 +50,11 @@ public class Http
 	private String path;
 	private QueryString queryString;
 	private String version;
-	//private MultiValueMap<String,String> header;
-	//private MultiValueMap<String,Parameter> bodyParams;
-	//private ArrayList<String> header_order;
+	// private MultiValueMap<String,String> header;
+	// private MultiValueMap<String,Parameter> bodyParams;
+	// private ArrayList<String> header_order;
 	private byte[] body;
-	//	private boolean flag_https = false;
+	// private boolean flag_https = false;
 	private boolean flag_request = false;
 	private boolean flag_proxy = false;
 	private boolean flag_proxy_ssl = false;
@@ -72,52 +71,63 @@ public class Http
 	}
 
 	/*
-	public static void main(String args[])
-	{
-		PacketProxyUtility util = PacketProxyUtility.getInstance();
-		try {
+	 * public static void main(String args[])
+	 * {
+	 * PacketProxyUtility util = PacketProxyUtility.getInstance();
+	 * try {
+	 * 
+	 * String test1 =
+	 * "GET http://www.example.com/a/b/c.html?abc=h%20oge HTTP/1.1\r\nHost: www.example.com\r\nContent-Length: 4\r\nContent-Encoding: aaa\r\na: b\r\na: c\r\n\r\nbody"
+	 * ;
+	 * //String test1 =
+	 * "GET http://www.example.com/a/b/c.html? HTTP/1.1\r\nHost: www.example.com\r\nContent-Length: 4\r\nContent-Encoding: aaa\r\na: b\r\na: c\r\n\r\nbody"
+	 * ;
+	 * //String test =
+	 * "GET /a/b/c.html?abc=h%20oge HTTP/1.1\r\nHost: www.example.com\r\n\r\nbody";
+	 * String test = "HTTP/1.1 100 Continue\r\n\r\n";
+	 * //System.out.println(test1.length());
+	 * //test1 += "POST /aaa/bbb HTTP/1.1";
+	 * //System.out.println(test1.length());
+	 * Http http = new Http(test1.getBytes());
+	 * byte[] body = http.getBody();
+	 * util.packetProxyLog(new String(body));
+	 * util.packetProxyLog(String.format("%s:%d\n", http.getProxyHost(),
+	 * http.getProxyPort()));
+	 * util.packetProxyLog(http.getQueryAsString());
+	 * util.packetProxyLog(http.getPath());
+	 * List<Parameter> params = Arrays.asList("a=1", "e=2", "c=3", "a=2", "aa=1",
+	 * "b=2").stream().map((s) -> new Parameter(s)).collect(Collectors.toList());
+	 * http.setBodyParams(params);
+	 * util.packetProxyLog(new String(http.getBody(), "UTF-8"));
+	 * MultiValueMap<String, Parameter> map = http.getBodyParams();
+	 * List<String> list = http.getBodyParamsOrder();
+	 * 
+	 * http.getBodyParamsOrder().stream().forEach(s ->
+	 * util.packetProxyLog((map.get(s).toString())));
+	 * // System.out.println("-----");
+	 * // System.out.println(new String(http.toByteArray()));
+	 * // System.out.println(parseHttpDelimiter(test1.getBytes()));
+	 * // System.out.println(new String(http.toByteArray()));
+	 * 
+	 * } catch (Exception e) {
+	 * e.printStackTrace();
+	 * }
+	 * }
+	 */
 
-			String test1 = "GET http://www.example.com/a/b/c.html?abc=h%20oge HTTP/1.1\r\nHost: www.example.com\r\nContent-Length: 4\r\nContent-Encoding: aaa\r\na: b\r\na: c\r\n\r\nbody";
-			//String test1 = "GET http://www.example.com/a/b/c.html? HTTP/1.1\r\nHost: www.example.com\r\nContent-Length: 4\r\nContent-Encoding: aaa\r\na: b\r\na: c\r\n\r\nbody";
-			//String test = "GET /a/b/c.html?abc=h%20oge HTTP/1.1\r\nHost: www.example.com\r\n\r\nbody";
-			String test = "HTTP/1.1 100 Continue\r\n\r\n";
-			//System.out.println(test1.length());
-			//test1 += "POST /aaa/bbb HTTP/1.1";
-			//System.out.println(test1.length());
-			Http http = new Http(test1.getBytes());
-			byte[] body = http.getBody();
-			util.packetProxyLog(new String(body));
-			util.packetProxyLog(String.format("%s:%d\n", http.getProxyHost(), http.getProxyPort()));
-			util.packetProxyLog(http.getQueryAsString());
-			util.packetProxyLog(http.getPath());
-			List<Parameter> params = Arrays.asList("a=1", "e=2", "c=3", "a=2", "aa=1", "b=2").stream().map((s) -> new Parameter(s)).collect(Collectors.toList());
-			http.setBodyParams(params);
-			util.packetProxyLog(new String(http.getBody(), "UTF-8"));
-			MultiValueMap<String, Parameter> map = http.getBodyParams();
-			List<String> list = http.getBodyParamsOrder();
-
-			http.getBodyParamsOrder().stream().forEach(s -> util.packetProxyLog((map.get(s).toString())));
-			//			System.out.println("-----");
-			//			System.out.println(new String(http.toByteArray()));
-			//			System.out.println(parseHttpDelimiter(test1.getBytes()));
-			// System.out.println(new String(http.toByteArray()));
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	*/
-
-	static final Pattern CONTINUE_PATTERN = Pattern.compile("HTTP/1.1 100 Continue\r?\n\r?\n", Pattern.CASE_INSENSITIVE);
+	static final Pattern CONTINUE_PATTERN = Pattern.compile("HTTP/1.1 100 Continue\r?\n\r?\n",
+			Pattern.CASE_INSENSITIVE);
 	static final Pattern PLAIN_PATTERN = Pattern.compile("\nContent-Length *: *([0-9]+)", Pattern.CASE_INSENSITIVE);
 	static final Pattern CHUNKED_PATTERN = Pattern.compile("\nTransfer-Encoding *: *chunked", Pattern.CASE_INSENSITIVE);
 	static final Pattern GZIP_PATTERN = Pattern.compile("\nContent-Encoding *: *gzip", Pattern.CASE_INSENSITIVE);
 	static final Pattern ZSTD_PATTERN = Pattern.compile("\nContent-Encoding *: *zstd", Pattern.CASE_INSENSITIVE);
+
 	// TODO header系作業をHttpHeaderに分離
-	public static int parseHttpDelimiter(byte[] data) throws Exception
-	{
+	public static int parseHttpDelimiter(byte[] data) throws Exception {
 		int header_size = HttpHeader.calcHeaderSize(data);
-		if (header_size == -1) { return -1; }
+		if (header_size == -1) {
+			return -1;
+		}
 
 		byte[] header = ArrayUtils.subarray(data, 0, header_size);
 		String header_str = new String(header, "UTF-8");
@@ -143,7 +153,8 @@ public class Http
 			if (body.length < finishFlag.length) {
 				return -1;
 			}
-			if (Arrays.compare(finishFlag, 0, finishFlag.length, body, body.length - finishFlag.length, body.length) != 0) {
+			if (Arrays.compare(finishFlag, 0, finishFlag.length, body, body.length - finishFlag.length,
+					body.length) != 0) {
 				return -1;
 			}
 			body = getChankedHttpBody(body);
@@ -176,12 +187,12 @@ public class Http
 		}
 		return header_size + content_length;
 	}
+
 	static public boolean isHTTP(byte[] data) {
 		return HttpHeader.isHTTPHeader(data);
 	}
 
-	private Http(byte[] data, boolean withoutTouchingContentLength) throws Exception
-	{
+	private Http(byte[] data, boolean withoutTouchingContentLength) throws Exception {
 		if (withoutTouchingContentLength) {
 			this.dontTouchContentLength();
 		}
@@ -193,13 +204,13 @@ public class Http
 		body = getCookedBody(header, rawBody);
 	}
 
-	public HttpHeader getHeader(){
+	public HttpHeader getHeader() {
 		return header;
 	}
 
-	//	public boolean isHTTPS() {
-	//		return flag_https;
-	//	}
+	// public boolean isHTTPS() {
+	// return flag_https;
+	// }
 
 	public String getServerName() {
 		return proxyHost;
@@ -241,24 +252,24 @@ public class Http
 		this.queryString = new QueryString(query);
 	}
 
-	public void setQuery(QueryString query){
+	public void setQuery(QueryString query) {
 		this.queryString = query;
 	}
 
-	public QueryString getQuery(){
+	public QueryString getQuery() {
 		return this.queryString;
 	}
 
 	public String getQueryAsString() {
 		return this.queryString.toString();
 	}
-	
+
 	public String getStatusCode() {
 		return this.statusCode;
 	}
 
 	public void setBody(byte[] body) {
-		this.body = body != null ? body : new byte[]{};
+		this.body = body != null ? body : new byte[] {};
 	}
 
 	public void disableContentLength() {
@@ -275,8 +286,7 @@ public class Http
 		this.flag_disable_proxy_format_url = true;
 	}
 
-	private byte[] getCookedBody(HttpHeader header, byte[] rawBody) throws Exception
-	{
+	private byte[] getCookedBody(HttpHeader header, byte[] rawBody) throws Exception {
 		byte[] cookedBody = rawBody;
 
 		{
@@ -318,7 +328,8 @@ public class Http
 		if (version.equals("HTTP/2") || version.equals("HTTP/3")) {
 			return getURI();
 		} else { /* HTTP/1.1 */
-			String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?"+getQueryAsString() : "";
+			String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?" + getQueryAsString()
+					: "";
 			String path = getPath();
 			String host = header.getValue("Host").orElse(null);
 			String protocol = (use_ssl ? "https" : "http");
@@ -336,21 +347,24 @@ public class Http
 		String scheme = "https";
 		String path = getPath();
 		String query = getQueryAsString();
-		String queryStr = (query != null && query.length() > 0) ? "?"+query : "";
+		String queryStr = (query != null && query.length() > 0) ? "?" + query : "";
 		return scheme + "://" + authority + path + queryStr;
 	}
 
-	public byte[] toByteArray() throws Exception{
+	public byte[] toByteArray() throws Exception {
 		byte[] result = null;
 		byte[] newLine = new String("\r\n").getBytes();
 		String statusLine = header.getStatusline();
 
 		if (flag_request) {
-			//String query = (getQuery() != null && getQuery().length() > 0) ? "?"+URLEncoder.encode(getQuery(),"utf-8") : "";
-			String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?"+getQueryAsString() : "";
+			// String query = (getQuery() != null && getQuery().length() > 0) ?
+			// "?"+URLEncoder.encode(getQuery(),"utf-8") : "";
+			String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?" + getQueryAsString()
+					: "";
 			if (this.isProxy() && this.flag_disable_proxy_format_url == false) {
-				String proxyPort = (getServerPort() > 0) ? ":"+String.valueOf(getServerPort()) : "";
-				statusLine = String.format("%s http://%s%s%s%s %s", this.method, getServerName(), proxyPort, getPath(), query, this.version);
+				String proxyPort = (getServerPort() > 0) ? ":" + String.valueOf(getServerPort()) : "";
+				statusLine = String.format("%s http://%s%s%s%s %s", this.method, getServerName(), proxyPort, getPath(),
+						query, this.version);
 			} else {
 				statusLine = String.format("%s %s%s %s", this.method, this.path, query, this.version);
 			}
@@ -367,42 +381,42 @@ public class Http
 
 		if (body.length == 0 && flag_request && this.getHost() != null &&
 				(this.getHost().equals("dpoint.jp") ||
-				 this.getHost().equals("id.smt.docomo.ne.jp") ||
-				 this.getHost().equals("cfg.smt.docomo.ne.jp"))) {
+						this.getHost().equals("id.smt.docomo.ne.jp") ||
+						this.getHost().equals("cfg.smt.docomo.ne.jp"))) {
 			// 特定サイトでは Content-Length: 0をつけるとうまく動かないので例外処理する
-		} else if (this.flag_disable_content_length) { 
+		} else if (this.flag_disable_content_length) {
 			// content-lengthがいらないと明示的に指定したケース
 		} else if (this.flag_dont_touch_content_length) {
 			// content-lengthを触らないと明示的に指定したケース
 		} else {
 			// Content-Typeがないパターンでも必ずContent-Lengthはつけるべき
-			//if (header.containsKey("Content-Type")) {
+			// if (header.containsKey("Content-Type")) {
 			result = ArrayUtils.addAll(result, String.format("Content-Length: %d", body.length).getBytes());
 			result = ArrayUtils.addAll(result, newLine);
-			//}
+			// }
 		}
 
 		result = ArrayUtils.addAll(result, newLine);
 		return ArrayUtils.addAll(result, body);
 	}
 
-	public HttpHeader getOriginalHeader(){
+	public HttpHeader getOriginalHeader() {
 		return originalHeader;
 	}
 
-	public boolean isGzipEncoded(){
+	public boolean isGzipEncoded() {
 		return getOriginalHeader().getValue("Content-Encoding")
-			.orElse("").equalsIgnoreCase("gzip");
+				.orElse("").equalsIgnoreCase("gzip");
 	}
 
-	public void encodeBodyByGzip() throws Exception{
+	public void encodeBodyByGzip() throws Exception {
 		body = gzip(body);
 		header.update("Content-Encoding", "gzip");
 	}
 
 	static final Pattern STATUS_LINE_PATTERN = Pattern.compile("([^ ]+) +([^ ]+) +([^ ]+)$");
-	private void analyzeRequestStatusLine(String status_line) throws Exception
-	{
+
+	private void analyzeRequestStatusLine(String status_line) throws Exception {
 		Matcher matcher = STATUS_LINE_PATTERN.matcher(status_line);
 		if (matcher.find()) {
 			this.method = matcher.group(1).trim();
@@ -420,7 +434,8 @@ public class Http
 				} else {
 					// 多分httpsだけど、httpだと原因を探すのが大変になるので一応エラー出力しておく
 					flag_proxy_ssl = true;
-					PacketProxyUtility.getInstance().packetProxyLog(status_line + " can't distinguish HTTP or HTTPS, but use HTTPS");
+					PacketProxyUtility.getInstance()
+							.packetProxyLog(status_line + " can't distinguish HTTP or HTTPS, but use HTTPS");
 				}
 			} else {
 				String urlStr = matcher.group(2).trim();
@@ -445,9 +460,9 @@ public class Http
 	}
 
 	static final Pattern HTTP_URL_PATTERN = Pattern.compile("http://[^/]+");
+
 	@SuppressWarnings("unused")
-	private String replaceStatusLineToNonProxyStyte(String status_line) throws Exception
-	{
+	private String replaceStatusLineToNonProxyStyte(String status_line) throws Exception {
 		String result = status_line;
 		Matcher matcher = HTTP_URL_PATTERN.matcher(status_line);
 		if (matcher.find()) {
@@ -457,21 +472,21 @@ public class Http
 	}
 
 	static final Pattern STATUS_LINE_PATTERN2 = Pattern.compile("[^ ]+ +([^ ]+) +([a-z0-9A-Z ]+)$");
-	private void analyzeResponseStatusLine(String status_line) throws Exception
-	{
+
+	private void analyzeResponseStatusLine(String status_line) throws Exception {
 		Matcher matcher = STATUS_LINE_PATTERN2.matcher(status_line);
 		if (matcher.find()) {
 			this.statusCode = matcher.group(1).trim();
-			//			if (matcher.group(2).trim().equals("Connection established")) {
-			//				//flag_httpsは使ってない
-			//				flag_https = true;
-			//			}
+			// if (matcher.group(2).trim().equals("Connection established")) {
+			// //flag_httpsは使ってない
+			// flag_https = true;
+			// }
 		}
 	}
 
 	static final Pattern STATUS_LINE_PATTERN3 = Pattern.compile("^([^ ]+)");
-	private void analyzeStatusLine(String status_line) throws Exception
-	{
+
+	private void analyzeStatusLine(String status_line) throws Exception {
 		Matcher matcher = STATUS_LINE_PATTERN3.matcher(status_line);
 		if (matcher.find()) {
 			if (matcher.group(1).trim().startsWith("HTTP")) {
@@ -483,10 +498,9 @@ public class Http
 		}
 	}
 
-
-	private static byte[] getHttpBody(byte[] input_data) throws Exception
-	{
-		byte[][] search_words = { new String("\r\n\r\n").getBytes(), new String("\n\n").getBytes(), new String("\r\r").getBytes() };
+	private static byte[] getHttpBody(byte[] input_data) throws Exception {
+		byte[][] search_words = { new String("\r\n\r\n").getBytes(), new String("\n\n").getBytes(),
+				new String("\r\r").getBytes() };
 		for (byte[] search_word : search_words) {
 			int idx;
 			if ((idx = Utils.indexOf(input_data, 0, input_data.length, search_word)) < 0) {
@@ -494,7 +508,7 @@ public class Http
 			}
 			return ArrayUtils.subarray(input_data, idx + search_word.length, input_data.length);
 		}
-		return new byte[]{};
+		return new byte[] {};
 	}
 
 	private static byte[] zstd_decompress(byte[] input_data) throws Exception {
@@ -510,8 +524,7 @@ public class Http
 		return out.toByteArray();
 	}
 
-	private static byte[] gunzip(byte[] input_data) throws Exception
-	{
+	private static byte[] gunzip(byte[] input_data) throws Exception {
 		if (input_data.length == 0) {
 			return input_data;
 		}
@@ -536,8 +549,7 @@ public class Http
 		}
 	}
 
-	private static byte[] gzip(byte[] input_data) throws Exception
-	{
+	private static byte[] gzip(byte[] input_data) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		GZIPOutputStream gout = new GZIPOutputStream(out);
 		gout.write(input_data);
@@ -545,8 +557,7 @@ public class Http
 		return out.toByteArray();
 	}
 
-	private static byte[] getChankedHttpBodyFussy(byte[] input_data) throws Exception
-	{
+	private static byte[] getChankedHttpBodyFussy(byte[] input_data) throws Exception {
 		// TODO 改行コードの対応
 		byte[] search_word = new String("\r\n").getBytes();
 		int index = 0;
@@ -560,9 +571,10 @@ public class Http
 				if (chank_length == 0) {
 					return body;
 				}
-				byte[] chank = ArrayUtils.subarray(input_data, index + search_word.length, index + search_word.length + chank_length);
+				byte[] chank = ArrayUtils.subarray(input_data, index + search_word.length,
+						index + search_word.length + chank_length);
 				body = ArrayUtils.addAll(body, chank);
-				start_index = index + search_word.length*2 + chank_length;
+				start_index = index + search_word.length * 2 + chank_length;
 			} catch (Exception e) {
 				return body;
 			}
@@ -570,8 +582,7 @@ public class Http
 		return body;
 	}
 
-	private static byte[] getChankedHttpBody(byte[] input_data) throws Exception
-	{
+	private static byte[] getChankedHttpBody(byte[] input_data) throws Exception {
 		// TODO 改行コードの対応
 		byte[] search_word = new String("\r\n").getBytes();
 		int index = 0;
@@ -585,9 +596,10 @@ public class Http
 				if (chank_length == 0) {
 					return body;
 				}
-				byte[] chank = ArrayUtils.subarray(input_data, index + search_word.length, index + search_word.length + chank_length);
+				byte[] chank = ArrayUtils.subarray(input_data, index + search_word.length,
+						index + search_word.length + chank_length);
 				body = ArrayUtils.addAll(body, chank);
-				start_index = index + search_word.length*2 + chank_length;
+				start_index = index + search_word.length * 2 + chank_length;
 			} catch (Exception e) {
 				return null;
 			}
@@ -599,7 +611,7 @@ public class Http
 		return new InetSocketAddress(PrivateDNSClient.getByName(proxyHost), proxyPort);
 	}
 
-	public List<String> getBodyParamsOrder(){
+	public List<String> getBodyParamsOrder() {
 		String body;
 		try {
 			body = new String(getBody(), "UTF-8");
@@ -614,7 +626,7 @@ public class Http
 		return names.stream().filter(n -> !usedName.contains(n)).peek(usedName::add).collect(Collectors.toList());
 	}
 
-	public MultiValueMap<String, Parameter> getBodyParams(){
+	public MultiValueMap<String, Parameter> getBodyParams() {
 		String body;
 		try {
 			body = new String(getBody(), "UTF-8");
@@ -624,58 +636,59 @@ public class Http
 		}
 		String[] pairs = body.split("&");
 		MultiValueMap<String, Parameter> nameToParams = new MultiValueMap<>();
-		for(String param : pairs){
+		for (String param : pairs) {
 			Parameter p = new Parameter(param);
 			nameToParams.put(p.getName(), p);
 		}
 		return nameToParams;
 	}
 
-	public void setBodyParams(List<Parameter> params){
-		List<String> paramStrings = params.stream().map(e -> e.toString()).collect(Collectors.toList()); 
+	public void setBodyParams(List<Parameter> params) {
+		List<String> paramStrings = params.stream().map(e -> e.toString()).collect(Collectors.toList());
 		setBody(String.join("&", paramStrings).getBytes());
-		return ;
+		return;
 	}
 
 	@SuppressWarnings("deprecation")
-	public String getCookie(String key){
-		List<String> cookies = getHeader().getAllValue("Cookie");	
+	public String getCookie(String key) {
+		List<String> cookies = getHeader().getAllValue("Cookie");
 		Map<String, String> cookieMap;
 		cookieMap = cookies
-			.stream()
-			.flatMap(v -> Arrays.stream(v.split(";\\s*")))
-			.map(kv -> kv.split("="))
-			.collect(Collectors.toMap(
+				.stream()
+				.flatMap(v -> Arrays.stream(v.split(";\\s*")))
+				.map(kv -> kv.split("="))
+				.collect(Collectors.toMap(
 						kv -> URLDecoder.decode(kv[0]),
-						kv -> URLDecoder.decode(kv[1])
-						));
+						kv -> URLDecoder.decode(kv[1])));
 		return cookieMap.get(key);
 	}
 
-	public String getOverrideHttpMethod(){
+	public String getOverrideHttpMethod() {
 		String tmp = this.getFirstHeader("X-HTTP-Method-Override");
 		return tmp.isEmpty() ? this.method : tmp;
 	}
 
-	// 以下非推奨　互換性のため
-	public String getFirstHeader(String key){
+	// 以下非推奨 互換性のため
+	public String getFirstHeader(String key) {
 		return header.getValue(key).orElse("");
 	}
+
 	public void removeHeader(String key) {
 		header.removeAll(key);
 	}
-	public void updateHeader(String key, String value){
+
+	public void updateHeader(String key, String value) {
 		header.update(key, value);
 	}
 
-	public void removeMatches(String regex){
+	public void removeMatches(String regex) {
 		header.removeMatches(regex);
 	}
 
-	public List<String> getHeader(String key){
+	public List<String> getHeader(String key) {
 		return header.getAllValue(key);
 	}
-	
+
 	public boolean isRequest() {
 		return flag_request;
 	}
