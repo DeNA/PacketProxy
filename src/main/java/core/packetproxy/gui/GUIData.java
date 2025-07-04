@@ -86,8 +86,8 @@ public class GUIData {
 					Packet packet = Packets.getInstance().query(id);
 					Http http = Http.create(tabs.getRaw().getData());
 					String copyData = http.getMethod() + "\t" +
-						http.getURL(packet.getServerPort(), packet.getUseSSL()) + "\t" +
-						new String(http.getBody(),"UTF-8");
+							http.getURL(packet.getServerPort(), packet.getUseSSL()) + "\t" +
+							new String(http.getBody(), "UTF-8");
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(copyData);
 					clipboard.setContents(selection, selection);
@@ -105,7 +105,7 @@ public class GUIData {
 					int id = GUIHistory.getInstance().getSelectedPacketId();
 					Packet packet = Packets.getInstance().query(id);
 					Http http = Http.create(tabs.getRaw().getData());
-					String body = new String(http.getBody(),"UTF-8");//http.getURL(packet.getServerPort());
+					String body = new String(http.getBody(), "UTF-8");// http.getURL(packet.getServerPort());
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(body);
 					clipboard.setContents(selection, selection);
@@ -145,7 +145,7 @@ public class GUIData {
 					int index = tabs.getSelectedIndex();
 					if (index == 0) {
 						data = tabs.getRaw().getData();
-					} else if (index == 1){
+					} else if (index == 1) {
 						data = tabs.getBinary().getData();
 					}
 					if (data != null) {
@@ -173,7 +173,7 @@ public class GUIData {
 					int index = tabs.getSelectedIndex();
 					if (index == 0) {
 						data = tabs.getRaw().getData();
-					} else if (index == 1){
+					} else if (index == 1) {
 						data = tabs.getBinary().getData();
 					}
 					if (data != null) {
@@ -200,7 +200,7 @@ public class GUIData {
 					int index = tabs.getSelectedIndex();
 					if (index == 0) {
 						data = tabs.getRaw().getData();
-					} else if (index == 1){
+					} else if (index == 1) {
 						data = tabs.getBinary().getData();
 					}
 					if (data != null) {
@@ -295,10 +295,10 @@ public class GUIData {
 		charSetCombo.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				charSetUtility.setCharSet((String)charSetCombo.getSelectedItem());
+				charSetUtility.setCharSet((String) charSetCombo.getSelectedItem());
 				try {
 					GUIPacket.getInstance().update();
-				}catch (Exception e2){
+				} catch (Exception e2) {
 					e2.printStackTrace();
 				}
 			}
@@ -338,15 +338,15 @@ public class GUIData {
 		return main_panel;
 	}
 
-	public void updateCharSetCombo(){
+	public void updateCharSetCombo() {
 		charSetCombo.removeAllItems();
-		for(String charSetName:charSetUtility.getAvailableCharSetList()){
+		for (String charSetName : charSetUtility.getAvailableCharSetList()) {
 			charSetCombo.addItem(charSetName);
 		}
 		String charSetName = CharSetUtility.getInstance().getCharSetForGUIComponent();
-		if(charSetUtility.getAvailableCharSetList().contains(charSetName)){
+		if (charSetUtility.getAvailableCharSetList().contains(charSetName)) {
 			charSetCombo.setSelectedItem(charSetName);
-		}else{
+		} else {
 			charSetCombo.setSelectedIndex(0);
 		}
 	}
@@ -361,13 +361,13 @@ public class GUIData {
 
 	public byte[] getData() {
 		if (tabs.getData() == null) {
-			return new byte[]{};
+			return new byte[] {};
 		}
 		try {
 			return tabs.getData();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return new byte[]{};
+		return new byte[] {};
 	}
 }

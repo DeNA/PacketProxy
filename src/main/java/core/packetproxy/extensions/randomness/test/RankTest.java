@@ -1,5 +1,6 @@
 package packetproxy.extensions.randomness.test;
 // source code is from: NIST SP 800-22 rev1-a
+
 // https://www.nist.gov/disclaimer
 
 import org.apache.commons.math3.distribution.GammaDistribution;
@@ -12,7 +13,8 @@ public class RankTest extends RandomnessTest {
     public double[] run(Integer[][] e) {
         int N = e.length / (32 * 32);
         if (N == 0) {
-            PacketProxyUtility.getInstance().packetProxyLog("[Warn] bit length is not suitable for Rank test. Please collect more tokens.");
+            PacketProxyUtility.getInstance()
+                    .packetProxyLog("[Warn] bit length is not suitable for Rank test. Please collect more tokens.");
             return new double[e.length > 0 ? e[0].length : 0];
         }
 
@@ -22,7 +24,7 @@ public class RankTest extends RandomnessTest {
         }
 
         double[] p = new double[n];
-        for (int i = 0 ; i < n; i++) {
+        for (int i = 0; i < n; i++) {
             SimpleMatrix mat = new SimpleMatrix(32, 32);
 
             int r = 32;
@@ -49,7 +51,7 @@ public class RankTest extends RandomnessTest {
                     }
                 }
                 SimpleSVD<SimpleMatrix> svd = mat.svd();
-                switch(svd.rank()) {
+                switch (svd.rank()) {
                     case 32:
                         F32++;
                         break;

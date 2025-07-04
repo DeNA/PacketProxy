@@ -40,15 +40,15 @@ public class Utils {
 		return list;
 	}
 
-	public static int indexOf(byte[] input_data, int start_idx, int end_idx, byte[] word)
-	{
-		assert(end_idx <= input_data.length);
-		for (int i = start_idx + word.length - 1; i < end_idx; i++)
-		{
+	public static int indexOf(byte[] input_data, int start_idx, int end_idx, byte[] word) {
+		assert (end_idx <= input_data.length);
+		for (int i = start_idx + word.length - 1; i < end_idx; i++) {
 			int start_input_idx = i - word.length + 1;
 			int word_idx;
 			for (word_idx = 0; word_idx < word.length && start_input_idx + word_idx < input_data.length; word_idx++) {
-				if (word[word_idx] != input_data[start_input_idx + word_idx]) { break; }
+				if (word[word_idx] != input_data[start_input_idx + word_idx]) {
+					break;
+				}
 			}
 			if (word_idx == word.length) {
 				return start_input_idx;
@@ -60,7 +60,10 @@ public class Utils {
 	/**
 	 * OSの名前を返す
 	 */
-	public enum Platform { WINDOWS, MAC, LINUX };
+	public enum Platform {
+		WINDOWS, MAC, LINUX
+	};
+
 	public static Platform checkOS() {
 		String osname = System.getProperty("os.name");
 		if (osname.contains("Windows")) {
@@ -78,6 +81,7 @@ public class Utils {
 	public static boolean isWindows() {
 		return checkOS() == Platform.WINDOWS;
 	}
+
 	public static boolean isMac() {
 		return checkOS() == Platform.MAC;
 	}
@@ -91,7 +95,7 @@ public class Utils {
 		if (os == Utils.Platform.MAC || os == Utils.Platform.LINUX) {
 			cmd_array.add("mono");
 		}
-		for (String s: args) {
+		for (String s : args) {
 			cmd_array.add(s);
 		}
 		return cmd_array.toArray(new String[0]);
@@ -99,7 +103,7 @@ public class Utils {
 
 	private static String[] toCmdArray(String... args) {
 		List<String> cmd_array = new ArrayList<String>();
-		for (String s: args) {
+		for (String s : args) {
 			cmd_array.add(s);
 		}
 		return cmd_array.toArray(new String[0]);
@@ -109,7 +113,7 @@ public class Utils {
 		Process p = Runtime.getRuntime().exec(toCmdArray(command));
 		InputStream in = p.getInputStream();
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		byte [] buffer = new byte[4096];
+		byte[] buffer = new byte[4096];
 		int len = 0;
 		while ((len = in.read(buffer, 0, 4096)) > 0) {
 			bout.write(buffer, 0, len);
@@ -127,14 +131,14 @@ public class Utils {
 
 	/**
 	 * EXEを実行する。MACの場合はmonoで実行する
+	 * 
 	 * @return 標準出力に表示されたデータ
 	 */
-	public static byte[] executeExe(String... command) throws Exception
-	{
+	public static byte[] executeExe(String... command) throws Exception {
 		Process p = Runtime.getRuntime().exec(addMonoPath(command));
 		InputStream in = p.getInputStream();
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		byte [] buffer = new byte[4096];
+		byte[] buffer = new byte[4096];
 		int len = 0;
 		while ((len = in.read(buffer, 0, 4096)) > 0) {
 			bout.write(buffer, 0, len);
@@ -156,25 +160,25 @@ public class Utils {
 		if (os == Utils.Platform.MAC || os == Utils.Platform.LINUX) {
 			cmd_array.add("ruby");
 		}
-		for (String s: args) {
+		for (String s : args) {
 			cmd_array.add(s);
-			//	System.out.print(s+ " ");
+			// System.out.print(s+ " ");
 		}
-		//System.out.println("");
+		// System.out.println("");
 		return cmd_array.toArray(new String[0]);
 	}
 
 	/**
 	 * EXEを実行する。MACの場合はmonoで実行する
+	 * 
 	 * @return 標準出力に表示されたデータ
 	 */
-	public static byte[] executeRuby(String... command) throws Exception
-	{
+	public static byte[] executeRuby(String... command) throws Exception {
 
 		Process p = Runtime.getRuntime().exec(addRubyPath(command));
 		InputStream in = p.getInputStream();
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		byte [] buffer = new byte[4096];
+		byte[] buffer = new byte[4096];
 		int len = 0;
 		while ((len = in.read(buffer, 0, 4096)) > 0) {
 			bout.write(buffer, 0, len);
@@ -182,12 +186,11 @@ public class Utils {
 		return Base64.decodeBase64(bout.toByteArray());
 	}
 
-	public static byte[] readfile(String filename) throws Exception
-	{
+	public static byte[] readfile(String filename) throws Exception {
 		FileInputStream fis = new FileInputStream(filename);
 		BufferedInputStream bis = new BufferedInputStream(fis);
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		byte [] buffer = new byte[4096];
+		byte[] buffer = new byte[4096];
 		int len = 0;
 		while ((len = bis.read(buffer, 0, 4096)) > 0) {
 			bout.write(buffer, 0, len);
@@ -196,16 +199,14 @@ public class Utils {
 		return bout.toByteArray();
 	}
 
-	public static void deletefile(String filename) throws Exception
-	{
+	public static void deletefile(String filename) throws Exception {
 		File file = new File(filename);
 		if (file.exists()) {
 			file.delete();
 		}
 	}
 
-	public static void writefile(String filename, byte[] data) throws Exception
-	{
+	public static void writefile(String filename, byte[] data) throws Exception {
 		FileOutputStream fos = new FileOutputStream(filename);
 		BufferedOutputStream bos = new BufferedOutputStream(fos);
 		bos.write(data);
@@ -222,13 +223,14 @@ public class Utils {
 		return out.toByteArray();
 	}
 
-	public static byte[] ungzip(byte[] src) throws Exception{
+	public static byte[] ungzip(byte[] src) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		GZIPInputStream gzis = new GZIPInputStream(new ByteArrayInputStream(src));
 		byte[] buf = new byte[1024];
-		while(true) {
+		while (true) {
 			int len = gzis.read(buf);
-			if( len < 0) break;
+			if (len < 0)
+				break;
 
 			out.write(buf, 0, len);
 		}
@@ -260,27 +262,29 @@ public class Utils {
 		return data;
 	}
 
-	public static byte[] getSelectedCharacters(byte[] src, int start_idx, int end_idx){
+	public static byte[] getSelectedCharacters(byte[] src, int start_idx, int end_idx) {
 		return ArrayUtils.subarray(src, start_idx, end_idx);
 	}
 
-	public static boolean isPrintable(byte[] data){
-		for(byte b : data){
-			if(b < 32)return false;
-			if(b > 126)return false;
+	public static boolean isPrintable(byte[] data) {
+		for (byte b : data) {
+			if (b < 32)
+				return false;
+			if (b > 126)
+				return false;
 		}
 		return true;
 	}
-	
+
 	public static boolean supportedJava() {
 		return executedByJDK();
 	}
-	
+
 	public static boolean executedByJDK() {
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		return compiler != null;
 	}
-	
+
 	public static boolean javaVersionIs1_8() {
 		String version = System.getProperty("java.version");
 		return version.matches("1\\.8\\..*");

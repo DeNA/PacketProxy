@@ -23,8 +23,7 @@ import packetproxy.common.SocketEndpoint;
 import packetproxy.model.ListenPort;
 import packetproxy.util.PacketProxyUtility;
 
-public class ProxyForward extends Proxy
-{
+public class ProxyForward extends Proxy {
 	private ListenPort listen_info;
 	private ServerSocket listen_socket;
 

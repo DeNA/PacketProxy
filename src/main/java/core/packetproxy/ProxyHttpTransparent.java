@@ -33,8 +33,7 @@ import packetproxy.model.Servers;
 import packetproxy.util.PacketProxyUtility;
 import org.apache.commons.lang3.ArrayUtils;
 
-public class ProxyHttpTransparent extends Proxy
-{
+public class ProxyHttpTransparent extends Proxy {
 	private ListenPort listen_info;
 	private ServerSocket listen_socket;
 
@@ -54,17 +53,17 @@ public class ProxyHttpTransparent extends Proxy
 				Socket client = listen_socket.accept();
 				PacketProxyUtility.getInstance().packetProxyLog("[ProxyHttpTransparent]: accept");
 				createHttpTransparentProxy(client);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} 	
+		}
 	}
 
 	@Value
 	static class HostPort {
 		String hostName;
 		int port;
+
 		InetSocketAddress getInetSocketAddress() throws Exception {
 			return new InetSocketAddress(PrivateDNSClient.getByName(this.hostName), this.port);
 		}
@@ -114,12 +113,12 @@ public class ProxyHttpTransparent extends Proxy
 		if (hostPort == null) {
 			PacketProxyUtility.getInstance().packetProxyLogErr(new String(input_data));
 			PacketProxyUtility.getInstance().packetProxyLogErr("bout length == " + bout.size());
-			if(bout.size() == 0){
+			if (bout.size() == 0) {
 				PacketProxyUtility.getInstance().packetProxyLogErr("empty request!!");
 				return;
 			}
 			PacketProxyUtility.getInstance().packetProxyLogErr("HTTP Host field is not found.");
-			return ;
+			return;
 		}
 
 		ByteArrayInputStream lookaheadBuffer = new ByteArrayInputStream(bout.toByteArray());
@@ -136,10 +135,10 @@ public class ProxyHttpTransparent extends Proxy
 
 			Server server = Servers.getInstance().queryByHostNameAndPort(hostPort.getHostName(), listen_info.getPort());
 			createConnection(client_e, server_e, server);
-		} 
-		catch(ConnectException e) {
+		} catch (ConnectException e) {
 			InetSocketAddress addr = hostPort.getInetSocketAddress();
-			PacketProxyUtility.getInstance().packetProxyLog("Connection Refused: " + addr.getHostName() + ":" + addr.getPort());
+			PacketProxyUtility.getInstance()
+					.packetProxyLog("Connection Refused: " + addr.getHostName() + ":" + addr.getPort());
 			e.printStackTrace();
 		}
 	}
@@ -151,6 +150,6 @@ public class ProxyHttpTransparent extends Proxy
 		else
 			duplex = DuplexFactory.createDuplexAsync(client_e, server_e, server.getEncoder());
 		duplex.start();
-		//DuplexManager.getInstance().registerDuplex(duplex);
+		// DuplexManager.getInstance().registerDuplex(duplex);
 	}
 }
