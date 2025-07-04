@@ -47,8 +47,7 @@ import packetproxy.model.Servers;
 import packetproxy.model.SSLPassThroughs;
 import packetproxy.util.PacketProxyUtility;
 
-public class ProxySSLTransparent extends Proxy
-{
+public class ProxySSLTransparent extends Proxy {
 	private ListenPort listen_info;
 	private ServerSocket listen_socket;
 
@@ -74,7 +73,7 @@ public class ProxySSLTransparent extends Proxy
 				e.printStackTrace();
 			}
 		}
-		for(Socket sc : clients) {
+		for (Socket sc : clients) {
 			try {
 				sc.close();
 			} catch (Exception e) {
@@ -126,7 +125,8 @@ public class ProxySSLTransparent extends Proxy
 			/* SNIヘッダが見当たらないので、通信をHTTP1を強制し、Hostヘッダを覗くことで宛先を知る必要がある */
 			/* クライアントわたすサーバ証明書は、宛先がわからないので packetproxy.com とする */
 			ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, position);
-			SSLSocketEndpoint client_e = EndpointFactory.createClientEndpointFromSNIServerName(client, "packetproxy.com", listen_info.getCA().get(), bais);
+			SSLSocketEndpoint client_e = EndpointFactory.createClientEndpointFromSNIServerName(client,
+					"packetproxy.com", listen_info.getCA().get(), bais);
 
 			/* 少しだけ先読みし、Hostフィールドから次に接続するべきサーバー名を入手 */
 			InputStream in = client_e.getInputStream();
@@ -150,12 +150,14 @@ public class ProxySSLTransparent extends Proxy
 			createConnection(wep_e, server_e, server);
 
 		} else {
-			for (SNIServerName serverE: serverNames) {
+			for (SNIServerName serverE : serverNames) {
 				String serverName = new String(serverE.getEncoded()); // 接続先サーバを取得
 				if (listen_info.getServer() != null) { // upstream proxy
-					PacketProxyUtility.getInstance().packetProxyLog(String.format("[SSL-forward through upstream proxy! using SNI] %s", serverName));
+					PacketProxyUtility.getInstance().packetProxyLog(
+							String.format("[SSL-forward through upstream proxy! using SNI] %s", serverName));
 				} else {
-					PacketProxyUtility.getInstance().packetProxyLog(String.format("[SSL-forward! using SNI] %s", serverName));
+					PacketProxyUtility.getInstance()
+							.packetProxyLog(String.format("[SSL-forward! using SNI] %s", serverName));
 				}
 				ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, position);
 
@@ -183,14 +185,16 @@ public class ProxySSLTransparent extends Proxy
 					duplex.start();
 				} else {
 					Server server = Servers.getInstance().queryByHostNameAndPort(serverName, serverAddr.getPort());
-					SSLSocketEndpoint[] eps = EndpointFactory.createBothSideSSLEndpoints(client, bais, serverAddr, null, serverName, listen_info.getCA().get());
+					SSLSocketEndpoint[] eps = EndpointFactory.createBothSideSSLEndpoints(client, bais, serverAddr, null,
+							serverName, listen_info.getCA().get());
 					createConnection(eps[0], eps[1], server);
 				}
 			}
 		}
 	}
 
-	public void createConnection(SSLSocketEndpoint client_e, SSLSocketEndpoint server_e, Server server) throws Exception {
+	public void createConnection(SSLSocketEndpoint client_e, SSLSocketEndpoint server_e, Server server)
+			throws Exception {
 		DuplexAsync duplex = null;
 		String alpn = client_e.getApplicationProtocol();
 		if (server == null) {

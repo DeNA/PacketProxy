@@ -22,8 +22,7 @@ import packetproxy.quic.service.connection.ServerConnection;
 import packetproxy.quic.value.ConnectionIdPair;
 import packetproxy.util.PacketProxyUtility;
 
-public class ProxyQuicForward extends Proxy
-{
+public class ProxyQuicForward extends Proxy {
 	private ListenPort listen_info;
 	private ClientConnections clientConnections;
 
@@ -31,7 +30,7 @@ public class ProxyQuicForward extends Proxy
 		this.listen_info = listenInfo;
 		this.clientConnections = new ClientConnections(listenInfo.getPort(), listenInfo.getCA().get());
 	}
-	
+
 	@Override
 	public void run() {
 		try {
