@@ -260,7 +260,7 @@ public class PrivateDNS {
 								throw new UnknownHostException();
 							}
 						} else if (queryRecType == Type.HTTPS) {
-							util.packetProxyLog(String.format("[DNS Query] '%s' [HTTPS]", queryHostName));
+							util.packetProxyLog("[DNS Query] '%s' [HTTPS]", queryHostName);
 							jnamed jn;
 							if (isTargetHost(queryHostName)) {
 								Name label = Name.fromString(queryHostName + ".");
@@ -270,7 +270,7 @@ public class PrivateDNS {
 								List<HTTPSRecord.ParameterBase> params = List.of(alpn);
 								HTTPSRecord record = new HTTPSRecord(label, DClass.IN, 300, 1, svcDomain, params);
 								jn = new jnamed(record);
-								util.packetProxyLog(String.format("Force to access '%s' with HTTP3", queryHostName));
+								util.packetProxyLog("Force to access '%s' with HTTP3", queryHostName);
 							} else {
 								Record[] records = PrivateDNSClient.getHTTPSRecord(queryHostName);
 								jn = new jnamed(records);
@@ -280,14 +280,14 @@ public class PrivateDNS {
 							soc.send(sendPacket);
 							continue;
 						} else {
-							util.packetProxyLog(String.format("[DNS Query] Unsupported Query Type: '%s' [%s]",
-									queryHostName, queryRecTypeName));
+							util.packetProxyLog("[DNS Query] Unsupported Query Type: '%s' [%s]", queryHostName,
+									queryRecTypeName);
 							throw new UnsupportedOperationException();
 						}
 
 						String ip = addr.getHostAddress();
 
-						util.packetProxyLog(String.format("[DNS Query] '%s' [%s]", queryHostName, queryRecTypeName));
+						util.packetProxyLog("[DNS Query] '%s' [%s]", queryHostName, queryRecTypeName);
 						// util.packetProxyLog(String.format("[DNS Response Address] '%s'", ip));
 
 						if (isTargetHost(queryHostName)) {
@@ -308,8 +308,7 @@ public class PrivateDNS {
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 
 					} catch (UnknownHostException e) {
-						util.packetProxyLogErr(
-								String.format("[DNS Query] Unknown Host: '%s' [%s]", queryHostName, queryRecTypeName));
+						util.packetProxyLogErr("[DNS Query] Unknown Host: '%s' [%s]", queryHostName, queryRecTypeName);
 						jnamed jn = new jnamed();
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 
@@ -319,8 +318,7 @@ public class PrivateDNS {
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 
 					} catch (Exception e) {
-						util.packetProxyLogErr(
-								String.format("[DNS Query] Unknown Error: '%s' [%s]", queryHostName, queryRecTypeName));
+						util.packetProxyLogErr("[DNS Query] Unknown Error: '%s' [%s]", queryHostName, queryRecTypeName);
 						jnamed jn = new jnamed();
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 

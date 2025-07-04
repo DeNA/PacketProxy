@@ -193,8 +193,8 @@ public class Server {
                 return ips;
             }
         } catch (UnknownHostException e) {
-            PacketProxyUtility.getInstance().packetProxyLogErr(
-                    String.format("Nonexistent server '%s' is specified in config [DNS resolv error]", ip));
+            PacketProxyUtility.getInstance()
+                    .packetProxyLogErr("Nonexistent server '%s' is specified in config [DNS resolv error]", ip);
             return new ArrayList<InetAddress>();
         } catch (Exception e) {
             // TODO Auto-generated catch block

@@ -79,8 +79,7 @@ public class ProxyHttp extends Proxy {
 								String serverName = http.getServerName();
 								if (serverName.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")) {
 									serverName = Https.getCommonName(http.getServerAddr());
-									util.packetProxyLog(
-											String.format("Overwrite CN: %s --> %s", http.getServerName(), serverName));
+									util.packetProxyLog("Overwrite CN: %s --> %s", http.getServerName(), serverName);
 								}
 
 								if (SSLPassThroughs.getInstance().includes(serverName, listen_info.getPort())) {

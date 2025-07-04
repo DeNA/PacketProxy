@@ -194,13 +194,13 @@ public class CharSetUtility {
                     return;
                 }
             }
-            PacketProxyUtility.getInstance().packetProxyLog(String.format("%s is not supported charset", charSet));
+            PacketProxyUtility.getInstance().packetProxyLog("%s is not supported charset", charSet);
         }
         if (getAvailableCharSetList().contains(charSet)) {
             this.charSet = charSet;
         } else {
             // TODO: Throw Exception
-            PacketProxyUtility.getInstance().packetProxyLog(String.format("%s is not supported charset", charSet));
+            PacketProxyUtility.getInstance().packetProxyLog("%s is not supported charset", charSet);
         }
     }
 

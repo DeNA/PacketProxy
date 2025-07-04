@@ -135,7 +135,7 @@ public class PrivateDNSClient {
             }
             hostIP = ((AAAARecord) records[0]).getAddress();
         } catch (TextParseException ex) {
-            util.packetProxyLog(String.format("'%s'", ex.getMessage()));
+            util.packetProxyLog("'%s'", ex.getMessage());
             throw new IllegalStateException(ex);
         }
         return hostIP;

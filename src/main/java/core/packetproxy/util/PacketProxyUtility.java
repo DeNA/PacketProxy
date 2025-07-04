@@ -51,12 +51,20 @@ public class PacketProxyUtility {
 		guiLog.append(ss);
 	}
 
+	public void packetProxyLog(String format, Object... args) {
+		packetProxyLog(String.format(format, args));
+	}
+
 	public void packetProxyLogErr(String s) {
 		LocalDateTime now = LocalDateTime.now();
 		String ns = dtf.format(now);
 		String ss = ns + "       " + s;
 		System.err.println(ss);
 		guiLog.appendErr(ss);
+	}
+
+	public void packetProxyLogErr(String format, Object... args) {
+		packetProxyLogErr(String.format(format, args));
 	}
 
 	public void packetProxyLogNewLine() {

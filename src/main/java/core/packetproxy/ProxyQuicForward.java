@@ -39,7 +39,7 @@ public class ProxyQuicForward extends Proxy {
 				PacketProxyUtility.getInstance().packetProxyLog("accept");
 
 				String serverName = this.listen_info.getServer().getIp();
-				PacketProxyUtility.getInstance().packetProxyLog(String.format("[QUIC-forward!] %s", serverName));
+				PacketProxyUtility.getInstance().packetProxyLog("[QUIC-forward!] %s", serverName);
 
 				ServerConnection serverConnection = new ServerConnection(
 						ConnectionIdPair.generateRandom(),
