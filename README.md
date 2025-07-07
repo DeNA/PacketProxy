@@ -23,7 +23,7 @@ PacketProxy is designed for testing web applications for internal use, which hel
   - Resend (or replay) captured packets with or without manually modifying the contents
   - Show differences between any two received packets
 - **Support for protocols over TCP/UDP, not limited to HTTP/HTTPS**
-  - Built-in encoders/decoders enable users to inspect/intercept HTTP1, HTTP2, HTTPS, WebSocket, FireBase, Firestore, MQTT, gRPC, Protocol Buffers, XMPP on TLS, MessagePack, CBOR, AmazonLexV2 messages
+  - Built-in encoders/decoders enable users to inspect/intercept HTTP1, HTTP2, HTTPS, WebSocket, FireBase, Firestore, MQTT, gRPC, Protocol Buffers, XMPP on TLS, MessagePack, CBOR, and AmazonLexV2 messages
   - Easy to develop an extension to decode/encode protocols not listed above
 - **Features for application penetration tests**
   - Send multiple packets simultaneously to test race conditions or any inconsistent state due to improper synchronization/locking.
