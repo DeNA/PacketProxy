@@ -37,7 +37,7 @@ public class EncodeAmazonLexV2 extends EncodeHTTPBase
 
 	@Override
 	public String getName() {
-		return "Amazon Lex V2 (Event Streaming)";
+		return "Amazon LexV2 (Event Streaming)";
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class EncodeAmazonLexV2 extends EncodeHTTPBase
 		PacketProxyUtility util = PacketProxyUtility.getInstance();
 		var contentType = inputHttp.getFirstHeader("Content-Type");
 		if (!contentType.startsWith("application/vnd.amazon.eventstream")) {
-			util.packetProxyLog("[EncodeAmazonLexV2] Content-type is not specified or other content-type detected.");
+			util.packetProxyLog("[EncodeAmazonLexV2] decodeServerResponseHttp: Content-type is not specified or other content-type detected: " + contentType);
 			return inputHttp;
 		}
 		byte[] body = inputHttp.getBody();
@@ -63,7 +63,6 @@ public class EncodeAmazonLexV2 extends EncodeHTTPBase
 		
 		AmazonLexV2 event = AmazonLexV2.fromBytes(body);
 
-		// Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		Gson gson = new GsonBuilder().create();
 		String json = gson.toJson(event);
 
@@ -76,7 +75,7 @@ public class EncodeAmazonLexV2 extends EncodeHTTPBase
 		PacketProxyUtility util = PacketProxyUtility.getInstance();
 		var contentType = inputHttp.getFirstHeader("Content-Type");
 		if (!contentType.startsWith("application/vnd.amazon.eventstream")) {
-			util.packetProxyLog("[EncodeAmazonLexV2] Content-type is not specified or other content-type detected." + contentType);
+			util.packetProxyLog("[EncodeAmazonLexV2] encodeServerResponseHttp: Content-type is not specified or other content-type detected: " + contentType);
 			return inputHttp;
 		}
 
@@ -89,7 +88,7 @@ public class EncodeAmazonLexV2 extends EncodeHTTPBase
 		Gson gson = new GsonBuilder().create();
 
 		AmazonLexV2 lex = gson.fromJson(new String(body, "UTF-8"), AmazonLexV2.class);
-		
+
 		if (lex == null) {
 			util.packetProxyLog("[EncodeAmazonLexV2] Warning: Invalid Amazon Lex V2 Event Stream detected, skipping encoding.");
 			return inputHttp;

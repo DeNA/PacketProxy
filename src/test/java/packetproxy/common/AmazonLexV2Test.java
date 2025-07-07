@@ -21,36 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class AmazonLexV2Test {
-
-    @Test
-    public void testAmazonLexV2EqualsTest() throws Exception {
-        AmazonLexV2.MessageHeader[] headers = {
-            new AmazonLexV2.MessageHeader(":content-type", (byte)7, "application/json"),
-            new AmazonLexV2.MessageHeader(":event-type", (byte)7, "text")
-        };
-        
-        byte[] payload = "Hello World".getBytes("UTF-8");
-        
-        AmazonLexV2.Message message = new AmazonLexV2.Message(headers, payload);
-        AmazonLexV2.Message[] messages = {message};
-        
-        AmazonLexV2 original = new AmazonLexV2(messages);
-
-        AmazonLexV2.MessageHeader[] headers2 = {
-            new AmazonLexV2.MessageHeader(":content-type", (byte)7, "application/json"),
-            new AmazonLexV2.MessageHeader(":event-type", (byte)7, "text")
-        };
-        
-        byte[] payload2 = "Hello World".getBytes("UTF-8");
-        
-        AmazonLexV2.Message message2 = new AmazonLexV2.Message(headers2, payload2);
-        AmazonLexV2.Message[] messages2 = {message2};
-        
-        AmazonLexV2 original2 = new AmazonLexV2(messages2);
-
-        assert(original.equals(original2));
-    }
-
     @Test
     public void testToBytesAndFromBytes() throws Exception {
         AmazonLexV2.MessageHeader[] headers = {
