@@ -43,10 +43,9 @@ import packetproxy.model.Server;
 import packetproxy.model.Servers;
 import packetproxy.util.PacketProxyUtility;
 
-public class GUIOptionListenPortDialog extends JDialog
-{
+public class GUIOptionListenPortDialog extends JDialog {
 	private static final long serialVersionUID = 1L;
-	private JPanel main_panel = new JPanel(); 
+	private JPanel main_panel = new JPanel();
 	private JButton button_cancel = new JButton(I18nString.get("Cancel"));
 	private JButton button_set = new JButton(I18nString.get("Save"));
 	private JTextField text_port = new JTextField();
@@ -68,6 +67,7 @@ public class GUIOptionListenPortDialog extends JDialog
 		panel.add(object);
 		return panel;
 	}
+
 	private JComponent buttons() {
 		JPanel panel_button = new JPanel();
 		panel_button.setLayout(new BoxLayout(panel_button, BoxLayout.X_AXIS));
@@ -76,8 +76,8 @@ public class GUIOptionListenPortDialog extends JDialog
 		panel_button.add(button_set);
 		return panel_button;
 	}
-	public ListenPort showDialog(ListenPort preset) throws Exception
-	{
+
+	public ListenPort showDialog(ListenPort preset) throws Exception {
 		text_port.setText(Integer.toString(preset.getPort()));
 		type_combo.setSelectedItem(preset.getType().toString());
 		if (preset.getServer() != null)
@@ -87,16 +87,17 @@ public class GUIOptionListenPortDialog extends JDialog
 		setVisible(true);
 		return listenPort;
 	}
-	public ListenPort showDialog()
-	{
+
+	public ListenPort showDialog() {
 		setModal(true);
 		setVisible(true);
 		return listenPort;
 	}
+
 	private JComponent createForwardedServers() throws Exception {
 		combo.setEnabled(true);
 		updateNextHopList("HTTP_PROXY");
-		combo.addItemListener(new ItemListener(){
+		combo.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent event) {
 				try {
@@ -104,7 +105,7 @@ public class GUIOptionListenPortDialog extends JDialog
 							type_combo.getSelectedItem() == null ||
 							type_combo.getSelectedItem().toString().equals("HTTP_PROXY") ||
 							type_combo.getSelectedItem().toString().equals("SSL_TRANSPARENT_PROXY") ||
-							type_combo.getSelectedItem().toString().equals("HTTP_TRANSPARENT_PROXY")) 
+							type_combo.getSelectedItem().toString().equals("HTTP_TRANSPARENT_PROXY"))
 						return;
 					Object server_str = combo.getSelectedItem();
 					if (server_str != null) {
@@ -134,25 +135,29 @@ public class GUIOptionListenPortDialog extends JDialog
 		} else if (item.equals("UDP_FORWARDER")) {
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
-				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect into 'Servers setting' first."));
+				JOptionPane.showMessageDialog(this,
+						I18nString.get("Set server you wish to connect into 'Servers setting' first."));
 				dispose();
 			}
 		} else if (item.equals("SSL_FORWARDER")) {
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
-				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect into 'Servers setting' first."));
+				JOptionPane.showMessageDialog(this,
+						I18nString.get("Set server you wish to connect into 'Servers setting' first."));
 				dispose();
 			}
 		} else if (item.equals("FORWARDER")) {
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
-				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect into 'Servers setting' first."));
+				JOptionPane.showMessageDialog(this,
+						I18nString.get("Set server you wish to connect into 'Servers setting' first."));
 				dispose();
 			}
 		} else if (item.equals("QUIC_FORWARDER")) {
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
-				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect into 'Servers setting' first."));
+				JOptionPane.showMessageDialog(this,
+						I18nString.get("Set server you wish to connect into 'Servers setting' first."));
 				dispose();
 			}
 		} else if (item.equals("QUIC_TRANSPARENT_PROXY")) {
@@ -161,7 +166,8 @@ public class GUIOptionListenPortDialog extends JDialog
 		} else if (item.equals("XMPP_SSL_FORWARDER")) {
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
-				JOptionPane.showMessageDialog(this, I18nString.get("Set server you wish to connect into 'Servers setting' first."));
+				JOptionPane.showMessageDialog(this,
+						I18nString.get("Set server you wish to connect into 'Servers setting' first."));
 				dispose();
 			}
 		} else {
@@ -188,13 +194,13 @@ public class GUIOptionListenPortDialog extends JDialog
 		type_combo.addItem("XMPP_SSL_FORWARDER");
 		type_combo.setEnabled(true);
 		type_combo.setMaximumRowCount(9);
-		type_combo.addItemListener(new ItemListener(){
+		type_combo.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent event) {
 				try {
 					if (event.getStateChange() != ItemEvent.SELECTED)
 						return;
-					updateNextHopList((String)event.getItem());
+					updateNextHopList((String) event.getItem());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -202,9 +208,11 @@ public class GUIOptionListenPortDialog extends JDialog
 		});
 		return label_and_object("Type:", type_combo);
 	}
+
 	private JComponent createPortSetting() {
 		return label_and_object("Listen Port:", text_port);
 	}
+
 	private JComponent createCASetting() {
 		CAFactory.queryAll().stream().forEach(ca -> ca_combo.addItem(ca.getUTF8Name()));
 		ca_combo.setEnabled(true);
@@ -212,11 +220,12 @@ public class GUIOptionListenPortDialog extends JDialog
 		ca_combo.setSelectedItem("PacketProxy per-user CA");
 		return label_and_object(I18nString.get("CA certificate to sign:"), ca_combo);
 	}
+
 	public GUIOptionListenPortDialog(JFrame owner) throws Exception {
 		super(owner);
 		setTitle(I18nString.get("Listenning Port Setting"));
 		Rectangle rect = owner.getBounds();
-		setBounds(rect.x + rect.width/2 - width/2, rect.y + rect.height/2 - height/2, width, height); /* ド真ん中 */
+		setBounds(rect.x + rect.width / 2 - width / 2, rect.y + rect.height / 2 - height / 2, width, height); /* ド真ん中 */
 
 		Container c = getContentPane();
 		main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
@@ -242,7 +251,7 @@ public class GUIOptionListenPortDialog extends JDialog
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					ListenPort.TYPE type = null; 
+					ListenPort.TYPE type = null;
 					if (type_combo.getSelectedItem().toString().equals("HTTP_PROXY")) {
 						type = ListenPort.TYPE.HTTP_PROXY;
 					} else if (type_combo.getSelectedItem().toString().equals("FORWARDER")) {
@@ -264,12 +273,12 @@ public class GUIOptionListenPortDialog extends JDialog
 					} else {
 						type = ListenPort.TYPE.SSL_FORWARDER;
 					}
-					String server_str = (String)combo.getSelectedItem();
-					listenPort = new ListenPort( Integer.parseInt(text_port.getText()),
+					String server_str = (String) combo.getSelectedItem();
+					listenPort = new ListenPort(Integer.parseInt(text_port.getText()),
 							type,
 							Servers.getInstance().queryByString(server_str),
-							CAFactory.findByUTF8Name(ca_combo.getSelectedItem().toString()).map(ca -> ca.getName()).orElse("Error")
-							);
+							CAFactory.findByUTF8Name(ca_combo.getSelectedItem().toString()).map(ca -> ca.getName())
+									.orElse("Error"));
 					dispose();
 				} catch (Exception e1) {
 					e1.printStackTrace();

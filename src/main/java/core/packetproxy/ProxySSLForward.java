@@ -31,8 +31,7 @@ import packetproxy.model.Server;
 import packetproxy.model.SSLPassThroughs;
 import packetproxy.util.PacketProxyUtility;
 
-public class ProxySSLForward extends Proxy
-{
+public class ProxySSLForward extends Proxy {
 	private ListenPort listen_info;
 	private ServerSocket listen_socket;
 
@@ -54,7 +53,7 @@ public class ProxySSLForward extends Proxy
 				e.printStackTrace();
 			}
 		}
-		for(Socket sc : clients) {
+		for (Socket sc : clients) {
 			try {
 				sc.close();
 			} catch (Exception e) {
@@ -72,12 +71,14 @@ public class ProxySSLForward extends Proxy
 			DuplexAsync duplex = new DuplexAsync(client_e, server_e);
 			duplex.start();
 		} else {
-			SSLSocketEndpoint[] eps = EndpointFactory.createBothSideSSLEndpoints(client, null, serverAddr, null, listen_info.getServer().getIp(), listen_info.getCA().get());
+			SSLSocketEndpoint[] eps = EndpointFactory.createBothSideSSLEndpoints(client, null, serverAddr, null,
+					listen_info.getServer().getIp(), listen_info.getCA().get());
 			createConnection(eps[0], eps[1], listen_info.getServer());
 		}
 	}
 
-	public void createConnection(SSLSocketEndpoint client_e, SSLSocketEndpoint server_e, Server server) throws Exception {
+	public void createConnection(SSLSocketEndpoint client_e, SSLSocketEndpoint server_e, Server server)
+			throws Exception {
 		DuplexAsync duplex = null;
 		String alpn = client_e.getApplicationProtocol();
 		if (server == null) {

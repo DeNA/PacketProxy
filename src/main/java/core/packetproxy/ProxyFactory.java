@@ -43,7 +43,7 @@ public class ProxyFactory {
 			PacketProxyUtility.getInstance().packetProxyLog("type is SSL_TRANSPARENT_PROXY");
 			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
 			proxy = new ProxySSLTransparent(listen_socket, listen_info);
-			
+
 		} else if (listen_info.getType() == ListenPort.TYPE.UDP_FORWARDER) {
 			proxy = new ProxyUDPForward(listen_info);
 
@@ -64,7 +64,8 @@ public class ProxyFactory {
 			listen_socket.setReuseAddress(true);
 			proxy = new ProxyForward(listen_socket, listen_info);
 		}
-		PacketProxyUtility.getInstance().packetProxyLog(I18nString.get("Start listening port %d.", listen_info.getPort()));
+		PacketProxyUtility.getInstance()
+				.packetProxyLog(I18nString.get("Start listening port %d.", listen_info.getPort()));
 		return proxy;
 	}
 }

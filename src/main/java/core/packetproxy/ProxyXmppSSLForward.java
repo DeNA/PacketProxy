@@ -30,8 +30,7 @@ import java.net.Socket;
 import static packetproxy.http.Https.createSSLContext;
 import static packetproxy.http.Https.createSSLSocketFactory;
 
-public class ProxyXmppSSLForward extends Proxy
-{
+public class ProxyXmppSSLForward extends Proxy {
 	private ListenPort listen_info;
 	private ServerSocket listen_socket;
 	private boolean finishFlag = false;
@@ -53,7 +52,8 @@ public class ProxyXmppSSLForward extends Proxy
 
 				skipDataUntilSSLConnectionStarted(client, server);
 
-				SSLSocket clientSSLSocket = (SSLSocket) createSSLContext(listen_info.getServer().getIp(), listen_info.getCA().get()).getSocketFactory().createSocket(client, null, true);
+				SSLSocket clientSSLSocket = (SSLSocket) createSSLContext(listen_info.getServer().getIp(),
+						listen_info.getCA().get()).getSocketFactory().createSocket(client, null, true);
 				SSLSocket serverSSLSocket = (SSLSocket) createSSLSocketFactory().createSocket(server, null, true);
 				clientSSLSocket.setUseClientMode(false);
 				serverSSLSocket.setUseClientMode(true);
@@ -84,11 +84,11 @@ public class ProxyXmppSSLForward extends Proxy
 							return;
 						}
 						String body = new String(ArrayUtils.subarray(buff, 0, len));
-						//System.out.println("-->" + body);
+						// System.out.println("-->" + body);
 						sO.write(buff, 0, len);
 					}
 					sleep(1000); // wait 1s
-				} while(true);
+				} while (true);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -107,7 +107,7 @@ public class ProxyXmppSSLForward extends Proxy
 							return;
 						}
 						String body = new String(ArrayUtils.subarray(buff, 0, len2));
-						//System.out.println("<--" + body);
+						// System.out.println("<--" + body);
 						if (body.contains("proceed")) {
 							finishFlag = true;
 							while (clientT.isAlive()) {

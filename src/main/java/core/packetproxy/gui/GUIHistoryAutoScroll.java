@@ -26,8 +26,10 @@ import packetproxy.util.PacketProxyUtility;
 @SuppressWarnings("serial")
 public class GUIHistoryAutoScroll extends JLabel {
 
-	static private ImageIcon disabledIcon = new ImageIcon(GUIHistoryAutoScroll.class.getResource("/gui/auto_scroll_disabled.png"));
-	static private ImageIcon enabledIcon = new ImageIcon(GUIHistoryAutoScroll.class.getResource("/gui/auto_scroll_enabled.png"));
+	static private ImageIcon disabledIcon = new ImageIcon(
+			GUIHistoryAutoScroll.class.getResource("/gui/auto_scroll_disabled.png"));
+	static private ImageIcon enabledIcon = new ImageIcon(
+			GUIHistoryAutoScroll.class.getResource("/gui/auto_scroll_enabled.png"));
 	private boolean isEnabled = false;
 
 	public GUIHistoryAutoScroll() {
@@ -39,7 +41,7 @@ public class GUIHistoryAutoScroll extends JLabel {
 			}
 		});
 	}
-	
+
 	public synchronized boolean isEnabled() {
 		return isEnabled;
 	}
@@ -51,7 +53,7 @@ public class GUIHistoryAutoScroll extends JLabel {
 			doEnable();
 		}
 	}
-	
+
 	public synchronized void doEnable() {
 		if (!isEnabled) {
 			setIcon(enabledIcon);
