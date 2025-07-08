@@ -38,7 +38,7 @@ public class PacketProxy
 		if (Utils.supportedJava() == false) {
 			JOptionPane.showMessageDialog(
 					null,
-					I18nString.get("PacketProxy can be executed with JDK11 only"),
+					I18nString.get("PacketProxy can be executed with JDK17 or later"),
 					I18nString.get("Error"),
 					JOptionPane.ERROR_MESSAGE);
 			return;
