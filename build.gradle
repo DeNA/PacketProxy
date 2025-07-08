@@ -265,12 +265,12 @@ task prepareJPackage(dependsOn: "jar") {
     delete "${workDir}"
     new File("${workDir}").mkdirs()
     download {
-      src "https://d3pxv6yz143wms.cloudfront.net/11.0.5.10.1/amazon-corretto-11.0.5.10.1-macosx-x64.tar.gz"
-      dest "${workDir}/OpenJDK11.tar.gz"
+      src "https://corretto.aws/downloads/resources/17.0.15.6.1/amazon-corretto-17.0.15.6.1-macosx-x64.tar.gz"
+      dest "${workDir}/OpenJDK17.tar.gz"
     }
     copy {
-      from tarTree(resources.gzip("${workDir}/OpenJDK11.tar.gz"))
-      into file("${workDir}/OpenJDK11")
+      from tarTree(resources.gzip("${workDir}/OpenJDK17.tar.gz"))
+      into file("${workDir}/OpenJDK17")
     }
     // create icon
     copy {
@@ -321,15 +321,15 @@ class CreateWinTarget extends DefaultTask {
     }
     project.download {
       src "${jdkUrl}"
-      dest "${workDir}/OpenJDK11.zip"
+      dest "${workDir}/OpenJDK17.zip"
     }
     project.copy {
-      from project.zipTree("${workDir}/OpenJDK11.zip")
-      into project.file("${workDir}/OpenJDK11")
+      from project.zipTree("${workDir}/OpenJDK17.zip")
+      into project.file("${workDir}/OpenJDK17")
     }
     project.copy {
-      from project.file("${workDir}/OpenJDK11/jdk11.0.5_10")
-      into project.file("${targetDir}/OpenJDK11")
+      from project.file("${workDir}/OpenJDK17/jdk17.0.15_6")
+      into project.file("${targetDir}/OpenJDK17")
     }
   }
 }
@@ -337,14 +337,14 @@ class CreateWinTarget extends DefaultTask {
 task createWin64Target(type: CreateWinTarget, dependsOn: ['jar', 'downloadLicenses']) {
   workDir   = project.ext.pathWin64WorkDir
   targetDir = project.ext.pathWin64Target
-  jdkUrl    = 'https://d3pxv6yz143wms.cloudfront.net/11.0.5.10.1/amazon-corretto-11.0.5.10.1-windows-x64.zip'
+  jdkUrl    = 'https://corretto.aws/downloads/resources/17.0.15.6.1/amazon-corretto-17.0.15.6.1-windows-x64-jdk.zip'
 }
 
 task createLinuxTarget(dependsOn: ['jar', 'downloadLicenses']) {
   doFirst {
     def workDir   = project.ext.pathLinuxWorkDir
     def targetDir = project.ext.pathLinuxTarget
-    def jdkUrl    = 'https://corretto.aws/downloads/resources/11.0.8.10.1/amazon-corretto-11.0.8.10.1-linux-x64.tar.gz'
+    def jdkUrl    = 'https://corretto.aws/downloads/resources/17.0.15.6.1/amazon-corretto-17.0.15.6.1-linux-x64.tar.gz'
 
     delete {
       delete "${workDir}"
@@ -367,15 +367,15 @@ task createLinuxTarget(dependsOn: ['jar', 'downloadLicenses']) {
     }
     download {
       src "${jdkUrl}"
-      dest "${workDir}/OpenJDK11.tar.gz"
+      dest "${workDir}/OpenJDK17.tar.gz"
     }
     copy {
-      from tarTree(resources.gzip("${workDir}/OpenJDK11.tar.gz"))
-      into file("${workDir}/OpenJDK11")
+      from tarTree(resources.gzip("${workDir}/OpenJDK17.tar.gz"))
+      into file("${workDir}/OpenJDK17")
     }
     copy {
-      from file("${workDir}/OpenJDK11/amazon-corretto-11.0.8.10.1-linux-x64")
-      into file("${targetDir}/share/packetproxy/OpenJDK11")
+      from file("${workDir}/OpenJDK17/amazon-corretto-17.0.15.6.1-linux-x64")
+      into file("${targetDir}/share/packetproxy/OpenJDK17")
     }
     copy {
       from "${projectDir}/installer/izpack/packetproxy"
@@ -424,7 +424,7 @@ task izpackLinux (type: CreateInstallerTask, dependsOn: ['createLinuxTarget', 'p
 task createMacJPackage(type: Exec, dependsOn: "prepareJPackage") {
   workingDir "${projectDir}"
   commandLine = [
-    "/Library/Java/JavaVirtualMachines/jdk-15.jdk/Contents/Home/bin/jpackage",
+    "/Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk/Contents/Home/bin/jpackage",
     "--verbose",
     "-d", "${project.ext.pathMacWorkDir}",
     "-n", "PacketProxy",

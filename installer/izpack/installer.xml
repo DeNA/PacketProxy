@@ -65,7 +65,7 @@
             <executable targetfile="$INSTALL_PATH/PacketProxy.exe" os="windows" stage="never" failure="warn" keep="true"/>
 	    <executable targetfile="$INSTALL_PATH/bin/packetproxy" os="linux" stage="never" failure="warn" keep="true"/>
             <executable os="linux" stage="never" failure="warn" keep="true">
-		<fileset targetdir="$INSTALL_PATH/share/packetproxy/OpenJDK11/bin" includes="*" />
+		<fileset targetdir="$INSTALL_PATH/share/packetproxy/OpenJDK17/bin" includes="*" />
             </executable>
         </pack>
     </packs>

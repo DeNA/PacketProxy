@@ -8,7 +8,7 @@
                   location="applications"/>
     <shortcut
         name="PacketProxy"
-        target="$INSTALL_PATH\OpenJDK11\bin\javaw.exe"
+        target="$INSTALL_PATH\OpenJDK17\bin\javaw.exe"
         commandLine="-jar &quot;$INSTALL_PATH\PacketProxy.jar&quot;"
         description="start PacketProxy"
         iconFile="$INSTALL_PATH\PacketProxy.ico"
