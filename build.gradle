@@ -100,6 +100,38 @@ test {
   useJUnitPlatform()
 }
 
+spotless {
+  java {
+    target '**/*.java'
+    targetExclude 'src/main/java/core/org/**/*.java'
+
+    cleanthat()
+    importOrder()
+    removeUnusedImports()
+    trimTrailingWhitespace()
+    endWithNewline()
+
+    eclipse()
+
+    formatAnnotations()
+  }
+
+  groovy {
+    target '**/*.gradle'
+
+    greclipse()
+    indentWithSpaces(2)
+    trimTrailingWhitespace()
+    endWithNewline()
+  }
+
+  flexmark {
+    target '**/*.md'
+
+    flexmark()
+  }
+}
+
 mainClassName = "packetproxy/PacketProxy"
 
 task setVersion {
