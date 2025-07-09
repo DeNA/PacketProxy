@@ -34,7 +34,7 @@ public class UDPSocketEndpoint implements Endpoint {
 		socket = new DatagramSocket();
 		serverAddr = addr;
 		pipe = new PipeEndpoint(addr);
-        loop();
+		loop();
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public class UDPSocketEndpoint implements Endpoint {
 					byte[] input_data = new byte[BUFSIZE];
 					int len = is.read(input_data);
 					DatagramPacket sendPacket = new DatagramPacket(input_data, 0, len, serverAddr);
-					socket.send(sendPacket);                  
+					socket.send(sendPacket);
 				}
 			}
 		};
@@ -85,7 +85,7 @@ public class UDPSocketEndpoint implements Endpoint {
 	public int getLocalPort() {
 		return socket.getLocalPort();
 	}
-	
+
 	@Override
 	public String getName() {
 		return null;

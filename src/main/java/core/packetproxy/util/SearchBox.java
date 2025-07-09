@@ -19,24 +19,21 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-
 import packetproxy.common.FontManager;
 import packetproxy.common.Range;
 
 @SuppressWarnings("serial")
-public class SearchBox extends JPanel
-{
+public class SearchBox extends JPanel {
 	private JTextPane baseText;
 	private Range emphasisArea = null;
 	private JTextField search_text;
 
-	public void setBaseText (JTextPane textPane) {
+	public void setBaseText(JTextPane textPane) {
 		this.baseText = textPane;
 		this.emphasisArea = null;
 	}
@@ -73,7 +70,7 @@ public class SearchBox extends JPanel
 							prev_word = word;
 							cur_pos = 0;
 						}
-						cur_pos = searchText(cur_pos+word.length(), word);
+						cur_pos = searchText(cur_pos + word.length(), word);
 						if (cur_pos >= 0 && baseText != null) {
 							javax.swing.text.StyledDocument document = baseText.getStyledDocument();
 							javax.swing.text.MutableAttributeSet attributes = new javax.swing.text.SimpleAttributeSet();
@@ -104,7 +101,6 @@ public class SearchBox extends JPanel
 		add(search_count);
 	}
 
-
 	private int searchText(int start, String word) {
 		if (baseText == null) {
 			return 0;
@@ -125,10 +121,13 @@ public class SearchBox extends JPanel
 		String str = baseText.getText();
 		String search_string = search_text.getText();
 		if (str.length() > 1000000) {
-			//System.err.println("[Warning] coloringSearchText: too long string. Skipping Highlight");
+			// System.err.println("[Warning] coloringSearchText: too long string. Skipping
+			// Highlight");
 			return -1;
 		}
-		if (str.length() == 0 || search_string.length() == 0) { return 0; }
+		if (str.isEmpty() || search_string.isEmpty()) {
+			return 0;
+		}
 
 		javax.swing.text.MutableAttributeSet attributes = new javax.swing.text.SimpleAttributeSet();
 
@@ -154,7 +153,7 @@ public class SearchBox extends JPanel
 		javax.swing.text.StyleConstants.setBold(attributes, true);
 		int start = emphasisArea.getPositionStart();
 		int end = emphasisArea.getPositionEnd();
-		document.setCharacterAttributes(start, end-start, attributes, false);
+		document.setCharacterAttributes(start, end - start, attributes, false);
 	}
 
 	public void coloringClear() {
@@ -182,13 +181,15 @@ public class SearchBox extends JPanel
 		javax.swing.text.StyledDocument document = baseText.getStyledDocument();
 		String str = baseText.getText();
 		if (str.length() > 1000000) {
-			//System.err.println("[Warning] coloringHTTPText: too long string. Skipping Highlight");
+			// System.err.println("[Warning] coloringHTTPText: too long string. Skipping
+			// Highlight");
 			return;
 		}
 
 		javax.swing.text.MutableAttributeSet attributes = new javax.swing.text.SimpleAttributeSet();
 		// 色を変える
-		com.google.re2j.Pattern pattern = com.google.re2j.Pattern.compile("([a-zA-Z0-9%.,/*_+-]+)=([a-zA-Z0-9%.,/*_+-]+)", com.google.re2j.Pattern.MULTILINE);
+		com.google.re2j.Pattern pattern = com.google.re2j.Pattern
+				.compile("([a-zA-Z0-9%.,/*_+-]+)=([a-zA-Z0-9%.,/*_+-]+)", com.google.re2j.Pattern.MULTILINE);
 		com.google.re2j.Matcher matcher = pattern.matcher(str);
 		while (matcher.find()) {
 			String key = matcher.group(1);
@@ -199,8 +200,8 @@ public class SearchBox extends JPanel
 			document.setCharacterAttributes(key_start, key.length(), attributes, false);
 			javax.swing.text.StyleConstants.setForeground(attributes, java.awt.Color.red);
 			document.setCharacterAttributes(value_start, value.length(), attributes, false);
-			//			System.out.println("key = " + key);
-			//			System.out.println("value = " + value);
+			// System.out.println("key = " + key);
+			// System.out.println("value = " + value);
 		}
 	}
 
@@ -231,7 +232,6 @@ public class SearchBox extends JPanel
 	}
 
 	public void textChanged() {
-	    updateAll();
+		updateAll();
 	}
 }
-

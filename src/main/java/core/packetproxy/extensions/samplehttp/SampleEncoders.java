@@ -17,25 +17,26 @@ package packetproxy.extensions.samplehttp;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import packetproxy.extensions.samplehttp.encoder.SampleHTTP;
 import packetproxy.model.Extension;
 
 public class SampleEncoders extends Extension {
-    public SampleEncoders() {
-        super();
-        this.setName("Sample Extension Encoders");
-    }
+	public SampleEncoders() {
+		super();
+		this.setName("Sample Extension Encoders");
+	}
 
-    public SampleEncoders(String name, String path) throws Exception {
-        super(name, path);
-        this.setName("Sample Extension Encoders");
-    }
+	public SampleEncoders(String name, String path) throws Exception {
+		super(name, path);
+		this.setName("Sample Extension Encoders");
+	}
 
-    @Override
-    public Map<String, Class<?>> getEncoders() {
-        return new HashMap<String, Class<?>>(){{
-            put("SampleHTTP from extension", SampleHTTP.class);
-        }};
-    }
+	@Override
+	public Map<String, Class<?>> getEncoders() {
+		return new HashMap<String, Class<?>>() {
+			{
+				put("SampleHTTP from extension", SampleHTTP.class);
+			}
+		};
+	}
 }

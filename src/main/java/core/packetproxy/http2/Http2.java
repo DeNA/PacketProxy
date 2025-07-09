@@ -19,9 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
-
 import packetproxy.common.UniqueID;
 import packetproxy.http.Http;
 import packetproxy.http2.frames.DataFrame;
@@ -30,8 +28,7 @@ import packetproxy.http2.frames.FrameUtils;
 import packetproxy.http2.frames.HeadersFrame;
 import packetproxy.model.Packet;
 
-public class Http2 extends FramesBase
-{
+public class Http2 extends FramesBase {
 	private StreamManager clientStreamManager = new StreamManager();
 	private StreamManager serverStreamManager = new StreamManager();
 
@@ -45,10 +42,14 @@ public class Http2 extends FramesBase
 	}
 
 	@Override
-	protected byte[] passFramesToDecodeClientRequest(List<Frame> frames) throws Exception { return filterFrames(clientStreamManager, frames); }
+	protected byte[] passFramesToDecodeClientRequest(List<Frame> frames) throws Exception {
+		return filterFrames(clientStreamManager, frames);
+	}
 	@Override
-	protected byte[] passFramesToDecodeServerResponse(List<Frame> frames) throws Exception { return filterFrames(serverStreamManager, frames); }
-	
+	protected byte[] passFramesToDecodeServerResponse(List<Frame> frames) throws Exception {
+		return filterFrames(serverStreamManager, frames);
+	}
+
 	private byte[] filterFrames(StreamManager streamManager, List<Frame> frames) throws Exception {
 		for (Frame frame : frames) {
 			if (frame instanceof HeadersFrame) {
@@ -65,18 +66,22 @@ public class Http2 extends FramesBase
 	}
 
 	@Override
-	protected byte[] decodeClientRequestFromFrames(byte[] frames) throws Exception { return decodeFromFrames(frames); }
+	protected byte[] decodeClientRequestFromFrames(byte[] frames) throws Exception {
+		return decodeFromFrames(frames);
+	}
 	@Override
-	protected byte[] decodeServerResponseFromFrames(byte[] frames) throws Exception { return decodeFromFrames(frames); }
+	protected byte[] decodeServerResponseFromFrames(byte[] frames) throws Exception {
+		return decodeFromFrames(frames);
+	}
 
 	private byte[] decodeFromFrames(byte[] frames) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		for (Frame frame : FrameUtils.parseFrames(frames)) {
 			if (frame instanceof HeadersFrame) {
-				HeadersFrame headersFrame = (HeadersFrame)frame;
+				HeadersFrame headersFrame = (HeadersFrame) frame;
 				out.write(headersFrame.getHttp());
 			} else if (frame instanceof DataFrame) {
-				DataFrame dataFrame = (DataFrame)frame;
+				DataFrame dataFrame = (DataFrame) frame;
 				out.write(dataFrame.getPayload());
 			}
 		}
@@ -89,16 +94,21 @@ public class Http2 extends FramesBase
 	}
 
 	@Override
-	protected byte[] encodeClientRequestToFrames(byte[] http) throws Exception { return encodeToFrames(http, super.getClientHpackEncoder()); }
+	protected byte[] encodeClientRequestToFrames(byte[] http) throws Exception {
+		return encodeToFrames(http, super.getClientHpackEncoder());
+	}
 	@Override
-	protected byte[] encodeServerResponseToFrames(byte[] http) throws Exception { return encodeToFrames(http, super.getServerHpackEncoder()); }
-	
+	protected byte[] encodeServerResponseToFrames(byte[] http) throws Exception {
+		return encodeToFrames(http, super.getServerHpackEncoder());
+	}
+
 	private byte[] encodeToFrames(byte[] data, HpackEncoder encoder) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		Http http = Http.create(data);
 		int flags = Integer.valueOf(http.getFirstHeader("X-PacketProxy-HTTP2-Flags"));
 		if (http.getBody() != null && http.getBody().length > 0) {
-			http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff & ~HeadersFrame.FLAG_END_STREAM));
+			http.updateHeader("X-PacketProxy-HTTP2-Flags",
+					String.valueOf(flags & 0xff & ~HeadersFrame.FLAG_END_STREAM));
 			HeadersFrame headersFrame = new HeadersFrame(http);
 			out.write(headersFrame.toByteArrayWithoutExtra(encoder));
 			DataFrame dataFrame = new DataFrame(http);
@@ -112,14 +122,14 @@ public class Http2 extends FramesBase
 	}
 
 	/* key: streamId, value: groupId */
-	private Map<Long,Long> groupMap = new HashMap<>();
+	private Map<Long, Long> groupMap = new HashMap<>();
 
 	public void setGroupId(Packet packet) throws Exception {
 		byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
 		Http http = Http.create(data);
 		String streamIdStr = http.getFirstHeader("X-PacketProxy-HTTP2-Stream-Id");
 		if (streamIdStr != null && streamIdStr.length() > 0) {
-			long streamId = Long.parseLong(streamIdStr); 
+			long streamId = Long.parseLong(streamIdStr);
 			if (groupMap.containsKey(streamId)) {
 				packet.setGroup(groupMap.get(streamId));
 			} else {

@@ -19,8 +19,7 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "sslpassthroughs")
-public class SSLPassThrough
-{
+public class SSLPassThrough {
 	public static final int ALL_PORTS = -1;
 
 	@DatabaseField(generatedId = true)
@@ -33,7 +32,7 @@ public class SSLPassThrough
 	private int listen_port;
 
 	public SSLPassThrough() {
-		// ORMLite needs a no-arg constructor 
+		// ORMLite needs a no-arg constructor
 	}
 	public SSLPassThrough(String server_name, int listen_port) throws Exception {
 		setEnabled();

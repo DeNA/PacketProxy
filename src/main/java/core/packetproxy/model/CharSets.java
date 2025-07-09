@@ -15,15 +15,14 @@
  */
 package packetproxy.model;
 
-import com.j256.ormlite.dao.Dao;
-import packetproxy.model.Database.DatabaseMessage;
+import static packetproxy.model.PropertyChangeEventType.CHARSET_UPDATED;
 
+import com.j256.ormlite.dao.Dao;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Arrays;
 import java.util.List;
-import static packetproxy.model.PropertyChangeEventType.CHARSET_UPDATED;
-import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+import packetproxy.model.Database.DatabaseMessage;
 
 public class CharSets implements PropertyChangeListener {
 
@@ -31,7 +30,7 @@ public class CharSets implements PropertyChangeListener {
 	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 	private List<String> defaultCharSetList = Arrays
-			.asList(new String[] { "UTF-8", "Shift_JIS", "x-euc-jp-linux", "ISO-2022-JP", "ISO-8859-1" });
+			.asList(new String[]{"UTF-8", "Shift_JIS", "x-euc-jp-linux", "ISO-2022-JP", "ISO-8859-1"});
 
 	public static CharSets getInstance() throws Exception {
 		if (instance == null) {
@@ -124,24 +123,24 @@ public class CharSets implements PropertyChangeListener {
 		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
 			switch (message) {
-				case PAUSE:
+				case PAUSE :
 					// TODO ロックを取る
 					break;
-				case RESUME:
+				case RESUME :
 					// TODO ロックを解除
 					break;
-				case DISCONNECT_NOW:
+				case DISCONNECT_NOW :
 					break;
-				case RECONNECT:
+				case RECONNECT :
 					database = Database.getInstance();
 					dao = database.createTable(CharSet.class, this);
 					firePropertyChange();
 					break;
-				case RECREATE:
+				case RECREATE :
 					database = Database.getInstance();
 					dao = database.createTable(CharSet.class, this);
 					break;
-				default:
+				default :
 					break;
 			}
 		} catch (Exception e) {

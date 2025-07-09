@@ -23,30 +23,30 @@ import org.openjdk.jmh.annotations.*;
 @State(Scope.Thread)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 public class StringSearchBenchmark {
-    private byte[] text;
-    private byte[] pattern;
+	private byte[] text;
+	private byte[] pattern;
 
-    @Setup(Level.Iteration)
-    public void beforeIteration() {
-        Random rng = new Random();
+	@Setup(Level.Iteration)
+	public void beforeIteration() {
+		Random rng = new Random();
 
-        text = new byte[4 * 1024];
+		text = new byte[4 * 1024];
 
-        rng.nextBytes(text);
-        int x = rng.nextInt(4 * 1024 - 13);
-        pattern = Arrays.copyOfRange(text, x, x + 12);
-    }
+		rng.nextBytes(text);
+		int x = rng.nextInt(4 * 1024 - 13);
+		pattern = Arrays.copyOfRange(text, x, x + 12);
+	}
 
-    @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
-    public void boyerMoore() {
-        final BoyerMoore alg = new BoyerMoore(pattern);
-        alg.searchIn(text);
-    }
+	@Benchmark
+	@BenchmarkMode(Mode.AverageTime)
+	public void boyerMoore() {
+		final BoyerMoore alg = new BoyerMoore(pattern);
+		alg.searchIn(text);
+	}
 
-    @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
-    public void bruteforceSearch() {
-        Utils.indexOf(text, 0, text.length, pattern);
-    }
+	@Benchmark
+	@BenchmarkMode(Mode.AverageTime)
+	public void bruteforceSearch() {
+		Utils.indexOf(text, 0, text.length, pattern);
+	}
 }

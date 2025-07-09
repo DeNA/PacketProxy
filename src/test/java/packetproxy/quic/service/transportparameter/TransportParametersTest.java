@@ -16,22 +16,23 @@
 
 package packetproxy.quic.service.transportparameter;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Test;
 import packetproxy.quic.utils.Constants;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-
 class TransportParametersTest {
 
-    @Test
-    public void smoke() throws Exception {
-        byte[] test = Hex.decodeHex("0039005505048020000004048010000008024201010480007530030245a00902420106048001006307048000ffff0e01080b010a0f087c67f19599d5b680537b0480004fb0c0000000ff02de1a0243e88000715801036ab200".toCharArray());
-        TransportParameters params = new TransportParameters(Constants.Role.CLIENT, test);
-        System.out.println(params);
-        assertEquals(2097152, params.getInitMaxStreamDataBidiLocal());
-        assertEquals(1048576, params.getInitMaxData());
-    }
+	@Test
+	public void smoke() throws Exception {
+		byte[] test = Hex.decodeHex(
+				"0039005505048020000004048010000008024201010480007530030245a00902420106048001006307048000ffff0e01080b010a0f087c67f19599d5b680537b0480004fb0c0000000ff02de1a0243e88000715801036ab200"
+						.toCharArray());
+		TransportParameters params = new TransportParameters(Constants.Role.CLIENT, test);
+		System.out.println(params);
+		assertEquals(2097152, params.getInitMaxStreamDataBidiLocal());
+		assertEquals(1048576, params.getInitMaxData());
+	}
 
 }

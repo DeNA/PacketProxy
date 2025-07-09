@@ -16,24 +16,23 @@
 package packetproxy.model;
 
 import javax.swing.table.DefaultTableModel;
-
 import org.apache.commons.lang3.ObjectUtils.Null;
 
 public class OptionTableModel extends DefaultTableModel {
 	private static final long serialVersionUID = 1L;
 	public OptionTableModel(String[] columnNames, int rowNum) {
-		super(columnNames,rowNum);
+		super(columnNames, rowNum);
 	}
 	@Override
 	public Class<?> getColumnClass(int column) {
 		if (this.getRowCount() == 0) {
 			return Void.class;
 		}
-		Object obj = getValueAt(0,column);
+		Object obj = getValueAt(0, column);
 		if (obj == null) {
 			return Null.class;
 		} else {
-			return getValueAt(0,column).getClass();
+			return getValueAt(0, column).getClass();
 		}
 	}
 }

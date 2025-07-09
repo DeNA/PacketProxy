@@ -18,9 +18,7 @@ package packetproxy.http;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-
 import javax.net.ssl.SSLSocket;
-
 import packetproxy.common.SSLSocketEndpoint;
 import packetproxy.common.Utils;
 
@@ -28,15 +26,14 @@ public class HttpsProxySocketEndpoint extends SSLSocketEndpoint {
 	InputStream proxyIn;
 	OutputStream proxyOut;
 	String reqTmpl = "CONNECT %s:%d HTTP/1.0\r\nHost: %s\r\n\r\n";
-	
+
 	public HttpsProxySocketEndpoint(SSLSocket proxySocket, InetSocketAddress serverAddr) throws Exception {
 		super(proxySocket, "proxy");
 
 		proxyOut = socket.getOutputStream();
-		proxyOut.write(String.format(reqTmpl,
-				serverAddr.getHostString(),
-				serverAddr.getPort(),
-				serverAddr.getHostString()).getBytes());
+		proxyOut.write(
+				String.format(reqTmpl, serverAddr.getHostString(), serverAddr.getPort(), serverAddr.getHostString())
+						.getBytes());
 		proxyOut.flush();
 
 		proxyIn = socket.getInputStream();
@@ -65,14 +62,14 @@ public class HttpsProxySocketEndpoint extends SSLSocketEndpoint {
 	public OutputStream getOutputStream() throws Exception {
 		return socket.getOutputStream();
 	}
-	
+
 	@Override
 	public String getName() {
 		return null;
 	}
 
 	@Override
-	public String getApplicationProtocol(){
+	public String getApplicationProtocol() {
 		return socket.getApplicationProtocol();
 	}
 }

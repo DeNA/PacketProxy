@@ -15,17 +15,16 @@
  */
 package packetproxy.common;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.ArrayUtils;
-import packetproxy.util.PacketProxyUtility;
-
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.ArrayUtils;
+import packetproxy.util.PacketProxyUtility;
 
 public class Utils {
 
@@ -131,7 +130,7 @@ public class Utils {
 
 	/**
 	 * EXEを実行する。MACの場合はmonoで実行する
-	 * 
+	 *
 	 * @return 標準出力に表示されたデータ
 	 */
 	public static byte[] executeExe(String... command) throws Exception {
@@ -170,7 +169,7 @@ public class Utils {
 
 	/**
 	 * EXEを実行する。MACの場合はmonoで実行する
-	 * 
+	 *
 	 * @return 標準出力に表示されたデータ
 	 */
 	public static byte[] executeRuby(String... command) throws Exception {
@@ -257,7 +256,7 @@ public class Utils {
 			byte[] back_data = ArrayUtils.subarray(data, idx + binPattern.length, data.length);
 			data = ArrayUtils.addAll(front_data, binReplaced);
 			data = ArrayUtils.addAll(data, back_data);
-			idx = idx + binReplaced.length;
+			idx += binReplaced.length;
 		}
 		return data;
 	}

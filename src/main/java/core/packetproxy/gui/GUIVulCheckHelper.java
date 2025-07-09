@@ -15,61 +15,60 @@
  */
 package packetproxy.gui;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import packetproxy.common.Range;
 import packetproxy.model.OneShotPacket;
 import packetproxy.vulchecker.VulChecker;
 
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import java.util.ArrayList;
-import java.util.List;
-
 public class GUIVulCheckHelper {
-    private JPanel main_panel;
-    private CloseButtonTabbedPane vulCheckTab;
-    private List<GUIVulCheckTab> list;
-    private int previousTabIndex;
+	private JPanel main_panel;
+	private CloseButtonTabbedPane vulCheckTab;
+	private List<GUIVulCheckTab> list;
+	private int previousTabIndex;
 
-    private static GUIVulCheckHelper instance;
+	private static GUIVulCheckHelper instance;
 
-    public static GUIVulCheckHelper getInstance() throws Exception {
-        if (instance == null) {
-            instance = new GUIVulCheckHelper();
-        }
-        return instance;
-    }
+	public static GUIVulCheckHelper getInstance() throws Exception {
+		if (instance == null) {
+			instance = new GUIVulCheckHelper();
+		}
+		return instance;
+	}
 
-    private GUIVulCheckHelper() {
-        main_panel = new JPanel();
-        vulCheckTab = new CloseButtonTabbedPane();
-        previousTabIndex = vulCheckTab.getSelectedIndex();
-        vulCheckTab.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                int currentTabIndex = vulCheckTab.getSelectedIndex();
-                if (previousTabIndex < 0) {
-                    previousTabIndex = currentTabIndex;
-                    return;
-                }
-                previousTabIndex = currentTabIndex;
-            }
-        });
-        main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
-        main_panel.add(vulCheckTab);
-        list = new ArrayList<GUIVulCheckTab>();
-    }
+	private GUIVulCheckHelper() {
+		main_panel = new JPanel();
+		vulCheckTab = new CloseButtonTabbedPane();
+		previousTabIndex = vulCheckTab.getSelectedIndex();
+		vulCheckTab.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				int currentTabIndex = vulCheckTab.getSelectedIndex();
+				if (previousTabIndex < 0) {
+					previousTabIndex = currentTabIndex;
+					return;
+				}
+				previousTabIndex = currentTabIndex;
+			}
+		});
+		main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
+		main_panel.add(vulCheckTab);
+		list = new ArrayList<GUIVulCheckTab>();
+	}
 
-    public JComponent createPanel() {
-        return main_panel;
-    }
+	public JComponent createPanel() {
+		return main_panel;
+	}
 
-    public void addVulCheck(VulChecker vulChecker, OneShotPacket send_packet, Range range) throws Exception {
-        GUIVulCheckTab vulCheckTab = new GUIVulCheckTab(vulChecker, send_packet, range);
-        JComponent panel = vulCheckTab.createPanel();
-        list.add(vulCheckTab);
-        this.vulCheckTab.addTab(String.valueOf(list.size()), panel);
-        this.vulCheckTab.setSelectedComponent(panel);
-    }
+	public void addVulCheck(VulChecker vulChecker, OneShotPacket send_packet, Range range) throws Exception {
+		GUIVulCheckTab vulCheckTab = new GUIVulCheckTab(vulChecker, send_packet, range);
+		JComponent panel = vulCheckTab.createPanel();
+		list.add(vulCheckTab);
+		this.vulCheckTab.addTab(String.valueOf(list.size()), panel);
+		this.vulCheckTab.setSelectedComponent(panel);
+	}
 
 }

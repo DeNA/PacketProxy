@@ -16,15 +16,13 @@
 package packetproxy.gui;
 
 import java.awt.BorderLayout;
-
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 
-public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataChangedListener
-{
+public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataChangedListener {
 	private RawTextPane raw_text;
 	@Override
 	public JTextPane getTextPane() {

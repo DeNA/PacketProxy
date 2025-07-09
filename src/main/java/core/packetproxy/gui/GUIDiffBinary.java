@@ -18,11 +18,10 @@ import java.awt.*;
 import javax.swing.*;
 import packetproxy.common.Binary;
 import packetproxy.model.DiffBinary;
-import packetproxy.model.DiffSet;
 import packetproxy.model.DiffEventAdapter;
+import packetproxy.model.DiffSet;
 
-public class GUIDiffBinary extends GUIDiffBase
-{
+public class GUIDiffBinary extends GUIDiffBase {
 	@Override
 	protected DiffSet sortUniq(DiffSet ds) {
 		String strOrig = "";
@@ -30,12 +29,13 @@ public class GUIDiffBinary extends GUIDiffBase
 		try {
 			strOrig = super.sortUniq(new Binary(ds.getOriginal()).toHexString().toString());
 			strTarg = super.sortUniq(new Binary(ds.getTarget()).toHexString().toString());
-		}catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return new DiffSet(strOrig.getBytes(), strTarg.getBytes());
 	}
-	public GUIDiffBinary() throws Exception {}
+	public GUIDiffBinary() throws Exception {
+	}
 
 	@Override
 	public void update() throws Exception {

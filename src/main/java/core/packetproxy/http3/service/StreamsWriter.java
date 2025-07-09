@@ -27,46 +27,50 @@ import packetproxy.quic.value.StreamId;
 
 public class StreamsWriter {
 
-    private final HttpWriteStreams httpWriteStreams = new HttpWriteStreams();
-    private final ControlWriteStream controlWriteStream;
-    private final QpackWriteStream qpackEncodeStreamWriter;
-    private final QpackWriteStream qpackDecodeStreamWriter;
+	private final HttpWriteStreams httpWriteStreams = new HttpWriteStreams();
+	private final ControlWriteStream controlWriteStream;
+	private final QpackWriteStream qpackEncodeStreamWriter;
+	private final QpackWriteStream qpackDecodeStreamWriter;
 
-    public StreamsWriter(Constants.Role role) {
-        if (role == Constants.Role.CLIENT) {
-            this.controlWriteStream = new ControlWriteStream(StreamId.of(0x3));
-            this.qpackEncodeStreamWriter = new QpackWriteStream(StreamId.of(0x7), Stream.StreamType.QpackEncoderStreamType);
-            this.qpackDecodeStreamWriter = new QpackWriteStream(StreamId.of(0xb), Stream.StreamType.QpackDecoderStreamType);
-        } else {
-            this.controlWriteStream = new ControlWriteStream(StreamId.of(0x2));
-            this.qpackEncodeStreamWriter = new QpackWriteStream(StreamId.of(0x6), Stream.StreamType.QpackEncoderStreamType);
-            this.qpackDecodeStreamWriter = new QpackWriteStream(StreamId.of(0xa), Stream.StreamType.QpackDecoderStreamType);
-        }
-    }
+	public StreamsWriter(Constants.Role role) {
+		if (role == Constants.Role.CLIENT) {
+			this.controlWriteStream = new ControlWriteStream(StreamId.of(0x3));
+			this.qpackEncodeStreamWriter = new QpackWriteStream(StreamId.of(0x7),
+					Stream.StreamType.QpackEncoderStreamType);
+			this.qpackDecodeStreamWriter = new QpackWriteStream(StreamId.of(0xb),
+					Stream.StreamType.QpackDecoderStreamType);
+		} else {
+			this.controlWriteStream = new ControlWriteStream(StreamId.of(0x2));
+			this.qpackEncodeStreamWriter = new QpackWriteStream(StreamId.of(0x6),
+					Stream.StreamType.QpackEncoderStreamType);
+			this.qpackDecodeStreamWriter = new QpackWriteStream(StreamId.of(0xa),
+					Stream.StreamType.QpackDecoderStreamType);
+		}
+	}
 
-    public synchronized void writeSetting(Setting setting) {
-        this.controlWriteStream.write(setting);
-    }
+	public synchronized void writeSetting(Setting setting) {
+		this.controlWriteStream.write(setting);
+	}
 
-    public synchronized void writeQpackEncodeData(byte[] data) throws Exception {
-        this.qpackEncodeStreamWriter.write(data);
-    }
+	public synchronized void writeQpackEncodeData(byte[] data) throws Exception {
+		this.qpackEncodeStreamWriter.write(data);
+	}
 
-    public synchronized void writeQpackDecodeData(byte[] data) throws Exception {
-        this.qpackDecodeStreamWriter.write(data);
-    }
+	public synchronized void writeQpackDecodeData(byte[] data) throws Exception {
+		this.qpackDecodeStreamWriter.write(data);
+	}
 
-    public synchronized void write(HttpRaw httpRaw) throws Exception {
-        this.httpWriteStreams.write(httpRaw);
-    }
+	public synchronized void write(HttpRaw httpRaw) throws Exception {
+		this.httpWriteStreams.write(httpRaw);
+	}
 
-    public synchronized QuicMessages readQuickMessages() throws Exception {
-        QuicMessages msgs = QuicMessages.emptyList();
-        msgs.addAll(this.controlWriteStream.readAllQuicMessages());
-        msgs.addAll(this.qpackEncodeStreamWriter.readAllQuicMessages());
-        msgs.addAll(this.qpackDecodeStreamWriter.readAllQuicMessages());
-        msgs.addAll(this.httpWriteStreams.readAllQuicMessages());
-        return msgs;
-    }
+	public synchronized QuicMessages readQuickMessages() throws Exception {
+		QuicMessages msgs = QuicMessages.emptyList();
+		msgs.addAll(this.controlWriteStream.readAllQuicMessages());
+		msgs.addAll(this.qpackEncodeStreamWriter.readAllQuicMessages());
+		msgs.addAll(this.qpackDecodeStreamWriter.readAllQuicMessages());
+		msgs.addAll(this.httpWriteStreams.readAllQuicMessages());
+		return msgs;
+	}
 
 }

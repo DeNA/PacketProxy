@@ -21,7 +21,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Arrays;
 import java.util.EventListener;
-
 import javax.swing.JButton;
 import javax.swing.JTextPane;
 import javax.swing.event.DocumentEvent;
@@ -30,9 +29,7 @@ import javax.swing.event.EventListenerList;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoManager;
-
 import org.apache.commons.lang3.ArrayUtils;
-
 import packetproxy.common.BinaryBuffer;
 import packetproxy.common.FontManager;
 import packetproxy.common.Range;
@@ -40,8 +37,7 @@ import packetproxy.common.Utils;
 import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
 
-abstract class ExtendedTextPane extends JTextPane
-{
+abstract class ExtendedTextPane extends JTextPane {
 	private static final long serialVersionUID = 3879881178060039018L;
 	private static final int TEXT_TRIMMING_SIZE = 300000;
 	private static final int BINARY_TRIMMING_SIZE = 10000; // バイナリデータの表示はテキストデータの表示に比べ大幅に時間がかかることを考慮して設定
@@ -95,7 +91,8 @@ abstract class ExtendedTextPane extends JTextPane
 					String removed_string = prev_text_panel.substring(e.getOffset(), e.getOffset() + e.getLength());
 					prev_text_panel = e.getDocument().getText(0, e.getDocument().getLength());
 					raw_data.remove(before_removed_string.getBytes().length, removed_string.getBytes().length);
-					//System.out.println(String.format("remove: <%s> %d %d", removed_string, removed_string.getBytes().length, e.getLength()));
+					// System.out.println(String.format("remove: <%s> %d %d", removed_string,
+					// removed_string.getBytes().length, e.getLength()));
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -108,7 +105,7 @@ abstract class ExtendedTextPane extends JTextPane
 			@Override
 			public void undoableEditHappened(UndoableEditEvent e) {
 				if (e.getEdit() instanceof DocumentEvent) {
-					if (((DocumentEvent)e.getEdit()).getType() == DocumentEvent.EventType.CHANGE) {
+					if (((DocumentEvent) e.getEdit()).getType() == DocumentEvent.EventType.CHANGE) {
 						/* スタイルの編集の場合は無視 */
 						return;
 					}
@@ -120,9 +117,11 @@ abstract class ExtendedTextPane extends JTextPane
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
-					if (show_all) { return; }
+					if (show_all) {
+						return;
+					}
 					setData(data, false);
-				} catch(Exception e1) {
+				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
 			}
@@ -141,7 +140,9 @@ abstract class ExtendedTextPane extends JTextPane
 			@Override
 			public void keyReleased(KeyEvent arg0) {
 				// テキストの色変更
-				if (Arrays.equals(data, getData())) { return; }
+				if (Arrays.equals(data, getData())) {
+					return;
+				}
 				data = getData(); // 文字列の中身が変化してない場合は戻る
 				callDataChanged(data);
 			}
@@ -159,7 +160,9 @@ abstract class ExtendedTextPane extends JTextPane
 		setFont(FontManager.getInstance().getFont());
 		this.data = data;
 		// データが多いと遅いので長いデータをトリミングする
-		if (trimming && (data.length > TEXT_TRIMMING_SIZE || (PacketProxyUtility.getInstance().isBinaryData(data, BINARY_TRIMMING_SIZE) && data.length > BINARY_TRIMMING_SIZE)))  {
+		if (trimming && (data.length > TEXT_TRIMMING_SIZE
+				|| (PacketProxyUtility.getInstance().isBinaryData(data, BINARY_TRIMMING_SIZE)
+						&& data.length > BINARY_TRIMMING_SIZE))) {
 			show_all = false;
 			byte[] head = ArrayUtils.subarray(data, 0, DEFAULT_SHOW_SIZE);
 			CharSetUtility charSetUtility = CharSetUtility.getInstance();
@@ -167,7 +170,8 @@ abstract class ExtendedTextPane extends JTextPane
 				charSetUtility.setGuessedCharSet(getData());
 			}
 			String charSetName = charSetUtility.getCharSet();
-			setText("********************\n  This data is too long.\n  If you want to show all message, please click this panel\n********************\n\n\n\n\n\n" + new String(head, charSetName));
+			setText("********************\n  This data is too long.\n  If you want to show all message, please click this panel\n********************\n\n\n\n\n\n"
+					+ new String(head, charSetName));
 		} else {
 			show_all = true;
 			setData(data);
@@ -184,9 +188,9 @@ abstract class ExtendedTextPane extends JTextPane
 		return parentHistory.getParentSend();
 	}
 
-	private void notifySelectedText(){
+	private void notifySelectedText() {
 		int position_start = getSelectionStart();
-		int position_end   = getSelectionEnd();
+		int position_end = getSelectionEnd();
 		Range area = Range.of(position_start, position_end);
 		if (area.getLength() == 0 || area.getLength() > 1000) {
 			return;
@@ -194,9 +198,9 @@ abstract class ExtendedTextPane extends JTextPane
 		byte[] request = Utils.getSelectedCharacters(data, area.getPositionStart(), area.getPositionEnd());
 	}
 
-	private void showDecodedTooltipOnSelectedText(){
+	private void showDecodedTooltipOnSelectedText() {
 		int position_start = getSelectionStart();
-		int position_end   = getSelectionEnd();
+		int position_end = getSelectionEnd();
 		Range area = Range.of(position_start, position_end);
 
 		if (area.getLength() == 0) {
@@ -208,18 +212,16 @@ abstract class ExtendedTextPane extends JTextPane
 	}
 
 	public interface DataChangedListener extends EventListener {
-		public void dataChanged(byte[] data);
+		void dataChanged(byte[] data);
 	}
 	public void addDataChangedListener(DataChangedListener listener) {
 		listenerList.add(DataChangedListener.class, listener);
 	}
-	protected void callDataChanged(byte[] data)
-	{
-		for (DataChangedListener listener: listenerList.getListeners(DataChangedListener.class)) {
+	protected void callDataChanged(byte[] data) {
+		for (DataChangedListener listener : listenerList.getListeners(DataChangedListener.class)) {
 			listener.dataChanged(data);
 		}
 	}
 	public abstract void setData(byte[] data) throws Exception;
 	public abstract byte[] getData();
 }
-

@@ -41,14 +41,10 @@ public class ProxyQuicForward extends Proxy {
 				String serverName = this.listen_info.getServer().getIp();
 				PacketProxyUtility.getInstance().packetProxyLog("[QUIC-forward!] %s", serverName);
 
-				ServerConnection serverConnection = new ServerConnection(
-						ConnectionIdPair.generateRandom(),
-						serverName,
+				ServerConnection serverConnection = new ServerConnection(ConnectionIdPair.generateRandom(), serverName,
 						this.listen_info.getPort());
 
-				DuplexAsync duplex = DuplexFactory.createDuplexAsync(
-						clientConnection,
-						serverConnection,
+				DuplexAsync duplex = DuplexFactory.createDuplexAsync(clientConnection, serverConnection,
 						this.listen_info.getServer().getEncoder());
 
 				duplex.start();

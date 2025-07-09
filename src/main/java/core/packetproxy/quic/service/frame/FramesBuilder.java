@@ -16,45 +16,44 @@
 
 package packetproxy.quic.service.frame;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import packetproxy.quic.value.SimpleBytes;
 import packetproxy.quic.value.frame.Frame;
 import packetproxy.quic.value.frame.PaddingFrame;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-
 public class FramesBuilder {
-    List<Frame> frames = new ArrayList<>();
+	List<Frame> frames = new ArrayList<>();
 
-    public FramesBuilder add(Frame frame) {
-        frames.add(frame);
-        return this;
-    }
+	public FramesBuilder add(Frame frame) {
+		frames.add(frame);
+		return this;
+	}
 
-    /*
-     * Clients MUST ensure that UDP datagrams containing Initial packets have
-     * UDP payloads of at least 1200 bytes, adding PADDING frames as necessary.
-     */
-    public FramesBuilder addPaddingFramesToEnsure1200Bytes() {
-        long currentBytesLength = getBytes().length;
-        long paddingFrameLength = 1200 - currentBytesLength;
-        if (paddingFrameLength > 0) {
-            this.add(new PaddingFrame(paddingFrameLength));
-        }
-        return this;
-    }
+	/*
+	 * Clients MUST ensure that UDP datagrams containing Initial packets have UDP
+	 * payloads of at least 1200 bytes, adding PADDING frames as necessary.
+	 */
+	public FramesBuilder addPaddingFramesToEnsure1200Bytes() {
+		long currentBytesLength = getBytes().length;
+		long paddingFrameLength = 1200 - currentBytesLength;
+		if (paddingFrameLength > 0) {
+			this.add(new PaddingFrame(paddingFrameLength));
+		}
+		return this;
+	}
 
-    public byte[] getBytes() {
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
-        for (Frame frame: frames) {
-            buffer.put(frame.getBytes());
-        }
-        buffer.flip();
-        return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
-    }
+	public byte[] getBytes() {
+		ByteBuffer buffer = ByteBuffer.allocate(1500);
+		for (Frame frame : frames) {
+			buffer.put(frame.getBytes());
+		}
+		buffer.flip();
+		return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+	}
 
-    public Frames build() {
-        return new Frames(frames);
-    }
+	public Frames build() {
+		return new Frames(frames);
+	}
 }

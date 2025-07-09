@@ -20,23 +20,21 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
-import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.List;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.RowFilter;
-import javax.swing.table.TableRowSorter;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import packetproxy.common.I18nString;
+import javax.swing.table.TableRowSorter;
 import packetproxy.common.FontManager;
+import packetproxy.common.I18nString;
 import packetproxy.model.OptionTableModel;
 
 public abstract class GUIOptionComponentBase<T> implements PropertyChangeListener {

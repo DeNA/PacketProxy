@@ -17,7 +17,6 @@ package packetproxy.http2.frames;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpFields;
@@ -29,19 +28,18 @@ import org.eclipse.jetty.http.MetaData.Request;
 import org.eclipse.jetty.http.MetaData.Response;
 import org.eclipse.jetty.http2.hpack.HpackDecoder;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
-
 import packetproxy.common.StringUtils;
 import packetproxy.http.HeaderField;
 import packetproxy.http.Http;
 import packetproxy.http.HttpHeader;
 
 public class HeadersFrame extends Frame {
-	static protected Type TYPE = Type.HEADERS;
-	static public byte FLAG_END_STREAM = 0x01;
-	static public byte FLAG_END_HEADERS = 0x04;
-	static public byte FLAG_PADDED = 0x08;
-	static public byte FLAG_PRIORITY = 0x20;
-	static public byte FLAG_EXTRA = 0x40; /* internal use only */
+	protected static Type TYPE = Type.HEADERS;
+	public static byte FLAG_END_STREAM = 0x01;
+	public static byte FLAG_END_HEADERS = 0x04;
+	public static byte FLAG_PADDED = 0x08;
+	public static byte FLAG_PRIORITY = 0x20;
+	public static byte FLAG_EXTRA = 0x40; /* internal use only */
 
 	private String method;
 	private String path;

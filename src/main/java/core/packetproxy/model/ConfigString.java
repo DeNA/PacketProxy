@@ -15,8 +15,7 @@
  */
 package packetproxy.model;
 
-public class ConfigString
-{
+public class ConfigString {
 	private String key;
 	private Configs configs;
 	private Config config;

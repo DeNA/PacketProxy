@@ -21,7 +21,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Arrays;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -29,15 +28,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-
 import org.apache.commons.lang3.ArrayUtils;
-
 import packetproxy.common.Binary;
 import packetproxy.common.FontManager;
 import packetproxy.common.StringUtils;
 
-public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.DataChangedListener
-{
+public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.DataChangedListener {
 	private final int TRIMMING_SIZE = 100000;
 	private final int DEFAULT_SHOW_SIZE = 2000;
 	private BinaryTextPane binary_text;
@@ -59,12 +55,14 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 		hex_text = new BinaryTextPane();
 		hex_text.setParentHistory(this);
 		hex_text.addDataChangedListener(this);
-		//hex_text.setLineWrap(true);
+		// hex_text.setLineWrap(true);
 		hex_text.setFont(FontManager.getInstance().getFont());
 		hex_text.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (show_all) { return; }
+				if (show_all) {
+					return;
+				}
 				setData(data, false);
 			}
 			public void mouseEntered(MouseEvent e) {
@@ -75,8 +73,10 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 			}
 			public void mouseReleased(MouseEvent e) {
 				int position_start = hex_text.getSelectionStart();
-				int position_end   = hex_text.getSelectionEnd();
-				if (position_start == position_end) { return; }
+				int position_end = hex_text.getSelectionEnd();
+				if (position_start == position_end) {
+					return;
+				}
 				coloringSearchBinary();
 				highlightFromHex(position_start, position_end, java.awt.Color.CYAN);
 			}
@@ -91,7 +91,9 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 				try {
 					int a = hex_text.getCaretPosition();
 					Binary b = new Binary(new Binary.HexString(str));
-					if (Arrays.equals(data, b.toByteArray())) { return; } // 文字列の中身が変化してない場合は戻る
+					if (Arrays.equals(data, b.toByteArray())) {
+						return;
+					} // 文字列の中身が変化してない場合は戻る
 					data = b.toByteArray();
 					hex_text.setText(b.toHexString(16).toString());
 					ascii_text.setText(b.toAsciiString(16).toString());
@@ -110,12 +112,14 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 		JScrollPane scrollpane3 = new JScrollPane(hex_text);
 
 		ascii_text = new JTextPane();
-		//ascii_text.setLineWrap(true);
+		// ascii_text.setLineWrap(true);
 		ascii_text.setFont(FontManager.getInstance().getFont());
 		ascii_text.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (show_all) { return; }
+				if (show_all) {
+					return;
+				}
 				setData(data, false);
 			}
 			public void mouseEntered(MouseEvent e) {
@@ -126,14 +130,16 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 			}
 			public void mouseReleased(MouseEvent e) {
 				int position_start = ascii_text.getSelectionStart();
-				int position_end   = ascii_text.getSelectionEnd();
-				if (position_start == position_end) { return; }
+				int position_end = ascii_text.getSelectionEnd();
+				if (position_start == position_end) {
+					return;
+				}
 				coloringSearchBinary();
 				highlightFromAscii(position_start, position_end, java.awt.Color.CYAN);
 			}
 		});
 		JScrollPane scrollpane4 = new JScrollPane(ascii_text);
-		scrollpane4.getVerticalScrollBar().setModel(scrollpane3.getVerticalScrollBar().getModel());	// 縦方向のスクロールをhex側と同期させる
+		scrollpane4.getVerticalScrollBar().setModel(scrollpane3.getVerticalScrollBar().getModel()); // 縦方向のスクロールをhex側と同期させる
 
 		search_text = new JTextField();
 		search_text.setFont(FontManager.getInstance().getFont());
@@ -150,7 +156,7 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 			public void keyPressed(KeyEvent e) {
 			}
 		});
-	    
+
 		box_panel = new JPanel();
 		box_panel.add(scrollpane3);
 		box_panel.add(scrollpane4);
@@ -160,8 +166,7 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 		panel.add(search_text, BorderLayout.SOUTH);
 	}
 
-	public JComponent createPanel()
-	{
+	public JComponent createPanel() {
 		return panel;
 	}
 
@@ -181,8 +186,12 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 				show_all = false;
 				byte[] head = ArrayUtils.subarray(data, 0, DEFAULT_SHOW_SIZE);
 				Binary b = new Binary(head);
-				hex_text.setText("********************\n  This data is too long.\n  If you want to show all message, please click this panel\n********************\n\n\n\n\n\n" + b.toHexString(16).toString());
-				ascii_text.setText("********************\n  This data is too long.\n  If you want to show all message, please click this panel\n********************\n\n\n\n\n\n" + b.toAsciiString(16).toString());
+				hex_text.setText(
+						"********************\n  This data is too long.\n  If you want to show all message, please click this panel\n********************\n\n\n\n\n\n"
+								+ b.toHexString(16).toString());
+				ascii_text.setText(
+						"********************\n  This data is too long.\n  If you want to show all message, please click this panel\n********************\n\n\n\n\n\n"
+								+ b.toAsciiString(16).toString());
 			} else {
 				show_all = true;
 				Binary b = new Binary(data);
@@ -196,26 +205,26 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
-	public byte[] getData()
-	{
+	public byte[] getData() {
 		return data;
 	}
-	
+
 	/**
 	 * @return search_stringを見つけた回数
 	 */
 	public int coloringSearchBinary() {
 		String str = hex_text.getText();
 		if (str.length() > 1000000) {
-			//System.err.println("[Warning] coloringSearchBinary: too long string. Skipping Highlight");
+			// System.err.println("[Warning] coloringSearchBinary: too long string. Skipping
+			// Highlight");
 			return -1;
 		}
-		
+
 		// 検索用のバイト列を構築
 		String search_string = search_text.getText();
-		search_string = search_string.replaceAll(" ",  "");
+		search_string = search_string.replaceAll(" ", "");
 		try {
 			byte[] search_bytes = StringUtils.hexToByte(search_string.getBytes());
 			return coloringSearchBinary(search_bytes);
@@ -229,8 +238,10 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 		String str = hex_text.getText();
 		// 色を元に戻す
 		resetHighlight();
-		if (str.length() == 0 || search_bytes.length == 0) { return 0; }
-		
+		if (str.isEmpty() || search_bytes.length == 0) {
+			return 0;
+		}
+
 		// 色を変える
 		int cnt = 0;
 		int start = 0;
@@ -252,25 +263,37 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 		ascii_document.setCharacterAttributes(0, ascii_text.getText().length(), attributes, false);
 	}
 	void highlightFromHex(int hex_start, int hex_end, java.awt.Color color) {
-		if (hex_start == hex_end) { return; }
-		if (hex_end < hex_start) { int temp = hex_end; hex_end = hex_start; hex_start = temp; }
+		if (hex_start == hex_end) {
+			return;
+		}
+		if (hex_end < hex_start) {
+			int temp = hex_end;
+			hex_end = hex_start;
+			hex_start = temp;
+		}
 		javax.swing.text.MutableAttributeSet attributes = new javax.swing.text.SimpleAttributeSet();
 		javax.swing.text.StyleConstants.setBackground(attributes, color);
 
 		javax.swing.text.StyledDocument hex_document = hex_text.getStyledDocument();
 		hex_document.setCharacterAttributes(hex_start, hex_end - hex_start, attributes, false);
-		
+
 		int ascii_start = toAsciiPos(hex_start);
 		int ascii_end = toAsciiPos(hex_end) + 1;
 		javax.swing.text.StyledDocument ascii_document = ascii_text.getStyledDocument();
 		ascii_document.setCharacterAttributes(ascii_start, ascii_end - ascii_start, attributes, false);
 	}
 	void highlightFromAscii(int ascii_start, int ascii_end, java.awt.Color color) {
-		if (ascii_start == ascii_end) { return; }
-		if (ascii_end < ascii_start) { int temp = ascii_end; ascii_end = ascii_start; ascii_start = temp; }
+		if (ascii_start == ascii_end) {
+			return;
+		}
+		if (ascii_end < ascii_start) {
+			int temp = ascii_end;
+			ascii_end = ascii_start;
+			ascii_start = temp;
+		}
 		highlightFromHex(toHexPos(ascii_start), toHexPos(ascii_end) - 1, color);
 	}
-	
+
 	// hexは1バイト毎にスペース, 両方とも16バイト毎に\n
 	int toHexPos(int pos) {
 		int y = pos / (16 + 1);

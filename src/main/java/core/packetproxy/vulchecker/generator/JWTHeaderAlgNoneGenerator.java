@@ -17,20 +17,20 @@
 package packetproxy.vulchecker.generator;
 
 public class JWTHeaderAlgNoneGenerator extends Generator {
-    @Override
-    public String getName() {
-        return "Header: alg: none";
-    }
+	@Override
+	public String getName() {
+		return "Header: alg: none";
+	}
 
-    @Override
-    public boolean generateOnStart() {
-        return true;
-    }
+	@Override
+	public boolean generateOnStart() {
+		return true;
+	}
 
-    @Override
-    public String generate(String inputData) throws Exception {
-        JWTAlgNone jwt = new JWTAlgNone(inputData);
-        jwt.setHeaderValue("alg", "none");
-        return jwt.toJwtString();
-    }
+	@Override
+	public String generate(String inputData) throws Exception {
+		JWTAlgNone jwt = new JWTAlgNone(inputData);
+		jwt.setHeaderValue("alg", "none");
+		return jwt.toJwtString();
+	}
 }

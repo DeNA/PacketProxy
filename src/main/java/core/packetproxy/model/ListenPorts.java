@@ -15,16 +15,16 @@
  */
 package packetproxy.model;
 
-import com.j256.ormlite.dao.Dao;
-import java.util.List;
-import java.beans.PropertyChangeSupport;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
-import java.util.stream.Collectors;
-
-import packetproxy.model.Database.DatabaseMessage;
-import static packetproxy.model.PropertyChangeEventType.LISTEN_PORTS;
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+import static packetproxy.model.PropertyChangeEventType.LISTEN_PORTS;
+
+import com.j256.ormlite.dao.Dao;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.List;
+import java.util.stream.Collectors;
+import packetproxy.model.Database.DatabaseMessage;
 
 public class ListenPorts implements PropertyChangeListener {
 	private static ListenPorts instance;
@@ -89,52 +89,35 @@ public class ListenPorts implements PropertyChangeListener {
 	}
 
 	public boolean isAlreadyEnabled(ListenPort port) throws Exception {
-		return dao.queryBuilder().where()
-				.ne("id", port.getId())
-				.and()
-				.eq("port", port.getPort())
-				.and()
+		return dao.queryBuilder().where().ne("id", port.getId()).and().eq("port", port.getPort()).and()
 				.eq("enabled", true).query().stream()
 				.anyMatch(listenPort -> listenPort.getProtocol() == port.getProtocol());
 	}
 
 	public ListenPort queryEnabledByPort(ListenPort.Protocol protocol, int port) throws Exception {
-		List<ListenPort> rets = dao.queryBuilder().where()
-				.eq("port", port)
-				.and()
-				.eq("enabled", true).query().stream().filter(listenPort -> listenPort.getProtocol() == protocol)
-				.collect(Collectors.toList());
+		List<ListenPort> rets = dao.queryBuilder().where().eq("port", port).and().eq("enabled", true).query().stream()
+				.filter(listenPort -> listenPort.getProtocol() == protocol).collect(Collectors.toList());
 		return rets.size() > 0 ? rets.get(0) : null;
 	}
 
 	public ListenPort queryByPortServer(ListenPort.Protocol protocol, int port, int server_id) throws Exception {
-		List<ListenPort> rets = dao.queryBuilder().where()
-				.eq("port", port)
-				.and()
-				.eq("server_id", server_id).query().stream().filter(listenPort -> listenPort.getProtocol() == protocol)
-				.collect(Collectors.toList());
+		List<ListenPort> rets = dao.queryBuilder().where().eq("port", port).and().eq("server_id", server_id).query()
+				.stream().filter(listenPort -> listenPort.getProtocol() == protocol).collect(Collectors.toList());
 		return rets.size() > 0 ? rets.get(0) : null;
 	}
 
 	public ListenPort queryByHttpProxyPort(int port) throws Exception {
-		List<ListenPort> rets = dao.queryBuilder().where()
-				.eq("type", ListenPort.TYPE.HTTP_PROXY)
-				.and()
-				.eq("port", port).query();
+		List<ListenPort> rets = dao.queryBuilder().where().eq("type", ListenPort.TYPE.HTTP_PROXY).and().eq("port", port)
+				.query();
 		return rets.size() > 0 ? rets.get(0) : null;
 	}
 
 	public List<ListenPort> queryEnabledHttpProxis() throws Exception {
-		return dao.queryBuilder().where()
-				.eq("type", ListenPort.TYPE.HTTP_PROXY)
-				.and()
-				.eq("enabled", true).query();
+		return dao.queryBuilder().where().eq("type", ListenPort.TYPE.HTTP_PROXY).and().eq("enabled", true).query();
 	}
 
 	public List<ListenPort> queryAllOfHttpProxis() throws Exception {
-		return dao.queryBuilder().where()
-				.eq("type", ListenPort.TYPE.HTTP_PROXY)
-				.query();
+		return dao.queryBuilder().where().eq("type", ListenPort.TYPE.HTTP_PROXY).query();
 	}
 
 	public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -162,24 +145,24 @@ public class ListenPorts implements PropertyChangeListener {
 		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
 			switch (message) {
-				case PAUSE:
+				case PAUSE :
 					// TODO ロックを取る
 					break;
-				case RESUME:
+				case RESUME :
 					// TODO ロックを解除
 					break;
-				case DISCONNECT_NOW:
+				case DISCONNECT_NOW :
 					break;
-				case RECONNECT:
+				case RECONNECT :
 					database = Database.getInstance();
 					dao = database.createTable(ListenPort.class, this);
 					firePropertyChange(message);
 					break;
-				case RECREATE:
+				case RECREATE :
 					database = Database.getInstance();
 					dao = database.createTable(ListenPort.class, this);
 					break;
-				default:
+				default :
 					break;
 			}
 		} catch (Exception e) {

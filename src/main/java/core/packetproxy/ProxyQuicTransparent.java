@@ -44,10 +44,8 @@ public class ProxyQuicTransparent extends Proxy {
 				String sniServerName = clientConnection.getSNI();
 				PacketProxyUtility.getInstance().packetProxyLog("[QUIC-forward! using SNI] %s", sniServerName);
 
-				ServerConnection serverConnection = new ServerConnection(
-						ConnectionIdPair.generateRandom(),
-						sniServerName,
-						this.listen_info.getPort());
+				ServerConnection serverConnection = new ServerConnection(ConnectionIdPair.generateRandom(),
+						sniServerName, this.listen_info.getPort());
 
 				String encoder = "HTTP";
 				Server server = Servers.getInstance().queryByHostName(sniServerName);
@@ -60,11 +58,7 @@ public class ProxyQuicTransparent extends Proxy {
 
 				String alpn = encoder.equals("HTTP") ? "h3" : null;
 
-				DuplexAsync duplex = DuplexFactory.createDuplexAsync(
-						clientConnection,
-						serverConnection,
-						encoder,
-						alpn);
+				DuplexAsync duplex = DuplexFactory.createDuplexAsync(clientConnection, serverConnection, encoder, alpn);
 
 				duplex.start();
 				DuplexManager.getInstance().registerDuplex(duplex);

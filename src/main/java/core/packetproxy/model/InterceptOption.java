@@ -24,19 +24,20 @@ import packetproxy.common.Binary.HexString;
 import packetproxy.common.Utils;
 
 @DatabaseTable(tableName = "interceptOptions")
-public class InterceptOption
-{
+public class InterceptOption {
 	public static final int ALL_SERVER = -1;
-	public static enum Type { REQUEST, /* TODO HOST, URL,*/  };
-	public static enum Direction { REQUEST, RESPONSE, ALL_THE_OTHER_REQUESTS, ALL_THE_OTHER_RESPONSES };  // 両方同じルールで捕まえたい事はないのでALLは無し
+	public static enum Type {
+		REQUEST,
+		/* TODO HOST, URL, */ };
+	public static enum Direction {
+		REQUEST, RESPONSE, ALL_THE_OTHER_REQUESTS, ALL_THE_OTHER_RESPONSES
+	}; // 両方同じルールで捕まえたい事はないのでALLは無し
 	public static enum Relationship {
-		IS_INTERCEPTED_IF_IT_MATCHES,
-		IS_INTERCEPTED_IF_REQUEST_WAS_INTERCEPTED,
-		IS_NOT_INTERCEPTED_IF_IT_MATCHES,
-		ARE_INTERCEPTED,
-		ARE_NOT_INTERCEPTED
+		IS_INTERCEPTED_IF_IT_MATCHES, IS_INTERCEPTED_IF_REQUEST_WAS_INTERCEPTED, IS_NOT_INTERCEPTED_IF_IT_MATCHES, ARE_INTERCEPTED, ARE_NOT_INTERCEPTED
 	};
-	public static enum Method { SIMPLE, REGEX, BINARY, UNDEFINED };
+	public static enum Method {
+		SIMPLE, REGEX, BINARY, UNDEFINED
+	};
 
 	@DatabaseField(generatedId = true)
 	private int id;
@@ -58,7 +59,8 @@ public class InterceptOption
 	public InterceptOption() {
 		// ORMLite needs a no-arg constructor
 	}
-	public InterceptOption(Direction direction, Type type, Relationship relationship, String pattern, Method method, Server server) {
+	public InterceptOption(Direction direction, Type type, Relationship relationship, String pattern, Method method,
+			Server server) {
 		this.enabled = true;
 		this.direction = direction;
 		this.type = type;
@@ -89,7 +91,9 @@ public class InterceptOption
 		return Servers.getInstance().query(this.server_id);
 	}
 	public String getServerName() throws Exception {
-		if (this.server_id == ALL_SERVER) { return "*"; }
+		if (this.server_id == ALL_SERVER) {
+			return "*";
+		}
 		Server server = Servers.getInstance().query(this.server_id);
 		return server != null ? server.toString() : "";
 	}
@@ -106,16 +110,16 @@ public class InterceptOption
 	}
 	public static String getDirectionAsString(Direction direction) {
 		switch (direction) {
-		case REQUEST:
-			return "Request";
-		case RESPONSE:
-			return "Response";
-		case ALL_THE_OTHER_REQUESTS:
-			return "All the other requests";
-		case ALL_THE_OTHER_RESPONSES:
-			return "All the other responses";
-		default:
-			return "Request";
+			case REQUEST :
+				return "Request";
+			case RESPONSE :
+				return "Response";
+			case ALL_THE_OTHER_REQUESTS :
+				return "All the other requests";
+			case ALL_THE_OTHER_RESPONSES :
+				return "All the other responses";
+			default :
+				return "Request";
 		}
 	}
 	public String getDirectionAsString() {
@@ -149,18 +153,18 @@ public class InterceptOption
 	}
 	public static String getRelationshipAsString(Relationship relationship) {
 		switch (relationship) {
-		case IS_INTERCEPTED_IF_IT_MATCHES:
-			return "is intercepted if it matches";
-		case IS_INTERCEPTED_IF_REQUEST_WAS_INTERCEPTED:
-			return "is intercepted if request was intercepted";
-		case IS_NOT_INTERCEPTED_IF_IT_MATCHES:
-			return "is not intercepted if it matches";
-		case ARE_INTERCEPTED:
-			return "are intercepted";
-		case ARE_NOT_INTERCEPTED:
-			return "are not intercepted";
-		default:
-			return "is intercepted if it matches";
+			case IS_INTERCEPTED_IF_IT_MATCHES :
+				return "is intercepted if it matches";
+			case IS_INTERCEPTED_IF_REQUEST_WAS_INTERCEPTED :
+				return "is intercepted if request was intercepted";
+			case IS_NOT_INTERCEPTED_IF_IT_MATCHES :
+				return "is not intercepted if it matches";
+			case ARE_INTERCEPTED :
+				return "are intercepted";
+			case ARE_NOT_INTERCEPTED :
+				return "are not intercepted";
+			default :
+				return "is intercepted if it matches";
 		}
 	}
 	public boolean isRelationship(String relationshipStr) {
@@ -173,15 +177,15 @@ public class InterceptOption
 		return this.method;
 	}
 	public String getMethodAsString() {
-		switch(this.method) {
-		case SIMPLE:
-			return "SIMPLE";
-		case REGEX:
-			return "REGEX";
-		case BINARY:
-			return "BINARY";
-		default:
-			return "";
+		switch (this.method) {
+			case SIMPLE :
+				return "SIMPLE";
+			case REGEX :
+				return "REGEX";
+			case BINARY :
+				return "BINARY";
+			default :
+				return "";
 		}
 	}
 	public void setMethod(Method method) {
@@ -197,15 +201,15 @@ public class InterceptOption
 		return id;
 	}
 	public boolean match(Packet client_packet, Packet server_packet) throws Exception {
-		assert(this.relationship != Relationship.IS_INTERCEPTED_IF_REQUEST_WAS_INTERCEPTED);
-		assert(this.relationship != Relationship.ARE_INTERCEPTED);
-		assert(this.relationship != Relationship.ARE_NOT_INTERCEPTED);
+		assert (this.relationship != Relationship.IS_INTERCEPTED_IF_REQUEST_WAS_INTERCEPTED);
+		assert (this.relationship != Relationship.ARE_INTERCEPTED);
+		assert (this.relationship != Relationship.ARE_NOT_INTERCEPTED);
 		byte[] data = null;
 		if (this.direction == Direction.REQUEST) {
-			assert(client_packet != null);
+			assert (client_packet != null);
 			data = client_packet.getDecodedData();
 		} else if (this.direction == Direction.RESPONSE) {
-			assert(server_packet != null);
+			assert (server_packet != null);
 			data = server_packet.getDecodedData();
 		}
 		if (data == null) {

@@ -15,16 +15,15 @@
  */
 package packetproxy.gui;
 
-import packetproxy.model.CharSet;
-import packetproxy.model.CharSets;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
+import packetproxy.model.CharSet;
+import packetproxy.model.CharSets;
 
 public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet> {
 	private GUIOptionCharSetDialog dlg;
@@ -36,8 +35,8 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet> {
 		charsets = CharSets.getInstance();
 		charsets.addPropertyChangeListener(this);
 		charsets_list = new ArrayList<CharSet>();
-		String[] menu = { "CharSetName" };
-		int[] menuWidth = { 200, 80, 50, 160, 60, 60, 100 };
+		String[] menu = {"CharSetName"};
+		int[] menuWidth = {200, 80, 50, 160, 60, 60, 100};
 		MouseAdapter tableAction = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -87,8 +86,7 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet> {
 	@Override
 	protected void addTableContent(CharSet charSet) {
 		charsets_list.add(charSet);
-		option_model.addRow(new Object[] {
-				charSet.getCharSetName() });
+		option_model.addRow(new Object[]{charSet.getCharSetName()});
 	}
 
 	@Override

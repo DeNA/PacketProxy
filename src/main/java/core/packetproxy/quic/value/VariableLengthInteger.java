@@ -16,9 +16,8 @@
 
 package packetproxy.quic.value;
 
-import lombok.Value;
-
 import java.nio.ByteBuffer;
+import lombok.Value;
 
 /*
 https://datatracker.ietf.org/doc/html/draft-ietf-quic-transport-20#section-16
@@ -34,79 +33,78 @@ https://datatracker.ietf.org/doc/html/draft-ietf-quic-transport-20#section-16
 @Value
 public class VariableLengthInteger {
 
-    static public VariableLengthInteger of(long value) {
-        return new VariableLengthInteger(value);
-    }
+	public static VariableLengthInteger of(long value) {
+		return new VariableLengthInteger(value);
+	}
 
-    static public VariableLengthInteger parse(byte[] bytes) {
-        int len = bytes.length;
-        long val = 0;
-        for (int i = 0; i < len; i++) {
-            if (i == 0) {
-                val = bytes[0] & 0x3f;
-            } else {
-                val = (val << 8) | (((long)bytes[i]) & 0xff);
-            }
-        }
-        return new VariableLengthInteger(val);
-    }
+	public static VariableLengthInteger parse(byte[] bytes) {
+		int len = bytes.length;
+		long val = 0;
+		for (int i = 0; i < len; i++) {
+			if (i == 0) {
+				val = bytes[0] & 0x3f;
+			} else {
+				val = (val << 8) | (((long) bytes[i]) & 0xff);
+			}
+		}
+		return new VariableLengthInteger(val);
+	}
 
-    static public VariableLengthInteger parse(ByteBuffer buffer) {
-        byte byte0 = buffer.get();
-        int length = estimateLength(byte0);
-        buffer.position(buffer.position() - 1);
-        return parse(SimpleBytes.parse(buffer, length).getBytes());
-    }
+	public static VariableLengthInteger parse(ByteBuffer buffer) {
+		byte byte0 = buffer.get();
+		int length = estimateLength(byte0);
+		buffer.position(buffer.position() - 1);
+		return parse(SimpleBytes.parse(buffer, length).getBytes());
+	}
 
-    static private int estimateLength(byte byte0) {
-        switch (byte0 & 0xc0) {
-            case 0x00:
-                return 1;
-            case 0x40:
-                return 2;
-            case 0x80:
-                return 4;
-            case 0xc0:
-                return 8;
-            default:
-                return -1; // never reach here
-        }
-    }
+	private static int estimateLength(byte byte0) {
+		switch (byte0 & 0xc0) {
+			case 0x00 :
+				return 1;
+			case 0x40 :
+				return 2;
+			case 0x80 :
+				return 4;
+			case 0xc0 :
+				return 8;
+			default :
+				return -1; // never reach here
+		}
+	}
 
+	private static int estimateLength(long value) {
+		assert (0 <= value && value < 0x4000000000000000L);
+		if (value < 0x40L) {
+			return 1;
+		} else if (value < 0x4000L) {
+			return 2;
+		} else if (value < 0x40000000L) {
+			return 4;
+		} else {
+			return 8;
+		}
+	}
 
-    static private int estimateLength(long value) {
-        assert(0 <= value && value < 0x4000000000000000L);
-        if (value < 0x40L) {
-            return 1;
-        } else if (value < 0x4000L) {
-            return 2;
-        } else if (value < 0x40000000L) {
-            return 4;
-        } else {
-            return 8;
-        }
-    }
+	long value;
 
-    long value;
-
-    public byte[] getBytes() {
-        int len = estimateLength(this.value);
-        ByteBuffer buf = ByteBuffer.allocate(len);
-        switch (len) {
-            case 1:
-                buf.put( (byte)this.value );
-                break;
-            case 2:
-                buf.putShort( (short)(((short)this.value) | 0x4000) );
-                break;
-            case 4:
-                buf.putInt( ((int)this.value) | 0x80000000 );
-                break;
-            case 8:
-                buf.putLong(this.value | 0xC000000000000000L);
-                break;
-        }
-        return buf.array();
-    }
+	public byte[] getBytes() {
+		int len = estimateLength(this.value);
+		ByteBuffer buf = ByteBuffer.allocate(len);
+		switch (len) {
+			case 1 :
+				buf.put((byte) this.value);
+				break;
+			case 2 :
+				buf.putShort((short) (((short) this.value) | 0x4000));
+				break;
+			case 4 :
+				buf.putInt(((int) this.value) | 0x80000000);
+				break;
+			case 8 :
+				buf.putLong(this.value | 0xC000000000000000L);
+				break;
+		}
+		return buf.array();
+	}
 
 }

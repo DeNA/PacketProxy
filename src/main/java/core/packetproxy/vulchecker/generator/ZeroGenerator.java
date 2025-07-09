@@ -18,18 +18,18 @@ package packetproxy.vulchecker.generator;
 import packetproxy.common.I18nString;
 
 public class ZeroGenerator extends Generator {
-    @Override
-    public String getName() {
-        return I18nString.get("Zero: 0");
-    }
+	@Override
+	public String getName() {
+		return I18nString.get("Zero: 0");
+	}
 
-    @Override
-    public boolean generateOnStart() {
-        return true;
-    }
+	@Override
+	public boolean generateOnStart() {
+		return true;
+	}
 
-    @Override
-    public String generate(String inputData) {
-        return "0";
-    }
+	@Override
+	public String generate(String inputData) {
+		return "0";
+	}
 }

@@ -23,49 +23,76 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
 import javax.swing.RowFilter;
 import javax.swing.RowFilter.ComparisonType;
 import javax.swing.table.DefaultTableModel;
-
 import org.apache.commons.collections4.map.HashedMap;
-
 import packetproxy.gui.GUIHistory;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 
 /**
- * Filterのパーサー
- * 文法は以下の通り
- * <Expr>        ::= <OrExpr>
- * <OrExpr>      ::= <AndExpr> | <AndExpr> '||' <OrExpr>
- * <AndEexpr>    ::= <PrimaryExpr> | <PrimaryExpr> '&&' <AndExpr>
- * <PrimaryExpr> ::= <Lhs> <Operator> <Rhs> | '(' <Expr> ')'
- * <Lhs>         ::= HashedMapのkeys
- * <Rhs>         ::= [^&|()]+
- * <Operator>    ::= '=~' | '==' | '>=' | '<=' | '!~' | '!='
+ * Filterのパーサー 文法は以下の通り <Expr> ::= <OrExpr> <OrExpr> ::= <AndExpr> | <AndExpr>
+ * '||' <OrExpr> <AndEexpr> ::= <PrimaryExpr> | <PrimaryExpr> '&&' <AndExpr>
+ * <PrimaryExpr> ::= <Lhs> <Operator> <Rhs> | '(' <Expr> ')' <Lhs> ::=
+ * HashedMapのkeys <Rhs> ::= [^&|()]+ <Operator> ::= '=~' | '==' | '>=' | '<=' |
+ * '!~' | '!='
  */
 public class FilterTextParser {
 	String str;
 	int index;
 	private static HashedMap<String, Integer> columnMapper = new HashedMap<String, Integer>() {
-		{ put("id", 0); }
-		{ put("request", 1); }
-		{ put("response", 2); }
-		{ put("length", 3); }
-		{ put("client_ip", 4); }
-		{ put("client_port", 5); }
-		{ put("server_ip", 6); }
-		{ put("server_port", 7); }
-		{ put("time", 8); }
-		{ put("resend", 9); }
-		{ put("modified", 10); }
-		{ put("type", 11); }
-		{ put("encode", 12); }
-		{ put("alpn", 13); }
-		{ put("group", 14); }
-		{ put("full_text", 15); }
-		{ put("full_text_i", 16); }
+		{
+			put("id", 0);
+		}
+		{
+			put("request", 1);
+		}
+		{
+			put("response", 2);
+		}
+		{
+			put("length", 3);
+		}
+		{
+			put("client_ip", 4);
+		}
+		{
+			put("client_port", 5);
+		}
+		{
+			put("server_ip", 6);
+		}
+		{
+			put("server_port", 7);
+		}
+		{
+			put("time", 8);
+		}
+		{
+			put("resend", 9);
+		}
+		{
+			put("modified", 10);
+		}
+		{
+			put("type", 11);
+		}
+		{
+			put("encode", 12);
+		}
+		{
+			put("alpn", 13);
+		}
+		{
+			put("group", 14);
+		}
+		{
+			put("full_text", 15);
+		}
+		{
+			put("full_text_i", 16);
+		}
 	};
 
 	FilterTextParser(String str) {
@@ -83,11 +110,15 @@ public class FilterTextParser {
 		filters.add(andExpr());
 		while (getNextChar() == '|') {
 			index++;
-			if (getNextChar() != '|') { throw new ParseException("| token is missing", index); }
+			if (getNextChar() != '|') {
+				throw new ParseException("| token is missing", index);
+			}
 			index++;
 			filters.add(andExpr());
 		}
-		if (filters.size() == 1) { return filters.get(0); }
+		if (filters.size() == 1) {
+			return filters.get(0);
+		}
 		return RowFilter.orFilter(filters);
 	}
 	private RowFilter<Object, Object> andExpr() throws Exception {
@@ -95,18 +126,24 @@ public class FilterTextParser {
 		filters.add(primaryExpr());
 		while (getNextChar() == '&') {
 			index++;
-			if (getNextChar() != '&') { throw new ParseException("& token is missing", index); }
+			if (getNextChar() != '&') {
+				throw new ParseException("& token is missing", index);
+			}
 			index++;
 			filters.add(primaryExpr());
 		}
-		if (filters.size() == 1) { return filters.get(0); }
+		if (filters.size() == 1) {
+			return filters.get(0);
+		}
 		return RowFilter.andFilter(filters);
 	}
 	private RowFilter<Object, Object> primaryExpr() throws Exception {
 		if (getNextChar() == '(') {
 			index++;
 			RowFilter<Object, Object> ret = expr();
-			if (getNextChar() != ')') { throw new ParseException(") token is missing", index); }
+			if (getNextChar() != ')') {
+				throw new ParseException(") token is missing", index);
+			}
 			index++;
 			return ret;
 		}
@@ -114,27 +151,37 @@ public class FilterTextParser {
 		String lhs = "";
 		while (true) {
 			char c = getNextChar();
-			if (!Character.isAlphabetic(c) && c != '_') { break; }
+			if (!Character.isAlphabetic(c) && c != '_') {
+				break;
+			}
 			lhs += c;
 			index++;
 		}
-		if (!columnMapper.containsKey(lhs)) { throw new java.text.ParseException("column name in invalid: " + lhs, index); }
-		int column = (int)columnMapper.get(lhs);
+		if (!columnMapper.containsKey(lhs)) {
+			throw new java.text.ParseException("column name in invalid: " + lhs, index);
+		}
+		int column = (int) columnMapper.get(lhs);
 
 		String operator = "" + getNextChar();
 		index++;
-		if (index >= str.length()) { throw new ParseException("unexpected end", index); }
+		if (index >= str.length()) {
+			throw new ParseException("unexpected end", index);
+		}
 		char c = str.charAt(index);
-		if (c =='=' || c == '~') {
+		if (c == '=' || c == '~') {
 			operator += c;
 			index++;
 		}
 
 		String rhs = "";
-		if (index >= str.length()) { throw new ParseException("unexpected end",  index); }
+		if (index >= str.length()) {
+			throw new ParseException("unexpected end", index);
+		}
 		while (index < str.length()) {
 			c = str.charAt(index);
-			if (c == '(' || c == ')' || c == '|' || c =='&') { break; }
+			if (c == '(' || c == ')' || c == '|' || c == '&') {
+				break;
+			}
 			rhs += c;
 			index++;
 		}
@@ -147,7 +194,7 @@ public class FilterTextParser {
 
 			if (column == columnMapper.get("full_text_i")) {
 				filter = generateFullTextRowFilter_i(rhs);
-			}else if (column == columnMapper.get("full_text")) {
+			} else if (column == columnMapper.get("full_text")) {
 				filter = generateFullTextRowFilter(rhs);
 			} else {
 				filter = generateRequestRowFilter(rhs, column);
@@ -165,14 +212,16 @@ public class FilterTextParser {
 		char c = '\0';
 		while (index < str.length()) {
 			c = str.charAt(index);
-			if (!Character.isWhitespace(c)) { break; }
+			if (!Character.isWhitespace(c)) {
+				break;
+			}
 			index++;
 		}
 		return c;
 	}
 
-	private static RowFilter<Object,Object> generateRequestRowFilter(String searchWord, int column) throws Exception {
-		return new RequestRowFilter(searchWord, new int[] { column });
+	private static RowFilter<Object, Object> generateRequestRowFilter(String searchWord, int column) throws Exception {
+		return new RequestRowFilter(searchWord, new int[]{column});
 	}
 	private static class RequestRowFilter extends MyGeneralFilter {
 		Set<Long> groupIds;
@@ -185,7 +234,9 @@ public class FilterTextParser {
 		}
 		@Override
 		protected boolean include(javax.swing.RowFilter.Entry<? extends Object, ? extends Object> value, int index) {
-			if (!ValidPattern(this.searchWord)) { return false; }
+			if (!ValidPattern(this.searchWord)) {
+				return false;
+			}
 			Object v = value.getValue(columnMapper.get("group"));
 			if (v instanceof Long) {
 				// 検索に必要なGroupIdを得る
@@ -195,14 +246,14 @@ public class FilterTextParser {
 						for (int i = already_analyzed_row_num; i < table.getRowCount(); i++) {
 							String data = (String) table.getValueAt(i, index);
 							if (data != null && data.matches(String.format(".*%s.*", this.searchWord))) {
-								this.groupIds.add((Long)table.getValueAt(i, columnMapper.get("group")));
+								this.groupIds.add((Long) table.getValueAt(i, columnMapper.get("group")));
 							}
 						}
 						already_analyzed_row_num = table.getRowCount();
 					} else {
 						String data = (String) value.getValue(index);
 						if (data != null && data.matches(String.format(".*%s.*", this.searchWord))) {
-							this.groupIds.add((Long)value.getValue(columnMapper.get("group")));
+							this.groupIds.add((Long) value.getValue(columnMapper.get("group")));
 						}
 					}
 				} catch (Exception e) {
@@ -214,17 +265,17 @@ public class FilterTextParser {
 		}
 	}
 
-	//case sensitive full text search
-	private static RowFilter<Object,Object> generateFullTextRowFilter(String searchWord) throws Exception {
-		FullTextRowFilter fullTextRowFilter = new FullTextRowFilter(searchWord, new int[] { columnMapper.get("group") });
+	// case sensitive full text search
+	private static RowFilter<Object, Object> generateFullTextRowFilter(String searchWord) throws Exception {
+		FullTextRowFilter fullTextRowFilter = new FullTextRowFilter(searchWord, new int[]{columnMapper.get("group")});
 		List<Packet> packets = Packets.getInstance().queryFullText(searchWord);
 		packets.stream().forEach(p -> fullTextRowFilter.groupIds.add(p.getGroup()));
 		return fullTextRowFilter;
 	}
 
-	//case insensitive full text search
-	private static RowFilter<Object,Object> generateFullTextRowFilter_i(String searchWord) throws Exception {
-		FullTextRowFilter fullTextRowFilter = new FullTextRowFilter(searchWord, new int[] { columnMapper.get("group") });
+	// case insensitive full text search
+	private static RowFilter<Object, Object> generateFullTextRowFilter_i(String searchWord) throws Exception {
+		FullTextRowFilter fullTextRowFilter = new FullTextRowFilter(searchWord, new int[]{columnMapper.get("group")});
 		List<Packet> packets = Packets.getInstance().queryFullText_i(searchWord);
 		packets.stream().forEach(p -> fullTextRowFilter.groupIds.add(p.getGroup()));
 		return fullTextRowFilter;
@@ -240,7 +291,9 @@ public class FilterTextParser {
 		}
 		@Override
 		protected boolean include(javax.swing.RowFilter.Entry<? extends Object, ? extends Object> value, int index) {
-			if (!ValidPattern(this.searchWord)) { return false; }
+			if (!ValidPattern(this.searchWord)) {
+				return false;
+			}
 			Object v = value.getValue(index);
 			if (v instanceof Long) {
 				return groupIds.contains(v);
@@ -249,12 +302,12 @@ public class FilterTextParser {
 		}
 	}
 
-	private static abstract class MyGeneralFilter extends RowFilter<Object,Object> {
+	private abstract static class MyGeneralFilter extends RowFilter<Object, Object> {
 		private int[] columns;
 		MyGeneralFilter(int[] columns) {
 			this.columns = columns;
 		}
-		public boolean include(Entry<? extends Object,? extends Object> value){
+		public boolean include(Entry<? extends Object, ? extends Object> value) {
 			int count = value.getValueCount();
 			if (columns.length > 0) {
 				for (int i = columns.length - 1; i >= 0; i--) {
@@ -265,8 +318,7 @@ public class FilterTextParser {
 						}
 					}
 				}
-			}
-			else {
+			} else {
 				while (--count >= 0) {
 					if (include(value, count)) {
 						return true;
@@ -275,7 +327,7 @@ public class FilterTextParser {
 			}
 			return false;
 		}
-		protected abstract boolean include(Entry<? extends Object,? extends Object> value, int index);
+		protected abstract boolean include(Entry<? extends Object, ? extends Object> value, int index);
 	}
 
 	private static boolean ValidPattern(String searchWord) {

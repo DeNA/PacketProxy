@@ -18,42 +18,38 @@ package packetproxy.quic.service.handshake;
 
 public class HandshakeState {
 
-    public enum State {
-        Initial,
-        HasHandshakeKeys,
-        AckReceived,
-        HasAppKeys,
-        Confirmed
-    }
+	public enum State {
+		Initial, HasHandshakeKeys, AckReceived, HasAppKeys, Confirmed
+	}
 
-    private State state;
+	private State state;
 
-    public HandshakeState() {
-        this.state = State.Initial;
-    }
+	public HandshakeState() {
+		this.state = State.Initial;
+	}
 
-    public void transit(HandshakeState.State newlyState) {
-        this.state = newlyState;
-    }
+	public void transit(HandshakeState.State newlyState) {
+		this.state = newlyState;
+	}
 
-    public boolean hasNoHandshakeKeys() {
-        return this.state.ordinal() < State.HasHandshakeKeys.ordinal();
-    }
+	public boolean hasNoHandshakeKeys() {
+		return this.state.ordinal() < State.HasHandshakeKeys.ordinal();
+	}
 
-    public boolean hasHandshakeKeys() {
-        return this.state.ordinal() >= State.HasHandshakeKeys.ordinal();
-    }
+	public boolean hasHandshakeKeys() {
+		return this.state.ordinal() >= State.HasHandshakeKeys.ordinal();
+	}
 
-    public boolean isAckReceived() {
-        return this.state.ordinal() >= State.AckReceived.ordinal();
-    }
+	public boolean isAckReceived() {
+		return this.state.ordinal() >= State.AckReceived.ordinal();
+	}
 
-    public boolean isNotConfirmed() {
-        return this.state.ordinal() < State.Confirmed.ordinal();
-    }
+	public boolean isNotConfirmed() {
+		return this.state.ordinal() < State.Confirmed.ordinal();
+	}
 
-    public boolean isConfirmed() {
-        return this.state.ordinal() >= State.Confirmed.ordinal();
-    }
+	public boolean isConfirmed() {
+		return this.state.ordinal() >= State.Confirmed.ordinal();
+	}
 
 }

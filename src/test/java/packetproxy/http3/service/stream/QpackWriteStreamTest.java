@@ -16,22 +16,22 @@
 
 package packetproxy.http3.service.stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Test;
 import packetproxy.quic.value.QuicMessage;
 import packetproxy.quic.value.QuicMessages;
 import packetproxy.quic.value.StreamId;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class QpackWriteStreamTest {
 
-    @Test
-    void writeしたものがreadできること() throws Exception {
-        QpackWriteStream stream = new QpackWriteStream(StreamId.of(0xa), Stream.StreamType.QpackDecoderStreamType);
-        stream.write(new byte[]{0x11, 0x22, 0x33});
-        QuicMessages msgs = stream.readAllQuicMessages();
-        assertThat(msgs.size()).isEqualTo(1);
-        assertThat(msgs.get(0)).isEqualTo(QuicMessage.of(StreamId.of(0xa), new byte[]{0x3, 0x11, 0x22, 0x33}));
-    }
+	@Test
+	void writeしたものがreadできること() throws Exception {
+		QpackWriteStream stream = new QpackWriteStream(StreamId.of(0xa), Stream.StreamType.QpackDecoderStreamType);
+		stream.write(new byte[]{0x11, 0x22, 0x33});
+		QuicMessages msgs = stream.readAllQuicMessages();
+		assertThat(msgs.size()).isEqualTo(1);
+		assertThat(msgs.get(0)).isEqualTo(QuicMessage.of(StreamId.of(0xa), new byte[]{0x3, 0x11, 0x22, 0x33}));
+	}
 
 }

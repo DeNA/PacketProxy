@@ -21,10 +21,9 @@ import java.io.OutputStream;
 import java.io.SequenceInputStream;
 import java.net.InetSocketAddress;
 
-public class WrapEndpoint extends SSLSocketEndpoint
-{
+public class WrapEndpoint extends SSLSocketEndpoint {
 	InputStream inputstream;
-	
+
 	public WrapEndpoint(SSLSocketEndpoint ep, byte[] lookaheadBuffer) throws Exception {
 		super(ep);
 		ByteArrayInputStream bais = new ByteArrayInputStream(lookaheadBuffer);

@@ -17,8 +17,7 @@ package packetproxy.encode;
 
 import packetproxy.http.Http;
 
-public class EncodeSampleHTTP extends EncodeHTTPBase
-{
+public class EncodeSampleHTTP extends EncodeHTTPBase {
 	public EncodeSampleHTTP(String ALPN) throws Exception {
 		super(ALPN);
 	}

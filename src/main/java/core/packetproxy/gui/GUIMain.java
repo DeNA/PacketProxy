@@ -15,16 +15,8 @@
  */
 package packetproxy.gui;
 
-import packetproxy.common.FontManager;
-import packetproxy.common.I18nString;
-import packetproxy.model.InterceptModel;
-import packetproxy.util.PacketProxyUtility;
+import static javax.swing.JOptionPane.YES_NO_OPTION;
 
-import javax.swing.*;
-import javax.swing.UIManager.LookAndFeelInfo;
-import javax.swing.text.DefaultEditorKit;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.Keymap;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -32,8 +24,15 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-
-import static javax.swing.JOptionPane.YES_NO_OPTION;
+import javax.swing.*;
+import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.Keymap;
+import packetproxy.common.FontManager;
+import packetproxy.common.I18nString;
+import packetproxy.model.InterceptModel;
+import packetproxy.util.PacketProxyUtility;
 
 public class GUIMain extends JFrame implements PropertyChangeListener {
 	private static final long serialVersionUID = 1L;
@@ -74,21 +73,21 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 
 	private String getPaneString(Panes num) {
 		switch (num) {
-			case HISTORY:
+			case HISTORY :
 				return "History";
-			case INTERCEPT:
+			case INTERCEPT :
 				return "Interceptor";
-			case RESENDER:
+			case RESENDER :
 				return "Resender";
-			case VULCHECKHELPER:
+			case VULCHECKHELPER :
 				return "VulCheck Helper";
-			case BULKSENDER:
+			case BULKSENDER :
 				return "Bulk Sender";
-			case EXTENSIONS:
+			case EXTENSIONS :
 				return "Extensions";
-			case OPTIONS:
+			case OPTIONS :
 				return "Options";
-			case LOG:
+			case LOG :
 				return "Log";
 		}
 		return null;
@@ -157,8 +156,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		// 環境変数RESTORE_HISTORYで指定されていなかった場合Historyをrestoreするか聞く
 		int restoreHistory = JOptionPane.showConfirmDialog(this,
 				I18nString.get("Do you want to load the previous packet data?"),
-				I18nString.get("Loading previous packet data"),
-				YES_NO_OPTION);
+				I18nString.get("Loading previous packet data"), YES_NO_OPTION);
 		if (restoreHistory == YES_NO_OPTION) {
 			return GUIHistory.restoreLastInstance(this);
 		} else {
@@ -242,8 +240,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 						DefaultEditorKit.cutAction),
 				new JTextComponent.KeyBinding(
 						KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
-						DefaultEditorKit.selectAllAction),
-		};
+						DefaultEditorKit.selectAllAction),};
 
 		JTextPane component_tp = new JTextPane();
 		Keymap keymap_tp = component_tp.getKeymap();

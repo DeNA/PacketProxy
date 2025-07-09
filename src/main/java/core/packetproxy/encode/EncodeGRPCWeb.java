@@ -15,82 +15,80 @@
  */
 package packetproxy.encode;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import net.arnx.jsonic.JSON;
 import packetproxy.common.GRPCMessage;
 import packetproxy.http.Http;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-public class EncodeGRPCWeb extends EncodeHTTPBase
-{
+public class EncodeGRPCWeb extends EncodeHTTPBase {
 	public EncodeGRPCWeb(String ALPN) throws Exception {
 		super(ALPN);
 	}
 
-    @Override
-    protected Http decodeServerResponseHttp(Http inputHttp) throws Exception {
-        var contentType = inputHttp.getFirstHeader("Content-Type");
-        if (contentType.startsWith("application/grpc-web")) {
-            Optional<String> json = Optional.empty();
-            if (contentType.endsWith("web-text") || contentType.endsWith("web-text+proto")) {
-                var base64Body = new String(inputHttp.getBody());
-                json = Optional.of(JSON.encode(GRPCMessage.decodeTextMessages(base64Body)));
-            } else if (contentType.endsWith("web") || contentType.endsWith("web+proto")) {
-                json = Optional.of(JSON.encode(GRPCMessage.decodeMessages(inputHttp.getBody())));
-            }
-            json.ifPresent(j -> inputHttp.setBody(j.getBytes()));
-        }
-        return inputHttp;
-    }
+	@Override
+	protected Http decodeServerResponseHttp(Http inputHttp) throws Exception {
+		var contentType = inputHttp.getFirstHeader("Content-Type");
+		if (contentType.startsWith("application/grpc-web")) {
+			Optional<String> json = Optional.empty();
+			if (contentType.endsWith("web-text") || contentType.endsWith("web-text+proto")) {
+				var base64Body = new String(inputHttp.getBody());
+				json = Optional.of(JSON.encode(GRPCMessage.decodeTextMessages(base64Body)));
+			} else if (contentType.endsWith("web") || contentType.endsWith("web+proto")) {
+				json = Optional.of(JSON.encode(GRPCMessage.decodeMessages(inputHttp.getBody())));
+			}
+			json.ifPresent(j -> inputHttp.setBody(j.getBytes()));
+		}
+		return inputHttp;
+	}
 
-    @Override
-    protected Http encodeServerResponseHttp(Http inputHttp) throws Exception {
-        var contentType = inputHttp.getFirstHeader("Content-Type");
-        if (contentType.startsWith("application/grpc-web")) {
-            List<Map<String, Object>> json = JSON.decode(new String(inputHttp.getBody()));
-            if (contentType.endsWith("web-text") || contentType.endsWith("web-text+proto")) {
-                inputHttp.setBody(GRPCMessage.encodeTextMessages(json).getBytes());
-            } else if (contentType.endsWith("web") || contentType.endsWith("web+proto")) {
-                inputHttp.setBody(GRPCMessage.encodeMessages(json));
-            }
-        }
-        return inputHttp;
-    }
+	@Override
+	protected Http encodeServerResponseHttp(Http inputHttp) throws Exception {
+		var contentType = inputHttp.getFirstHeader("Content-Type");
+		if (contentType.startsWith("application/grpc-web")) {
+			List<Map<String, Object>> json = JSON.decode(new String(inputHttp.getBody()));
+			if (contentType.endsWith("web-text") || contentType.endsWith("web-text+proto")) {
+				inputHttp.setBody(GRPCMessage.encodeTextMessages(json).getBytes());
+			} else if (contentType.endsWith("web") || contentType.endsWith("web+proto")) {
+				inputHttp.setBody(GRPCMessage.encodeMessages(json));
+			}
+		}
+		return inputHttp;
+	}
 
-    @Override
-    protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
-        var contentType = inputHttp.getFirstHeader("Content-Type");
-        if (contentType.startsWith("application/grpc-web")) {
-            Optional<String> json = Optional.empty();
-            if (contentType.endsWith("web-text") || contentType.endsWith("web-text+proto")) {
-                var base64Body = new String(inputHttp.getBody());
-                json = Optional.of(JSON.encode(GRPCMessage.decodeTextMessages(base64Body)));
-            } else if (contentType.endsWith("web") || contentType.endsWith("web+proto")) {
-                json = Optional.of(JSON.encode(GRPCMessage.decodeMessages(inputHttp.getBody())));
-            }
-            json.ifPresent(j -> inputHttp.setBody(j.getBytes()));
-        }
-        return inputHttp;
-    }
+	@Override
+	protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
+		var contentType = inputHttp.getFirstHeader("Content-Type");
+		if (contentType.startsWith("application/grpc-web")) {
+			Optional<String> json = Optional.empty();
+			if (contentType.endsWith("web-text") || contentType.endsWith("web-text+proto")) {
+				var base64Body = new String(inputHttp.getBody());
+				json = Optional.of(JSON.encode(GRPCMessage.decodeTextMessages(base64Body)));
+			} else if (contentType.endsWith("web") || contentType.endsWith("web+proto")) {
+				json = Optional.of(JSON.encode(GRPCMessage.decodeMessages(inputHttp.getBody())));
+			}
+			json.ifPresent(j -> inputHttp.setBody(j.getBytes()));
+		}
+		return inputHttp;
+	}
 
-    @Override
-    protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
-        var contentType = inputHttp.getFirstHeader("Content-Type");
-        if (contentType.startsWith("application/grpc-web")) {
-            List<Map<String, Object>> json = JSON.decode(new String(inputHttp.getBody()));
-            if (contentType.endsWith("web-text") || contentType.endsWith("web-text+proto")) {
-                inputHttp.setBody(GRPCMessage.encodeTextMessages(json).getBytes());
-            } else if (contentType.endsWith("web") || contentType.endsWith("web+proto")) {
-                inputHttp.setBody(GRPCMessage.encodeMessages(json));
-            }
-        }
-        return inputHttp;
-    }
+	@Override
+	protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
+		var contentType = inputHttp.getFirstHeader("Content-Type");
+		if (contentType.startsWith("application/grpc-web")) {
+			List<Map<String, Object>> json = JSON.decode(new String(inputHttp.getBody()));
+			if (contentType.endsWith("web-text") || contentType.endsWith("web-text+proto")) {
+				inputHttp.setBody(GRPCMessage.encodeTextMessages(json).getBytes());
+			} else if (contentType.endsWith("web") || contentType.endsWith("web+proto")) {
+				inputHttp.setBody(GRPCMessage.encodeMessages(json));
+			}
+		}
+		return inputHttp;
+	}
 
-    @Override
-    public String getName() {
-        return "gRPC-Web";
-    }
+	@Override
+	public String getName() {
+		return "gRPC-Web";
+	}
 }

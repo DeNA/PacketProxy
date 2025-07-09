@@ -25,7 +25,6 @@ import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
 import javax.swing.BoxLayout;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -33,7 +32,6 @@ import javax.swing.JTable;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
-
 import packetproxy.common.I18nString;
 import packetproxy.model.Filter;
 import packetproxy.model.Filters;
@@ -66,8 +64,8 @@ public class GUIFilterDropDownList extends JDialog {
 				"type != image && type != css && type != javascript && type != font");
 		defaultFilters.add(defaultFilter);
 
-		String[] columnNames = { "filter name", "filter" };
-		int[] columnWidth = { 150, width - 150 };
+		String[] columnNames = {"filter name", "filter"};
+		int[] columnWidth = {150, width - 150};
 		DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
@@ -126,11 +124,11 @@ public class GUIFilterDropDownList extends JDialog {
 			}
 		});
 		if (Filters.getInstance().queryAll().isEmpty() && defaultFilters.isEmpty()) {
-			tableModel.addRow(new String[] { "--", I18nString.get("No filter") });
+			tableModel.addRow(new String[]{"--", I18nString.get("No filter")});
 		} else {
 			Filters.getInstance().queryAll().stream()
-					.forEach(filter -> tableModel.addRow(new String[] { filter.getName(), filter.getFilter() }));
-			defaultFilters.forEach(filter -> tableModel.addRow(new String[] { filter.getName(), filter.getFilter() }));
+					.forEach(filter -> tableModel.addRow(new String[]{filter.getName(), filter.getFilter()}));
+			defaultFilters.forEach(filter -> tableModel.addRow(new String[]{filter.getName(), filter.getFilter()}));
 		}
 		for (int i = 0; i < columnNames.length; i++) {
 			table.getColumn(columnNames[i]).setPreferredWidth(columnWidth[i]);

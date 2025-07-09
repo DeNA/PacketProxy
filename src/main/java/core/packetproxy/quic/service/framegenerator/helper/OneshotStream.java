@@ -16,52 +16,51 @@
 
 package packetproxy.quic.service.framegenerator.helper;
 
-import packetproxy.quic.value.StreamId;
-import packetproxy.quic.value.frame.StreamFrame;
-import packetproxy.quic.value.QuicMessage;
-
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import packetproxy.quic.value.QuicMessage;
+import packetproxy.quic.value.StreamId;
+import packetproxy.quic.value.frame.StreamFrame;
 
 public class OneshotStream {
-    private final Map<Long/*offset*/, StreamFrame> frameMap = new HashMap<>();
-    private final StreamId streamId;
-    private boolean lastFrameReceived = false;
-    private boolean alreadyResultReturned = false;
-    private long totalLength = 0;
+	private final Map<Long/* offset */, StreamFrame> frameMap = new HashMap<>();
+	private final StreamId streamId;
+	private boolean lastFrameReceived = false;
+	private boolean alreadyResultReturned = false;
+	private long totalLength = 0;
 
-    public OneshotStream(StreamId streamId) {
-        this.streamId = streamId;
-    }
+	public OneshotStream(StreamId streamId) {
+		this.streamId = streamId;
+	}
 
-    public void put(StreamFrame frame) {
-        if (frame.isFinished()) {
-            this.lastFrameReceived = true;
-            this.totalLength = frame.getOffset() + frame.getLength();
-        }
-        this.frameMap.put(frame.getOffset(), frame);
-    }
+	public void put(StreamFrame frame) {
+		if (frame.isFinished()) {
+			this.lastFrameReceived = true;
+			this.totalLength = frame.getOffset() + frame.getLength();
+		}
+		this.frameMap.put(frame.getOffset(), frame);
+	}
 
-    public Optional<QuicMessage> get() throws Exception {
-        if (this.alreadyResultReturned) {
-            return Optional.empty();
-        }
-        if (!this.lastFrameReceived) {
-            return Optional.empty();
-        }
-        long offset = 0;
-        ByteArrayOutputStream data = new ByteArrayOutputStream();
-        while (offset < this.totalLength) {
-            StreamFrame frame = this.frameMap.get(offset);
-            if (frame == null) {
-                return Optional.empty();
-            }
-            offset += frame.getLength();
-            data.write(frame.getStreamData());
-        }
-        this.alreadyResultReturned = true;
-        return Optional.of(QuicMessage.of(this.streamId, data.toByteArray()));
-    }
+	public Optional<QuicMessage> get() throws Exception {
+		if (this.alreadyResultReturned) {
+			return Optional.empty();
+		}
+		if (!this.lastFrameReceived) {
+			return Optional.empty();
+		}
+		long offset = 0;
+		ByteArrayOutputStream data = new ByteArrayOutputStream();
+		while (offset < this.totalLength) {
+			StreamFrame frame = this.frameMap.get(offset);
+			if (frame == null) {
+				return Optional.empty();
+			}
+			offset += frame.getLength();
+			data.write(frame.getStreamData());
+		}
+		this.alreadyResultReturned = true;
+		return Optional.of(QuicMessage.of(this.streamId, data.toByteArray()));
+	}
 }

@@ -24,7 +24,7 @@ import packetproxy.model.OneShotPacket;
 @SuppressWarnings("serial")
 public class GUIDecoderDialog extends JDialog {
 	private GUIPacketData main_panel;
-	
+
 	public GUIDecoderDialog() throws Exception {
 		super(GUIMain.getInstance());
 		setTitle("Decoder");
@@ -32,24 +32,24 @@ public class GUIDecoderDialog extends JDialog {
 		Rectangle rect = GUIMain.getInstance().getBounds();
 		int width = rect.width - 100;
 		int height = rect.height - 100;
-		setBounds(rect.x + rect.width/2 - width/2, rect.y + rect.height/2 - height/2, width, height); /* ド真ん中 */
+		setBounds(rect.x + rect.width / 2 - width / 2, rect.y + rect.height / 2 - height / 2, width, height); /* ド真ん中 */
 
 		main_panel = new GUIPacketData();
 
 		Container c = getContentPane();
 		c.add(main_panel.createPanel());
 	}
-	
+
 	public void setData(byte[] data) throws Exception {
 		OneShotPacket oneshot = new OneShotPacket();
 		oneshot.setData(data);
 		main_panel.setOneShotPacket(oneshot);
 	}
-	
+
 	public JComponent createPanel() {
 		return main_panel.createPanel();
 	}
-	
+
 	public void showDialog() {
 		try {
 			setModal(false);
@@ -58,5 +58,5 @@ public class GUIDecoderDialog extends JDialog {
 			e.printStackTrace();
 		}
 	}
-	
+
 }

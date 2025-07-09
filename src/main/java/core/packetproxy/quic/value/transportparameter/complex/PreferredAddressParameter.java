@@ -16,25 +16,24 @@
 
 package packetproxy.quic.value.transportparameter.complex;
 
+import java.nio.ByteBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 import packetproxy.quic.value.transportparameter.TransportParameter;
 
-import java.nio.ByteBuffer;
-
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Value
 public class PreferredAddressParameter extends TransportParameter {
-    static public final long ID = 0xd;
+	public static final long ID = 0xd;
 
-    public PreferredAddressParameter(ByteBuffer buffer) {
-        super(buffer);
-    }
+	public PreferredAddressParameter(ByteBuffer buffer) {
+		super(buffer);
+	}
 
-    public byte[] getValue() {
-        return super.parameterValue;
-    }
+	public byte[] getValue() {
+		return super.parameterValue;
+	}
 
 }

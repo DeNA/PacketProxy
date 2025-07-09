@@ -26,30 +26,22 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Base64;
-
-import javax.swing.JButton;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.KeyStroke;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import packetproxy.VulCheckerManager;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
 import packetproxy.common.Range;
 import packetproxy.common.Utils;
-import packetproxy.controller.ResendController;
 import packetproxy.model.Packet;
-import packetproxy.model.Packets;
 import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
 import packetproxy.vulchecker.VulChecker;
 
-public class RawTextPane extends ExtendedTextPane
-{
+public class RawTextPane extends ExtendedTextPane {
 	private CharSetUtility charSetUtility;
 
 	public RawTextPane() throws Exception {
@@ -68,8 +60,9 @@ public class RawTextPane extends ExtendedTextPane
 					mask_key = KeyEvent.CTRL_MASK;
 				}
 				switch (e.getKeyCode()) {
-					case KeyEvent.VK_Z:
-						if ((Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() & e.getModifiers()) > 0) { /* Command key */
+					case KeyEvent.VK_Z :
+						if ((Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()
+								& e.getModifiers()) > 0) { /* Command key */
 							if (e.isShiftDown()) { /* Ctrl-Shift-Z */
 								if (undo_manager.canRedo())
 									undo_manager.redo();
@@ -80,8 +73,9 @@ public class RawTextPane extends ExtendedTextPane
 							e.consume();
 						}
 						break;
-					case KeyEvent.VK_Y:
-						if ((Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() & e.getModifiers()) > 0) { /* Command key */
+					case KeyEvent.VK_Y :
+						if ((Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()
+								& e.getModifiers()) > 0) { /* Command key */
 							if (undo_manager.canRedo()) /* Ctrl-Y */
 								undo_manager.redo();
 							e.consume();
@@ -97,7 +91,7 @@ public class RawTextPane extends ExtendedTextPane
 		menu.add(vulCheckers);
 
 		for (String vulCheckerName : VulCheckerManager.getInstance().getAllVulCheckers().keySet()) {
-		    VulChecker vulChecker = VulCheckerManager.getInstance().createInstance(vulCheckerName);
+			VulChecker vulChecker = VulCheckerManager.getInstance().createInstance(vulCheckerName);
 			JMenuItem vulCheckerItem = new JMenuItem(vulChecker.getName());
 			vulCheckerItem.addActionListener(actionEvent -> {
 				try {
@@ -121,12 +115,12 @@ public class RawTextPane extends ExtendedTextPane
 		url_decoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					if(charSetUtility.isAuto()){
+					if (charSetUtility.isAuto()) {
 						charSetUtility.setGuessedCharSet(getData());
 					}
 					String chasetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
-					int position_end   = getSelectionEnd();
+					int position_end = getSelectionEnd();
 					byte[] data = new String(getData(), chasetName).substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
 					dlg.setData(URLDecoder.decode(new String(data), chasetName).getBytes());
@@ -143,15 +137,16 @@ public class RawTextPane extends ExtendedTextPane
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 					int position_start = getSelectionStart();
-					int position_end   = getSelectionEnd();
+					int position_end = getSelectionEnd();
 
-					if(charSetUtility.isAuto()){
+					if (charSetUtility.isAuto()) {
 						charSetUtility.setGuessedCharSet(getData());
 					}
-					byte[] data = new String(getData(), charSetUtility.getCharSet()).substring(position_start, position_end).getBytes();
+					byte[] data = new String(getData(), charSetUtility.getCharSet())
+							.substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
-					if (Utils.indexOf(data, 0, data.length, "_".getBytes()) >= 0 ||
-							Utils.indexOf(data, 0, data.length, "-".getBytes()) >= 0) { // base64url
+					if (Utils.indexOf(data, 0, data.length, "_".getBytes()) >= 0
+							|| Utils.indexOf(data, 0, data.length, "-".getBytes()) >= 0) { // base64url
 						dlg.setData(Base64.getUrlDecoder().decode(data));
 					} else { // base64
 						dlg.setData(Base64.getDecoder().decode(data));
@@ -168,18 +163,18 @@ public class RawTextPane extends ExtendedTextPane
 		jwt_decoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					if(charSetUtility.isAuto()){
+					if (charSetUtility.isAuto()) {
 						charSetUtility.setGuessedCharSet(getData());
 					}
 					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
-					int position_end   = getSelectionEnd();
+					int position_end = getSelectionEnd();
 					byte[] data = new String(getData(), charSetName).substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
-					dlg.setData(
-							Arrays.stream(new String(data, charSetName).split("\\."))
-							.map(Base64.getUrlDecoder()::decode)
-							.reduce((a, b) -> { return ArrayUtils.addAll(ArrayUtils.addAll(a, ".".getBytes()), b);}).get());
+					dlg.setData(Arrays.stream(new String(data, charSetName).split("\\."))
+							.map(Base64.getUrlDecoder()::decode).reduce((a, b) -> {
+								return ArrayUtils.addAll(ArrayUtils.addAll(a, ".".getBytes()), b);
+							}).get());
 					dlg.showDialog();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -192,12 +187,12 @@ public class RawTextPane extends ExtendedTextPane
 		unicode_unescaper.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					if(charSetUtility.isAuto()){
+					if (charSetUtility.isAuto()) {
 						charSetUtility.setGuessedCharSet(getData());
 					}
 					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
-					int position_end   = getSelectionEnd();
+					int position_end = getSelectionEnd();
 					byte[] data = new String(getData(), charSetName).substring(position_start, position_end).getBytes();
 					String selection = new String(data, charSetName);
 					String unescaped = StringEscapeUtils.unescapeJava(selection);
@@ -221,12 +216,12 @@ public class RawTextPane extends ExtendedTextPane
 		url_encoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					if(charSetUtility.isAuto()){
+					if (charSetUtility.isAuto()) {
 						charSetUtility.setGuessedCharSet(getData());
 					}
 					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
-					int position_end   = getSelectionEnd();
+					int position_end = getSelectionEnd();
 					byte[] data = new String(getData(), charSetName).substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
 					dlg.setData(URLEncoder.encode(new String(data), charSetName).getBytes());
@@ -242,12 +237,12 @@ public class RawTextPane extends ExtendedTextPane
 		base64_encoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					if(charSetUtility.isAuto()){
+					if (charSetUtility.isAuto()) {
 						charSetUtility.setGuessedCharSet(getData());
 					}
 					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
-					int position_end   = getSelectionEnd();
+					int position_end = getSelectionEnd();
 					byte[] data = new String(getData(), charSetName).substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
 					dlg.setData(Base64.getEncoder().encode(data));
@@ -263,12 +258,12 @@ public class RawTextPane extends ExtendedTextPane
 		base64url_encoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					if(charSetUtility.isAuto()){
+					if (charSetUtility.isAuto()) {
 						charSetUtility.setGuessedCharSet(getData());
 					}
 					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
-					int position_end   = getSelectionEnd();
+					int position_end = getSelectionEnd();
 					byte[] data = new String(getData(), charSetName).substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
 					dlg.setData(Base64.getUrlEncoder().encode(data));
@@ -284,26 +279,26 @@ public class RawTextPane extends ExtendedTextPane
 		jwt_encoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					if(charSetUtility.isAuto()){
+					if (charSetUtility.isAuto()) {
 						charSetUtility.setGuessedCharSet(getData());
 					}
 					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
-					int position_end   = getSelectionEnd();
+					int position_end = getSelectionEnd();
 					byte[] data = new String(getData(), charSetName).substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
-					dlg.setData(
-							Arrays.stream(new String(data, charSetName).split("\\."))
-							.map((a) -> {
-								String b = "";
-								if (a.charAt(0) == '{') {
-									b = new String(Base64.getUrlEncoder().encode(a.getBytes()));
-								} else { /* signature */
-									b = new String(Base64.getUrlEncoder().encode("12345678901234567890123456789012".getBytes())); /* return 32 bytes data */
-								}
-								return StringUtils.strip(b, "=").getBytes();
-							})
-							.reduce((a, b) -> { return ArrayUtils.addAll(ArrayUtils.addAll(a, ".".getBytes()), b);}).get());
+					dlg.setData(Arrays.stream(new String(data, charSetName).split("\\.")).map((a) -> {
+						String b = "";
+						if (a.charAt(0) == '{') {
+							b = new String(Base64.getUrlEncoder().encode(a.getBytes()));
+						} else { /* signature */
+							b = new String(Base64.getUrlEncoder()
+									.encode("12345678901234567890123456789012".getBytes())); /* return 32 bytes data */
+						}
+						return StringUtils.strip(b, "=").getBytes();
+					}).reduce((a, b) -> {
+						return ArrayUtils.addAll(ArrayUtils.addAll(a, ".".getBytes()), b);
+					}).get());
 					dlg.showDialog();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -316,16 +311,16 @@ public class RawTextPane extends ExtendedTextPane
 		unicode_escaper.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					if(charSetUtility.isAuto()){
+					if (charSetUtility.isAuto()) {
 						charSetUtility.setGuessedCharSet(getData());
 					}
 					String charSetName = charSetUtility.getCharSet();
 					int position_start = getSelectionStart();
-					int position_end   = getSelectionEnd();
+					int position_end = getSelectionEnd();
 					String selection = new String(getData(), charSetName).substring(position_start, position_end);
 					StringBuilder sb = new StringBuilder();
-					for (char c: selection.toCharArray()) {
-						sb.append(String.format("\\u%04X", (int)c));
+					for (char c : selection.toCharArray()) {
+						sb.append(String.format("\\u%04X", (int) c));
 					}
 					String unicode = sb.toString();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
@@ -360,7 +355,7 @@ public class RawTextPane extends ExtendedTextPane
 		init_count = 0;
 		prev_text_panel = "";
 		raw_data.reset(data);
-		if(charSetUtility.isAuto()){
+		if (charSetUtility.isAuto()) {
 			charSetUtility.setGuessedCharSet(getData());
 		}
 		String charSetName = charSetUtility.getCharSet();
@@ -369,7 +364,7 @@ public class RawTextPane extends ExtendedTextPane
 	}
 
 	public byte[] getData() {
-		//System.out.println(raw_data.toString());
+		// System.out.println(raw_data.toString());
 		return raw_data.toByteArray();
 	}
 

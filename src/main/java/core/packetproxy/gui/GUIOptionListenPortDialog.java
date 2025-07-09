@@ -24,7 +24,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -35,7 +34,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
 import packetproxy.common.I18nString;
 import packetproxy.model.CAFactory;
 import packetproxy.model.ListenPort;
@@ -101,11 +99,10 @@ public class GUIOptionListenPortDialog extends JDialog {
 			@Override
 			public void itemStateChanged(ItemEvent event) {
 				try {
-					if (event.getStateChange() != ItemEvent.SELECTED ||
-							type_combo.getSelectedItem() == null ||
-							type_combo.getSelectedItem().toString().equals("HTTP_PROXY") ||
-							type_combo.getSelectedItem().toString().equals("SSL_TRANSPARENT_PROXY") ||
-							type_combo.getSelectedItem().toString().equals("HTTP_TRANSPARENT_PROXY"))
+					if (event.getStateChange() != ItemEvent.SELECTED || type_combo.getSelectedItem() == null
+							|| type_combo.getSelectedItem().toString().equals("HTTP_PROXY")
+							|| type_combo.getSelectedItem().toString().equals("SSL_TRANSPARENT_PROXY")
+							|| type_combo.getSelectedItem().toString().equals("HTTP_TRANSPARENT_PROXY"))
 						return;
 					Object server_str = combo.getSelectedItem();
 					if (server_str != null) {
@@ -177,7 +174,7 @@ public class GUIOptionListenPortDialog extends JDialog {
 			combo.addItem(server.toString());
 		}
 		if (server_str != null) {
-			combo.setSelectedItem(server_str.toString());
+			combo.setSelectedItem(server_str);
 		}
 		combo.setMaximumRowCount(combo.getItemCount());
 	}
@@ -274,8 +271,7 @@ public class GUIOptionListenPortDialog extends JDialog {
 						type = ListenPort.TYPE.SSL_FORWARDER;
 					}
 					String server_str = (String) combo.getSelectedItem();
-					listenPort = new ListenPort(Integer.parseInt(text_port.getText()),
-							type,
+					listenPort = new ListenPort(Integer.parseInt(text_port.getText()), type,
 							Servers.getInstance().queryByString(server_str),
 							CAFactory.findByUTF8Name(ca_combo.getSelectedItem().toString()).map(ca -> ca.getName())
 									.orElse("Error"));

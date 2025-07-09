@@ -21,38 +21,38 @@ import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
 public class Deflate {
-    public byte[] decompress(byte[] data){
-        Inflater decompressor = new Inflater();
-        decompressor.setInput(data);
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        byte[] result = new byte[100000];
-        int length = 0;
-        try {
-            while (!decompressor.finished()) {
-                length = decompressor.inflate(result);
-                if (length > 0) {
-                    os.write(result, 0, length);
-                } else {
-                    break;
-                }
-            }
-        } catch (DataFormatException e) {
-            e.printStackTrace();
-        }
-        return os.toByteArray();
-    }
+	public byte[] decompress(byte[] data) {
+		Inflater decompressor = new Inflater();
+		decompressor.setInput(data);
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		byte[] result = new byte[100000];
+		int length = 0;
+		try {
+			while (!decompressor.finished()) {
+				length = decompressor.inflate(result);
+				if (length > 0) {
+					os.write(result, 0, length);
+				} else {
+					break;
+				}
+			}
+		} catch (DataFormatException e) {
+			e.printStackTrace();
+		}
+		return os.toByteArray();
+	}
 
-    public byte[] compress(byte[] data){
-        Deflater compressor = new Deflater();
-        compressor.setInput(data);
-        compressor.finish();
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        byte[] result = new byte[100000];
-        int length = 0;
-        while(!compressor.finished()) {
-            length = compressor.deflate(result);
-            os.write(result, 0, length);
-        }
-        return os.toByteArray();
-    }
+	public byte[] compress(byte[] data) {
+		Deflater compressor = new Deflater();
+		compressor.setInput(data);
+		compressor.finish();
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		byte[] result = new byte[100000];
+		int length = 0;
+		while (!compressor.finished()) {
+			length = compressor.deflate(result);
+			os.write(result, 0, length);
+		}
+		return os.toByteArray();
+	}
 }

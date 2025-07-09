@@ -19,22 +19,17 @@ import com.google.common.collect.ImmutableList;
 import packetproxy.vulchecker.generator.*;
 
 public class JWTVulChecker extends VulChecker {
-    @Override
-    public String getName() {
-        return "JWT";
-    }
+	@Override
+	public String getName() {
+		return "JWT";
+	}
 
-    @Override
-    public ImmutableList<Generator> getGenerators() {
-        return ImmutableList.<Generator>builder()
-                .add(new JWTPayloadModifiedGenerator())
-                .add(new JWTHeaderModifiedGenerator())
-                .add(new JWTHeaderAlgNoneGenerator())
-                .add(new JWTHeaderJKUModifiedGenerator())
-                .add(new JWTHeaderJWKGenerator())
-                .add(new JWTHeaderRS256toHS256Generator())
-                .add(new JWTHeaderAddSpecifiedJKUGenerator())
-                .add(new JWTSignWithAppleOtherTokenGenerator())
-                .build();
-    }
+	@Override
+	public ImmutableList<Generator> getGenerators() {
+		return ImmutableList.<Generator>builder().add(new JWTPayloadModifiedGenerator())
+				.add(new JWTHeaderModifiedGenerator()).add(new JWTHeaderAlgNoneGenerator())
+				.add(new JWTHeaderJKUModifiedGenerator()).add(new JWTHeaderJWKGenerator())
+				.add(new JWTHeaderRS256toHS256Generator()).add(new JWTHeaderAddSpecifiedJKUGenerator())
+				.add(new JWTSignWithAppleOtherTokenGenerator()).build();
+	}
 }

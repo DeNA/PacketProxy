@@ -17,41 +17,40 @@ package packetproxy.http;
 
 public class QueryParameter {
 	private String name, value;
-	
-	public QueryParameter(String s){
+
+	public QueryParameter(String s) {
 		String[] fields = s.split("=", 2);
 		if (fields.length == 2) {
 			name = fields[0].trim();
 			value = fields[1].trim();
-		}
-		else if (fields.length == 1) {
+		} else if (fields.length == 1) {
 			name = fields[0].trim();
 		}
 	}
-	
-	public QueryParameter(String name, String value){
+
+	public QueryParameter(String name, String value) {
 		this.name = name;
 		this.value = value;
 	}
 
-	public String getName(){
+	public String getName() {
 		return name;
 	}
-	
-	public String getValue(){
+
+	public String getValue() {
 		return value;
 	}
 
-	public void setValue(String v){
+	public void setValue(String v) {
 		value = v;
 	}
 
 	@Override
 	public String toString() {
-		if(name != null && value != null){
+		if (name != null && value != null) {
 			return name + "=" + value;
 		}
-		if(name != null){
+		if (name != null) {
 			return name;
 		}
 		return "";

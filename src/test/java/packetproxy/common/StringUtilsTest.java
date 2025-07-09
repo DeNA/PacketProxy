@@ -15,22 +15,22 @@
  */
 package packetproxy.common;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.junit.jupiter.api.Test;
+
 public class StringUtilsTest {
-    @Test
-    public void testCountChar() {
-        int cnt = StringUtils.countChar("Hello", 'l', 0, "Hello".length());
-        assertEquals(2, cnt);
-        cnt = StringUtils.countChar("Hello", 'l', 3, "Hello".length());
-        assertEquals(1, cnt);
-        cnt = StringUtils.countChar("Hello", 'l', 0, 3);
-        assertEquals(1, cnt);
-        cnt = StringUtils.countChar("Hello", 'l', 3, 3);
-        assertEquals(0, cnt);
-        cnt = StringUtils.countChar("Hello", 'l', 4, 3);
-        assertEquals(0, cnt);
-    }
+	@Test
+	public void testCountChar() {
+		int cnt = StringUtils.countChar("Hello", 'l', 0, "Hello".length());
+		assertEquals(2, cnt);
+		cnt = StringUtils.countChar("Hello", 'l', 3, "Hello".length());
+		assertEquals(1, cnt);
+		cnt = StringUtils.countChar("Hello", 'l', 0, 3);
+		assertEquals(1, cnt);
+		cnt = StringUtils.countChar("Hello", 'l', 3, 3);
+		assertEquals(0, cnt);
+		cnt = StringUtils.countChar("Hello", 'l', 4, 3);
+		assertEquals(0, cnt);
+	}
 }

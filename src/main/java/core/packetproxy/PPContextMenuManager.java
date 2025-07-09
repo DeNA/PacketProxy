@@ -35,15 +35,15 @@ public class PPContextMenuManager {
 	private List<PPContextMenu> module_list;
 	private static final String item_package = "packetproxy.ppcontextmenu";
 	private static final Class<PPContextMenu> item_class = packetproxy.ppcontextmenu.PPContextMenu.class;
-	
+
 	public static PPContextMenuManager getInstance() throws Exception {
 		if (instance == null) {
 			instance = new PPContextMenuManager();
 		}
 		return instance;
 	}
-	
-	public List<PPContextMenu> getMenuItemList(){
+
+	public List<PPContextMenu> getMenuItemList() {
 		return module_list;
 	}
 
@@ -65,18 +65,17 @@ public class PPContextMenuManager {
 			Path item_file_name = item_file_path.getFileName();
 			String item_class_path = item_package + "." + item_file_name.toString().replaceAll("\\.class.*$", "");
 
-            @SuppressWarnings("rawtypes")
+			@SuppressWarnings("rawtypes")
 			Class klass = Class.forName(item_class_path);
-			if(item_class.isAssignableFrom(klass) && !Modifier.isAbstract(klass.getModifiers())){
-                @SuppressWarnings("unchecked")
-				PPContextMenu ppcm = createInstance(klass);	
+			if (item_class.isAssignableFrom(klass) && !Modifier.isAbstract(klass.getModifiers())) {
+				@SuppressWarnings("unchecked")
+				PPContextMenu ppcm = createInstance(klass);
 				module_list.add(ppcm);
 			}
 		}
 	}
 
-	private PPContextMenu createInstance(Class<PPContextMenu> klass) throws Exception
-	{
+	private PPContextMenu createInstance(Class<PPContextMenu> klass) throws Exception {
 		return klass.newInstance();
 	}
 }

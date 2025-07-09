@@ -16,29 +16,28 @@
 
 package packetproxy.quic.value.transportparameter.bytearray;
 
+import java.nio.ByteBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 import packetproxy.quic.value.transportparameter.TransportParameter;
 
-import java.nio.ByteBuffer;
-
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Value
 public class StatelessResetTokenParameter extends TransportParameter {
-    static public final long ID = 0x2;
+	public static final long ID = 0x2;
 
-    public StatelessResetTokenParameter(ByteBuffer buffer) {
-        super(buffer);
-    }
+	public StatelessResetTokenParameter(ByteBuffer buffer) {
+		super(buffer);
+	}
 
-    public StatelessResetTokenParameter(byte[] token) {
-        super(ID, token.length, token);
-    }
+	public StatelessResetTokenParameter(byte[] token) {
+		super(ID, token.length, token);
+	}
 
-    public byte[] getValue() {
-        return super.parameterValue;
-    }
+	public byte[] getValue() {
+		return super.parameterValue;
+	}
 
 }

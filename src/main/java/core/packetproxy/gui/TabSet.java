@@ -15,26 +15,20 @@
  */
 package packetproxy.gui;
 
+import static packetproxy.model.PropertyChangeEventType.SELECTED_INDEX;
+
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.EventObject;
-
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
 import packetproxy.common.Range;
 import packetproxy.util.PacketProxyUtility;
 import packetproxy.util.SearchBox;
-import static packetproxy.model.PropertyChangeEventType.SELECTED_INDEX;
 
 public class TabSet {
 	private PropertyChangeSupport changes = new PropertyChangeSupport(this);
@@ -117,16 +111,16 @@ public class TabSet {
 
 	public byte[] getData() {
 		if (data == null) {
-			return new byte[] {};
+			return new byte[]{};
 		}
 		switch (getSelectedIndex()) {
-			case 0:
+			case 0 :
 				return raw_panel.getData();
-			case 1:
+			case 1 :
 				return binary_panel.getData();
-			case 2:
+			case 2 :
 				return json_panel.getData();
-			default:
+			default :
 				PacketProxyUtility.getInstance()
 						.packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
 				return raw_panel.getData();
@@ -167,16 +161,16 @@ public class TabSet {
 		}
 		try {
 			switch (getSelectedIndex()) {
-				case 0:
+				case 0 :
 					raw_panel.setData(data);
 					break;
-				case 1:
+				case 1 :
 					binary_panel.setData(data);
 					break;
-				case 2:
+				case 2 :
 					json_panel.setData(PacketProxyUtility.getInstance().prettyFormatJSONInRawData(data));
 					break;
-				default:
+				default :
 					PacketProxyUtility.getInstance()
 							.packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
 					break;
@@ -185,19 +179,19 @@ public class TabSet {
 				return;
 			}
 			switch (getSelectedIndex()) {
-				case 0:
+				case 0 :
 					searchBox.setVisible(true);
 					searchBox.setBaseText(raw_panel.getTextPane(), emphasis);
 					break;
-				case 1:
+				case 1 :
 					searchBox.setVisible(false);
 					// searchBox.setBaseText(binary_panel.getTextPane());
 					break;
-				case 2:
+				case 2 :
 					searchBox.setVisible(true);
 					searchBox.setBaseText(json_panel.getTextPane(), emphasis);
 					break;
-				default:
+				default :
 					PacketProxyUtility.getInstance()
 							.packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
 					break;

@@ -24,20 +24,20 @@ import javax.swing.text.View;
 // http://java-sl.com/JEditorPanePerformance.html
 public class CustomParagraphView extends ParagraphView {
 
-	final private static int MAX_VIEW_SIZE = 100;
+	private static final int MAX_VIEW_SIZE = 100;
 	public CustomParagraphView(Element elem) {
 		super(elem);
 		strategy = new CustomFlowStrategy();
 	}
 
 	private static class CustomFlowStrategy extends FlowStrategy {
-        protected View createView(FlowView fv, int startOffset, int spanLeft, int rowIndex) {
-            View res=super.createView(fv, startOffset, spanLeft, rowIndex);
-            if (res.getEndOffset() - res.getStartOffset() > MAX_VIEW_SIZE) {
-                res = res.createFragment(startOffset, startOffset + MAX_VIEW_SIZE);
-            }
-            return res;
-        }
+		protected View createView(FlowView fv, int startOffset, int spanLeft, int rowIndex) {
+			View res = super.createView(fv, startOffset, spanLeft, rowIndex);
+			if (res.getEndOffset() - res.getStartOffset() > MAX_VIEW_SIZE) {
+				res = res.createFragment(startOffset, startOffset + MAX_VIEW_SIZE);
+			}
+			return res;
+		}
 	}
 
 }

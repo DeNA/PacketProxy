@@ -17,7 +17,7 @@ package packetproxy.model;
 import java.util.EventListener;
 
 public interface DiffEventListener extends EventListener {
-	public void foundDelDelta(int pos, int length) throws Exception;
-	public void foundInsDelta(int pos, int length) throws Exception;
-	public void foundChgDelta(int pos, int length) throws Exception;
+	void foundDelDelta(int pos, int length) throws Exception;
+	void foundInsDelta(int pos, int length) throws Exception;
+	void foundChgDelta(int pos, int length) throws Exception;
 }

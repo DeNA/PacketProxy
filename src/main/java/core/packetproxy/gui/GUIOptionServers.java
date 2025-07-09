@@ -15,21 +15,13 @@
  */
 package packetproxy.gui;
 
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
 
@@ -43,9 +35,9 @@ public class GUIOptionServers extends GUIOptionComponentBase<Server> {
 		servers = Servers.getInstance();
 		servers.addPropertyChangeListener(this);
 		server_list = new ArrayList<Server>();
-		String[] menu = { "Host", "Port", "Use SSL", "Encode Module", "Spoof DNS(A)", "Spoof DNS(AAAA)", "HttpProxy",
-				"Comment" };
-		int[] menuWidth = { 200, 80, 50, 160, 60, 60, 60, 100 };
+		String[] menu = {"Host", "Port", "Use SSL", "Encode Module", "Spoof DNS(A)", "Spoof DNS(AAAA)", "HttpProxy",
+				"Comment"};
+		int[] menuWidth = {200, 80, 50, 160, 60, 60, 60, 100};
 		MouseAdapter tableAction = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -121,15 +113,8 @@ public class GUIOptionServers extends GUIOptionComponentBase<Server> {
 	@Override
 	protected void addTableContent(Server server) {
 		server_list.add(server);
-		option_model.addRow(new Object[] {
-				server.getIp(),
-				server.getPort(),
-				server.getUseSSL(),
-				server.getEncoder(),
-				server.isResolved(),
-				server.isResolved6(),
-				server.isHttpProxy(),
-				server.getComment() });
+		option_model.addRow(new Object[]{server.getIp(), server.getPort(), server.getUseSSL(), server.getEncoder(),
+				server.isResolved(), server.isResolved6(), server.isHttpProxy(), server.getComment()});
 	}
 
 	@Override

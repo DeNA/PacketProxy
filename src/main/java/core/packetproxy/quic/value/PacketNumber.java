@@ -24,74 +24,75 @@ import lombok.Value;
 @Value
 public class PacketNumber {
 
-    static public final PacketNumber Infinite = new PacketNumber();
+	public static final PacketNumber Infinite = new PacketNumber();
 
-    static public PacketNumber of(long number) {
-        return new PacketNumber(number);
-    }
+	public static PacketNumber of(long number) {
+		return new PacketNumber(number);
+	}
 
-    static public PacketNumber copy(PacketNumber pn) {
-        return new PacketNumber(pn.getNumber());
-    }
+	public static PacketNumber copy(PacketNumber pn) {
+		return new PacketNumber(pn.getNumber());
+	}
 
-    static public PacketNumber max(PacketNumber a, PacketNumber b) {
-        return a.getNumber() > b.getNumber() ? a : b;
-    }
+	public static PacketNumber max(PacketNumber a, PacketNumber b) {
+		return a.getNumber() > b.getNumber() ? a : b;
+	}
 
-    @Getter(AccessLevel.NONE)
-    boolean infinite;
-    long number;
+	@Getter(AccessLevel.NONE)
+	boolean infinite;
+	long number;
 
-    private PacketNumber() {
-        this.number = -1;
-        this.infinite = true;
-    }
+	private PacketNumber() {
+		this.number = -1;
+		this.infinite = true;
+	}
 
-    private PacketNumber(long number) {
-        assert(number >= 0);
-        this.number = number;
-        this.infinite = false;
-    }
+	private PacketNumber(long number) {
+		assert (number >= 0);
+		this.number = number;
+		this.infinite = false;
+	}
 
-    public boolean isInfinite() {
-        return infinite;
-    }
+	public boolean isInfinite() {
+		return infinite;
+	}
 
-    public TruncatedPacketNumber getTruncatedPacketNumber(PacketNumber largestAckedPn) {
-        if (!this.infinite) {
-            return new TruncatedPacketNumber(this, largestAckedPn);
-        }
-        return null;
-    }
+	public TruncatedPacketNumber getTruncatedPacketNumber(PacketNumber largestAckedPn) {
+		if (!this.infinite) {
+			return new TruncatedPacketNumber(this, largestAckedPn);
+		}
+		return null;
+	}
 
-    @SneakyThrows
-    public PacketNumber plus(long num) {
-        return new PacketNumber(this.number + num);
-    }
+	@SneakyThrows
+	public PacketNumber plus(long num) {
+		return new PacketNumber(this.number + num);
+	}
 
-    @SneakyThrows
-    public PacketNumber minus(long num) {
-        return new PacketNumber(this.number - num);
-    }
+	@SneakyThrows
+	public PacketNumber minus(long num) {
+		return new PacketNumber(this.number - num);
+	}
 
-    public long minus(PacketNumber packetPn) {
-        return this.number - packetPn.number;
-    }
+	public long minus(PacketNumber packetPn) {
+		return this.number - packetPn.number;
+	}
 
-    public boolean isLargerThan(PacketNumber packetPn) {
-        return this.number > packetPn.getNumber();
-    }
+	public boolean isLargerThan(PacketNumber packetPn) {
+		return this.number > packetPn.getNumber();
+	}
 
-    public boolean isLargerThanOrEquals(PacketNumber packetPn) {
-        return this.number >= packetPn.getNumber();
-    }
+	public boolean isLargerThanOrEquals(PacketNumber packetPn) {
+		return this.number >= packetPn.getNumber();
+	}
 
-    public byte[] toBytes() {
-        return new byte[] { (byte)((this.number >> 24) & 0xff), (byte)((this.number >> 16) & 0xff), (byte)((this.number >> 8) & 0xff), (byte)(this.number & 0xff) };
-    }
+	public byte[] toBytes() {
+		return new byte[]{(byte) ((this.number >> 24) & 0xff), (byte) ((this.number >> 16) & 0xff),
+				(byte) ((this.number >> 8) & 0xff), (byte) (this.number & 0xff)};
+	}
 
-    public String toString() {
-        return "PacketNumber(" + (this.infinite ? "INF": this.number) + ")";
-    }
+	public String toString() {
+		return "PacketNumber(" + (this.infinite ? "INF" : this.number) + ")";
+	}
 
 }

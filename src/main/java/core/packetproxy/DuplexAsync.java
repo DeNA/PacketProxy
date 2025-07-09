@@ -19,13 +19,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-
 import org.apache.commons.lang3.ArrayUtils;
-
 import packetproxy.common.Endpoint;
 
-public class DuplexAsync extends Duplex
-{
+public class DuplexAsync extends Duplex {
 	private Endpoint client;
 	private Endpoint server;
 	private Simplex client_to_server;
@@ -43,15 +40,14 @@ public class DuplexAsync extends Duplex
 	private PipedInputStream flow_controlled_server_input;
 	private PipedOutputStream flow_controlled_server_output;
 
-	public DuplexAsync(Endpoint client_endpoint, Endpoint server_endpoint) throws Exception
-	{
+	public DuplexAsync(Endpoint client_endpoint, Endpoint server_endpoint) throws Exception {
 		this.client = client_endpoint;
 		this.server = server_endpoint;
-		client_input  = (client_endpoint != null) ? client_endpoint.getInputStream() : null;
+		client_input = (client_endpoint != null) ? client_endpoint.getInputStream() : null;
 		client_output = (client_endpoint != null) ? client_endpoint.getOutputStream() : null;
-		server_input  = (server_endpoint != null) ? server_endpoint.getInputStream() : null;
+		server_input = (server_endpoint != null) ? server_endpoint.getInputStream() : null;
 		server_output = (server_endpoint != null) ? server_endpoint.getOutputStream() : null;
-		
+
 		flow_controlled_client_output = new PipedOutputStream();
 		flow_controlled_client_input = new PipedInputStream(flow_controlled_client_output, 65536);
 
@@ -60,7 +56,7 @@ public class DuplexAsync extends Duplex
 
 		client_to_server = createClientToServerSimplex(client_input, flow_controlled_server_output);
 		server_to_client = createServerToClientSimplex(server_input, flow_controlled_client_output);
-		
+
 		disableDuplexEventListener();
 	}
 	@Override
@@ -73,7 +69,7 @@ public class DuplexAsync extends Duplex
 	}
 	public byte[] prepareFastSend(byte[] data) throws Exception {
 		int accepted_length = callOnClientPacketReceived(data);
-		if (accepted_length <= 0){
+		if (accepted_length <= 0) {
 			return null;
 		}
 		byte[] accepted = ArrayUtils.subarray(data, 0, accepted_length);
@@ -97,7 +93,7 @@ public class DuplexAsync extends Duplex
 					flow_controlled_client_input.close();
 					closeOnClientChunkFlowControl();
 				} catch (Exception e) {
-					//e.printStackTrace();
+					// e.printStackTrace();
 				}
 			}
 		});
@@ -113,7 +109,7 @@ public class DuplexAsync extends Duplex
 					flow_controlled_server_input.close();
 					closeOnServerChunkFlowControl();
 				} catch (Exception e) {
-					//e.printStackTrace();
+					// e.printStackTrace();
 				}
 			}
 		});
@@ -134,9 +130,9 @@ public class DuplexAsync extends Duplex
 						flow_controlled_client_input.close();
 						client_output.close();
 					} catch (Exception e1) {
-						//e1.printStackTrace();
+						// e1.printStackTrace();
 					}
-					//e.printStackTrace();
+					// e.printStackTrace();
 				}
 			}
 		});
@@ -157,9 +153,9 @@ public class DuplexAsync extends Duplex
 						flow_controlled_server_input.close();
 						server_output.close();
 					} catch (Exception e1) {
-						//e1.printStackTrace();
+						// e1.printStackTrace();
 					}
-					//e.printStackTrace();
+					// e.printStackTrace();
 				}
 			}
 		});
@@ -180,8 +176,7 @@ public class DuplexAsync extends Duplex
 		server_input.close();
 		client_output.close();
 	}
-	private Simplex createClientToServerSimplex(final InputStream in, final OutputStream out) throws Exception
-	{
+	private Simplex createClientToServerSimplex(final InputStream in, final OutputStream out) throws Exception {
 		Simplex simplex = new Simplex(in, out);
 		simplex.addSimplexEventListener(new Simplex.SimplexEventListener() {
 			@Override
@@ -211,8 +206,7 @@ public class DuplexAsync extends Duplex
 		});
 		return simplex;
 	}
-	private Simplex createServerToClientSimplex(final InputStream in, final OutputStream out) throws Exception
-	{
+	private Simplex createServerToClientSimplex(final InputStream in, final OutputStream out) throws Exception {
 		Simplex simplex = new Simplex(in, out);
 		simplex.addSimplexEventListener(new Simplex.SimplexEventListener() {
 			@Override

@@ -19,23 +19,17 @@ import com.google.common.collect.ImmutableList;
 import packetproxy.vulchecker.generator.*;
 
 public class NumberVulChecker extends VulChecker {
-    @Override
-    public String getName() {
-        return "Number";
-    }
+	@Override
+	public String getName() {
+		return "Number";
+	}
 
-    @Override
-    public ImmutableList<Generator> getGenerators() {
-        return ImmutableList.<Generator>builder()
-                .add(new NegativeNumberGenerator())
-                .add(new ZeroGenerator())
-                .add(new DecimalsGenerator())
-                .add(new IntegerOverflowMinusOneGenerator())
-                .add(new IntegerOverflowGenerator())
-                .add(new IntegerOverflowPlusOneGenerator())
-                .add(new LongOverflowMinusOneGenerator())
-                .add(new LongOverflowGenerator())
-                .add(new LongOverflowPlusOneGenerator())
-                .build();
-    }
+	@Override
+	public ImmutableList<Generator> getGenerators() {
+		return ImmutableList.<Generator>builder().add(new NegativeNumberGenerator()).add(new ZeroGenerator())
+				.add(new DecimalsGenerator()).add(new IntegerOverflowMinusOneGenerator())
+				.add(new IntegerOverflowGenerator()).add(new IntegerOverflowPlusOneGenerator())
+				.add(new LongOverflowMinusOneGenerator()).add(new LongOverflowGenerator())
+				.add(new LongOverflowPlusOneGenerator()).build();
+	}
 }

@@ -32,10 +32,10 @@ public class CertCacheManager {
 		return instance;
 	}
 
-	private Map<String,KeyStore> certCache;
+	private Map<String, KeyStore> certCache;
 
 	private CertCacheManager() throws Exception {
-		certCache = new HashMap<String,KeyStore>();
+		certCache = new HashMap<String, KeyStore>();
 	}
 
 	public static void clearCache() {

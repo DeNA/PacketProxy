@@ -16,18 +16,18 @@
 
 package packetproxy.http3.value.frame;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Test;
 import packetproxy.quic.value.VariableLengthInteger;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 class RawFrameTest {
 
-    @Test
-    void RawFrameが正常に動作すること() throws Exception {
-        RawFrame rawFrame = RawFrame.of(VariableLengthInteger.of(1).getBytes());
-        assertThat(rawFrame.getBytes()).isEqualTo(Hex.decodeHex("01".toCharArray()));
-    }
+	@Test
+	void RawFrameが正常に動作すること() throws Exception {
+		RawFrame rawFrame = RawFrame.of(VariableLengthInteger.of(1).getBytes());
+		assertThat(rawFrame.getBytes()).isEqualTo(Hex.decodeHex("01".toCharArray()));
+	}
 
 }

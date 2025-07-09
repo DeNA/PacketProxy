@@ -19,10 +19,8 @@ import com.mobius.software.mqtt.parser.MQJsonParser;
 import com.mobius.software.mqtt.parser.MQParser;
 import com.mobius.software.mqtt.parser.header.api.MQMessage;
 import com.mobius.software.mqtt.parser.header.impl.*;
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import packetproxy.model.Packet;
-import packetproxy.util.PacketProxyUtility;
 
 public class EncodeMQTT extends Encoder {
 
@@ -94,8 +92,7 @@ public class EncodeMQTT extends Encoder {
 	}
 
 	private String getSummarizedMessage(Packet packet) {
-		byte[] raw_data = (packet.getSentData().length > 0) ? packet.getSentData()
-				: packet.getReceivedData();
+		byte[] raw_data = (packet.getSentData().length > 0) ? packet.getSentData() : packet.getReceivedData();
 		if (raw_data.length == 0)
 			return "";
 
@@ -105,31 +102,31 @@ public class EncodeMQTT extends Encoder {
 			Integer msgId = null;
 			switch (message.getType()) {
 				// Has Message ID
-				case PUBLISH:
+				case PUBLISH :
 					msgId = ((Publish) message).getPacketID();
 					break;
-				case PUBACK:
+				case PUBACK :
 					msgId = ((Puback) message).getPacketID();
 					break;
-				case PUBREC:
+				case PUBREC :
 					msgId = ((Pubrec) message).getPacketID();
 					break;
-				case PUBREL:
+				case PUBREL :
 					msgId = ((Pubrel) message).getPacketID();
 					break;
-				case PUBCOMP:
+				case PUBCOMP :
 					msgId = ((Pubcomp) message).getPacketID();
 					break;
-				case SUBSCRIBE:
+				case SUBSCRIBE :
 					msgId = ((Subscribe) message).getPacketID();
 					break;
-				case SUBACK:
+				case SUBACK :
 					msgId = ((Suback) message).getPacketID();
 					break;
-				case UNSUBSCRIBE:
+				case UNSUBSCRIBE :
 					msgId = ((Unsubscribe) message).getPacketID();
 					break;
-				case UNSUBACK:
+				case UNSUBACK :
 					msgId = ((Unsuback) message).getPacketID();
 					break;
 			}
@@ -141,66 +138,40 @@ public class EncodeMQTT extends Encoder {
 	}
 
 	/*
-	 * public static void main(String args[]) {
-	 * PacketProxyUtility util = PacketProxyUtility.getInstance();
-	 * int length;
-	 * 
+	 * public static void main(String args[]) { PacketProxyUtility util =
+	 * PacketProxyUtility.getInstance(); int length;
+	 *
 	 * byte[] b = java.util.Base64.getMimeDecoder().decode(
 	 * "EDAABE1RVFQEAgAeACQwYTg2ZDA5Ny1mOThkLTRkMjktOGUyMy1hOGUxMWM3MzA2ODY=");
-	 * ByteBuf data = Unpooled.copiedBuffer(b);
-	 * MQMessage message = MQParser.decode(data);
-	 * 
+	 * ByteBuf data = Unpooled.copiedBuffer(b); MQMessage message =
+	 * MQParser.decode(data);
+	 *
 	 * MQJsonParser parser = new MQJsonParser();
-	 * 
-	 * try {
-	 * String json = parser.jsonString(message);
-	 * util.packetProxyLog(json);
-	 * util.packetProxyLog(parser.messageObject(json).toString());
-	 * } catch (Exception e) {
-	 * e.printStackTrace();
-	 * }
-	 * 
-	 * EncodeMQTT mqtt = new EncodeMQTT();
-	 * try {
-	 * byte[] test1 = {0x00, 0x1c};
-	 * length = mqtt.checkDelimiter(test1);
-	 * if (length != 30) {
-	 * util.packetProxyLog("Failed Test1: 30 == %d\n", length);
-	 * return;
-	 * }
-	 * 
-	 * byte[] test2 = {0x00, (byte) 0xc6, 0x09};
-	 * length = mqtt.checkDelimiter(test2);
-	 * if (length != 1225) {
-	 * util.packetProxyLog("Failed Test2: 1222 == %d\n", length);
-	 * return;
-	 * }
-	 * 
-	 * byte[] test3 = {0x00, (byte) 0x80, (byte) 0x80, (byte) 0x80, 0x01};
-	 * length = mqtt.checkDelimiter(test3);
-	 * if (length != 2097157) {
-	 * util.packetProxyLog("Failed Test3: 2097152 == %d\n", length);
-	 * return;
-	 * }
-	 * 
-	 * byte[] test4 = {0x00, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, 0x7F};
-	 * length = mqtt.checkDelimiter(test4);
-	 * if (length != 268435460) {
-	 * util.packetProxyLog("Failed Test4: 268435455 == %d\n", length);
-	 * return;
-	 * }
-	 * 
+	 *
+	 * try { String json = parser.jsonString(message); util.packetProxyLog(json);
+	 * util.packetProxyLog(parser.messageObject(json).toString()); } catch
+	 * (Exception e) { e.printStackTrace(); }
+	 *
+	 * EncodeMQTT mqtt = new EncodeMQTT(); try { byte[] test1 = {0x00, 0x1c}; length
+	 * = mqtt.checkDelimiter(test1); if (length != 30) {
+	 * util.packetProxyLog("Failed Test1: 30 == %d\n", length); return; }
+	 *
+	 * byte[] test2 = {0x00, (byte) 0xc6, 0x09}; length =
+	 * mqtt.checkDelimiter(test2); if (length != 1225) {
+	 * util.packetProxyLog("Failed Test2: 1222 == %d\n", length); return; }
+	 *
+	 * byte[] test3 = {0x00, (byte) 0x80, (byte) 0x80, (byte) 0x80, 0x01}; length =
+	 * mqtt.checkDelimiter(test3); if (length != 2097157) {
+	 * util.packetProxyLog("Failed Test3: 2097152 == %d\n", length); return; }
+	 *
+	 * byte[] test4 = {0x00, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, 0x7F}; length =
+	 * mqtt.checkDelimiter(test4); if (length != 268435460) {
+	 * util.packetProxyLog("Failed Test4: 268435455 == %d\n", length); return; }
+	 *
 	 * byte[] test5 = {0x00, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
-	 * 0x01};
-	 * length = mqtt.checkDelimiter(test5);
-	 * if (length != 268435460) {
-	 * util.packetProxyLog("Failed Test5: 268435455 == %d\n", length);
-	 * return;
-	 * }
-	 * } catch (Exception e) {
-	 * e.printStackTrace();
-	 * }
-	 * util.packetProxyLog("Passed some tests.");
-	 * }
+	 * 0x01}; length = mqtt.checkDelimiter(test5); if (length != 268435460) {
+	 * util.packetProxyLog("Failed Test5: 268435455 == %d\n", length); return; } }
+	 * catch (Exception e) { e.printStackTrace(); }
+	 * util.packetProxyLog("Passed some tests."); }
 	 */
 }

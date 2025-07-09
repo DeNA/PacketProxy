@@ -16,15 +16,13 @@
 package packetproxy.encode;
 
 import java.io.InputStream;
-
 import packetproxy.http.Http;
 import packetproxy.http2.FramesBase;
 import packetproxy.http2.Http2;
 import packetproxy.http3.service.Http3;
 import packetproxy.model.Packet;
 
-public abstract class EncodeHTTPBase extends Encoder
-{
+public abstract class EncodeHTTPBase extends Encoder {
 	public enum HTTPVersion {
 		HTTP1, HTTP2, HTTP3
 	}
@@ -60,14 +58,16 @@ public abstract class EncodeHTTPBase extends Encoder
 		httpVersion = HTTPVersion.HTTP2;
 		this.http2 = http2CustomFrame;
 	}
-	
-	public HTTPVersion getHttpVersion() { return httpVersion; }
+
+	public HTTPVersion getHttpVersion() {
+		return httpVersion;
+	}
 
 	@Override
 	public int checkDelimiter(byte[] data) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			return Http.parseHttpDelimiter(data);
-		} else if (this.httpVersion == HTTPVersion.HTTP2){
+		} else if (this.httpVersion == HTTPVersion.HTTP2) {
 			return http2.checkDelimiter(data);
 		} else {
 			return http3.checkDelimiter(data);
@@ -86,7 +86,7 @@ public abstract class EncodeHTTPBase extends Encoder
 	public void clientRequestArrived(byte[] frames) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			super.clientRequestArrived(frames);
-		} else if (this.httpVersion == HTTPVersion.HTTP2){
+		} else if (this.httpVersion == HTTPVersion.HTTP2) {
 			http2.clientRequestArrived(frames);
 		} else {
 			http3.clientRequestArrived(frames);
@@ -97,7 +97,7 @@ public abstract class EncodeHTTPBase extends Encoder
 	public void serverResponseArrived(byte[] frames) throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			super.serverResponseArrived(frames);
-		} else if (this.httpVersion == HTTPVersion.HTTP2){
+		} else if (this.httpVersion == HTTPVersion.HTTP2) {
 			http2.serverResponseArrived(frames);
 		} else {
 			http3.serverResponseArrived(frames);
@@ -108,7 +108,7 @@ public abstract class EncodeHTTPBase extends Encoder
 	public byte[] passThroughClientRequest() throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			return super.passThroughClientRequest();
-		} else if (this.httpVersion == HTTPVersion.HTTP2){
+		} else if (this.httpVersion == HTTPVersion.HTTP2) {
 			return http2.passThroughClientRequest();
 		} else {
 			return http3.passThroughClientRequest();
@@ -119,7 +119,7 @@ public abstract class EncodeHTTPBase extends Encoder
 	public byte[] passThroughServerResponse() throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			return super.passThroughServerResponse();
-		} else if (this.httpVersion == HTTPVersion.HTTP2){
+		} else if (this.httpVersion == HTTPVersion.HTTP2) {
 			return http2.passThroughServerResponse();
 		} else {
 			return http3.passThroughServerResponse();
@@ -130,7 +130,7 @@ public abstract class EncodeHTTPBase extends Encoder
 	public byte[] clientRequestAvailable() throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			return super.clientRequestAvailable();
-		} else if (this.httpVersion == HTTPVersion.HTTP2){
+		} else if (this.httpVersion == HTTPVersion.HTTP2) {
 			return http2.clientRequestAvailable();
 		} else {
 			return http3.clientRequestAvailable();
@@ -141,7 +141,7 @@ public abstract class EncodeHTTPBase extends Encoder
 	public byte[] serverResponseAvailable() throws Exception {
 		if (this.httpVersion == HTTPVersion.HTTP1) {
 			return super.serverResponseAvailable();
-		} else if (this.httpVersion == HTTPVersion.HTTP2){
+		} else if (this.httpVersion == HTTPVersion.HTTP2) {
 			return http2.serverResponseAvailable();
 		} else {
 			return http3.serverResponseAvailable();
@@ -150,7 +150,7 @@ public abstract class EncodeHTTPBase extends Encoder
 
 	@Override
 	public byte[] decodeClientRequest(byte[] input_data) throws Exception {
-		if (this.httpVersion == HTTPVersion.HTTP2) { 
+		if (this.httpVersion == HTTPVersion.HTTP2) {
 			input_data = http2.decodeClientRequest(input_data);
 		} else if (this.httpVersion == HTTPVersion.HTTP3) {
 			input_data = http3.decodeClientRequest(input_data);
@@ -171,7 +171,7 @@ public abstract class EncodeHTTPBase extends Encoder
 		this.requestMethod = http.getMethod();
 		Http encodedHttp = encodeClientRequestHttp(http);
 		byte[] encodedData = encodedHttp.toByteArray();
-		if (this.httpVersion == HTTPVersion.HTTP2) { 
+		if (this.httpVersion == HTTPVersion.HTTP2) {
 			encodedData = http2.encodeClientRequest(encodedData);
 		} else if (this.httpVersion == HTTPVersion.HTTP3) {
 			encodedData = http3.encodeClientRequest(encodedData);
@@ -180,8 +180,8 @@ public abstract class EncodeHTTPBase extends Encoder
 	}
 
 	@Override
-	final public byte[] decodeServerResponse(byte[] input_data) throws Exception {
-		if (this.httpVersion == HTTPVersion.HTTP2) { 
+	public final byte[] decodeServerResponse(byte[] input_data) throws Exception {
+		if (this.httpVersion == HTTPVersion.HTTP2) {
 			input_data = http2.decodeServerResponse(input_data);
 		} else if (this.httpVersion == HTTPVersion.HTTP3) {
 			input_data = http3.decodeServerResponse(input_data);
@@ -209,7 +209,7 @@ public abstract class EncodeHTTPBase extends Encoder
 			encodedHttp = encodeServerResponseHttp(http);
 		}
 		byte[] encodedData = encodedHttp.toByteArray();
-		if (this.httpVersion == HTTPVersion.HTTP2) { 
+		if (this.httpVersion == HTTPVersion.HTTP2) {
 			encodedData = http2.encodeServerResponse(encodedData);
 		} else if (this.httpVersion == HTTPVersion.HTTP3) {
 			encodedData = http3.encodeServerResponse(encodedData);
@@ -260,10 +260,11 @@ public abstract class EncodeHTTPBase extends Encoder
 	}
 
 	@Override
-	public String getSummarizedResponse(Packet packet)
-	{
+	public String getSummarizedResponse(Packet packet) {
 		String summary = "";
-		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
+		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) {
+			return "";
+		}
 		try {
 			byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
 			Http http = Http.create(data);
@@ -277,15 +278,16 @@ public abstract class EncodeHTTPBase extends Encoder
 	}
 
 	@Override
-	public String getSummarizedRequest(Packet packet)
-	{
+	public String getSummarizedRequest(Packet packet) {
 		String summary = "";
-		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
+		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) {
+			return "";
+		}
 		try {
-			byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();                                                                                                                                                              
+			byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
 			Http http = Http.create(data);
 			summary = http.getMethod() + " " + http.getURL(packet.getServerPort(), packet.getUseSSL());
-		} catch (Exception e) { 
+		} catch (Exception e) {
 			e.printStackTrace();
 			summary = "Headlineを生成できません・・・";
 		}
@@ -303,9 +305,9 @@ public abstract class EncodeHTTPBase extends Encoder
 		}
 	}
 
-	abstract protected Http decodeServerResponseHttp(Http inputHttp) throws Exception;
-	abstract protected Http encodeServerResponseHttp(Http inputHttp) throws Exception;
-	abstract protected Http decodeClientRequestHttp(Http inputHttp) throws Exception;
-	abstract protected Http encodeClientRequestHttp(Http inputHttp) throws Exception;
+	protected abstract Http decodeServerResponseHttp(Http inputHttp) throws Exception;
+	protected abstract Http encodeServerResponseHttp(Http inputHttp) throws Exception;
+	protected abstract Http decodeClientRequestHttp(Http inputHttp) throws Exception;
+	protected abstract Http encodeClientRequestHttp(Http inputHttp) throws Exception;
 
 }

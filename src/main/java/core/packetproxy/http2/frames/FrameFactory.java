@@ -15,32 +15,28 @@
  */
 package packetproxy.http2.frames;
 
+import com.google.common.collect.Sets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
-
 import org.eclipse.jetty.http2.hpack.HpackDecoder;
-
-import com.google.common.collect.Sets;
-
 import packetproxy.http2.frames.Frame.Type;
 
 public class FrameFactory {
-	
-	static private Map<Type, Class<?>> frameList;
-	
+
+	private static Map<Type, Class<?>> frameList;
+
 	static {
 		try {
-			frameList = new HashMap<Type,Class<?>>();
+			frameList = new HashMap<Type, Class<?>>();
 
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 			JavaFileManager fm = compiler.getStandardFileManager(new DiagnosticCollector<JavaFileObject>(), null, null);
@@ -49,16 +45,17 @@ public class FrameFactory {
 			for (JavaFileObject f : fm.list(StandardLocation.CLASS_PATH, "packetproxy.http2.frames", kind, false)) {
 				Path frameFilePath = Paths.get(f.getName());
 				Path frameFileName = frameFilePath.getFileName();
-				String frameClassPath = "packetproxy.http2.frames" + "." + frameFileName.toString().replaceAll("\\.class.*$", "");
+				String frameClassPath = "packetproxy.http2.frames" + "."
+						+ frameFileName.toString().replaceAll("\\.class.*$", "");
 				Class<?> klass = Class.forName(frameClassPath);
 				if (packetproxy.http2.frames.Frame.class.isAssignableFrom(klass)) {
 					@SuppressWarnings("unchecked")
-					Class<Frame> frameKlass = (Class<Frame>)klass;
+					Class<Frame> frameKlass = (Class<Frame>) klass;
 					if (frameKlass.getName().equals("packetproxy.http2.frames.Frame")) {
 						continue;
 					}
 					if (frameList.containsValue(frameKlass) == false) {
-						Frame.Type type = (Type)frameKlass.getDeclaredField("TYPE").get(Frame.Type.Unassigned);
+						Frame.Type type = (Type) frameKlass.getDeclaredField("TYPE").get(Frame.Type.Unassigned);
 						frameList.put(type, frameKlass);
 					}
 				}
@@ -68,12 +65,13 @@ public class FrameFactory {
 			e.printStackTrace();
 		}
 	}
-	
-	static public Frame create(Type type, int flags, int streamId, byte[] payload) throws Exception {
+
+	public static Frame create(Type type, int flags, int streamId, byte[] payload) throws Exception {
 		Class<?> frameClass = frameList.get(type);
 		if (frameClass != null) {
 			if (frameClass == DataFrame.class) {
-				return (Frame) frameClass.getConstructor(int.class, int.class, byte[].class).newInstance(flags, streamId, payload);
+				return (Frame) frameClass.getConstructor(int.class, int.class, byte[].class).newInstance(flags,
+						streamId, payload);
 			} else {
 				throw new Exception("create Frames except DataFrame are not implemented yet");
 			}
@@ -82,7 +80,7 @@ public class FrameFactory {
 		}
 	}
 
-	static public Frame create(byte[] data, HpackDecoder decoder) throws Exception {
+	public static Frame create(byte[] data, HpackDecoder decoder) throws Exception {
 		Frame f = new Frame(data);
 		Class<?> frameClass = frameList.get(f.getType());
 		if (frameClass != null) {
@@ -94,8 +92,8 @@ public class FrameFactory {
 		}
 		return f;
 	}
-	
-	static public void debug() {
+
+	public static void debug() {
 		System.out.println(frameList.toString());
 	}
 

@@ -22,14 +22,14 @@ import packetproxy.model.Server;
 
 public class InterceptController {
 	private static InterceptController instance;
-	
+
 	public static InterceptController getInstance() throws Exception {
 		if (instance == null) {
 			instance = new InterceptController();
 		}
 		return instance;
 	}
-	
+
 	private boolean forward;
 	private boolean forward_multiple;
 	private byte[] intercepted_data;
@@ -95,7 +95,8 @@ public class InterceptController {
 					if (server_packet == null) {
 						is_target_packet = InterceptOptions.getInstance().interceptOnRequest(server, client_packet);
 					} else {
-						is_target_packet = InterceptOptions.getInstance().interceptOnResponse(server, client_packet, server_packet);
+						is_target_packet = InterceptOptions.getInstance().interceptOnResponse(server, client_packet,
+								server_packet);
 					}
 				}
 			}
@@ -111,7 +112,7 @@ public class InterceptController {
 					return new byte[]{};
 				}
 				if (forward_multiple == true) {
-					//Forward x20(= original x 1 + copy x 19)
+					// Forward x20(= original x 1 + copy x 19)
 					resend_controller.resend(target_packet.getOneShotPacket(intercepted_data), 19, true);
 					target_packet.setResend();
 				}

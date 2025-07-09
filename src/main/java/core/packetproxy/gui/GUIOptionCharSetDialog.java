@@ -29,7 +29,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -43,60 +42,58 @@ import javax.swing.RowFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
-
 import packetproxy.common.I18nString;
 import packetproxy.model.CharSet;
 import packetproxy.util.CharSetUtility;
 
-public class GUIOptionCharSetDialog extends JDialog
-{
+public class GUIOptionCharSetDialog extends JDialog {
 	private static final long serialVersionUID = 1L;
 	private JButton button_cancel = new JButton(I18nString.get("Cancel"));
 	private JButton button_set = new JButton(I18nString.get("Save"));
 	private HintTextField text_charset = new HintTextField("(ex.) Shift_JIS");
-	private String[] columns = new String[]{"","CharSetName"};
+	private String[] columns = new String[]{"", "CharSetName"};
 	private CharSetsTableModel table_model;
 	private TableRowSorter<CharSetsTableModel> sorter;
 	private int height = 500;
 	private int width = 500;
 	private List<CharSet> charsets = new ArrayList<CharSet>();
 
-	private Object[][] getTableDataWithAvailableCharsets(){
+	private Object[][] getTableDataWithAvailableCharsets() {
 		List<String> availableCharSetList = CharSetUtility.getInstance().getAvailableCharSetList();
-		Object a[][] = new Object[Charset.availableCharsets().size()-availableCharSetList.size()][2];
+		Object a[][] = new Object[Charset.availableCharsets().size() - availableCharSetList.size()][2];
 		int i = 0;
-		for(String k:Charset.availableCharsets().keySet()){
-			if(availableCharSetList.contains(k)){
+		for (String k : Charset.availableCharsets().keySet()) {
+			if (availableCharSetList.contains(k)) {
 				continue;
 			}
-			if(i>=a.length){
+			if (i >= a.length) {
 				return a;
 			}
-			a[i++] = new Object[]{Boolean.FALSE,k};
+			a[i++] = new Object[]{Boolean.FALSE, k};
 		}
 		return a;
 	}
 
 	private JComponent label_and_object(String label_name, JComponent object) {
 		JPanel panel = new JPanel();
-	    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-	    JLabel label = new JLabel(label_name);
-	    label.setPreferredSize(new Dimension(150, label.getMaximumSize().height));
-	    panel.add(label);
-	    object.setMaximumSize(new Dimension(Short.MAX_VALUE, label.getMaximumSize().height * 2));
-	    panel.add(object);
+		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+		JLabel label = new JLabel(label_name);
+		label.setPreferredSize(new Dimension(150, label.getMaximumSize().height));
+		panel.add(label);
+		object.setMaximumSize(new Dimension(Short.MAX_VALUE, label.getMaximumSize().height * 2));
+		panel.add(object);
 		return panel;
 	}
 	private JComponent buttons() {
-	    JPanel panel_button = new JPanel();
-	    panel_button.setLayout(new BoxLayout(panel_button, BoxLayout.X_AXIS));
-	    panel_button.setMaximumSize(new Dimension(Short.MAX_VALUE, button_set.getMaximumSize().height));
-	    panel_button.add(button_cancel);
-	    panel_button.add(button_set);
-	    return panel_button;
+		JPanel panel_button = new JPanel();
+		panel_button.setLayout(new BoxLayout(panel_button, BoxLayout.X_AXIS));
+		panel_button.setMaximumSize(new Dimension(Short.MAX_VALUE, button_set.getMaximumSize().height));
+		panel_button.add(button_cancel);
+		panel_button.add(button_set);
+		return panel_button;
 	}
 
-	private JScrollPane tableScrollPane(){
+	private JScrollPane tableScrollPane() {
 		table_model = new CharSetsTableModel(getTableDataWithAvailableCharsets(), columns);
 		JTable table = new JTable(table_model);
 		TableColumn col = table.getColumnModel().getColumn(0);
@@ -106,10 +103,10 @@ public class GUIOptionCharSetDialog extends JDialog
 			@Override
 			public void mousePressed(MouseEvent e) {
 				super.mousePressed(e);
-				if(0==table.getSelectedColumn()){
+				if (0 == table.getSelectedColumn()) {
 					return;
 				}
-				table.setValueAt(!(Boolean)table.getValueAt(table.getSelectedRow(), 0), table.getSelectedRow(),0);
+				table.setValueAt(!(Boolean) table.getValueAt(table.getSelectedRow(), 0), table.getSelectedRow(), 0);
 			}
 		});
 		sorter = new TableRowSorter<CharSetsTableModel>(table_model);
@@ -119,10 +116,10 @@ public class GUIOptionCharSetDialog extends JDialog
 		return jscrollPane;
 	}
 
-	public List<CharSet> showDialog()
-	{
+	public List<CharSet> showDialog() {
 		EventQueue.invokeLater(new Runnable() {
-			@Override public void run() {
+			@Override
+			public void run() {
 				button_cancel.requestFocusInWindow();
 			}
 		});
@@ -132,23 +129,23 @@ public class GUIOptionCharSetDialog extends JDialog
 	}
 
 	private JComponent createIpSetting() {
-	    return label_and_object("文字コード名:", text_charset);
+		return label_and_object("文字コード名:", text_charset);
 	}
 	public GUIOptionCharSetDialog(JFrame owner) throws Exception {
 		super(owner);
 		setTitle("設定");
 		Rectangle rect = owner.getBounds();
-		setBounds(rect.x + rect.width/2 - width/2, rect.y + rect.height/2 - width/2, width, height); /* ド真ん中 */
+		setBounds(rect.x + rect.width / 2 - width / 2, rect.y + rect.height / 2 - width / 2, width, height); /* ド真ん中 */
 
 		Container c = getContentPane();
-		JPanel panel = new JPanel(); 
-	    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-	    
-	    panel.add(createIpSetting());
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-	    panel.add(tableScrollPane());
-	    
-	    panel.add(buttons());
+		panel.add(createIpSetting());
+
+		panel.add(tableScrollPane());
+
+		panel.add(buttons());
 
 		c.add(panel);
 
@@ -157,64 +154,64 @@ public class GUIOptionCharSetDialog extends JDialog
 			public void keyReleased(KeyEvent e) {
 				super.keyReleased(e);
 				RowFilter<DefaultTableModel, Object> filter = null;
-				try{
-					filter = RowFilter.regexFilter(String.format("(?i)%s",text_charset.getText(), 1));
-				}catch (Exception e1){
+				try {
+					filter = RowFilter.regexFilter(String.format("(?i)%s", text_charset.getText(), 1));
+				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
 				sorter.setRowFilter(filter);
 			}
 		});
 
-	    button_cancel.addActionListener(new ActionListener() {
-	    	@Override
+		button_cancel.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				charsets.clear();
-	    		dispose();
-	    	}
-	    });
+				dispose();
+			}
+		});
 
-	    button_set.addActionListener(new ActionListener() {
-	    	@Override
+		button_set.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
-	    		charsets = table_model.getCheckedValues();
-	    		dispose();
-	    	}
-	    });
+				charsets = table_model.getCheckedValues();
+				dispose();
+			}
+		});
 	}
 	class CharSetsTableModel extends DefaultTableModel {
 
-		public CharSetsTableModel(Object[][] data, Object[] columnNames){
+		public CharSetsTableModel(Object[][] data, Object[] columnNames) {
 			super(data, columnNames);
 		}
 
 		@Override
-		public boolean isCellEditable(int row, int column){
-			if(0==column){
+		public boolean isCellEditable(int row, int column) {
+			if (0 == column) {
 				return true;
 			}
 			return false;
 		}
 
 		@Override
-		public Class getColumnClass(int col){
+		public Class getColumnClass(int col) {
 			return getValueAt(0, col).getClass();
 		}
 
-		public List<CharSet> getCheckedValues(){
+		public List<CharSet> getCheckedValues() {
 			List<CharSet> ret = new ArrayList<CharSet>();
-			for(int i=0;i<dataVector.size();i++){
-				Vector a = (Vector)dataVector.get(i);
-				if(null==a){
+			for (int i = 0; i < dataVector.size(); i++) {
+				Vector a = (Vector) dataVector.get(i);
+				if (null == a) {
 					continue;
 				}
-				if(null==a.get(0)){
+				if (null == a.get(0)) {
 					continue;
 				}
-				if(null==a.get(1)){
+				if (null == a.get(1)) {
 					continue;
 				}
-				if((Boolean)a.get(0)){
+				if ((Boolean) a.get(0)) {
 					ret.add(new CharSet((String) a.get(1)));
 				}
 			}

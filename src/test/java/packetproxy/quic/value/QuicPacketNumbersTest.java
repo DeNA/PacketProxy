@@ -16,21 +16,21 @@
 
 package packetproxy.quic.value;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
 import packetproxy.quic.utils.PacketNumbers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 class QuicPacketNumbersTest {
 
-    @Test
-    void testLargest() throws Exception {
-        PacketNumbers pns = new PacketNumbers();
-        pns.add(PacketNumber.of(100L));
-        pns.add(PacketNumber.of(1L));
-        pns.add(PacketNumber.of(33L));
-        pns.add(PacketNumber.of(0x7fffffffffffffffL));
+	@Test
+	void testLargest() throws Exception {
+		PacketNumbers pns = new PacketNumbers();
+		pns.add(PacketNumber.of(100L));
+		pns.add(PacketNumber.of(1L));
+		pns.add(PacketNumber.of(33L));
+		pns.add(PacketNumber.of(0x7fffffffffffffffL));
 
-        assertEquals(PacketNumber.of(0x7fffffffffffffffL), pns.largest());
-    }
+		assertEquals(PacketNumber.of(0x7fffffffffffffffL), pns.largest());
+	}
 }

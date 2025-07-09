@@ -20,12 +20,10 @@ import com.mobius.software.mqtt.parser.MQParser;
 import com.mobius.software.mqtt.parser.header.api.MQMessage;
 import com.mobius.software.mqtt.parser.header.impl.*;
 import io.netty.buffer.Unpooled;
-import packetproxy.websocket.WebSocket;
 import packetproxy.http.Http;
 import packetproxy.model.Packet;
 
-public class EncodeMQTTWebSocket extends EncodeHTTPWebSocket
-{
+public class EncodeMQTTWebSocket extends EncodeHTTPWebSocket {
 	protected boolean binary_start = false;
 
 	public EncodeMQTTWebSocket(String ALPN) throws Exception {
@@ -33,14 +31,12 @@ public class EncodeMQTTWebSocket extends EncodeHTTPWebSocket
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return "MQTTv3.1 over WebSocket";
 	}
-	
+
 	@Override
-	public String getContentType(byte[] input_data) throws Exception
-	{
+	public String getContentType(byte[] input_data) throws Exception {
 		if (binary_start) {
 			return "WebSocket";
 		} else {
@@ -51,7 +47,7 @@ public class EncodeMQTTWebSocket extends EncodeHTTPWebSocket
 
 	public static MQJsonParser parser = new MQJsonParser();
 	private byte[] encodeMQTT(byte[] b) throws Exception {
-        String json = new String(b);
+		String json = new String(b);
 		MQMessage m = parser.messageObject(json);
 		return MQParser.encode(m).array();
 	}
@@ -79,12 +75,14 @@ public class EncodeMQTTWebSocket extends EncodeHTTPWebSocket
 
 	@Override
 	public String getSummarizedRequest(Packet packet) {
-		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
-		byte[] data = (packet.getDecodedData().length > 0) ?
-				packet.getDecodedData() : packet.getModifiedData();
+		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) {
+			return "";
+		}
+		byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
 
 		try {
-			if (data.length == 0) throw new Exception();
+			if (data.length == 0)
+				throw new Exception();
 			Http http = Http.create(data);
 			String method = http.getMethod();
 			String url = http.getURL(packet.getServerPort(), packet.getUseSSL());
@@ -97,12 +95,14 @@ public class EncodeMQTTWebSocket extends EncodeHTTPWebSocket
 	}
 	@Override
 	public String getSummarizedResponse(Packet packet) {
-		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) { return ""; }
-		byte[] data = (packet.getDecodedData().length > 0) ?
-				packet.getDecodedData() : packet.getModifiedData();
+		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) {
+			return "";
+		}
+		byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
 
 		try {
-			if (data.length == 0) throw new Exception();
+			if (data.length == 0)
+				throw new Exception();
 			Http http = Http.create(data);
 			if (http.getStatusCode() == null)
 				return getSummarizedMessage(encodeMQTT(data));
@@ -119,35 +119,35 @@ public class EncodeMQTTWebSocket extends EncodeHTTPWebSocket
 			Integer msgId = null;
 			switch (message.getType()) {
 				// Has Message ID
-				case PUBLISH:
-					msgId = ((Publish)message).getPacketID();
+				case PUBLISH :
+					msgId = ((Publish) message).getPacketID();
 					break;
-				case PUBACK:
-					msgId = ((Puback)message).getPacketID();
+				case PUBACK :
+					msgId = ((Puback) message).getPacketID();
 					break;
-				case PUBREC:
-					msgId = ((Pubrec)message).getPacketID();
+				case PUBREC :
+					msgId = ((Pubrec) message).getPacketID();
 					break;
-				case PUBREL:
-					msgId = ((Pubrel)message).getPacketID();
+				case PUBREL :
+					msgId = ((Pubrel) message).getPacketID();
 					break;
-				case PUBCOMP:
-					msgId = ((Pubcomp)message).getPacketID();
+				case PUBCOMP :
+					msgId = ((Pubcomp) message).getPacketID();
 					break;
-				case SUBSCRIBE:
-					msgId = ((Subscribe)message).getPacketID();
+				case SUBSCRIBE :
+					msgId = ((Subscribe) message).getPacketID();
 					break;
-				case SUBACK:
-					msgId = ((Suback)message).getPacketID();
+				case SUBACK :
+					msgId = ((Suback) message).getPacketID();
 					break;
-				case UNSUBSCRIBE:
-					msgId = ((Unsubscribe)message).getPacketID();
+				case UNSUBSCRIBE :
+					msgId = ((Unsubscribe) message).getPacketID();
 					break;
-				case UNSUBACK:
-					msgId = ((Unsuback)message).getPacketID();
+				case UNSUBACK :
+					msgId = ((Unsuback) message).getPacketID();
 					break;
 			}
-			return msgId != null? msgId + ": " + cmd : cmd;
+			return msgId != null ? msgId + ": " + cmd : cmd;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return "Failed to Parse as MQTT Protocol";

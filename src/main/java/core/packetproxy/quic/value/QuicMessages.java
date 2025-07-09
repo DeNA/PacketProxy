@@ -16,7 +16,7 @@
 
 package packetproxy.quic.value;
 
-import lombok.*;
+import static packetproxy.util.Throwing.rethrow;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -26,117 +26,120 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static packetproxy.util.Throwing.rethrow;
+import lombok.*;
 
 @ToString
 @EqualsAndHashCode
 public final class QuicMessages {
 
-    static public QuicMessages emptyList() {
-        return new QuicMessages();
-    }
+	public static QuicMessages emptyList() {
+		return new QuicMessages();
+	}
 
-    static public QuicMessages of(QuicMessage msg) {
-        return new QuicMessages(List.of(msg));
-    }
-    static public QuicMessages of(QuicMessage msg1, QuicMessage msg2) {
-        return new QuicMessages(List.of(msg1, msg2));
-    }
-    static public QuicMessages of(QuicMessage msg1, QuicMessage msg2, QuicMessage msg3) {
-        return new QuicMessages(List.of(msg1, msg2, msg3));
-    }
-    static public QuicMessages of(List<QuicMessage> msgs) {
-        return new QuicMessages(msgs);
-    }
+	public static QuicMessages of(QuicMessage msg) {
+		return new QuicMessages(List.of(msg));
+	}
+	public static QuicMessages of(QuicMessage msg1, QuicMessage msg2) {
+		return new QuicMessages(List.of(msg1, msg2));
+	}
+	public static QuicMessages of(QuicMessage msg1, QuicMessage msg2, QuicMessage msg3) {
+		return new QuicMessages(List.of(msg1, msg2, msg3));
+	}
+	public static QuicMessages of(List<QuicMessage> msgs) {
+		return new QuicMessages(msgs);
+	}
 
-    static public QuicMessages parse(byte[] bytes) {
-        return parse(ByteBuffer.wrap(bytes));
-    }
+	public static QuicMessages parse(byte[] bytes) {
+		return parse(ByteBuffer.wrap(bytes));
+	}
 
-    static public QuicMessages parse(ByteBuffer buffer) {
-        QuicMessages msgs = QuicMessages.emptyList();
-        while (buffer.remaining() > 16) {
-            int savedPosition = buffer.position();
-            StreamId streamId = StreamId.parse(buffer);
-            long dataLength = buffer.getLong();
-            if (buffer.remaining() < dataLength) {
-                buffer.position(savedPosition);
-                break;
-            }
-            byte[] data = SimpleBytes.parse(buffer, dataLength).getBytes();
-            msgs.add(QuicMessage.of(streamId, data));
-        }
-        return msgs;
-    }
+	public static QuicMessages parse(ByteBuffer buffer) {
+		QuicMessages msgs = QuicMessages.emptyList();
+		while (buffer.remaining() > 16) {
+			int savedPosition = buffer.position();
+			StreamId streamId = StreamId.parse(buffer);
+			long dataLength = buffer.getLong();
+			if (buffer.remaining() < dataLength) {
+				buffer.position(savedPosition);
+				break;
+			}
+			byte[] data = SimpleBytes.parse(buffer, dataLength).getBytes();
+			msgs.add(QuicMessage.of(streamId, data));
+		}
+		return msgs;
+	}
 
-    private final List<QuicMessage> messages = new ArrayList<>();
+	private final List<QuicMessage> messages = new ArrayList<>();
 
-    private QuicMessages() {
-    }
+	private QuicMessages() {
+	}
 
-    private QuicMessages(List<QuicMessage> msgs) {
-        this.messages.addAll(msgs);
-    }
+	private QuicMessages(List<QuicMessage> msgs) {
+		this.messages.addAll(msgs);
+	}
 
-    public void clear() {
-        this.messages.clear();
-    }
+	public void clear() {
+		this.messages.clear();
+	}
 
-    public boolean add(QuicMessage msg) {
-        return this.messages.add(msg);
-    }
+	public boolean add(QuicMessage msg) {
+		return this.messages.add(msg);
+	}
 
-    public boolean addAll(QuicMessages msgs) {
-        return this.messages.addAll(msgs.messages);
-    }
+	public boolean addAll(QuicMessages msgs) {
+		return this.messages.addAll(msgs.messages);
+	}
 
-    public QuicMessage get(int index) {
-        return this.messages.get(index);
-    }
+	public QuicMessage get(int index) {
+		return this.messages.get(index);
+	}
 
-    public int size() {
-        return this.messages.size();
-    }
+	public int size() {
+		return this.messages.size();
+	}
 
-    public void forEach(Consumer<QuicMessage> action) {
-        this.messages.forEach(action);
-    }
+	public void forEach(Consumer<QuicMessage> action) {
+		this.messages.forEach(action);
+	}
 
-    public QuicMessages map(Function<QuicMessage, QuicMessage> mapper) {
-        return QuicMessages.of(this.messages.stream().map(mapper).collect(Collectors.toList()));
-    }
+	public QuicMessages map(Function<QuicMessage, QuicMessage> mapper) {
+		return QuicMessages.of(this.messages.stream().map(mapper).collect(Collectors.toList()));
+	}
 
-    public QuicMessages filter(Predicate<QuicMessage> predicate) {
-        return QuicMessages.of(this.messages.stream().filter(predicate).collect(Collectors.toList()));
-    }
+	public QuicMessages filter(Predicate<QuicMessage> predicate) {
+		return QuicMessages.of(this.messages.stream().filter(predicate).collect(Collectors.toList()));
+	}
 
-    public byte[] getBytes() {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        this.messages.forEach(rethrow(msg -> {
-            bytes.write(msg.getBytes());
-        }));
-        return bytes.toByteArray();
-    }
+	public byte[] getBytes() {
+		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+		this.messages.forEach(rethrow(msg -> {
+			bytes.write(msg.getBytes());
+		}));
+		return bytes.toByteArray();
+	}
 
-    /**
-     * streamIdのメッセージを集める
-     * @param streamId
-     * @return QuicMessages
-     */
-    public QuicMessages filter(StreamId streamId) {
-        List<QuicMessage> msgs = this.messages.stream().filter(msg -> msg.streamIdIs(streamId)).collect(Collectors.toList());
-        return new QuicMessages(msgs);
-    }
+	/**
+	 * streamIdのメッセージを集める
+	 *
+	 * @param streamId
+	 * @return QuicMessages
+	 */
+	public QuicMessages filter(StreamId streamId) {
+		List<QuicMessage> msgs = this.messages.stream().filter(msg -> msg.streamIdIs(streamId))
+				.collect(Collectors.toList());
+		return new QuicMessages(msgs);
+	}
 
-    /**
-     * streamId以外のメッセージを集める
-     * @param streamId
-     * @return QuicMessages
-     */
-    public QuicMessages filterAllBut(StreamId streamId) {
-        List<QuicMessage> msgs = this.messages.stream().filter(msg -> !msg.streamIdIs(streamId)).collect(Collectors.toList());
-        return new QuicMessages(msgs);
-    }
+	/**
+	 * streamId以外のメッセージを集める
+	 *
+	 * @param streamId
+	 * @return QuicMessages
+	 */
+	public QuicMessages filterAllBut(StreamId streamId) {
+		List<QuicMessage> msgs = this.messages.stream().filter(msg -> !msg.streamIdIs(streamId))
+				.collect(Collectors.toList());
+		return new QuicMessages(msgs);
+	}
 
 }

@@ -17,18 +17,16 @@ package packetproxy;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-import packetproxy.vulchecker.VulChecker;
-
-import javax.tools.*;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
+import javax.tools.*;
+import packetproxy.vulchecker.VulChecker;
 
-public class VulCheckerManager
-{
+public class VulCheckerManager {
 	private static VulCheckerManager instance;
 
 	public static VulCheckerManager getInstance() throws Exception {
@@ -38,7 +36,7 @@ public class VulCheckerManager
 		return instance;
 	}
 
-	private HashMap<String,Class<VulChecker>> vulCheckerMap = new HashMap<>();
+	private HashMap<String, Class<VulChecker>> vulCheckerMap = new HashMap<>();
 	private static final String vulCheckerPackage = "packetproxy.vulchecker";
 
 	private VulCheckerManager() {
@@ -57,11 +55,12 @@ public class VulCheckerManager
 			try {
 				Path vulCheckerFilePath = Paths.get(f.getName());
 				Path vulCheckerFileName = vulCheckerFilePath.getFileName();
-				String vulCheckerClassPath = vulCheckerPackage + "." + vulCheckerFileName.toString().replaceAll("\\.class.*$", "");
+				String vulCheckerClassPath = vulCheckerPackage + "."
+						+ vulCheckerFileName.toString().replaceAll("\\.class.*$", "");
 				Class klass = Class.forName(vulCheckerClassPath);
-				if(VulChecker.class.isAssignableFrom(klass) && !Modifier.isAbstract(klass.getModifiers())){
+				if (VulChecker.class.isAssignableFrom(klass) && !Modifier.isAbstract(klass.getModifiers())) {
 					@SuppressWarnings("unchecked")
-					VulChecker vulChecker = createInstance((Class<VulChecker>)klass);
+					VulChecker vulChecker = createInstance((Class<VulChecker>) klass);
 					vulCheckerMap.put(vulChecker.getName(), klass);
 				}
 			} catch (Exception e) {
@@ -74,7 +73,7 @@ public class VulCheckerManager
 		String[] names = new String[vulCheckerMap.size()];
 		int i = 0;
 		for (String name : vulCheckerMap.keySet()) {
-				names[i++] = name;
+			names[i++] = name;
 		}
 		Arrays.sort(names);
 		return names;

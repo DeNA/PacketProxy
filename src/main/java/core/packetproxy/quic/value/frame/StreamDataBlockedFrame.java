@@ -17,46 +17,45 @@
 package packetproxy.quic.value.frame;
 
 import com.google.common.collect.ImmutableList;
+import java.nio.ByteBuffer;
+import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import packetproxy.quic.value.VariableLengthInteger;
-
-import java.nio.ByteBuffer;
-import java.util.List;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
 public class StreamDataBlockedFrame extends Frame {
 
-    static public final byte TYPE = 0x15;
+	public static final byte TYPE = 0x15;
 
-    static public List<Byte> supportedTypes() {
-        return ImmutableList.of(TYPE);
-    }
+	public static List<Byte> supportedTypes() {
+		return ImmutableList.of(TYPE);
+	}
 
-    long streamId;
-    long maxStreamData;
+	long streamId;
+	long maxStreamData;
 
-    static public StreamDataBlockedFrame parse(byte[] bytes) {
-        return StreamDataBlockedFrame.parse(ByteBuffer.wrap(bytes));
-    }
+	public static StreamDataBlockedFrame parse(byte[] bytes) {
+		return StreamDataBlockedFrame.parse(ByteBuffer.wrap(bytes));
+	}
 
-    static public StreamDataBlockedFrame parse(ByteBuffer buffer) {
-        byte type = buffer.get();
-        assert(type == TYPE);
-        long streamId = VariableLengthInteger.parse(buffer).getValue();
-        long maxStreamData = VariableLengthInteger.parse(buffer).getValue();
-        return new StreamDataBlockedFrame(streamId, maxStreamData);
-    }
+	public static StreamDataBlockedFrame parse(ByteBuffer buffer) {
+		byte type = buffer.get();
+		assert (type == TYPE);
+		long streamId = VariableLengthInteger.parse(buffer).getValue();
+		long maxStreamData = VariableLengthInteger.parse(buffer).getValue();
+		return new StreamDataBlockedFrame(streamId, maxStreamData);
+	}
 
-    @Override
-    public byte[] getBytes() {
-        return new byte[]{ TYPE };
-    }
+	@Override
+	public byte[] getBytes() {
+		return new byte[]{TYPE};
+	}
 
-    @Override
-    public boolean isAckEliciting() {
-        return true;
-    }
+	@Override
+	public boolean isAckEliciting() {
+		return true;
+	}
 
 }

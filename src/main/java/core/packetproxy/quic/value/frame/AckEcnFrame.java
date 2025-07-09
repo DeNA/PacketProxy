@@ -17,13 +17,11 @@
 package packetproxy.quic.value.frame;
 
 import com.google.common.collect.ImmutableList;
-import lombok.*;
-import packetproxy.quic.value.frame.helper.AckRanges;
-import packetproxy.quic.value.VariableLengthInteger;
-
 import java.nio.ByteBuffer;
 import java.util.List;
-
+import lombok.*;
+import packetproxy.quic.value.VariableLengthInteger;
+import packetproxy.quic.value.frame.helper.AckRanges;
 
 /* RFC9000 19.3
 ACK Frame {
@@ -53,53 +51,40 @@ ECN Counts {
 @Value
 public class AckEcnFrame extends AckFrame {
 
-    static public final byte TYPE = 0x03;
+	public static final byte TYPE = 0x03;
 
-    static public List<Byte> supportedTypes() {
-        return ImmutableList.of(TYPE);
-    }
+	public static List<Byte> supportedTypes() {
+		return ImmutableList.of(TYPE);
+	}
 
-    long etc0Count;
-    long etc1Count;
-    long ecnCeCount;
+	long etc0Count;
+	long etc1Count;
+	long ecnCeCount;
 
-    static public AckEcnFrame parse(byte[] bytes) {
-        return AckEcnFrame.parse(ByteBuffer.wrap(bytes));
-    }
+	public static AckEcnFrame parse(byte[] bytes) {
+		return AckEcnFrame.parse(ByteBuffer.wrap(bytes));
+	}
 
-    static public AckEcnFrame parse(ByteBuffer buffer) {
-        AckFrame ackFrame = AckFrame.parse(buffer);
-        long etc0Count = VariableLengthInteger.parse(buffer).getValue();
-        long etc1Count = VariableLengthInteger.parse(buffer).getValue();
-        long ecnCeCount = VariableLengthInteger.parse(buffer).getValue();
-        return new AckEcnFrame(
-                ackFrame.getLargestAcknowledged(),
-                ackFrame.getAckDelay(),
-                ackFrame.getAckRangeCount(),
-                ackFrame.getFirstAckRange(),
-                ackFrame.getAckRanges(),
-                etc0Count,
-                etc1Count,
-                ecnCeCount);
-    }
+	public static AckEcnFrame parse(ByteBuffer buffer) {
+		AckFrame ackFrame = AckFrame.parse(buffer);
+		long etc0Count = VariableLengthInteger.parse(buffer).getValue();
+		long etc1Count = VariableLengthInteger.parse(buffer).getValue();
+		long ecnCeCount = VariableLengthInteger.parse(buffer).getValue();
+		return new AckEcnFrame(ackFrame.getLargestAcknowledged(), ackFrame.getAckDelay(), ackFrame.getAckRangeCount(),
+				ackFrame.getFirstAckRange(), ackFrame.getAckRanges(), etc0Count, etc1Count, ecnCeCount);
+	}
 
-    public AckEcnFrame(long largestAcknowledged,
-                       long ackDelay,
-                       long ackRangeCount,
-                       long firstAckRange,
-                       AckRanges ackRanges,
-                       long etc0Count,
-                       long etc1Count,
-                       long ecnCeCount) {
-        super(largestAcknowledged, ackDelay, ackRangeCount, firstAckRange, ackRanges);
-        this.etc0Count = etc0Count;
-        this.etc1Count = etc1Count;
-        this.ecnCeCount = ecnCeCount;
-    }
+	public AckEcnFrame(long largestAcknowledged, long ackDelay, long ackRangeCount, long firstAckRange,
+			AckRanges ackRanges, long etc0Count, long etc1Count, long ecnCeCount) {
+		super(largestAcknowledged, ackDelay, ackRangeCount, firstAckRange, ackRanges);
+		this.etc0Count = etc0Count;
+		this.etc1Count = etc1Count;
+		this.ecnCeCount = ecnCeCount;
+	}
 
-    @Override
-    public boolean isAckEliciting() {
-        return false;
-    }
+	@Override
+	public boolean isAckEliciting() {
+		return false;
+	}
 
 }

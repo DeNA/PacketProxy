@@ -34,8 +34,7 @@ import javax.swing.text.View;
 import javax.swing.text.ViewFactory;
 import org.apache.commons.lang3.ArrayUtils;
 
-public class WrapEditorKit extends StyledEditorKit
-{
+public class WrapEditorKit extends StyledEditorKit {
 	private static final long serialVersionUID = 1L;
 	private char[] savedBuf;
 	private byte[] savedData;
@@ -55,7 +54,7 @@ public class WrapEditorKit extends StyledEditorKit
 	}
 
 	@Override
-	public void read(Reader in, Document doc, int pos) throws IOException,BadLocationException {
+	public void read(Reader in, Document doc, int pos) throws IOException, BadLocationException {
 		char[] buff = new char[4096];
 		int nch;
 		AttributeSet attr = getInputAttributes();
@@ -63,7 +62,7 @@ public class WrapEditorKit extends StyledEditorKit
 		while ((nch = in.read(buff, 0, buff.length)) != -1) {
 			doc.insertString(pos, new String(buff, 0, nch), attr);
 			savedBuf = ArrayUtils.addAll(savedBuf, ArrayUtils.subarray(buff, 0, nch));
-			pos+=nch;
+			pos += nch;
 		}
 	}
 
@@ -113,11 +112,11 @@ public class WrapEditorKit extends StyledEditorKit
 
 		public float getMinimumSpan(int axis) {
 			switch (axis) {
-				case View.X_AXIS:
+				case View.X_AXIS :
 					return 0;
-				case View.Y_AXIS:
+				case View.Y_AXIS :
 					return super.getMinimumSpan(axis);
-				default:
+				default :
 					throw new IllegalArgumentException("Invalid axis: " + axis);
 			}
 		}

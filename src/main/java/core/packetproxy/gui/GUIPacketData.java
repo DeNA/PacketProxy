@@ -16,16 +16,13 @@
 package packetproxy.gui;
 
 import java.awt.Dimension;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-
 import packetproxy.model.OneShotPacket;
 
-public class GUIPacketData
-{
+public class GUIPacketData {
 	private JPanel main_panel;
 	private TabSet tabs;
 	private OneShotPacket showing_packet;
@@ -36,7 +33,7 @@ public class GUIPacketData
 		tabs = new TabSet(true, false);
 		main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
 		main_panel.add(tabs.getTabPanel());
-		main_panel.setPreferredSize(new Dimension(200,100));
+		main_panel.setPreferredSize(new Dimension(200, 100));
 	}
 
 	public JComponent createPanel() {
@@ -83,6 +80,6 @@ public class GUIPacketData
 	}
 
 	public void setParentSend(JButton parentSend) {
-		tabs.setParentSend (parentSend);
+		tabs.setParentSend(parentSend);
 	}
 }

@@ -15,19 +15,20 @@
  */
 package packetproxy.model;
 
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+import static packetproxy.model.PropertyChangeEventType.PACKETS;
+
 import com.j256.ormlite.dao.Dao;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.List;
-import java.beans.PropertyChangeSupport;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
 import javax.swing.JOptionPane;
 import packetproxy.common.Logger;
 import packetproxy.model.Database.DatabaseMessage;
 import packetproxy.util.PacketProxyUtility;
-import static packetproxy.model.PropertyChangeEventType.PACKETS;
-import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 
 public class Packets implements PropertyChangeListener {
 	private static Packets instance;
@@ -159,16 +160,12 @@ public class Packets implements PropertyChangeListener {
 	}
 
 	public List<Packet> queryFullText(String search, int start) throws Exception {
-		return dao.queryBuilder().selectColumns("group").where()
-				.ge("id", start)
-				.and()
+		return dao.queryBuilder().selectColumns("group").where().ge("id", start).and()
 				.like("decoded_data", String.format("%%%s%%", search)).query();
 	}
 
 	public List<Packet> queryFullTextById(String search, int id) throws Exception {
-		return dao.queryBuilder().selectColumns("group").where()
-				.eq("id", id)
-				.and()
+		return dao.queryBuilder().selectColumns("group").where().eq("id", id).and()
 				.like("decoded_data", String.format("%%%s%%", search)).query();
 	}
 
@@ -181,8 +178,8 @@ public class Packets implements PropertyChangeListener {
 
 	// case insensitive full text search
 	public List<Packet> queryFullText_i(String search) throws Exception {
-		return dao.queryBuilder().selectColumns("group").where()
-				.like("decoded_data", String.format("%%%s%%", search)).query();
+		return dao.queryBuilder().selectColumns("group").where().like("decoded_data", String.format("%%%s%%", search))
+				.query();
 	}
 
 	public void firePropertyChange() {
@@ -205,15 +202,15 @@ public class Packets implements PropertyChangeListener {
 	public void handleDatabaseMessage(DatabaseMessage message) {
 		try {
 			switch (message) {
-				case PAUSE:
+				case PAUSE :
 					// TODO ロックを取る
 					break;
-				case RESUME:
+				case RESUME :
 					// TODO ロックを解除
 					break;
-				case DISCONNECT_NOW:
+				case DISCONNECT_NOW :
 					break;
-				case RECONNECT:
+				case RECONNECT :
 					database = Database.getInstance();
 					dao = database.createTable(Packet.class);
 					// ファイル読み込み時にpacketsテーブルの中にcolorカラムがなかったら追加する
@@ -224,11 +221,11 @@ public class Packets implements PropertyChangeListener {
 					}
 					firePropertyChange(message);
 					break;
-				case RECREATE:
+				case RECREATE :
 					database = Database.getInstance();
 					dao = database.createTable(Packet.class);
 					break;
-				default:
+				default :
 					break;
 			}
 		} catch (Exception e) {
@@ -244,10 +241,8 @@ public class Packets implements PropertyChangeListener {
 	}
 
 	private void RecreateTable() throws Exception {
-		int option = JOptionPane.showConfirmDialog(null,
-				"packetsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",
-				"テーブルの更新",
-				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+		int option = JOptionPane.showConfirmDialog(null, "packetsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",
+				"テーブルの更新", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 		if (option == JOptionPane.YES_OPTION) {
 			database.dropTable(Packet.class);
 			dao = database.createTable(Packet.class);

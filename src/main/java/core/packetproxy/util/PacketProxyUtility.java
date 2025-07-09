@@ -16,14 +16,14 @@
 package packetproxy.util;
 
 import java.io.UnsupportedEncodingException;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
-import java.util.Arrays;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import packetproxy.gui.GUILog;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import packetproxy.gui.GUILog;
 
 public class PacketProxyUtility {
 	private static String OS = System.getProperty("os.name").toLowerCase();
@@ -83,9 +83,7 @@ public class PacketProxyUtility {
 		try {
 			String str = new String(data, "UTF-8");
 			Stream<String> stream = Arrays.asList(str.split("\r\n\r\n")).stream();
-			return stream.map(this::prettyFormatJSON)
-					.filter(j -> !j.isEmpty())
-					.collect(Collectors.joining("\n"))
+			return stream.map(this::prettyFormatJSON).filter(j -> !j.isEmpty()).collect(Collectors.joining("\n"))
 					.getBytes();
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
@@ -100,11 +98,11 @@ public class PacketProxyUtility {
 			int begin = data.length();
 			int end = data.length();
 			if (data.contains("{"))
-				begin = Math.min(begin, data.indexOf("{"));
+				begin = Math.min(begin, data.indexOf('{'));
 			if (data.contains("["))
-				begin = Math.min(begin, data.indexOf("["));
+				begin = Math.min(begin, data.indexOf('['));
 			data = data.substring(begin, end);
-			if (data.length() == 0)
+			if (data.isEmpty())
 				return "";
 			if (0 == data.indexOf('[')) {
 				data = String.format("{data:%s}", data);

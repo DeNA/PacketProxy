@@ -15,19 +15,17 @@
  */
 package packetproxy.model;
 
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+import static packetproxy.model.PropertyChangeEventType.SERVERS;
+
 import com.j256.ormlite.dao.Dao;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import packetproxy.model.DaoQueryCache;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.List;
 import packetproxy.model.Database.DatabaseMessage;
-import static packetproxy.model.PropertyChangeEventType.SERVERS;
-import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 
 public class Servers implements PropertyChangeListener {
 
@@ -227,26 +225,26 @@ public class Servers implements PropertyChangeListener {
 		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
 			switch (message) {
-				case PAUSE:
+				case PAUSE :
 					// TODO ロックを取る
 					break;
-				case RESUME:
+				case RESUME :
 					// TODO ロックを解除
 					break;
-				case DISCONNECT_NOW:
+				case DISCONNECT_NOW :
 					break;
-				case RECONNECT:
+				case RECONNECT :
 					database = Database.getInstance();
 					dao = database.createTable(Server.class, this);
 					cache.clear();
 					firePropertyChange(message);
 					break;
-				case RECREATE:
+				case RECREATE :
 					database = Database.getInstance();
 					dao = database.createTable(Server.class, this);
 					cache.clear();
 					break;
-				default:
+				default :
 					break;
 			}
 		} catch (Exception e) {

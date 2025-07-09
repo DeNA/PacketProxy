@@ -25,13 +25,12 @@ public class Connection {
 	private InetSocketAddress client;
 	private InetSocketAddress server;
 	private Direction direction;
-	
+
 	public enum Direction {
 		NO_DIRECTION, CLIENT_TO_SERVER, SERVER_TO_CLIENT
 	}
-	
-	public Connection()
-	{
+
+	public Connection() {
 		this.listen_port = 0;
 		this.proxy_port = 0;
 		this.client = new InetSocketAddress(0);
@@ -39,17 +38,16 @@ public class Connection {
 		this.direction = Direction.NO_DIRECTION;
 	}
 
-	public Connection(int listen_port, int proxy_port, InetSocketAddress client, InetSocketAddress server, Direction direction)
-	{
+	public Connection(int listen_port, int proxy_port, InetSocketAddress client, InetSocketAddress server,
+			Direction direction) {
 		this.listen_port = listen_port;
 		this.proxy_port = proxy_port;
 		this.client = client;
 		this.server = server;
 		this.direction = direction;
 	}
-	
-	public Connection(int listen_port, int proxy_port, InetSocketAddress client, InetSocketAddress server)
-	{
+
+	public Connection(int listen_port, int proxy_port, InetSocketAddress client, InetSocketAddress server) {
 		this.listen_port = listen_port;
 		this.proxy_port = proxy_port;
 		this.client = client;
@@ -57,20 +55,19 @@ public class Connection {
 		this.direction = Direction.NO_DIRECTION;
 	}
 
-	public Connection(int listen_port, Socket client_socket, Socket server_socket, Direction direction)
-	{
+	public Connection(int listen_port, Socket client_socket, Socket server_socket, Direction direction) {
 		InetSocketAddress client_addr = null;
 		InetSocketAddress server_addr = null;
 		int proxy_port = 0;
 
 		if (client_socket != null) {
-			InetAddress client_ip   = client_socket.getInetAddress();
-			int         client_port = client_socket.getPort();
+			InetAddress client_ip = client_socket.getInetAddress();
+			int client_port = client_socket.getPort();
 			client_addr = new InetSocketAddress(client_ip, client_port);
 		}
 		if (server_socket != null) {
-			InetAddress server_ip   = server_socket.getInetAddress();
-			int         server_port = server_socket.getPort();
+			InetAddress server_ip = server_socket.getInetAddress();
+			int server_port = server_socket.getPort();
 			server_addr = new InetSocketAddress(server_ip, server_port);
 			proxy_port = server_socket.getLocalPort();
 		}
@@ -81,11 +78,11 @@ public class Connection {
 		this.server = server_addr;
 		this.direction = direction;
 	}
-	
+
 	public int getListenPort() {
 		return this.listen_port;
 	}
-	
+
 	public int getProxyPort() {
 		return this.proxy_port;
 	}
@@ -105,7 +102,7 @@ public class Connection {
 	public int getServerPort() {
 		return (server == null) ? 0 : server.getPort();
 	}
-	
+
 	public InetSocketAddress getDestination() {
 		return (direction == Direction.CLIENT_TO_SERVER) ? server : client;
 	}
@@ -113,25 +110,23 @@ public class Connection {
 	public InetSocketAddress getSource() {
 		return (direction == Direction.CLIENT_TO_SERVER) ? client : server;
 	}
-	
+
 	public Direction getDirection() {
 		return direction;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof Connection)) {
 			return false;
 		}
 		Connection conn = (Connection) obj;
-		
-		if (this.listen_port != conn.listen_port ||
-			!this.client.equals(conn.client) ||
-			!this.server.equals(conn.server) || 
-			this.direction != conn.direction) {
+
+		if (this.listen_port != conn.listen_port || !this.client.equals(conn.client) || !this.server.equals(conn.server)
+				|| this.direction != conn.direction) {
 			return false;
 		}
-		
+
 		return true;
 	}
 }

@@ -16,18 +16,18 @@
 package packetproxy.vulchecker.generator;
 
 public class LongOverflowMinusOneGenerator extends Generator {
-    @Override
-    public String getName() {
-        return "2^64 - 1";
-    }
+	@Override
+	public String getName() {
+		return "2^64 - 1";
+	}
 
-    @Override
-    public boolean generateOnStart() {
-        return true;
-    }
+	@Override
+	public boolean generateOnStart() {
+		return true;
+	}
 
-    @Override
-    public String generate(String inputData) {
-        return "18446744073709551615";
-    }
+	@Override
+	public String generate(String inputData) {
+		return "18446744073709551615";
+	}
 }

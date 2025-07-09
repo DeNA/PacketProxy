@@ -15,11 +15,10 @@
  */
 package packetproxy;
 
+import java.net.ServerSocket;
 import packetproxy.common.I18nString;
 import packetproxy.model.ListenPort;
 import packetproxy.util.PacketProxyUtility;
-
-import java.net.ServerSocket;
 
 public class ProxyFactory {
 

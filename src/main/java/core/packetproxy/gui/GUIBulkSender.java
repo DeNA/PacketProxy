@@ -22,14 +22,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-
 import packetproxy.controller.ResendController;
 import packetproxy.controller.ResendController.ResendWorker;
 import packetproxy.model.OneShotPacket;
@@ -156,8 +154,7 @@ public class GUIBulkSender {
 														regexParams.stream().filter(v -> {
 															return v.getPacketId() == idx;
 														}).forEach(v -> {
-															regexParams.get(regexParams.indexOf(v))
-																	.setValue(oneshot);
+															regexParams.get(regexParams.indexOf(v)).setValue(oneshot);
 														});
 														latch.countDown();
 													}

@@ -15,6 +15,9 @@
  */
 package packetproxy.gui;
 
+import static packetproxy.model.PropertyChangeEventType.RESENDER_PACKETS;
+import static packetproxy.model.PropertyChangeEventType.SELECTED_INDEX;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -24,21 +27,17 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-
 import packetproxy.controller.ResendController;
 import packetproxy.controller.ResendController.ResendWorker;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.Packet;
 import packetproxy.model.ResenderPacket;
 import packetproxy.model.ResenderPackets;
-import static packetproxy.model.PropertyChangeEventType.RESENDER_PACKETS;
-import static packetproxy.model.PropertyChangeEventType.SELECTED_INDEX;
 
 public class GUIResender implements PropertyChangeListener {
 	class ResendsCloseButtonTabbedPane extends CloseButtonTabbedPane {
@@ -138,7 +137,7 @@ public class GUIResender implements PropertyChangeListener {
 
 	public void addResends(OneShotPacket send_packet) throws Exception {
 		Resends resends = new Resends();
-		int resends_index = resends_indexes.size() == 0 ? 1 : resends_indexes.get(resends_indexes.size() - 1) + 1;
+		int resends_index = resends_indexes.isEmpty() ? 1 : resends_indexes.get(resends_indexes.size() - 1) + 1;
 		resends_indexes.add(resends_index);
 		resends_tabs.addTab(String.valueOf(resends_index), resends.getComponent());
 		resends_tabs.setSelectedComponent(resends.getComponent());
@@ -175,7 +174,7 @@ public class GUIResender implements PropertyChangeListener {
 
 		public void addResend(OneShotPacket send_packet, OneShotPacket recv_packet) throws Exception {
 			Resend resend = new Resend(this);
-			int resend_index = resend_indexes.size() == 0 ? 1 : resend_indexes.get(resend_indexes.size() - 1) + 1;
+			int resend_index = resend_indexes.isEmpty() ? 1 : resend_indexes.get(resend_indexes.size() - 1) + 1;
 			resend_indexes.add(resend_index);
 			resend_tabs.addTab(String.valueOf(resend_index), resend.getComponent());
 			resend_tabs.setSelectedComponent(resend.getComponent());

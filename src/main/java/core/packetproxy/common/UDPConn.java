@@ -28,19 +28,19 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 public class UDPConn {
 	private PipeEndpoint pipe;
 	private InetSocketAddress addr;
-	
+
 	public UDPConn(InetSocketAddress addr) throws Exception {
 		this.addr = addr;
 		this.pipe = new PipeEndpoint(addr);
 	}
-	
+
 	public void put(byte[] data, int offset, int length) throws Exception {
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		bout.write(data, offset, length);
 		put(bout.toByteArray());
 		bout.close();
 	}
-	
+
 	public void put(byte[] data) throws Exception {
 		OutputStream os = pipe.getRawEndpoint().getOutputStream();
 		os.write(data);
@@ -62,7 +62,7 @@ public class UDPConn {
 		};
 		executor.submit(recvTask);
 	}
-	
+
 	public Endpoint getEndpoint() throws Exception {
 		return pipe.getProxyRawEndpoint();
 	}

@@ -18,9 +18,7 @@ package packetproxy;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 import org.apache.commons.lang3.ArrayUtils;
-
 import packetproxy.common.Endpoint;
 import packetproxy.model.OneShotPacket;
 

@@ -19,7 +19,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
-
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -28,20 +27,21 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
+import packetproxy.common.ConfigIO;
 import packetproxy.common.I18nString;
+import packetproxy.common.Utils;
 import packetproxy.model.Database;
 import packetproxy.model.Packets;
 import packetproxy.util.PacketProxyUtility;
-import packetproxy.common.ConfigIO;
-import packetproxy.common.Utils;
 
 @SuppressWarnings("serial")
 public class GUIMenu extends JMenuBar {
-	final static private String defaultDir = System.getProperty("user.home");
+	private static final String defaultDir = System.getProperty("user.home");
 	GUIMenu self;
 	JFrame owner;
-	private enum Panes {HISTORY, INTERCEPT, RESENDER, BULKSENDER, OPTIONS, LOG};
+	private enum Panes {
+		HISTORY, INTERCEPT, RESENDER, BULKSENDER, OPTIONS, LOG
+	};
 	public GUIMenu(JFrame owner) {
 		self = this;
 		this.owner = owner;
@@ -59,14 +59,15 @@ public class GUIMenu extends JMenuBar {
 						try {
 							Database.getInstance().Save(file.getAbsolutePath());
 							JOptionPane.showMessageDialog(null, I18nString.get("Data saved successfully"));
-						}catch (Exception e1) {
+						} catch (Exception e1) {
 							e1.printStackTrace();
 							JOptionPane.showMessageDialog(null, I18nString.get("Data can't be saved with error"));
 						}
 					}
 
 					@Override
-					public void onCanceled() {}
+					public void onCanceled() {
+					}
 
 					@Override
 					public void onError() {
@@ -89,14 +90,15 @@ public class GUIMenu extends JMenuBar {
 						try {
 							Packets.getInstance().outputAllPackets(file.getAbsolutePath());
 							JOptionPane.showMessageDialog(null, I18nString.get("Data saved successfully"));
-						}catch (Exception e1) {
+						} catch (Exception e1) {
 							e1.printStackTrace();
 							JOptionPane.showMessageDialog(null, I18nString.get("Data can't be saved with error"));
 						}
 					}
 
 					@Override
-					public void onCanceled() {}
+					public void onCanceled() {
+					}
 
 					@Override
 					public void onError() {
@@ -130,11 +132,11 @@ public class GUIMenu extends JMenuBar {
 
 		String cmd_key = "⌘ ^ ";
 		if (!PacketProxyUtility.getInstance().isMac()) {
-			cmd_key="Ctrl + ";
+			cmd_key = "Ctrl + ";
 		}
 		JMenu view_menu = new JMenu(I18nString.get("View"));
 		this.add(view_menu);
-		JMenuItem view_history = new JMenuItem(I18nString.get("View History")+"  "+cmd_key+"H");
+		JMenuItem view_history = new JMenuItem(I18nString.get("View History") + "  " + cmd_key + "H");
 		view_menu.add(view_history);
 		view_history.addActionListener(new ActionListener() {
 			@Override
@@ -147,7 +149,7 @@ public class GUIMenu extends JMenuBar {
 				}
 			}
 		});
-		JMenuItem view_intercept = new JMenuItem(I18nString.get("View Interceptor")+"  "+cmd_key+"I");
+		JMenuItem view_intercept = new JMenuItem(I18nString.get("View Interceptor") + "  " + cmd_key + "I");
 		view_menu.add(view_intercept);
 		view_intercept.addActionListener(new ActionListener() {
 			@Override
@@ -160,7 +162,7 @@ public class GUIMenu extends JMenuBar {
 				}
 			}
 		});
-		JMenuItem view_resender = new JMenuItem(I18nString.get("View Resender")+"  "+cmd_key+"R");
+		JMenuItem view_resender = new JMenuItem(I18nString.get("View Resender") + "  " + cmd_key + "R");
 		view_menu.add(view_resender);
 		view_resender.addActionListener(new ActionListener() {
 			@Override
@@ -173,7 +175,7 @@ public class GUIMenu extends JMenuBar {
 				}
 			}
 		});
-		JMenuItem view_bulk_sender = new JMenuItem(I18nString.get("View BulkSender")+"  "+cmd_key+"B");
+		JMenuItem view_bulk_sender = new JMenuItem(I18nString.get("View BulkSender") + "  " + cmd_key + "B");
 		view_menu.add(view_bulk_sender);
 		view_bulk_sender.addActionListener(new ActionListener() {
 			@Override
@@ -185,7 +187,7 @@ public class GUIMenu extends JMenuBar {
 				}
 			}
 		});
-		JMenuItem view_options = new JMenuItem(I18nString.get("View Options")+"  "+cmd_key+"O");
+		JMenuItem view_options = new JMenuItem(I18nString.get("View Options") + "  " + cmd_key + "O");
 		view_menu.add(view_options);
 		view_options.addActionListener(new ActionListener() {
 			@Override
@@ -197,7 +199,7 @@ public class GUIMenu extends JMenuBar {
 				}
 			}
 		});
-		JMenuItem view_log = new JMenuItem(I18nString.get("View Log")+"  "+cmd_key+"L");
+		JMenuItem view_log = new JMenuItem(I18nString.get("View Log") + "  " + cmd_key + "L");
 		view_menu.add(view_log);
 		view_log.addActionListener(new ActionListener() {
 			@Override
@@ -245,29 +247,30 @@ public class GUIMenu extends JMenuBar {
 				try {
 					WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "json");
 					filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
-					@Override
-					public void onApproved(File file, String extension) {
-						try {
-							ConfigIO io = new ConfigIO();
-							String json = io.getOptions();
-							Utils.writefile(file.getAbsolutePath(),json.getBytes());
-							JOptionPane.showMessageDialog(null, I18nString.get("Config saved successfully"));
-						}catch (Exception e1) {
-							e1.printStackTrace();
+						@Override
+						public void onApproved(File file, String extension) {
+							try {
+								ConfigIO io = new ConfigIO();
+								String json = io.getOptions();
+								Utils.writefile(file.getAbsolutePath(), json.getBytes());
+								JOptionPane.showMessageDialog(null, I18nString.get("Config saved successfully"));
+							} catch (Exception e1) {
+								e1.printStackTrace();
+								JOptionPane.showMessageDialog(null, I18nString.get("Config can't be saved with error"));
+							}
+						}
+
+						@Override
+						public void onCanceled() {
+						}
+
+						@Override
+						public void onError() {
 							JOptionPane.showMessageDialog(null, I18nString.get("Config can't be saved with error"));
 						}
-					}
-
-					@Override
-					public void onCanceled() {}
-
-					@Override
-					public void onError() {
-						JOptionPane.showMessageDialog(null, I18nString.get("Config can't be saved with error"));
-					}
-				});
-				filechooser.showSaveDialog();
-				}catch (Exception e1) {
+					});
+					filechooser.showSaveDialog();
+				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
 			}

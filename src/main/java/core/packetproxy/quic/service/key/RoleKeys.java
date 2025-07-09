@@ -16,87 +16,86 @@
 
 package packetproxy.quic.service.key;
 
+import java.util.Optional;
 import lombok.Getter;
 import packetproxy.quic.utils.Constants;
-import packetproxy.quic.value.key.level.ZeroRttKey;
+import packetproxy.quic.value.ConnectionId;
 import packetproxy.quic.value.key.level.ApplicationKey;
 import packetproxy.quic.value.key.level.HandshakeKey;
 import packetproxy.quic.value.key.level.InitialKey;
-import packetproxy.quic.value.ConnectionId;
-
-import java.util.Optional;
+import packetproxy.quic.value.key.level.ZeroRttKey;
 
 @Getter
 public class RoleKeys {
 
-    private Constants.Role role;
+	private Constants.Role role;
 
-    private Optional<InitialKey> optionalInitialKey = Optional.empty();
-    private Optional<ZeroRttKey> optionalZeroRttKey = Optional.empty();
-    private Optional<HandshakeKey> optionalHandshakeKey = Optional.empty();
-    private Optional<ApplicationKey> optionalApplicationKey = Optional.empty();
+	private Optional<InitialKey> optionalInitialKey = Optional.empty();
+	private Optional<ZeroRttKey> optionalZeroRttKey = Optional.empty();
+	private Optional<HandshakeKey> optionalHandshakeKey = Optional.empty();
+	private Optional<ApplicationKey> optionalApplicationKey = Optional.empty();
 
-    boolean discardedInitialKey = false;
-    boolean discardedHandshakeKey = false;
+	boolean discardedInitialKey = false;
+	boolean discardedHandshakeKey = false;
 
-    public RoleKeys(Constants.Role role) {
-        this.role = role;
-    }
+	public RoleKeys(Constants.Role role) {
+		this.role = role;
+	}
 
-    public InitialKey getInitialKey() {
-        return optionalInitialKey.orElseThrow();
-    }
-    public HandshakeKey getHandshakeKey() {
-        return this.optionalHandshakeKey.orElseThrow();
-    }
-    public ZeroRttKey getZeroRttKey() {
-        return this.optionalZeroRttKey.orElseThrow();
-    }
-    public ApplicationKey getApplicationKey() {
-        return this.optionalApplicationKey.orElseThrow();
-    }
+	public InitialKey getInitialKey() {
+		return optionalInitialKey.orElseThrow();
+	}
+	public HandshakeKey getHandshakeKey() {
+		return this.optionalHandshakeKey.orElseThrow();
+	}
+	public ZeroRttKey getZeroRttKey() {
+		return this.optionalZeroRttKey.orElseThrow();
+	}
+	public ApplicationKey getApplicationKey() {
+		return this.optionalApplicationKey.orElseThrow();
+	}
 
-    public boolean hasInitialKey() {
-        return this.optionalInitialKey.isPresent();
-    }
-    public boolean hasHandshakeKey() {
-        return this.optionalHandshakeKey.isPresent();
-    }
-    public boolean hasZeroRttKey() {
-        return this.optionalZeroRttKey.isPresent();
-    }
-    public boolean hasApplicationKey() {
-        return this.optionalApplicationKey.isPresent();
-    }
+	public boolean hasInitialKey() {
+		return this.optionalInitialKey.isPresent();
+	}
+	public boolean hasHandshakeKey() {
+		return this.optionalHandshakeKey.isPresent();
+	}
+	public boolean hasZeroRttKey() {
+		return this.optionalZeroRttKey.isPresent();
+	}
+	public boolean hasApplicationKey() {
+		return this.optionalApplicationKey.isPresent();
+	}
 
-    public void computeInitialKey(ConnectionId destConnId) {
-        this.optionalInitialKey = Optional.of(InitialKey.of(this.role, destConnId));
-    }
-    public void computeZeroRttKey(byte[] secret) {
-        this.optionalZeroRttKey = Optional.of(ZeroRttKey.of(secret));
-    }
-    public void computeHandshakeKey(byte[] secret) {
-        this.optionalHandshakeKey = Optional.of(HandshakeKey.of(secret));
-    }
-    public void computeApplicationKey(byte[] secret) {
-        this.optionalApplicationKey = Optional.of(ApplicationKey.of(secret));
-    }
+	public void computeInitialKey(ConnectionId destConnId) {
+		this.optionalInitialKey = Optional.of(InitialKey.of(this.role, destConnId));
+	}
+	public void computeZeroRttKey(byte[] secret) {
+		this.optionalZeroRttKey = Optional.of(ZeroRttKey.of(secret));
+	}
+	public void computeHandshakeKey(byte[] secret) {
+		this.optionalHandshakeKey = Optional.of(HandshakeKey.of(secret));
+	}
+	public void computeApplicationKey(byte[] secret) {
+		this.optionalApplicationKey = Optional.of(ApplicationKey.of(secret));
+	}
 
-    public void discardInitialKey() {
-        this.optionalInitialKey = Optional.empty();
-        this.discardedInitialKey = true;
-    }
+	public void discardInitialKey() {
+		this.optionalInitialKey = Optional.empty();
+		this.discardedInitialKey = true;
+	}
 
-    public void discardHandshakeKey() {
-        //this.optionalHandshakeKey = Optional.empty();
-        //this.discardedHandshakeKey = true;
-    }
+	public void discardHandshakeKey() {
+		// this.optionalHandshakeKey = Optional.empty();
+		// this.discardedHandshakeKey = true;
+	}
 
-    public boolean discardedInitialKey() {
-        return discardedInitialKey;
-    }
+	public boolean discardedInitialKey() {
+		return discardedInitialKey;
+	}
 
-    public boolean discardedHandshakeKey() {
-        return discardedHandshakeKey;
-    }
+	public boolean discardedHandshakeKey() {
+		return discardedHandshakeKey;
+	}
 }

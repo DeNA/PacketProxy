@@ -15,112 +15,111 @@
  */
 package packetproxy.common;
 
-import net.arnx.jsonic.JSON;
-import org.xbill.DNS.utils.base64;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Function;
+import net.arnx.jsonic.JSON;
+import org.xbill.DNS.utils.base64;
 
 public class GRPCMessage {
-    private static final int GRPC_WEB_FH_DATA = 0b0;
-    private static final int GRPC_WEB_FH_TRAILER = 0b10000000;
+	private static final int GRPC_WEB_FH_DATA = 0b0;
+	private static final int GRPC_WEB_FH_TRAILER = 0b10000000;
 
-    public int type;
-    public Map<String, Object> message;
+	public int type;
+	public Map<String, Object> message;
 
-    static public List<GRPCMessage> decodeTextMessages(String base64Str) throws Exception {
-        return decodeMessages(base64.fromString(base64Str));
-    }
+	public static List<GRPCMessage> decodeTextMessages(String base64Str) throws Exception {
+		return decodeMessages(base64.fromString(base64Str));
+	}
 
-    static public List<GRPCMessage> decodeMessages(byte[] bytes) throws Exception {
-        ByteArrayInputStream bio = new ByteArrayInputStream(bytes);
-        List<GRPCMessage> ret = new ArrayList<>();
-        while (bio.available() > 0) {
-            ret.add(new GRPCMessage(bio));
-        }
-        return ret;
-    }
+	public static List<GRPCMessage> decodeMessages(byte[] bytes) throws Exception {
+		ByteArrayInputStream bio = new ByteArrayInputStream(bytes);
+		List<GRPCMessage> ret = new ArrayList<>();
+		while (bio.available() > 0) {
+			ret.add(new GRPCMessage(bio));
+		}
+		return ret;
+	}
 
-    static public String encodeTextMessages(List<Map<String, Object>> messages) throws Exception {
-        return new String(encodeMessages(messages, (grpcMessage) -> {
-            try {
-                return base64.toString(grpcMessage.toBytes()).getBytes();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return new byte[0];
-            }
-        }));
-    }
+	public static String encodeTextMessages(List<Map<String, Object>> messages) throws Exception {
+		return new String(encodeMessages(messages, (grpcMessage) -> {
+			try {
+				return base64.toString(grpcMessage.toBytes()).getBytes();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return new byte[0];
+			}
+		}));
+	}
 
-    static public byte[] encodeMessages(List<Map<String, Object>> messages) throws Exception {
-        return encodeMessages(messages, (grpcMessage) -> {
-            try {
-                return grpcMessage.toBytes();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return new byte[0];
-            }
-        });
-    }
+	public static byte[] encodeMessages(List<Map<String, Object>> messages) throws Exception {
+		return encodeMessages(messages, (grpcMessage) -> {
+			try {
+				return grpcMessage.toBytes();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return new byte[0];
+			}
+		});
+	}
 
-    static private byte[] encodeMessages(List<Map<String, Object>> messages, Function<GRPCMessage, byte[]> f) throws Exception {
-        var buf = new ByteArrayOutputStream();
-        for (var message : messages) {
-            var grpcMessage = new GRPCMessage(message);
-            var encodedMessage = f.apply(grpcMessage);
-            buf.writeBytes(encodedMessage);
-        }
-        return buf.toByteArray();
-    }
+	private static byte[] encodeMessages(List<Map<String, Object>> messages, Function<GRPCMessage, byte[]> f)
+			throws Exception {
+		var buf = new ByteArrayOutputStream();
+		for (var message : messages) {
+			var grpcMessage = new GRPCMessage(message);
+			var encodedMessage = f.apply(grpcMessage);
+			buf.writeBytes(encodedMessage);
+		}
+		return buf.toByteArray();
+	}
 
-    public GRPCMessage(InputStream bio) throws Exception {
-        type = bio.read();
-        int length = 0;
-        for (int i = 0; i < 4; i++) {
-            length <<= 8;
-            length += bio.read();
-        }
-        byte[] raw = new byte[length];
-        bio.read(raw);
-        if (type == GRPC_WEB_FH_DATA) {
-            message = JSON.decode(Protobuf3.decode(raw));
-        } else if (type == GRPC_WEB_FH_TRAILER) {
-            message = new HashMap<>();
-            String str = new String(raw);
-            message.put("headers", str.split("\r\n"));
-        } else {
-            throw new RuntimeException("Unknown GRPC Frame Type");
-        }
-    }
+	public GRPCMessage(InputStream bio) throws Exception {
+		type = bio.read();
+		int length = 0;
+		for (int i = 0; i < 4; i++) {
+			length <<= 8;
+			length += bio.read();
+		}
+		byte[] raw = new byte[length];
+		bio.read(raw);
+		if (type == GRPC_WEB_FH_DATA) {
+			message = JSON.decode(Protobuf3.decode(raw));
+		} else if (type == GRPC_WEB_FH_TRAILER) {
+			message = new HashMap<>();
+			String str = new String(raw);
+			message.put("headers", str.split("\r\n"));
+		} else {
+			throw new RuntimeException("Unknown GRPC Frame Type");
+		}
+	}
 
-    public GRPCMessage(Map<String, Object> json) {
-        type = Integer.parseInt(json.get("type").toString());
-        message = (Map<String, Object>) json.get("message");
-    }
+	public GRPCMessage(Map<String, Object> json) {
+		type = Integer.parseInt(json.get("type").toString());
+		message = (Map<String, Object>) json.get("message");
+	}
 
-    public byte[] toBytes() throws Exception {
-        byte[] bytes = new byte[0];
-        if (type == GRPC_WEB_FH_TRAILER) {
-            StringJoiner joiner = new StringJoiner("\r\n", "", "\r\n");
-            for (String s : (List<String>) message.get("headers")) {
-                joiner.add(s);
-            }
-            bytes = joiner.toString().getBytes();
-        } else if (type == GRPC_WEB_FH_DATA) {
-            bytes = Protobuf3.encode(JSON.encode(message));
-        } else {
-            throw new RuntimeException("Unknown GRPC Frame Type");
-        }
-        ByteArrayOutputStream bio = new ByteArrayOutputStream();
-        bio.write(type);
-        ByteBuffer bf = ByteBuffer.allocate(4);
-        bio.write(bf.putInt(bytes.length).array());
-        bio.write(bytes);
-        return bio.toByteArray();
-    }
+	public byte[] toBytes() throws Exception {
+		byte[] bytes = new byte[0];
+		if (type == GRPC_WEB_FH_TRAILER) {
+			StringJoiner joiner = new StringJoiner("\r\n", "", "\r\n");
+			for (String s : (List<String>) message.get("headers")) {
+				joiner.add(s);
+			}
+			bytes = joiner.toString().getBytes();
+		} else if (type == GRPC_WEB_FH_DATA) {
+			bytes = Protobuf3.encode(JSON.encode(message));
+		} else {
+			throw new RuntimeException("Unknown GRPC Frame Type");
+		}
+		ByteArrayOutputStream bio = new ByteArrayOutputStream();
+		bio.write(type);
+		ByteBuffer bf = ByteBuffer.allocate(4);
+		bio.write(bf.putInt(bytes.length).array());
+		bio.write(bytes);
+		return bio.toByteArray();
+	}
 }
-

@@ -18,13 +18,12 @@ package packetproxy.gui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
+import packetproxy.model.DiffEventAdapter;
 import packetproxy.model.DiffJson;
 import packetproxy.model.DiffSet;
-import packetproxy.model.DiffEventAdapter;
 import packetproxy.util.PacketProxyUtility;
 
-public class GUIDiffJson extends GUIDiffBase
-{
+public class GUIDiffJson extends GUIDiffBase {
 	protected JCheckBox jcCh;
 	@Override
 	protected DiffSet sortUniq(DiffSet ds) {

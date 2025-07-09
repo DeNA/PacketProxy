@@ -20,15 +20,15 @@ import org.apache.commons.lang3.StringUtils;
 import packetproxy.common.JWTBase64;
 
 public class JWTSignatureUnmodified extends JWTBase64 {
-    String signature;
+	String signature;
 
-    public JWTSignatureUnmodified(String jwtString) {
-        super(jwtString);
-        signature = StringUtils.substringAfterLast(jwtString, ".");
-    }
+	public JWTSignatureUnmodified(String jwtString) {
+		super(jwtString);
+		signature = StringUtils.substringAfterLast(jwtString, ".");
+	}
 
-    @Override
-    protected String createSignature(String input) throws Exception {
-        return signature;
-    }
+	@Override
+	protected String createSignature(String input) throws Exception {
+		return signature;
+	}
 }

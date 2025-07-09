@@ -21,28 +21,26 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.HashMap;
 import java.util.Map;
-
 import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.SettingsFrame;
 import packetproxy.http2.frames.SettingsFrame.SettingsFrameType;
 import packetproxy.http2.frames.WindowUpdateFrame;
 
-public class FlowControlManager
-{
-	private Map<Integer,FlowControl> flows;
+public class FlowControlManager {
+	private Map<Integer, FlowControl> flows;
 	private int PIPE_SIZE = 65535;
 	private int connectionWindowSize = 65535;
 	private int initialStreamWindowSize = 65535;
 	private int maxConcurrentStreams = 100;
 	private PipedOutputStream outputForFlowControl;
 	private PipedInputStream inputForFlowControl;
-	
+
 	public FlowControlManager() throws Exception {
 		flows = new HashMap<>();
 		outputForFlowControl = new PipedOutputStream();
 		inputForFlowControl = new PipedInputStream(outputForFlowControl, PIPE_SIZE);
 	}
-	
+
 	private synchronized FlowControl getFlow(int streamId) {
 		FlowControl flow = flows.get(streamId);
 		if (flow == null) {
@@ -51,18 +49,20 @@ public class FlowControlManager
 		}
 		return flow;
 	}
-	
+
 	private synchronized void writeData(FlowControl flow) throws Exception {
 		Stream stream = flow.dequeue(this.connectionWindowSize);
 		if (stream != null) {
 			this.connectionWindowSize -= stream.payloadSize();
-			//System.out.printf("[%d] sent: %d (remain: %d), WindowSize: %d, ConnectionWindowSize: %d\n", flow.getStreamId(), stream.payloadSize(), flow.size(), flow.getWindowSize(), this.connectionWindowSize);
-			//System.out.flush();
+			// System.out.printf("[%d] sent: %d (remain: %d), WindowSize: %d,
+			// ConnectionWindowSize: %d\n", flow.getStreamId(), stream.payloadSize(),
+			// flow.size(), flow.getWindowSize(), this.connectionWindowSize);
+			// System.out.flush();
 			this.outputForFlowControl.write(stream.toByteArrayWithoutExtra());
 			this.outputForFlowControl.flush();
 		}
 	}
-	
+
 	public synchronized void setInitialWindowSize(SettingsFrame frame) {
 		int flags = frame.getFlags();
 		if ((flags & 0x1) > 0) {
@@ -73,7 +73,7 @@ public class FlowControlManager
 		}
 		initialStreamWindowSize = frame.get(SettingsFrameType.SETTINGS_INITIAL_WINDOW_SIZE);
 	}
-	
+
 	public synchronized void setMaxConcurrentStreams(SettingsFrame frame) {
 		int flags = frame.getFlags();
 		if ((flags & 0x1) > 0) {
@@ -85,19 +85,19 @@ public class FlowControlManager
 	public synchronized void appendWindowSize(WindowUpdateFrame frame) throws Exception {
 		int streamId = frame.getStreamId();
 		int windowSize = frame.getWindowSize();
-		
+
 		if (streamId == 0) {
 			connectionWindowSize += windowSize;
-			//System.err.printf("ConnectionWindowSize: +%d\n", connectionWindowSize);
-			//System.err.flush();
+			// System.err.printf("ConnectionWindowSize: +%d\n", connectionWindowSize);
+			// System.err.flush();
 			for (FlowControl flow : flows.values()) {
 				writeData(flow);
 			}
 		} else {
 			FlowControl flow = getFlow(streamId);
 			flow.appendWindowSize(windowSize);
-			//System.err.printf("[%d] WindowSize: +%d\n", streamId, flow.getWindowSize());
-			//System.err.flush();
+			// System.err.printf("[%d] WindowSize: +%d\n", streamId, flow.getWindowSize());
+			// System.err.flush();
 			writeData(flow);
 		}
 	}
@@ -105,12 +105,14 @@ public class FlowControlManager
 	public synchronized void write(Frame frame) throws Exception {
 		/* TODO: maximum concurrent streams is not implemented yet */
 		if (frame.getType() == Frame.Type.HEADERS) {
-			//System.out.printf("[%d] sent HeadersFrame %02x\n", frame.getStreamId(), frame.getFlags());
+			// System.out.printf("[%d] sent HeadersFrame %02x\n", frame.getStreamId(),
+			// frame.getFlags());
 			FlowControl flow = getFlow(frame.getStreamId());
 			flow.pushHeadersFrame(frame);
 			writeData(flow);
 		} else if (frame.getType() == Frame.Type.DATA) {
-			//System.out.printf("[%d] sent DataFrame %02x\n", frame.getStreamId(), frame.getFlags());
+			// System.out.printf("[%d] sent DataFrame %02x\n", frame.getStreamId(),
+			// frame.getFlags());
 			FlowControl flow = getFlow(frame.getStreamId());
 			flow.enqueue(frame);
 			writeData(flow);
@@ -119,7 +121,7 @@ public class FlowControlManager
 			outputForFlowControl.flush();
 		}
 	}
-	
+
 	public OutputStream getOutputStream() {
 		return outputForFlowControl;
 	}
@@ -127,6 +129,5 @@ public class FlowControlManager
 	public InputStream getInputStream() {
 		return inputForFlowControl;
 	}
-
 
 }

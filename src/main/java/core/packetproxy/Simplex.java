@@ -26,12 +26,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import javax.net.ssl.SSLException;
 import javax.swing.event.EventListenerList;
-
 import org.apache.commons.lang3.ArrayUtils;
-
 import packetproxy.util.PacketProxyUtility;
 
 class Simplex extends Thread {
@@ -46,17 +43,17 @@ class Simplex extends Thread {
 	protected EventListenerList simplexEventListenerList = new EventListenerList();
 
 	public interface SimplexEventListener extends EventListener {
-		public void onChunkArrived(byte[] data) throws Exception;
+		void onChunkArrived(byte[] data) throws Exception;
 
-		public byte[] onChunkPassThrough() throws Exception;
+		byte[] onChunkPassThrough() throws Exception;
 
-		public byte[] onChunkAvailable() throws Exception;
+		byte[] onChunkAvailable() throws Exception;
 
-		public int onPacketReceived(byte[] data) throws Exception;
+		int onPacketReceived(byte[] data) throws Exception;
 
-		public byte[] onChunkReceived(byte[] data) throws Exception;
+		byte[] onChunkReceived(byte[] data) throws Exception;
 
-		public byte[] onChunkSend(byte[] data) throws Exception;
+		byte[] onChunkSend(byte[] data) throws Exception;
 	}
 
 	public abstract static class SimplexEventAdapter implements SimplexEventListener {

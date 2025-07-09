@@ -16,49 +16,51 @@
 
 package packetproxy.quic.service.pnspace;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import packetproxy.quic.value.SentPacket;
 import packetproxy.quic.service.pnspace.helper.SentPackets;
+import packetproxy.quic.value.PacketNumber;
+import packetproxy.quic.value.SentPacket;
 import packetproxy.quic.value.frame.AckFrame;
 import packetproxy.quic.value.frame.helper.AckRanges;
 import packetproxy.quic.value.packet.helper.TestPacket;
-import packetproxy.quic.value.PacketNumber;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class SentPacketsTest {
 
-    private SentPackets sentPackets;
+	private SentPackets sentPackets;
 
-    @BeforeEach
-    void beforeEach() throws Exception {
-        this.sentPackets = new SentPackets();
-    }
+	@BeforeEach
+	void beforeEach() throws Exception {
+		this.sentPackets = new SentPackets();
+	}
 
-    @Test
-    void getLargestAckFrameが動作すること() throws Exception {
-        this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(0), new AckFrame(0, 0, 0, 0, AckRanges.emptyAckRanges))));
-        this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(1))));
-        this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(2), new AckFrame(2, 0, 0, 0, AckRanges.emptyAckRanges))));
-        this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(3))));
-        this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(4))));
-        this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(5), new AckFrame(1, 0, 0, 0, AckRanges.emptyAckRanges))));
-        this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(6))));
+	@Test
+	void getLargestAckFrameが動作すること() throws Exception {
+		this.sentPackets.add(
+				new SentPacket(TestPacket.of(PacketNumber.of(0), new AckFrame(0, 0, 0, 0, AckRanges.emptyAckRanges))));
+		this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(1))));
+		this.sentPackets.add(
+				new SentPacket(TestPacket.of(PacketNumber.of(2), new AckFrame(2, 0, 0, 0, AckRanges.emptyAckRanges))));
+		this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(3))));
+		this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(4))));
+		this.sentPackets.add(
+				new SentPacket(TestPacket.of(PacketNumber.of(5), new AckFrame(1, 0, 0, 0, AckRanges.emptyAckRanges))));
+		this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(6))));
 
-        Optional<AckFrame> a = sentPackets.getLargestAckFrame();
-        assertThat(a).hasValue(new AckFrame(2, 0, 0, 0, AckRanges.emptyAckRanges));
-    }
+		Optional<AckFrame> a = sentPackets.getLargestAckFrame();
+		assertThat(a).hasValue(new AckFrame(2, 0, 0, 0, AckRanges.emptyAckRanges));
+	}
 
-    @Test
-    void getLargestAckFrameがEmptyになること() throws Exception {
-        this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(1))));
-        this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(3))));
-        this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(4))));
-        this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(6))));
+	@Test
+	void getLargestAckFrameがEmptyになること() throws Exception {
+		this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(1))));
+		this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(3))));
+		this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(4))));
+		this.sentPackets.add(new SentPacket(TestPacket.of(PacketNumber.of(6))));
 
-        assertThat(sentPackets.getLargestAckFrame()).isEqualTo(Optional.empty());
-    }
+		assertThat(sentPackets.getLargestAckFrame()).isEqualTo(Optional.empty());
+	}
 }

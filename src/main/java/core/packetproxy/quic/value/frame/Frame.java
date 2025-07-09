@@ -22,6 +22,6 @@ import lombok.experimental.NonFinal;
 @NonFinal
 @Value
 public abstract class Frame {
-    public abstract byte[] getBytes();
-    public abstract boolean isAckEliciting();
+	public abstract byte[] getBytes();
+	public abstract boolean isAckEliciting();
 }

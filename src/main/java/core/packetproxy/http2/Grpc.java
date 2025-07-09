@@ -15,6 +15,11 @@
  */
 package packetproxy.http2;
 
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
@@ -27,14 +32,7 @@ import packetproxy.http2.frames.FrameUtils;
 import packetproxy.http2.frames.HeadersFrame;
 import packetproxy.model.Packet;
 
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-public class Grpc extends FramesBase
-{
+public class Grpc extends FramesBase {
 	private StreamManager clientStreamManager = new StreamManager();
 	private StreamManager serverStreamManager = new StreamManager();
 
@@ -48,10 +46,14 @@ public class Grpc extends FramesBase
 	}
 
 	@Override
-	protected byte[] passFramesToDecodeClientRequest(List<Frame> frames) throws Exception { return filterFrames(clientStreamManager, frames); }
+	protected byte[] passFramesToDecodeClientRequest(List<Frame> frames) throws Exception {
+		return filterFrames(clientStreamManager, frames);
+	}
 	@Override
-	protected byte[] passFramesToDecodeServerResponse(List<Frame> frames) throws Exception { return filterFrames(serverStreamManager, frames); }
-	
+	protected byte[] passFramesToDecodeServerResponse(List<Frame> frames) throws Exception {
+		return filterFrames(serverStreamManager, frames);
+	}
+
 	private byte[] filterFrames(StreamManager streamManager, List<Frame> frames) throws Exception {
 		for (Frame frame : frames) {
 			if (frame instanceof HeadersFrame) {
@@ -68,9 +70,13 @@ public class Grpc extends FramesBase
 	}
 
 	@Override
-	protected byte[] decodeClientRequestFromFrames(byte[] frames) throws Exception { return decodeFromFrames(frames); }
+	protected byte[] decodeClientRequestFromFrames(byte[] frames) throws Exception {
+		return decodeFromFrames(frames);
+	}
 	@Override
-	protected byte[] decodeServerResponseFromFrames(byte[] frames) throws Exception { return decodeFromFrames(frames); }
+	protected byte[] decodeServerResponseFromFrames(byte[] frames) throws Exception {
+		return decodeFromFrames(frames);
+	}
 
 	private byte[] decodeFromFrames(byte[] frames) throws Exception {
 		ByteArrayOutputStream outHeader = new ByteArrayOutputStream();
@@ -79,23 +85,23 @@ public class Grpc extends FramesBase
 
 		for (Frame frame : FrameUtils.parseFrames(frames)) {
 			if (frame instanceof HeadersFrame) {
-				HeadersFrame headersFrame = (HeadersFrame)frame;
+				HeadersFrame headersFrame = (HeadersFrame) frame;
 				Http http = Http.create(headersFrame.getHttp());
-				if(null==httpHeaderSums){ // Main Header Frame
+				if (null == httpHeaderSums) { // Main Header Frame
 					httpHeaderSums = http;
-				}else{ // Trailer Header Frame
-					for(HeaderField field: http.getHeader().getFields()){
+				} else { // Trailer Header Frame
+					for (HeaderField field : http.getHeader().getFields()) {
 						httpHeaderSums.updateHeader("x-trailer-" + field.getName(), field.getValue());
 					}
 				}
 			} else if (frame instanceof DataFrame) {
-				DataFrame dataFrame = (DataFrame)frame;
+				DataFrame dataFrame = (DataFrame) frame;
 				outData.write(dataFrame.getPayload());
 			}
 		}
 		outHeader.write(httpHeaderSums.toByteArray());
-		//順序をHeader, Dataにする。本当はStreamIDで管理してencode時に元の順番に戻せるようにしたい。
-		//暫定でgRPC over HTTP2のレスポンスの2つめのヘッダは"x-trailer-"から始まるヘッダに従って元の順番に戻す。
+		// 順序をHeader, Dataにする。本当はStreamIDで管理してencode時に元の順番に戻せるようにしたい。
+		// 暫定でgRPC over HTTP2のレスポンスの2つめのヘッダは"x-trailer-"から始まるヘッダに従って元の順番に戻す。
 		outData.writeTo(outHeader);
 		Http http = Http.create(outHeader.toByteArray());
 		int flags = Integer.valueOf(http.getFirstHeader("X-PacketProxy-HTTP2-Flags"));

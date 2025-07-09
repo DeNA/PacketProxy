@@ -21,8 +21,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.*;
-
 import lombok.Value;
+import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.common.Endpoint;
 import packetproxy.common.EndpointFactory;
 import packetproxy.common.StringUtils;
@@ -31,7 +31,6 @@ import packetproxy.model.ListenPort;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
 import packetproxy.util.PacketProxyUtility;
-import org.apache.commons.lang3.ArrayUtils;
 
 public class ProxyHttpTransparent extends Proxy {
 	private ListenPort listen_info;

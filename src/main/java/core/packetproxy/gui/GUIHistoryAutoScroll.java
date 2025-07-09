@@ -17,18 +17,16 @@ package packetproxy.gui;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-
 import packetproxy.util.PacketProxyUtility;
 
 @SuppressWarnings("serial")
 public class GUIHistoryAutoScroll extends JLabel {
 
-	static private ImageIcon disabledIcon = new ImageIcon(
+	private static ImageIcon disabledIcon = new ImageIcon(
 			GUIHistoryAutoScroll.class.getResource("/gui/auto_scroll_disabled.png"));
-	static private ImageIcon enabledIcon = new ImageIcon(
+	private static ImageIcon enabledIcon = new ImageIcon(
 			GUIHistoryAutoScroll.class.getResource("/gui/auto_scroll_enabled.png"));
 	private boolean isEnabled = false;
 

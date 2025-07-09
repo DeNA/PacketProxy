@@ -20,15 +20,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-
 import packetproxy.common.EndpointFactory;
 import packetproxy.common.SSLSocketEndpoint;
 import packetproxy.common.SocketEndpoint;
 import packetproxy.encode.EncodeHTTPBase;
 import packetproxy.encode.Encoder;
 import packetproxy.model.ListenPort;
-import packetproxy.model.Server;
 import packetproxy.model.SSLPassThroughs;
+import packetproxy.model.Server;
 import packetproxy.util.PacketProxyUtility;
 
 public class ProxySSLForward extends Proxy {
@@ -88,7 +87,7 @@ public class ProxySSLForward extends Proxy {
 				duplex = DuplexFactory.createDuplexAsync(client_e, server_e, "Sample", alpn);
 			}
 		} else {
-			if (alpn == null || alpn.length() == 0) {
+			if (alpn == null || alpn.isEmpty()) {
 				Encoder encoder = EncoderManager.getInstance().createInstance(server.getEncoder(), "");
 				if (encoder instanceof EncodeHTTPBase) {
 					/* The client does not support ALPN. It seems to be an old HTTP client */

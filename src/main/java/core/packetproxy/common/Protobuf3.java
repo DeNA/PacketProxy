@@ -15,6 +15,9 @@
  */
 package packetproxy.common;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -26,25 +29,12 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.apache.commons.lang3.ArrayUtils;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-public class Protobuf3
-{ 
+public class Protobuf3 {
 	public static class Key {
 		public static enum Type {
-			Variant,
-			Bit64,
-			LengthDelimited,
-			StartGroup,
-			EndGroup,
-			Bit32,
-			None,
-			Reserved
+			Variant, Bit64, LengthDelimited, StartGroup, EndGroup, Bit32, None, Reserved
 		}
 
 		long fieldNumber = 0;
@@ -62,19 +52,23 @@ public class Protobuf3
 		}
 		private void init(long keyData) {
 			this.fieldNumber = keyData >> 3;
-			this.wireType    = Type.values()[(int)(keyData & 0x07)];
+			this.wireType = Type.values()[(int) (keyData & 0x07)];
 		}
-		public Type getWireType() { return this.wireType; }
-		public long getFieldNumber() { return this.fieldNumber; }
+		public Type getWireType() {
+			return this.wireType;
+		}
+		public long getFieldNumber() {
+			return this.fieldNumber;
+		}
 		@Override
 		public String toString() {
 			return String.format("Key[FieldNum:%d, Type:%s]", fieldNumber, wireType);
 		}
 		public void writeTo(ByteArrayOutputStream output) {
-			writeVar((fieldNumber << 3)|(wireType.ordinal() & 7), output);
+			writeVar((fieldNumber << 3) | (wireType.ordinal() & 7), output);
 		}
 	}
-	
+
 	public static boolean validateVar(ByteArrayInputStream input) {
 		byte[] raw = new byte[input.available()];
 		input.mark(input.available());
@@ -89,10 +83,12 @@ public class Protobuf3
 	public static boolean validateVar(byte[] input, int[] outLength) {
 		long var = 0;
 		int i = 0;
-		if (input.length == 0) { return false; }
+		if (input.length == 0) {
+			return false;
+		}
 		while (0 < input.length) {
 			long nextB = input[i] & 0xff;
-			var = var | ((nextB & 0x7f) << (7*i));
+			var = var | ((nextB & 0x7f) << (7 * i));
 			i++;
 			if (i >= 2 && ((nextB & 0xff) == 0)) // 0xf4 00 のように 00で終わるケース。これは、0x74になるべき
 				return false;
@@ -103,15 +99,15 @@ public class Protobuf3
 			if (i == input.length)
 				return false;
 		}
-		if (outLength != null) 
+		if (outLength != null)
 			outLength[0] = i;
 		return true;
 	}
 	public static long decodeVar(ByteArrayInputStream input) {
 		long var = 0;
 		for (long i = 0; input.available() > 0; i++) {
-			long nextB = (byte)(input.read() & 0xff) ;
-			var = var | ((nextB & 0x7f) << (7*i));
+			long nextB = (byte) (input.read() & 0xff);
+			var = var | ((nextB & 0x7f) << (7 * i));
 			if ((nextB & 0x80) == 0)
 				break;
 		}
@@ -119,7 +115,7 @@ public class Protobuf3
 	}
 	public static void writeVar(long var, ByteArrayOutputStream output) {
 		for (int i = 1; i <= 10; ++i) {
-			byte b = (byte)(var & 0x7f);
+			byte b = (byte) (var & 0x7f);
 			if (i == 10) {
 				var = 0;
 			} else {
@@ -129,11 +125,11 @@ public class Protobuf3
 				output.write(b);
 				break;
 			} else {
-				output.write((byte)(b|0x80));
+				output.write((byte) (b | 0x80));
 			}
 		}
 	}
-	
+
 	public static boolean validateBit64(ByteArrayInputStream input) {
 		return input.available() < 8 ? false : true;
 	}
@@ -144,7 +140,7 @@ public class Protobuf3
 		long bit64 = 0;
 		for (int idx = 0; idx < 8; idx++) {
 			long nextB = input.read();
-			bit64 = bit64 | (nextB << (8*idx));
+			bit64 = bit64 | (nextB << (8 * idx));
 		}
 		return bit64;
 	}
@@ -159,7 +155,7 @@ public class Protobuf3
 		int bit32 = 0;
 		for (int idx = 0; idx < 4; idx++) {
 			int nextB = input.read();
-			bit32 = bit32 | (nextB << (8*idx));
+			bit32 = bit32 | (nextB << (8 * idx));
 		}
 		return bit32;
 	}
@@ -174,7 +170,7 @@ public class Protobuf3
 			if (validateVar(subInput, varLen) == false) {
 				return false;
 			}
-			i = i + varLen[0];
+			i += varLen[0];
 			entries++;
 		}
 		if (entries > 64) { /* 64エントリを超える場合はrepeatedとみなさずbytesとみなす */
@@ -192,104 +188,108 @@ public class Protobuf3
 	}
 
 	public static String decodeBytes(byte[] rawSubData) {
-		return IntStream.range(0, rawSubData.length).mapToObj(i->String.format("%02x", rawSubData[i])).collect(Collectors.joining(":"));
+		return IntStream.range(0, rawSubData.length).mapToObj(i -> String.format("%02x", rawSubData[i]))
+				.collect(Collectors.joining(":"));
 	}
 	public static byte[] encodeBytes(String bytes) throws Exception {
 		String hexStr = bytes.replace(":", "");
 		return new Binary(new Binary.HexString(hexStr)).toByteArray();
 	}
-	
+
 	public static String decode(byte[] input) throws Exception {
 		ByteArrayInputStream data = new ByteArrayInputStream(input);
-		Map<String,Object> messages = new TreeMap<>();
+		Map<String, Object> messages = new TreeMap<>();
 		decodeData(data, messages);
 		ObjectMapper mapper = new ObjectMapper();
 		return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(messages);
 	}
-	
+
 	public static byte[] encode(String input) throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
-		HashMap<String,Object> messages = mapper.readValue(input, new TypeReference<HashMap<String,Object>>(){});
+		HashMap<String, Object> messages = mapper.readValue(input, new TypeReference<HashMap<String, Object>>() {
+		});
 		return encodeData(messages);
 	}
-	
-	public static boolean decodeData(ByteArrayInputStream data, Map<String,Object> messages) throws Exception {
+
+	public static boolean decodeData(ByteArrayInputStream data, Map<String, Object> messages) throws Exception {
 		int ordinary = 0;
 		while (data.available() > 0) {
 			Key key = new Key(data);
-			
+
 			switch (key.getWireType()) {
-			case Variant: {
-				if (validateVar(data) == false) {
-					return false;
-				}
-				long variant = decodeVar(data);
-	            messages.put(String.format("%04x:%04x:Varint", key.getFieldNumber(), ordinary), variant);
-				break;
-			}
-			case Bit32: {
-				if (validateBit32(data) == false) {
-					return false;
-				}
-				int bit32 = decodeBit32(data);
-	            messages.put(String.format("%04x:%04x:32-bit", key.getFieldNumber(), ordinary), bit32);
-				break;
-			}
-			case Bit64: {
-				if (validateBit64(data) == false) {
-					return false;
-				}
-				long bit64 = decodeBit64(data);
-	            messages.put(String.format("%04x:%04x:64-bit", key.getFieldNumber(), ordinary), bit64);
-				break;
-			}
-			case LengthDelimited: {
-				if (validateVar(data) == false) {
-					return false;
-				}
-				long length = decodeVar(data);
-				if (length > data.available()) {
-					return false;
-				}
-
-				byte[] rawSubData = new byte[(int)length];
-				data.read(rawSubData, 0, (int)length);
-
-				/* String */
-				if (StringUtils.validatePrintableUTF8(rawSubData)) {
-					messages.put(String.format("%04x:%04x:String", key.getFieldNumber(), ordinary), new String(rawSubData, "UTF-8"));
+				case Variant : {
+					if (validateVar(data) == false) {
+						return false;
+					}
+					long variant = decodeVar(data);
+					messages.put(String.format("%04x:%04x:Varint", key.getFieldNumber(), ordinary), variant);
 					break;
 				}
-				
-				/* Data */
-				Map<String,Object> subMsg = new TreeMap<>();
-				if (decodeData(new ByteArrayInputStream(rawSubData), subMsg) == true) {
-					messages.put(String.format("%04x:%04x:embedded message", key.getFieldNumber(), ordinary), subMsg); 
+				case Bit32 : {
+					if (validateBit32(data) == false) {
+						return false;
+					}
+					int bit32 = decodeBit32(data);
+					messages.put(String.format("%04x:%04x:32-bit", key.getFieldNumber(), ordinary), bit32);
 					break;
 				}
-				
-				/* Repeated */
-				if (validateRepeatedStrictly(rawSubData) == true) {
-					List<Object> list = decodeRepeated(new ByteArrayInputStream(rawSubData));
-					messages.put(String.format("%04x:%04x:repeated", key.getFieldNumber(), ordinary), list);
+				case Bit64 : {
+					if (validateBit64(data) == false) {
+						return false;
+					}
+					long bit64 = decodeBit64(data);
+					messages.put(String.format("%04x:%04x:64-bit", key.getFieldNumber(), ordinary), bit64);
 					break;
 				}
+				case LengthDelimited : {
+					if (validateVar(data) == false) {
+						return false;
+					}
+					long length = decodeVar(data);
+					if (length > data.available()) {
+						return false;
+					}
 
-				/* Bytes */
-				String result = decodeBytes(rawSubData);
-				messages.put(String.format("%04x:%04x:bytes", key.getFieldNumber(), ordinary), result);
-				break;
-			}
-			default:
-				return false;
+					byte[] rawSubData = new byte[(int) length];
+					data.read(rawSubData, 0, (int) length);
+
+					/* String */
+					if (StringUtils.validatePrintableUTF8(rawSubData)) {
+						messages.put(String.format("%04x:%04x:String", key.getFieldNumber(), ordinary),
+								new String(rawSubData, "UTF-8"));
+						break;
+					}
+
+					/* Data */
+					Map<String, Object> subMsg = new TreeMap<>();
+					if (decodeData(new ByteArrayInputStream(rawSubData), subMsg) == true) {
+						messages.put(String.format("%04x:%04x:embedded message", key.getFieldNumber(), ordinary),
+								subMsg);
+						break;
+					}
+
+					/* Repeated */
+					if (validateRepeatedStrictly(rawSubData) == true) {
+						List<Object> list = decodeRepeated(new ByteArrayInputStream(rawSubData));
+						messages.put(String.format("%04x:%04x:repeated", key.getFieldNumber(), ordinary), list);
+						break;
+					}
+
+					/* Bytes */
+					String result = decodeBytes(rawSubData);
+					messages.put(String.format("%04x:%04x:bytes", key.getFieldNumber(), ordinary), result);
+					break;
+				}
+				default :
+					return false;
 			}
 			ordinary++;
 		}
 		return true;
 	}
 
-	public static byte[] encodeData(Map<String,Object> messages) throws Exception {
+	public static byte[] encodeData(Map<String, Object> messages) throws Exception {
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		TreeMap<String, String> orderedKeys = new TreeMap<String, String>();
 		messages.keySet().stream().forEach(key -> {
@@ -300,84 +300,84 @@ public class Protobuf3
 		for (String key : orderedKeys.values()) {
 			String[] keyval = key.split(":");
 			long fieldNumber = Long.parseLong(keyval[0], 16);
-			String type      = keyval[2];
+			String type = keyval[2];
 
 			switch (type) {
-			case "Varint": {
-				new Key(fieldNumber, Key.Type.Variant).writeTo(output);
-				Object d = messages.get(key);
-				long var = 0;
-				if (d instanceof Integer) {
-					var = ((Integer) d).longValue();
-				} else if (d instanceof Long){
-					var = ((Long) d).longValue();
-				}
-				writeVar(var, output);
-				break;
-			}
-			case "String": {
-				new Key(fieldNumber, Key.Type.LengthDelimited).writeTo(output);
-				String str = messages.get(key).toString();
-				writeVar(str.getBytes().length, output);
-				output.write(str.getBytes());
-				break;
-			}
-			case "32-bit": {
-				new Key(fieldNumber, Key.Type.Bit32).writeTo(output);
-				int bit32 = (int)messages.get(key); 
-				output.write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(bit32).array());
-				break;
-			}
-			case "64-bit": {
-				new Key(fieldNumber, Key.Type.Bit64).writeTo(output);
-				Object d = messages.get(key); 
-				long bit64 = 0;
-				if (d instanceof Integer) {
-					bit64 = ((Integer) d).longValue();
-				} else if (d instanceof Long){
-					bit64 = ((Long) d).longValue();
-				}
-				output.write(ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putLong(bit64).array());
-				break;
-			}
-			case "repeated": {
-				new Key(fieldNumber, Key.Type.LengthDelimited).writeTo(output);
-				List<Object> list = (List<Object>)messages.get(key); 
-				ByteArrayOutputStream tmp = new ByteArrayOutputStream();
-				list.stream().forEach(o -> {
+				case "Varint" : {
+					new Key(fieldNumber, Key.Type.Variant).writeTo(output);
+					Object d = messages.get(key);
 					long var = 0;
-					if (o instanceof Integer) {
-						var = ((Integer) o).longValue();
-					} else if (o instanceof Long){
-						var = ((Long) o).longValue();
-					} else {
-						System.err.println("Unknown object type");
+					if (d instanceof Integer) {
+						var = ((Integer) d).longValue();
+					} else if (d instanceof Long) {
+						var = ((Long) d).longValue();
 					}
-					writeVar(var, tmp);
-				});
-				writeVar(tmp.toByteArray().length, output);
-				output.write(tmp.toByteArray());
-				break;
-			}
-			case "embedded message": {
-				new Key(fieldNumber, Key.Type.LengthDelimited).writeTo(output);
-				byte[] tmp = encodeData((Map<String,Object>)messages.get(key));
-				writeVar(tmp.length, output);
-				output.write(tmp);
-				break;
-			}
-			case "bytes": {
-				new Key(fieldNumber, Key.Type.LengthDelimited).writeTo(output);
-				byte[] bytes = encodeBytes((String)messages.get(key));
-				writeVar(bytes.length, output);
-				output.write(bytes);
-				break;
-			}
-			default:
-				System.err.println(String.format("Unknown type: %s", type));
+					writeVar(var, output);
+					break;
+				}
+				case "String" : {
+					new Key(fieldNumber, Key.Type.LengthDelimited).writeTo(output);
+					String str = messages.get(key).toString();
+					writeVar(str.getBytes().length, output);
+					output.write(str.getBytes());
+					break;
+				}
+				case "32-bit" : {
+					new Key(fieldNumber, Key.Type.Bit32).writeTo(output);
+					int bit32 = (int) messages.get(key);
+					output.write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(bit32).array());
+					break;
+				}
+				case "64-bit" : {
+					new Key(fieldNumber, Key.Type.Bit64).writeTo(output);
+					Object d = messages.get(key);
+					long bit64 = 0;
+					if (d instanceof Integer) {
+						bit64 = ((Integer) d).longValue();
+					} else if (d instanceof Long) {
+						bit64 = ((Long) d).longValue();
+					}
+					output.write(ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putLong(bit64).array());
+					break;
+				}
+				case "repeated" : {
+					new Key(fieldNumber, Key.Type.LengthDelimited).writeTo(output);
+					List<Object> list = (List<Object>) messages.get(key);
+					ByteArrayOutputStream tmp = new ByteArrayOutputStream();
+					list.stream().forEach(o -> {
+						long var = 0;
+						if (o instanceof Integer) {
+							var = ((Integer) o).longValue();
+						} else if (o instanceof Long) {
+							var = ((Long) o).longValue();
+						} else {
+							System.err.println("Unknown object type");
+						}
+						writeVar(var, tmp);
+					});
+					writeVar(tmp.toByteArray().length, output);
+					output.write(tmp.toByteArray());
+					break;
+				}
+				case "embedded message" : {
+					new Key(fieldNumber, Key.Type.LengthDelimited).writeTo(output);
+					byte[] tmp = encodeData((Map<String, Object>) messages.get(key));
+					writeVar(tmp.length, output);
+					output.write(tmp);
+					break;
+				}
+				case "bytes" : {
+					new Key(fieldNumber, Key.Type.LengthDelimited).writeTo(output);
+					byte[] bytes = encodeBytes((String) messages.get(key));
+					writeVar(bytes.length, output);
+					output.write(bytes);
+					break;
+				}
+				default :
+					System.err.println(String.format("Unknown type: %s", type));
 			}
 		}
 		return output.toByteArray();
 	}
-	
+
 }

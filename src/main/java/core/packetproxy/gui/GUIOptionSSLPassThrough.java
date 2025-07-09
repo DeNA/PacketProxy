@@ -15,27 +15,18 @@
  */
 package packetproxy.gui;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
+import static packetproxy.model.PropertyChangeEventType.SSL_PASS_THROUGHS;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
 import packetproxy.model.SSLPassThrough;
 import packetproxy.model.SSLPassThroughs;
-import static packetproxy.model.PropertyChangeEventType.SSL_PASS_THROUGHS;
 
 public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrough> {
 	private GUIOptionSSLPassThroughDialog dlg;
@@ -48,8 +39,8 @@ public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrou
 		this.sslPassThroughs.addPropertyChangeListener(this);
 		this.table_ext_list = new ArrayList<SSLPassThrough>();
 
-		String[] menu = { "Enabled", "Server Name", "Applied Listen Port" };
-		int[] menuWidth = { 80, 570, 150 };
+		String[] menu = {"Enabled", "Server Name", "Applied Listen Port"};
+		int[] menuWidth = {80, 570, 150};
 		MouseAdapter tableAction = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -122,11 +113,8 @@ public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrou
 	protected void addTableContent(SSLPassThrough ssl) {
 		table_ext_list.add(ssl);
 		try {
-			option_model.addRow(new Object[] {
-					ssl.isEnabled(),
-					ssl.getServerName(),
-					(ssl.getListenPort() == SSLPassThrough.ALL_PORTS) ? "*" : ssl.getListenPort()
-			});
+			option_model.addRow(new Object[]{ssl.isEnabled(), ssl.getServerName(),
+					(ssl.getListenPort() == SSLPassThrough.ALL_PORTS) ? "*" : ssl.getListenPort()});
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

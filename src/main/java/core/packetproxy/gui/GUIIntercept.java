@@ -22,7 +22,6 @@ import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
-
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.ActionMap;
@@ -34,7 +33,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
-
 import packetproxy.controller.InterceptController;
 import packetproxy.model.InterceptModel;
 import packetproxy.model.Packet;
@@ -196,7 +194,7 @@ public class GUIIntercept implements PropertyChangeListener {
 
 	private void setInterceptData(byte[] data, Packet client_packet, Packet server_packet) throws Exception {
 		if (data == null)
-			data = new byte[] {};
+			data = new byte[]{};
 		server_name_panel.updateServerName(client_packet, server_packet);
 		tabs.setData(data);
 		raw_original_data = tabs.getRaw().getData();

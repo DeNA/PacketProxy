@@ -18,8 +18,8 @@ package packetproxy.gui;
 import java.awt.Component;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import javax.swing.JScrollPane;
 import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
 
 public class CustomScrollPane extends JScrollPane {
 	public CustomScrollPane() {
@@ -29,7 +29,7 @@ public class CustomScrollPane extends JScrollPane {
 	class CustomMouseWheelListener implements MouseWheelListener {
 		private JScrollBar bar;
 		private int previousValue = 0;
-		private JScrollPane parentScrollPane; 
+		private JScrollPane parentScrollPane;
 
 		private JScrollPane getParentScrollPane() {
 			if (parentScrollPane == null) {
@@ -37,7 +37,7 @@ public class CustomScrollPane extends JScrollPane {
 				while (!(parent instanceof JScrollPane) && parent != null) {
 					parent = parent.getParent();
 				}
-				parentScrollPane = (JScrollPane)parent;
+				parentScrollPane = (JScrollPane) parent;
 			}
 			return parentScrollPane;
 		}
@@ -57,8 +57,7 @@ public class CustomScrollPane extends JScrollPane {
 					}
 				}
 				previousValue = bar.getValue();
-			}
-			else {
+			} else {
 				CustomScrollPane.this.removeMouseWheelListener(this);
 			}
 		}
@@ -66,10 +65,8 @@ public class CustomScrollPane extends JScrollPane {
 			return bar.getMaximum() - bar.getVisibleAmount();
 		}
 		private MouseWheelEvent cloneEvent(MouseWheelEvent e) {
-			return new MouseWheelEvent(getParentScrollPane(), e.getID(), e
-					.getWhen(), e.getModifiers(), 1, 1, e
-					.getClickCount(), false, e.getScrollType(), e
-					.getScrollAmount(), e.getWheelRotation());
+			return new MouseWheelEvent(getParentScrollPane(), e.getID(), e.getWhen(), e.getModifiers(), 1, 1,
+					e.getClickCount(), false, e.getScrollType(), e.getScrollAmount(), e.getWheelRotation());
 		}
 	}
 }

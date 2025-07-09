@@ -15,21 +15,13 @@
  */
 package packetproxy.gui;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
 import packetproxy.model.Modification;
 import packetproxy.model.Modifications;
 import packetproxy.util.PacketProxyUtility;
@@ -44,8 +36,8 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 		modifications = Modifications.getInstance();
 		modifications.addPropertyChangeListener(this);
 		table_ext_list = new ArrayList<Modification>();
-		String[] menu = { "Enabled", "Type", "Method", "Pattern", "Replaced", "Applied Server" };
-		int[] menuWidth = { 50, 100, 50, 180, 180, 150 };
+		String[] menu = {"Enabled", "Type", "Method", "Pattern", "Replaced", "Applied Server"};
+		int[] menuWidth = {50, 100, 50, 180, 180, 150};
 		MouseAdapter tableAction = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -119,14 +111,8 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 	protected void addTableContent(Modification mod) {
 		table_ext_list.add(mod);
 		try {
-			option_model.addRow(new Object[] {
-					mod.isEnabled(),
-					mod.getDirection(),
-					mod.getMethod(),
-					mod.getPattern(),
-					mod.getReplaced(),
-					mod.getServerName()
-			});
+			option_model.addRow(new Object[]{mod.isEnabled(), mod.getDirection(), mod.getMethod(), mod.getPattern(),
+					mod.getReplaced(), mod.getServerName()});
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

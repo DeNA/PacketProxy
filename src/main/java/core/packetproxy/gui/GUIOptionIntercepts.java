@@ -21,10 +21,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-
 import packetproxy.common.I18nString;
 import packetproxy.model.InterceptOption;
 import packetproxy.model.InterceptOption.Direction;
@@ -40,8 +38,8 @@ public class GUIOptionIntercepts extends GUIOptionComponentBase<InterceptOption>
 		intercept_options.addPropertyChangeListener(this);
 		table_ext_list = new ArrayList<InterceptOption>();
 
-		String[] menu = { "Enabled", "Direction", "Action and Condition", "Type", "Pattern", "Target Server" };
-		int[] menuWidth = { 50, 160, 300, 50, 80, 90 };
+		String[] menu = {"Enabled", "Direction", "Action and Condition", "Type", "Pattern", "Target Server"};
+		int[] menuWidth = {50, 160, 300, 50, 80, 90};
 		MouseAdapter tableAction = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -52,8 +50,8 @@ public class GUIOptionIntercepts extends GUIOptionComponentBase<InterceptOption>
 						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 0);
 						InterceptOption intercept = getSelectedTableContent();
 						if (enable_checkbox == true) {
-							if (intercept.isDirection(Direction.ALL_THE_OTHER_REQUESTS) ||
-									intercept.isDirection(Direction.ALL_THE_OTHER_RESPONSES)) {
+							if (intercept.isDirection(Direction.ALL_THE_OTHER_REQUESTS)
+									|| intercept.isDirection(Direction.ALL_THE_OTHER_RESPONSES)) {
 								JOptionPane.showMessageDialog(owner, I18nString.get("This entry can't be disabled."));
 							} else {
 								intercept.setDisabled();
@@ -129,14 +127,9 @@ public class GUIOptionIntercepts extends GUIOptionComponentBase<InterceptOption>
 	protected void addTableContent(InterceptOption intercept) {
 		table_ext_list.add(intercept);
 		try {
-			option_model.addRow(new Object[] {
-					intercept.isEnabled(),
-					intercept.getDirectionAsString(),
-					intercept.getRelationshipAsString(),
-					intercept.getMethodAsString(),
-					intercept.getPattern(),
-					intercept.getServerName()
-			});
+			option_model.addRow(new Object[]{intercept.isEnabled(), intercept.getDirectionAsString(),
+					intercept.getRelationshipAsString(), intercept.getMethodAsString(), intercept.getPattern(),
+					intercept.getServerName()});
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

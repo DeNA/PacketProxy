@@ -17,20 +17,20 @@
 package packetproxy.vulchecker.generator;
 
 public class JWTPayloadModifiedGenerator extends Generator {
-    @Override
-    public String getName() {
-        return "Payload: 改竄";
-    }
+	@Override
+	public String getName() {
+		return "Payload: 改竄";
+	}
 
-    @Override
-    public boolean generateOnStart() {
-        return true;
-    }
+	@Override
+	public boolean generateOnStart() {
+		return true;
+	}
 
-    @Override
-    public String generate(String inputData) throws Exception {
-        JWTSignatureUnmodified jwt = new JWTSignatureUnmodified(inputData);
-        jwt.setPayloadValue("test", "test data");
-        return jwt.toJwtString();
-    }
+	@Override
+	public String generate(String inputData) throws Exception {
+		JWTSignatureUnmodified jwt = new JWTSignatureUnmodified(inputData);
+		jwt.setPayloadValue("test", "test data");
+		return jwt.toJwtString();
+	}
 }

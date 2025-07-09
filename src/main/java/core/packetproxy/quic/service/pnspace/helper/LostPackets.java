@@ -16,36 +16,35 @@
 
 package packetproxy.quic.service.pnspace.helper;
 
-import packetproxy.quic.value.PacketNumber;
-import packetproxy.quic.value.SentPacket;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Stream;
+import packetproxy.quic.value.PacketNumber;
+import packetproxy.quic.value.SentPacket;
 
 public class LostPackets implements Iterable<SentPacket> {
-    private Map<PacketNumber, SentPacket> lostPackets = new HashMap<>();
+	private Map<PacketNumber, SentPacket> lostPackets = new HashMap<>();
 
-    public String toString() {
-        return String.format("Lost %d packets", this.lostPackets.values().size());
-    }
+	public String toString() {
+		return String.format("Lost %d packets", this.lostPackets.values().size());
+	}
 
-    public void add(SentPacket sentPacket) {
-        lostPackets.put(sentPacket.getPacketNumber(), sentPacket);
-    }
+	public void add(SentPacket sentPacket) {
+		lostPackets.put(sentPacket.getPacketNumber(), sentPacket);
+	}
 
-    public boolean isEmpty() {
-        return lostPackets.isEmpty();
-    }
+	public boolean isEmpty() {
+		return lostPackets.isEmpty();
+	}
 
-    public Stream<SentPacket> stream() {
-        return lostPackets.values().stream();
-    }
+	public Stream<SentPacket> stream() {
+		return lostPackets.values().stream();
+	}
 
-    @Override
-    public Iterator<SentPacket> iterator() {
-        return lostPackets.values().iterator();
-    }
+	@Override
+	public Iterator<SentPacket> iterator() {
+		return lostPackets.values().iterator();
+	}
 
 }

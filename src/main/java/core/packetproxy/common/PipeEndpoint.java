@@ -19,18 +19,16 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.InetSocketAddress;
 
-public class PipeEndpoint
-{
+public class PipeEndpoint {
 	private PipeStream proxy_to_user;
 	private PipeStream user_to_proxy;
 	private InetSocketAddress addr;
-	
-	class PipeStream
-	{
-		private final int PIPE_SIZE = 2048;	// mtuが1500なのでデフォルトの1024だと、UDPのパケットが途中で切れて通信できなくなる
+
+	class PipeStream {
+		private final int PIPE_SIZE = 2048; // mtuが1500なのでデフォルトの1024だと、UDPのパケットが途中で切れて通信できなくなる
 		private PipedInputStream input;
 		private PipedOutputStream output;
-		
+
 		public PipeStream() throws Exception {
 			output = new PipedOutputStream();
 			input = new PipedInputStream(output, PIPE_SIZE);
@@ -42,14 +40,13 @@ public class PipeEndpoint
 			return input;
 		}
 	}
-	
-	public PipeEndpoint(InetSocketAddress addr) throws Exception
-	{
+
+	public PipeEndpoint(InetSocketAddress addr) throws Exception {
 		this.proxy_to_user = new PipeStream();
 		this.user_to_proxy = new PipeStream();
 		this.addr = addr;
 	}
-	
+
 	public RawEndpoint getRawEndpoint() throws Exception {
 		return new RawEndpoint(addr, proxy_to_user.getInputStream(), user_to_proxy.getOutputStream());
 	}

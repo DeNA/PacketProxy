@@ -26,32 +26,23 @@ import java.util.stream.Stream;
 public class QueryString {
 	private List<QueryParameter> params;
 
-	public QueryString(String query){
-		params = Arrays
-				.asList(query.split("&"))
-				.stream()
-				.map(QueryParameter::new)
-				.collect(Collectors.toList());
+	public QueryString(String query) {
+		params = Arrays.asList(query.split("&")).stream().map(QueryParameter::new).collect(Collectors.toList());
 	}
 
-	public String toString(){
-		return params
-				.stream()
-				.map(QueryParameter::toString)
-				.collect(Collectors.joining("&"));
+	public String toString() {
+		return params.stream().map(QueryParameter::toString).collect(Collectors.joining("&"));
 	}
-	
-	public Optional<QueryParameter> getParam(String name){
-		return params
-				.stream()
-				.filter(p->p.getName().equals(name)).findFirst();
+
+	public Optional<QueryParameter> getParam(String name) {
+		return params.stream().filter(p -> p.getName().equals(name)).findFirst();
 	}
-	
-	public Optional<String> getValue(String name){
+
+	public Optional<String> getValue(String name) {
 		Optional<QueryParameter> param = getParam(name);
-		if(param.isPresent()){
+		if (param.isPresent()) {
 			return Optional.of(param.get().getValue());
-		}else{
+		} else {
 			return Optional.ofNullable(null);
 		}
 	}
@@ -60,15 +51,11 @@ public class QueryString {
 		return params.stream().filter(predicate);
 	}
 
-	public <R> Stream<R> map(Function<? super QueryParameter,? extends R> mapper) {
+	public <R> Stream<R> map(Function<? super QueryParameter, ? extends R> mapper) {
 		return params.stream().map(mapper);
 	}
 
-	public void update(String name, String value){
-		params
-		.stream()
-		.filter(p->p.getName().equals(name))
-		.findFirst()
-		.ifPresent(p->p.setValue(value));
+	public void update(String name, String value) {
+		params.stream().filter(p -> p.getName().equals(name)).findFirst().ifPresent(p -> p.setValue(value));
 	}
 }

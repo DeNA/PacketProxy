@@ -20,29 +20,26 @@ import java.util.ResourceBundle;
 import java.util.regex.Pattern;
 
 public class I18nString {
-	
+
 	public static ResourceBundle bundle = null;
 	public static Locale currentLocale = null;
 
 	static {
 		currentLocale = Locale.getDefault();
 		if (currentLocale == Locale.JAPAN) {
-		 	bundle = ResourceBundle.getBundle("strings");
+			bundle = ResourceBundle.getBundle("strings");
 		}
-    }
-	
+	}
+
 	private static String normalize(String message) {
-		return message.replace(' ', '_')
-				.replace('=', '_')
-				.replaceAll(":", "\\:")
-				.replaceAll(Pattern.quote("("), "\\(")
+		return message.replace(' ', '_').replace('=', '_').replaceAll(":", "\\:").replaceAll(Pattern.quote("("), "\\(")
 				.replaceAll(Pattern.quote(")"), "\\)");
 	}
-	
+
 	public static Locale getLocale() {
 		return currentLocale;
 	}
-	
+
 	public static String get(String message, Object... args) {
 		String localed = get(message);
 		try {
@@ -51,7 +48,7 @@ public class I18nString {
 			return String.format(message, args);
 		}
 	}
-	
+
 	public static String get(String message) {
 		if (currentLocale == Locale.JAPAN) {
 			try {

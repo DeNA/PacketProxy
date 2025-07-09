@@ -15,6 +15,8 @@
  */
 package packetproxy.model;
 
+import static packetproxy.model.PropertyChangeEventType.RESOLUTIONS_UPDATED;
+
 import com.j256.ormlite.dao.Dao;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -22,10 +24,8 @@ import java.beans.PropertyChangeSupport;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import packetproxy.model.DaoQueryCache;
 import packetproxy.model.Database.DatabaseMessage;
 import packetproxy.util.PacketProxyUtility;
-import static packetproxy.model.PropertyChangeEventType.RESOLUTIONS_UPDATED;
 
 public class Resolutions implements PropertyChangeListener {
 
@@ -172,26 +172,26 @@ public class Resolutions implements PropertyChangeListener {
 		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
 			switch (message) {
-				case PAUSE:
+				case PAUSE :
 					// TODO ロックを取る
 					break;
-				case RESUME:
+				case RESUME :
 					// TODO ロックを解除
 					break;
-				case DISCONNECT_NOW:
+				case DISCONNECT_NOW :
 					break;
-				case RECONNECT:
+				case RECONNECT :
 					database = Database.getInstance();
 					dao = database.createTable(Resolution.class, this);
 					cache.clear();
 					firePropertyChange();
 					break;
-				case RECREATE:
+				case RECREATE :
 					database = Database.getInstance();
 					dao = database.createTable(Resolution.class, this);
 					cache.clear();
 					break;
-				default:
+				default :
 					break;
 			}
 		} catch (Exception e) {

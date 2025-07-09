@@ -15,6 +15,10 @@
  */
 package packetproxy.gui;
 
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+import static packetproxy.model.PropertyChangeEventType.FILTERS;
+import static packetproxy.model.PropertyChangeEventType.PACKETS;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -32,6 +36,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -40,11 +46,8 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -67,9 +70,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
-
 import org.apache.commons.io.FileUtils;
-
 import packetproxy.common.FilterTextParser;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
@@ -84,9 +85,6 @@ import packetproxy.model.OptionTableModel;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 import packetproxy.model.ResenderPackets;
-import static packetproxy.model.PropertyChangeEventType.PACKETS;
-import static packetproxy.model.PropertyChangeEventType.FILTERS;
-import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
 
@@ -117,9 +115,9 @@ public class GUIHistory implements PropertyChangeListener {
 		return instance;
 	}
 
-	private String[] columnNames = { "#", "Client Request", "Server Response", "Length", "Client IP", "Client Port",
-			"Server IP", "Server Port", "Time", "Resend", "Modified", "Type", "Encode", "ALPN", "Group" };
-	private int[] columnWidth = { 60, 550, 50, 80, 160, 80, 160, 80, 100, 30, 30, 100, 100, 50, 30 };
+	private String[] columnNames = {"#", "Client Request", "Server Response", "Length", "Client IP", "Client Port",
+			"Server IP", "Server Port", "Time", "Resend", "Modified", "Type", "Encode", "ALPN", "Group"};
+	private int[] columnWidth = {60, 550, 50, 80, 160, 80, 160, 80, 100, 30, 30, 100, 100, 50, 30};
 	private JSplitPane split_panel;
 	private JPanel main_panel;
 	private OptionTableModel tableModel;
@@ -182,7 +180,7 @@ public class GUIHistory implements PropertyChangeListener {
 			public void keyPressed(KeyEvent e) {
 				try {
 					switch (e.getKeyCode()) {
-						case KeyEvent.VK_ENTER:
+						case KeyEvent.VK_ENTER :
 							filter();
 							break;
 					}
@@ -449,9 +447,9 @@ public class GUIHistory implements PropertyChangeListener {
 							if (charsetutil.isAuto()) {
 								charsetutil.setGuessedCharSet(http.getBody());
 							}
-							String copyData = http.getMethod() + "\t" +
-									http.getURL(packet.getServerPort(), packet.getUseSSL()) + "\t" +
-									new String(http.getBody(), charsetutil.getCharSet());
+							String copyData = http.getMethod() + "\t"
+									+ http.getURL(packet.getServerPort(), packet.getUseSSL()) + "\t"
+									+ new String(http.getBody(), charsetutil.getCharSet());
 							Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 							StringSelection selection = new StringSelection(copyData);
 							clipboard.setContents(selection, selection);
@@ -652,9 +650,9 @@ public class GUIHistory implements PropertyChangeListener {
 		});
 
 		/*
-		 * Copy HTTP request as curl command:
-		 * $ curl 'http://example.com' -X POST -H 'Cookie: hoge=huga; foo=bar' -H ...
-		 * 
+		 * Copy HTTP request as curl command: $ curl 'http://example.com' -X POST -H
+		 * 'Cookie: hoge=huga; foo=bar' -H ...
+		 *
 		 * TODO: support --data-binary
 		 */
 		JMenuItem copyAsCurl = createMenuItem("copy as curl", -1, null, new ActionListener() {
@@ -728,32 +726,32 @@ public class GUIHistory implements PropertyChangeListener {
 					Clipboard clipboard;
 					StringSelection selection;
 					switch (e.getKeyCode()) {
-						case KeyEvent.VK_J:
+						case KeyEvent.VK_J :
 							p = table.getSelectedRow() + 1;
 							p = p >= table.getRowCount() ? table.getRowCount() - 1 : p;
 							table.changeSelection(p, 0, false, false);
 							break;
-						case KeyEvent.VK_K:
+						case KeyEvent.VK_K :
 							p = table.getSelectedRow() - 1;
 							p = p < 0 ? 0 : p;
 							table.changeSelection(p, 0, false, false);
 							break;
-						case KeyEvent.VK_Y:
+						case KeyEvent.VK_Y :
 							if ((e.getModifiers() & mask_key) == mask_key) {
 								copy.doClick();
 								break;
 							}
-						case KeyEvent.VK_S:
+						case KeyEvent.VK_S :
 							if ((e.getModifiers() & mask_key) == mask_key) {
 								send.doClick();
 							}
 							break;
-						case KeyEvent.VK_R:
+						case KeyEvent.VK_R :
 							if ((e.getModifiers() & mask_key) == mask_key) {
 								sendToResender.doClick();
 							}
 							break;
-						case KeyEvent.VK_M:
+						case KeyEvent.VK_M :
 							if ((e.getModifiers() & mask_key) == mask_key) {
 								copyAll.doClick();
 							}
@@ -855,9 +853,7 @@ public class GUIHistory implements PropertyChangeListener {
 
 		}
 		dialogOnce = true;
-		JOptionPane.showMessageDialog(owner,
-				"データベースのサイズが上限値(2GB)を越えそうです。Historyを保存してください。",
-				"Warning",
+		JOptionPane.showMessageDialog(owner, "データベースのサイズが上限値(2GB)を越えそうです。Historyを保存してください。", "Warning",
 				JOptionPane.WARNING_MESSAGE);
 
 		WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "sqlite3");
@@ -1037,10 +1033,8 @@ public class GUIHistory implements PropertyChangeListener {
 			int id = packet.getId();
 			String color = packet.getColor();
 
-			tableModel.addRow(new Object[] {
-					packet.getId(), "Loading...", "Loading...", 0, "Loading...", "", "Loading...", "",
-					"00:00:00 1900/01/01 Z", false, false, "", "", "", (long) -1
-			});
+			tableModel.addRow(new Object[]{packet.getId(), "Loading...", "Loading...", 0, "Loading...", "",
+					"Loading...", "", "00:00:00 1900/01/01 Z", false, false, "", "", "", (long) -1});
 			id_row.put(id, tableModel.getRowCount() - 1);
 
 			if (Objects.equals(color, "green")) {
@@ -1137,27 +1131,14 @@ public class GUIHistory implements PropertyChangeListener {
 		int length = data.length;
 
 		SimpleDateFormat date_format = new SimpleDateFormat("HH:mm:ss yyyy/MM/dd Z");
-		return new Object[] {
-				packet.getId(),
-				packet.getSummarizedRequest(),
-				packet.getSummarizedResponse(),
-				length,
-				client_ip,
-				client_port,
-				server_ip,
-				server_port,
-				date_format.format(packet.getDate()),
-				packet.getResend(),
-				packet.getModified(),
-				packet.getContentType(),
-				packet.getEncoder(),
-				packet.getAlpn(),
-				packet.getGroup()
-		};
+		return new Object[]{packet.getId(), packet.getSummarizedRequest(), packet.getSummarizedResponse(), length,
+				client_ip, client_port, server_ip, server_port, date_format.format(packet.getDate()),
+				packet.getResend(), packet.getModified(), packet.getContentType(), packet.getEncoder(),
+				packet.getAlpn(), packet.getGroup()};
 	}
 
 	private boolean sortByText(String text) {
-		if (text.equals("")) {
+		if (text.isEmpty()) {
 			sorter.setRowFilter(null);
 			return true;
 		}

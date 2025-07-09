@@ -16,6 +16,11 @@
 
 package packetproxy.quic.service.packet;
 
+import static packetproxy.quic.utils.Constants.PnSpaceType.*;
+
+import java.net.DatagramPacket;
+import java.nio.ByteBuffer;
+import java.util.Optional;
 import packetproxy.quic.service.connection.Connection;
 import packetproxy.quic.service.key.RoleKeys;
 import packetproxy.quic.utils.AwaitingException;
@@ -28,99 +33,100 @@ import packetproxy.quic.value.packet.longheader.pnspace.InitialPacket;
 import packetproxy.quic.value.packet.longheader.pnspace.ZeroRttPacket;
 import packetproxy.quic.value.packet.shortheader.ShortHeaderPacket;
 
-import java.net.DatagramPacket;
-import java.nio.ByteBuffer;
-import java.util.Optional;
-
-import static packetproxy.quic.utils.Constants.PnSpaceType.*;
-
-
 public class QuicPacketParser {
 
-    static public ConnectionId getDestConnectionId(byte[] bytes) throws Exception {
-        return getDestConnectionId(ByteBuffer.wrap(bytes));
-    }
+	public static ConnectionId getDestConnectionId(byte[] bytes) throws Exception {
+		return getDestConnectionId(ByteBuffer.wrap(bytes));
+	}
 
-    static public ConnectionId getDestConnectionId(ByteBuffer buffer) throws Exception {
-        byte type = getTypeWithoutIncrement(buffer);
-        if (LongHeaderPacket.is(type)) {
-            return LongHeaderPacket.getDestConnId(buffer);
-        } else if (ShortHeaderPacket.is(type)){
-            return ShortHeaderPacket.getDestConnId(buffer);
-        }
-        throw new Exception("Error: unknown packet (LongHeaderPacket nor ShortHeaderPacket)");
-    }
+	public static ConnectionId getDestConnectionId(ByteBuffer buffer) throws Exception {
+		byte type = getTypeWithoutIncrement(buffer);
+		if (LongHeaderPacket.is(type)) {
+			return LongHeaderPacket.getDestConnId(buffer);
+		} else if (ShortHeaderPacket.is(type)) {
+			return ShortHeaderPacket.getDestConnId(buffer);
+		}
+		throw new Exception("Error: unknown packet (LongHeaderPacket nor ShortHeaderPacket)");
+	}
 
-    static private byte getTypeWithoutIncrement(ByteBuffer buffer) {
-        int pos = buffer.position();
-        byte type = buffer.get();
-        buffer.position(pos);
-        return type;
-    }
+	private static byte getTypeWithoutIncrement(ByteBuffer buffer) {
+		int pos = buffer.position();
+		byte type = buffer.get();
+		buffer.position(pos);
+		return type;
+	}
 
-    private final Connection conn;
-    private final RoleKeys roleKeys;
+	private final Connection conn;
+	private final RoleKeys roleKeys;
 
-    public QuicPacketParser(Connection conn, RoleKeys roleKeys) {
-        this.conn = conn;
-        this.roleKeys = roleKeys;
-    }
+	public QuicPacketParser(Connection conn, RoleKeys roleKeys) {
+		this.conn = conn;
+		this.roleKeys = roleKeys;
+	}
 
-    public void parseOnePacket(DatagramPacket udpPacket) throws Exception {
-        ByteBuffer buffer = ByteBuffer.wrap(udpPacket.getData());
-        while (buffer.hasRemaining()) {
-            this.parse(buffer).ifPresent(packet -> {
-                //if (this.conn.getRole() == Constants.Role.SERVER) {
-                //    PacketProxyUtility.getInstance().packetProxyLog("[QUIC] CLIENT--->       " + packet);
-                //} else {
-                //    PacketProxyUtility.getInstance().packetProxyLog("[QUIC]       <---SERVER " + packet);
-                //}
-                this.conn.getPnSpaces().receivePacket(packet);
-            });
-        }
-    }
+	public void parseOnePacket(DatagramPacket udpPacket) throws Exception {
+		ByteBuffer buffer = ByteBuffer.wrap(udpPacket.getData());
+		while (buffer.hasRemaining()) {
+			this.parse(buffer).ifPresent(packet -> {
+				// if (this.conn.getRole() == Constants.Role.SERVER) {
+				// PacketProxyUtility.getInstance().packetProxyLog("[QUIC] CLIENT---> " +
+				// packet);
+				// } else {
+				// PacketProxyUtility.getInstance().packetProxyLog("[QUIC] <---SERVER " +
+				// packet);
+				// }
+				this.conn.getPnSpaces().receivePacket(packet);
+			});
+		}
+	}
 
-    private Optional<QuicPacket> parse(ByteBuffer buffer) throws Exception {
+	private Optional<QuicPacket> parse(ByteBuffer buffer) throws Exception {
 
-        byte type = getTypeWithoutIncrement(buffer);
+		byte type = getTypeWithoutIncrement(buffer);
 
-        if (InitialPacket.is(type) && this.roleKeys.hasInitialKey()) {
-            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceInitial).getAckFrameGenerator().getLargestAckedPn();
-            InitialPacket initialPacket = new InitialPacket(buffer, this.roleKeys.getInitialKey(), largestAckedPn);
-            return Optional.of(initialPacket);
+		if (InitialPacket.is(type) && this.roleKeys.hasInitialKey()) {
+			PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceInitial).getAckFrameGenerator()
+					.getLargestAckedPn();
+			InitialPacket initialPacket = new InitialPacket(buffer, this.roleKeys.getInitialKey(), largestAckedPn);
+			return Optional.of(initialPacket);
 
-        } else if (HandshakePacket.is(type) && this.roleKeys.hasHandshakeKey()) {
-            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceHandshake).getAckFrameGenerator().getLargestAckedPn();
-            HandshakePacket handshakePacket = new HandshakePacket(buffer, this.roleKeys.getHandshakeKey(), largestAckedPn);
-            return Optional.of(handshakePacket);
+		} else if (HandshakePacket.is(type) && this.roleKeys.hasHandshakeKey()) {
+			PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceHandshake).getAckFrameGenerator()
+					.getLargestAckedPn();
+			HandshakePacket handshakePacket = new HandshakePacket(buffer, this.roleKeys.getHandshakeKey(),
+					largestAckedPn);
+			return Optional.of(handshakePacket);
 
-        } else if (ShortHeaderPacket.is(type) && this.roleKeys.hasApplicationKey()) {
-            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceApplicationData).getAckFrameGenerator().getLargestAckedPn();
-            ShortHeaderPacket shortHeaderPacket = new ShortHeaderPacket(buffer, this.roleKeys.getApplicationKey(), largestAckedPn);
-            return Optional.of(shortHeaderPacket);
+		} else if (ShortHeaderPacket.is(type) && this.roleKeys.hasApplicationKey()) {
+			PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceApplicationData).getAckFrameGenerator()
+					.getLargestAckedPn();
+			ShortHeaderPacket shortHeaderPacket = new ShortHeaderPacket(buffer, this.roleKeys.getApplicationKey(),
+					largestAckedPn);
+			return Optional.of(shortHeaderPacket);
 
-        } else if (ZeroRttPacket.is(type) && this.roleKeys.hasZeroRttKey()) {
-            PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceApplicationData).getAckFrameGenerator().getLargestAckedPn();
-            ZeroRttPacket zeroRttPacket = new ZeroRttPacket(buffer, this.roleKeys.getZeroRttKey(), largestAckedPn);
-            return Optional.of(zeroRttPacket);
+		} else if (ZeroRttPacket.is(type) && this.roleKeys.hasZeroRttKey()) {
+			PacketNumber largestAckedPn = this.conn.getPnSpace(PnSpaceApplicationData).getAckFrameGenerator()
+					.getLargestAckedPn();
+			ZeroRttPacket zeroRttPacket = new ZeroRttPacket(buffer, this.roleKeys.getZeroRttKey(), largestAckedPn);
+			return Optional.of(zeroRttPacket);
 
-        } else if (type == 0x0) {
-            /* remaining data in the packet is paddings */
-            buffer.position(buffer.limit());
-            return Optional.empty();
+		} else if (type == 0x0) {
+			/* remaining data in the packet is paddings */
+			buffer.position(buffer.limit());
+			return Optional.empty();
 
-        } else {
-            if (InitialPacket.is(type)) {
-                throw new AwaitingException("InitialPacket has been received, but initial key was not found");
-            }
-            if (HandshakePacket.is(type)) {
-                throw new AwaitingException("wait until deploying handshake key");
-            }
-            if (ShortHeaderPacket.is(type) || ZeroRttPacket.is(type)) {
-                throw new AwaitingException("wait until deploying application key");
-            }
-            throw new Exception(String.format("Unknown Error: packet type (%x) received", type));
-        }
-    }
+		} else {
+			if (InitialPacket.is(type)) {
+				throw new AwaitingException("InitialPacket has been received, but initial key was not found");
+			}
+			if (HandshakePacket.is(type)) {
+				throw new AwaitingException("wait until deploying handshake key");
+			}
+			if (ShortHeaderPacket.is(type) || ZeroRttPacket.is(type)) {
+				throw new AwaitingException("wait until deploying application key");
+			}
+			throw new Exception(String.format("Unknown Error: packet type (%x) received", type));
+		}
+	}
 
 }

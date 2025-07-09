@@ -41,7 +41,7 @@ public class TableCustomColorManager {
 		}
 	}
 
-	private Map<Integer,LineColor> coloredLines;
+	private Map<Integer, LineColor> coloredLines;
 
 	public TableCustomColorManager() {
 		this.coloredLines = new HashMap<Integer, LineColor>();

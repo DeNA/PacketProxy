@@ -15,11 +15,11 @@
  */
 package packetproxy.vulchecker.generator;
 
-abstract public class Generator {
-    abstract public String getName();
-    abstract public boolean generateOnStart();
-    abstract public String generate(String inputData) throws Exception;
-    public byte[] extractMacro(byte[] inputData) throws Exception {
-        return inputData;
-    }
+public abstract class Generator {
+	public abstract String getName();
+	public abstract boolean generateOnStart();
+	public abstract String generate(String inputData) throws Exception;
+	public byte[] extractMacro(byte[] inputData) throws Exception {
+		return inputData;
+	}
 }

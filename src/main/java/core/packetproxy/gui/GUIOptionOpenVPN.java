@@ -22,16 +22,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
-import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
@@ -44,7 +39,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
-
 import packetproxy.OpenVPN;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
@@ -72,8 +66,8 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 		this.openVPNForwardPorts.addPropertyChangeListener(this);
 		this.table_ext_list = new ArrayList<OpenVPNForwardPort>();
 
-		String[] menu = { "Proto", "src port", "dst port" };
-		int[] menuWidth = { 80, 80, 80 };
+		String[] menu = {"Proto", "src port", "dst port"};
+		int[] menuWidth = {80, 80, 80};
 		MouseAdapter tableAction = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -139,11 +133,8 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 	protected void addTableContent(OpenVPNForwardPort forwardPort) {
 		table_ext_list.add(forwardPort);
 		try {
-			option_model.addRow(new Object[] {
-					forwardPort.getType().toString(),
-					forwardPort.getFromPort(),
-					forwardPort.getToPort(),
-			});
+			option_model.addRow(new Object[]{forwardPort.getType().toString(), forwardPort.getFromPort(),
+					forwardPort.getToPort(),});
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

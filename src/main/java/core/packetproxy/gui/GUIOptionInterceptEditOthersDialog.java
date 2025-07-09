@@ -20,7 +20,6 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -29,15 +28,13 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-
 import packetproxy.common.I18nString;
 import packetproxy.model.InterceptOption;
 import packetproxy.model.InterceptOption.Direction;
 import packetproxy.model.InterceptOption.Method;
 import packetproxy.model.InterceptOption.Relationship;
 
-public class GUIOptionInterceptEditOthersDialog extends JDialog
-{
+public class GUIOptionInterceptEditOthersDialog extends JDialog {
 	private static final long serialVersionUID = 1L;
 	private JButton button_cancel = new JButton(I18nString.get("Cancel"));
 	private JButton button_set = new JButton(I18nString.get("Save"));
@@ -85,61 +82,58 @@ public class GUIOptionInterceptEditOthersDialog extends JDialog
 		direction_combo.addItem(InterceptOption.getDirectionAsString(Direction.ALL_THE_OTHER_REQUESTS));
 		direction_combo.addItem(InterceptOption.getDirectionAsString(Direction.ALL_THE_OTHER_RESPONSES));
 		direction_combo.setSelectedIndex(0);
-	    direction_combo.setEnabled(false);
-	    direction_combo.setMaximumRowCount(2);
-	    return label_and_object(I18nString.get("Direction:"), direction_combo);
+		direction_combo.setEnabled(false);
+		direction_combo.setMaximumRowCount(2);
+		return label_and_object(I18nString.get("Direction:"), direction_combo);
 	}
-	
+
 	private JComponent createRelationshipSetting() {
 		relationship_combo.addItem(InterceptOption.getRelationshipAsString(Relationship.ARE_INTERCEPTED));
 		relationship_combo.addItem(InterceptOption.getRelationshipAsString(Relationship.ARE_NOT_INTERCEPTED));
 		relationship_combo.setSelectedIndex(0);
 		relationship_combo.setEnabled(true);
-	    relationship_combo.setMaximumRowCount(2);
-	    return label_and_object(I18nString.get("Action and Condition:"), relationship_combo);
+		relationship_combo.setMaximumRowCount(2);
+		return label_and_object(I18nString.get("Action and Condition:"), relationship_combo);
 	}
 
 	public GUIOptionInterceptEditOthersDialog(JFrame owner) throws Exception {
 		super(owner);
 		setTitle(I18nString.get("Setting"));
 		Rectangle rect = owner.getBounds();
-		setBounds(rect.x + rect.width/2 - width/2, rect.y + rect.height/2 - width/2, width, height); /* ド真ん中 */
+		setBounds(rect.x + rect.width / 2 - width / 2, rect.y + rect.height / 2 - width / 2, width, height); /* ド真ん中 */
 
 		Container c = getContentPane();
 		JPanel panel = new JPanel();
-	    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-	    
-	    panel.add(createDirectionSetting());
-	    panel.add(createRelationshipSetting());
-	    panel.add(buttons());
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+		panel.add(createDirectionSetting());
+		panel.add(createRelationshipSetting());
+		panel.add(buttons());
 
 		c.add(panel);
 
-	    button_cancel.addActionListener(new ActionListener() {
-	    	@Override
+		button_cancel.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
-	    		intercept_option = null;
-	    		dispose();
-	    	}
-	    });
+				intercept_option = null;
+				dispose();
+			}
+		});
 
-	    button_set.addActionListener(new ActionListener() {
-	    	@Override
+		button_set.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
-	    		try {
-	    			Direction direction = InterceptOption.getDirection(direction_combo.getSelectedItem().toString());
-	    			Relationship relationship = InterceptOption.getRelationship(relationship_combo.getSelectedItem().toString());
-	    			intercept_option = new InterceptOption(direction,
-	    					InterceptOption.Type.REQUEST,
-	    					relationship,
-	    					"",
-	    					Method.UNDEFINED,
-	    					null);
-	    			dispose();
-	    		} catch (Exception e1) {
-	    			e1.printStackTrace();
-	    		}
-	    	}
-	    });
+				try {
+					Direction direction = InterceptOption.getDirection(direction_combo.getSelectedItem().toString());
+					Relationship relationship = InterceptOption
+							.getRelationship(relationship_combo.getSelectedItem().toString());
+					intercept_option = new InterceptOption(direction, InterceptOption.Type.REQUEST, relationship, "",
+							Method.UNDEFINED, null);
+					dispose();
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
 	}
 }

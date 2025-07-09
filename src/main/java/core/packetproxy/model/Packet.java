@@ -81,8 +81,7 @@ public class Packet implements PacketInfo {
 
 	public Packet(int listen_port, InetSocketAddress client_addr, InetSocketAddress server_addr, String server_name,
 			boolean use_ssl, String encoder, String alpn, Direction dir, int conn, long group) {
-		initialize(listen_port,
-				client_addr.getAddress().getHostAddress(), client_addr.getPort(),
+		initialize(listen_port, client_addr.getAddress().getHostAddress(), client_addr.getPort(),
 				server_addr.getAddress().getHostAddress(), server_addr.getPort(), server_name, use_ssl, encoder, alpn,
 				dir, conn, group);
 	}
@@ -106,10 +105,10 @@ public class Packet implements PacketInfo {
 		this.encoder_name = encoder;
 		this.alpn = alpn;
 		this.direction = dir;
-		this.received_data = new byte[] {};
-		this.decoded_data = new byte[] {};
-		this.modified_data = new byte[] {};
-		this.sent_data = new byte[] {};
+		this.received_data = new byte[]{};
+		this.decoded_data = new byte[]{};
+		this.modified_data = new byte[]{};
+		this.sent_data = new byte[]{};
 		this.modified = false;
 		this.resend = false;
 		this.date = new Date();
@@ -126,19 +125,8 @@ public class Packet implements PacketInfo {
 	}
 
 	public OneShotPacket getOneShotPacket(byte[] data) {
-		return new OneShotPacket(
-				getId(),
-				getListenPort(),
-				getClient(),
-				getServer(),
-				getServerName(),
-				getUseSSL(),
-				data,
-				getEncoder(),
-				getAlpn(),
-				getDirection(),
-				getConn(),
-				getGroup());
+		return new OneShotPacket(getId(), getListenPort(), getClient(), getServer(), getServerName(), getUseSSL(), data,
+				getEncoder(), getAlpn(), getDirection(), getConn(), getGroup());
 
 	}
 
@@ -147,23 +135,12 @@ public class Packet implements PacketInfo {
 	}
 
 	public byte[] getModifiedData() {
-		return this.modified_data == null ? new byte[] {} : this.modified_data;
+		return this.modified_data == null ? new byte[]{} : this.modified_data;
 	}
 
 	public OneShotPacket getOneShotFromModifiedData() {
-		return new OneShotPacket(
-				getId(),
-				getListenPort(),
-				getClient(),
-				getServer(),
-				getServerName(),
-				getUseSSL(),
-				getModifiedData(),
-				getEncoder(),
-				getAlpn(),
-				getDirection(),
-				getConn(),
-				getGroup());
+		return new OneShotPacket(getId(), getListenPort(), getClient(), getServer(), getServerName(), getUseSSL(),
+				getModifiedData(), getEncoder(), getAlpn(), getDirection(), getConn(), getGroup());
 	}
 
 	public void setSentData(byte[] data) {
@@ -171,7 +148,7 @@ public class Packet implements PacketInfo {
 	}
 
 	public byte[] getSentData() {
-		return this.sent_data == null ? new byte[] {} : this.sent_data;
+		return this.sent_data == null ? new byte[]{} : this.sent_data;
 	}
 
 	public void setReceivedData(byte[] data) {
@@ -179,23 +156,12 @@ public class Packet implements PacketInfo {
 	}
 
 	public byte[] getReceivedData() {
-		return this.received_data == null ? new byte[] {} : this.received_data;
+		return this.received_data == null ? new byte[]{} : this.received_data;
 	}
 
 	public OneShotPacket getOneShotFromReceivedData() {
-		return new OneShotPacket(
-				getId(),
-				getListenPort(),
-				getClient(),
-				getServer(),
-				getServerName(),
-				getUseSSL(),
-				getReceivedData(),
-				getEncoder(),
-				getAlpn(),
-				getDirection(),
-				getConn(),
-				getGroup());
+		return new OneShotPacket(getId(), getListenPort(), getClient(), getServer(), getServerName(), getUseSSL(),
+				getReceivedData(), getEncoder(), getAlpn(), getDirection(), getConn(), getGroup());
 	}
 
 	public void setDecodedData(byte[] data) {
@@ -203,23 +169,12 @@ public class Packet implements PacketInfo {
 	}
 
 	public byte[] getDecodedData() {
-		return this.decoded_data == null ? new byte[] {} : this.decoded_data;
+		return this.decoded_data == null ? new byte[]{} : this.decoded_data;
 	}
 
 	public OneShotPacket getOneShotFromDecodedData() {
-		return new OneShotPacket(
-				getId(),
-				getListenPort(),
-				getClient(),
-				getServer(),
-				getServerName(),
-				getUseSSL(),
-				getDecodedData(),
-				getEncoder(),
-				getAlpn(),
-				getDirection(),
-				getConn(),
-				getGroup());
+		return new OneShotPacket(getId(), getListenPort(), getClient(), getServer(), getServerName(), getUseSSL(),
+				getDecodedData(), getEncoder(), getAlpn(), getDirection(), getConn(), getGroup());
 	}
 
 	public void setModified() {

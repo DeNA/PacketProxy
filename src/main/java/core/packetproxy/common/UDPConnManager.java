@@ -23,21 +23,21 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class UDPConnManager {
-	private Map<InetSocketAddress,UDPConn> connList;
+	private Map<InetSocketAddress, UDPConn> connList;
 	private BlockingQueue<InetSocketAddress> acceptedQueue;
 	private BlockingQueue<DatagramPacket> recvQueue;
-	
+
 	public UDPConnManager() {
-		connList = new HashMap<InetSocketAddress,UDPConn>();
+		connList = new HashMap<InetSocketAddress, UDPConn>();
 		acceptedQueue = new LinkedBlockingQueue<InetSocketAddress>();
 		recvQueue = new LinkedBlockingQueue<DatagramPacket>();
 	}
-	
+
 	public Endpoint accept() throws Exception {
 		InetSocketAddress addr = acceptedQueue.take();
 		return connList.get(addr).getEndpoint();
 	}
-	
+
 	public void put(DatagramPacket packet) throws Exception {
 		InetSocketAddress addr = new InetSocketAddress(packet.getAddress(), packet.getPort());
 		UDPConn conn = this.query(addr);
@@ -52,7 +52,7 @@ public class UDPConnManager {
 	public DatagramPacket get() throws Exception {
 		return recvQueue.take();
 	}
-	
+
 	private UDPConn query(InetSocketAddress key) {
 		return connList.get(key);
 	}

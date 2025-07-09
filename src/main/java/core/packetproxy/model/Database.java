@@ -15,14 +15,7 @@
  */
 package packetproxy.model;
 
-import java.io.File;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.beans.PropertyChangeSupport;
-import java.beans.PropertyChangeListener;
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
@@ -31,9 +24,15 @@ import com.j256.ormlite.logger.LocalLog;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.support.DatabaseConnection;
 import com.j256.ormlite.table.TableUtils;
-
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.File;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import packetproxy.util.PacketProxyUtility;
-import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 
 public class Database {
 	private static Database instance;
@@ -155,9 +154,7 @@ public class Database {
 					DatabaseConnection.DEFAULT_RESULT_FLAGS);
 			conn.executeStatement("attach database '" + srcDBPath.toAbsolutePath() + "' as 'srcDB'",
 					DatabaseConnection.DEFAULT_RESULT_FLAGS);
-			String queries[] = {
-					"DELETE FROM dstDB.interceptOptions",
-					"DELETE FROM dstDB.charsets",
+			String queries[] = {"DELETE FROM dstDB.interceptOptions", "DELETE FROM dstDB.charsets",
 					"INSERT OR REPLACE INTO dstDB.filters (id, name, filter) SELECT id, name, filter FROM srcDB.filters",
 					"INSERT OR REPLACE INTO dstDB.listenports (id, enabled, ca_name, port, type, server_id) SELECT id, enabled, ca_name, port, type, server_id FROM srcDB.listenports",
 					"INSERT OR REPLACE INTO dstDB.configs (key, value) SELECT key, value FROM srcDB.configs",
@@ -167,8 +164,7 @@ public class Database {
 					"INSERT OR REPLACE INTO dstDB.modifications (id, enabled, server_id, direction, pattern, method, replaced) SELECT id, enabled, server_id, direction, pattern, method, replaced FROM srcDB.modifications",
 					"INSERT OR REPLACE INTO dstDB.sslpassthroughs (id, enabled, server_name, listen_port) SELECT id, enabled, server_name, listen_port FROM srcDB.sslpassthroughs",
 					"INSERT OR REPLACE INTO dstDB.charsets (id, charsetname) SELECT id, charsetname FROM srcDB.charsets",
-					"INSERT OR REPLACE INTO dstDB.resender_packets (id, resends_index, resend_index, direction, data, listen_port, client_ip, client_port, server_ip, server_port, server_name, use_ssl, encoder_name, alpn, auto_modified, conn, `group`) SELECT id, resends_index, resend_index, direction, data, listen_port, client_ip, client_port, server_ip, server_port, server_name, use_ssl, encoder_name, alpn, auto_modified, conn, `group` FROM srcDB.resender_packets",
-			};
+					"INSERT OR REPLACE INTO dstDB.resender_packets (id, resends_index, resend_index, direction, data, listen_port, client_ip, client_port, server_ip, server_port, server_name, use_ssl, encoder_name, alpn, auto_modified, conn, `group`) SELECT id, resends_index, resend_index, direction, data, listen_port, client_ip, client_port, server_ip, server_port, server_name, use_ssl, encoder_name, alpn, auto_modified, conn, `group` FROM srcDB.resender_packets",};
 			for (String query : queries) {
 				try {
 					conn.executeStatement(query, DatabaseConnection.DEFAULT_RESULT_FLAGS);
@@ -201,11 +197,7 @@ public class Database {
 	}
 
 	public enum DatabaseMessage {
-		PAUSE,
-		RESUME,
-		DISCONNECT_NOW,
-		RECONNECT,
-		RECREATE,
+		PAUSE, RESUME, DISCONNECT_NOW, RECONNECT, RECREATE,
 	}
 
 	// TODO 保存中にファイルが更新されない様にする

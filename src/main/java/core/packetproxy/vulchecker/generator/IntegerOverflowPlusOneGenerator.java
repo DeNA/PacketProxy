@@ -16,18 +16,18 @@
 package packetproxy.vulchecker.generator;
 
 public class IntegerOverflowPlusOneGenerator extends Generator {
-    @Override
-    public String getName() {
-        return "2^32 + 1";
-    }
+	@Override
+	public String getName() {
+		return "2^32 + 1";
+	}
 
-    @Override
-    public boolean generateOnStart() {
-        return true;
-    }
+	@Override
+	public boolean generateOnStart() {
+		return true;
+	}
 
-    @Override
-    public String generate(String inputData) {
-        return "4294967297";
-    }
+	@Override
+	public String generate(String inputData) {
+		return "4294967297";
+	}
 }

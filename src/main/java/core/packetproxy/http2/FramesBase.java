@@ -18,21 +18,18 @@ package packetproxy.http2;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.List;
-
 import org.eclipse.jetty.http2.hpack.HpackDecoder;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
-
 import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameUtils;
 import packetproxy.model.Packet;
 
-public abstract class FramesBase
-{
+public abstract class FramesBase {
 	protected FrameManager clientFrameManager = new FrameManager();
 	protected FrameManager serverFrameManager = new FrameManager();
 	protected boolean alreadySentClientRequestPrologue = false;
 	protected boolean alreadySentClientRequestEpilogue = false;
-	
+
 	public FramesBase() throws Exception {
 		clientFrameManager = new FrameManager();
 		serverFrameManager = new FrameManager();
@@ -41,7 +38,7 @@ public abstract class FramesBase
 	public String getName() {
 		return "HTTP2 Frames Base";
 	}
-	
+
 	public int checkDelimiter(byte[] data) throws Exception {
 		return FrameUtils.checkDelimiter(data);
 	}
@@ -53,7 +50,7 @@ public abstract class FramesBase
 	public void serverResponseArrived(byte[] frames) throws Exception {
 		serverFrameManager.write(frames);
 	}
-	
+
 	public byte[] passThroughClientRequest() throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		if (alreadySentClientRequestPrologue == false) {
@@ -62,7 +59,7 @@ public abstract class FramesBase
 			out.write(FrameUtils.WINDOW_UPDATE);
 			alreadySentClientRequestPrologue = true;
 		}
-		for (Frame frame: clientFrameManager.readControlFrames()) {
+		for (Frame frame : clientFrameManager.readControlFrames()) {
 			out.write(frame.toByteArray());
 		}
 		return out.toByteArray();
@@ -75,21 +72,21 @@ public abstract class FramesBase
 			out.write(FrameUtils.WINDOW_UPDATE);
 			alreadySentClientRequestEpilogue = true;
 		}
-		for (Frame frame: serverFrameManager.readControlFrames()) {
+		for (Frame frame : serverFrameManager.readControlFrames()) {
 			out.write(frame.toByteArray());
 		}
 		return out.toByteArray();
 	}
-	
+
 	public byte[] clientRequestAvailable() throws Exception {
 		List<Frame> frames = clientFrameManager.readHeadersDataFrames();
-		//frames.stream().forEach(frame -> System.out.println("--> *     " + frame));
+		// frames.stream().forEach(frame -> System.out.println("--> * " + frame));
 		return passFramesToDecodeClientRequest(frames);
 	}
 
 	public byte[] serverResponseAvailable() throws Exception {
 		List<Frame> frames = serverFrameManager.readHeadersDataFrames();
-		//frames.stream().forEach(frame -> System.out.println("    * <-- " + frame));
+		// frames.stream().forEach(frame -> System.out.println(" * <-- " + frame));
 		return passFramesToDecodeServerResponse(frames);
 	}
 
@@ -99,7 +96,8 @@ public abstract class FramesBase
 
 	public byte[] encodeClientRequest(byte[] data) throws Exception {
 		byte[] frames = encodeClientRequestToFrames(data);
-		//FrameUtils.parseFrames(frames).stream().forEach(frame -> System.out.println("    * --> " + frame));
+		// FrameUtils.parseFrames(frames).stream().forEach(frame -> System.out.println("
+		// * --> " + frame));
 		return frames;
 	}
 
@@ -109,7 +107,8 @@ public abstract class FramesBase
 
 	public byte[] encodeServerResponse(byte[] data) throws Exception {
 		byte[] frames = encodeServerResponseToFrames(data);
-		//FrameUtils.parseFrames(frames).stream().forEach(frame -> System.out.println("<-- *     " + frame));
+		// FrameUtils.parseFrames(frames).stream().forEach(frame ->
+		// System.out.println("<-- * " + frame));
 		return frames;
 	}
 
@@ -128,7 +127,7 @@ public abstract class FramesBase
 	public void closeServerFlowControlledQueue() throws Exception {
 		serverFrameManager.closeFlowControlledQueue();
 	}
-	
+
 	public InputStream getClientFlowControlledInputStream() {
 		return clientFrameManager.getFlowControlledInputStream();
 	}
@@ -136,11 +135,19 @@ public abstract class FramesBase
 	public InputStream getServerFlowControlledInputStream() {
 		return serverFrameManager.getFlowControlledInputStream();
 	}
-	
-	protected HpackDecoder getClientHpackDecoder() { return clientFrameManager.getHpackDecoder(); }
-	protected HpackEncoder getClientHpackEncoder() { return clientFrameManager.getHpackEncoder(); }
-	protected HpackDecoder getServerHpackDecoder() { return serverFrameManager.getHpackDecoder(); }
-	protected HpackEncoder getServerHpackEncoder() { return serverFrameManager.getHpackEncoder(); }
+
+	protected HpackDecoder getClientHpackDecoder() {
+		return clientFrameManager.getHpackDecoder();
+	}
+	protected HpackEncoder getClientHpackEncoder() {
+		return clientFrameManager.getHpackEncoder();
+	}
+	protected HpackDecoder getServerHpackDecoder() {
+		return serverFrameManager.getHpackDecoder();
+	}
+	protected HpackEncoder getServerHpackEncoder() {
+		return serverFrameManager.getHpackEncoder();
+	}
 
 	protected abstract byte[] passFramesToDecodeClientRequest(List<Frame> frames) throws Exception;
 	protected abstract byte[] passFramesToDecodeServerResponse(List<Frame> frames) throws Exception;

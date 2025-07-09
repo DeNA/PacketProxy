@@ -17,57 +17,57 @@ package packetproxy.common;
 
 import com.google.gson.Gson;
 import fi.iki.elonen.NanoHTTPD;
-
 import java.util.HashMap;
 import java.util.function.Consumer;
 
 public class TokenHttpServer extends NanoHTTPD {
 
-    private Consumer<String> onReceived;
+	private Consumer<String> onReceived;
 
-    private class Token {
-        public String token;
-    }
+	private class Token {
+		public String token;
+	}
 
-    public TokenHttpServer(String hostname, int port, Consumer<String> onReceived) {
-        super(hostname, port);
-        this.onReceived = onReceived;
-    }
+	public TokenHttpServer(String hostname, int port, Consumer<String> onReceived) {
+		super(hostname, port);
+		this.onReceived = onReceived;
+	}
 
-    @Override
-    public Response serve(IHTTPSession session) {
-        Method method = session.getMethod();
-        String uri = session.getUri();
+	@Override
+	public Response serve(IHTTPSession session) {
+		Method method = session.getMethod();
+		String uri = session.getUri();
 
-        if (method.equals(Method.OPTIONS) && uri.equals("/token")){
-            Response res = NanoHTTPD.newFixedLengthResponse( Response.Status.OK, MIME_HTML, null);
-            res.addHeader("Access-Control-Allow-Origin", "*");
-            res.addHeader("Access-Control-Allow-Headers", "Content-Type");
-            res.addHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
-            res.addHeader("Access-Control-Max-Age", "86400");
-            res.addHeader("Access-Control-Allow-Private-Network", "true");
-            return res;
-        }
+		if (method.equals(Method.OPTIONS) && uri.equals("/token")) {
+			Response res = NanoHTTPD.newFixedLengthResponse(Response.Status.OK, MIME_HTML, null);
+			res.addHeader("Access-Control-Allow-Origin", "*");
+			res.addHeader("Access-Control-Allow-Headers", "Content-Type");
+			res.addHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
+			res.addHeader("Access-Control-Max-Age", "86400");
+			res.addHeader("Access-Control-Allow-Private-Network", "true");
+			return res;
+		}
 
-        if (method.equals(Method.POST) && uri.equals("/token")){
-            try {
-                HashMap<String, String> map = new HashMap<String, String>();
-                session.parseBody(map);
-                String json = map.get("postData");
-                Token token = new Gson().fromJson(json, Token.class);
+		if (method.equals(Method.POST) && uri.equals("/token")) {
+			try {
+				HashMap<String, String> map = new HashMap<String, String>();
+				session.parseBody(map);
+				String json = map.get("postData");
+				Token token = new Gson().fromJson(json, Token.class);
 
-                onReceived.accept(token.token);
+				onReceived.accept(token.token);
 
-                Response res = NanoHTTPD.newFixedLengthResponse(Response.Status.OK, "application/json", "{\"status\": \"ok\"}");
-                res.addHeader("Access-Control-Allow-Origin", "*");
-                return res;
+				Response res = NanoHTTPD.newFixedLengthResponse(Response.Status.OK, "application/json",
+						"{\"status\": \"ok\"}");
+				res.addHeader("Access-Control-Allow-Origin", "*");
+				return res;
 
-            } catch (Exception e) {
-                return NanoHTTPD.newFixedLengthResponse( Response.Status.INTERNAL_ERROR, MIME_HTML, null);
-            }
-        }
+			} catch (Exception e) {
+				return NanoHTTPD.newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_HTML, null);
+			}
+		}
 
-        return NanoHTTPD.newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_HTML, null);
-    }
+		return NanoHTTPD.newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_HTML, null);
+	}
 
 }

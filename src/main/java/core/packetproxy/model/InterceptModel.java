@@ -15,10 +15,11 @@
  */
 package packetproxy.model;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import static packetproxy.model.PropertyChangeEventType.INTERCEPT_DATA;
 import static packetproxy.model.PropertyChangeEventType.INTERCEPT_MODE;
+
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 
 public class InterceptModel {
 

@@ -15,24 +15,18 @@
  */
 package packetproxy;
 
+import static packetproxy.model.PropertyChangeEventType.LISTEN_PORTS;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.net.BindException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.net.ServerSocket;
-import java.net.Socket;
-
-import javax.swing.JOptionPane;
-
-import packetproxy.common.Utils;
 import packetproxy.model.ListenPort;
 import packetproxy.model.ListenPorts;
 import packetproxy.util.PacketProxyUtility;
-import static packetproxy.model.PropertyChangeEventType.LISTEN_PORTS;
 
 public class ListenPortManager implements PropertyChangeListener {
 	private ListenPorts listenPorts;

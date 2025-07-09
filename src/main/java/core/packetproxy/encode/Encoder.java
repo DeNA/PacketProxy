@@ -19,14 +19,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-
 import org.apache.commons.lang3.ArrayUtils;
-
 import packetproxy.common.StringUtils;
 import packetproxy.model.Packet;
 
-public abstract class Encoder
-{
+public abstract class Encoder {
 	private int PIPE_SIZE = 65536;
 	private PipedOutputStream clientOutputForFlowControl;
 	private PipedInputStream clientInputForFlowControl;
@@ -34,17 +31,17 @@ public abstract class Encoder
 	private PipedInputStream serverInputForFlowControl;
 	private String ALPN;
 	public int encode_mode;
-	
+
 	public Encoder(String alpn) {
 		this.ALPN = alpn;
 		init();
 	}
-	
+
 	public Encoder() {
 		this.ALPN = null;
 		init();
 	}
-	
+
 	private void init() {
 		try {
 			clientOutputForFlowControl = new PipedOutputStream();
@@ -56,50 +53,71 @@ public abstract class Encoder
 		}
 	}
 
-	public void setALPN(String ALPN) { this.ALPN = ALPN; }
-	public String getALPN() { return this.ALPN; }
+	public void setALPN(String ALPN) {
+		this.ALPN = ALPN;
+	}
+	public String getALPN() {
+		return this.ALPN;
+	}
 	public abstract String getName();
 	public abstract int checkDelimiter(byte[] input_data) throws Exception;
-	public int checkRequestDelimiter(byte[] input_data) throws Exception { return checkDelimiter(input_data); }
-	public int checkResponseDelimiter(byte[] input_data) throws Exception { return checkDelimiter(input_data); }
+	public int checkRequestDelimiter(byte[] input_data) throws Exception {
+		return checkDelimiter(input_data);
+	}
+	public int checkResponseDelimiter(byte[] input_data) throws Exception {
+		return checkDelimiter(input_data);
+	}
 	public abstract byte[] decodeServerResponse(byte[] input_data) throws Exception;
 	public abstract byte[] encodeServerResponse(byte[] input_data) throws Exception;
 	public abstract byte[] decodeClientRequest(byte[] input_data) throws Exception;
 	public abstract byte[] encodeClientRequest(byte[] input_data) throws Exception;
-	
+
 	protected ByteArrayOutputStream clientInputData = new ByteArrayOutputStream();
 	protected ByteArrayOutputStream serverInputData = new ByteArrayOutputStream();
 	/* 溜める */
-	public void clientRequestArrived(byte[] input_data) throws Exception { clientInputData.write(input_data); }
-	public void serverResponseArrived(byte[] input_data) throws Exception { serverInputData.write(input_data); }
+	public void clientRequestArrived(byte[] input_data) throws Exception {
+		clientInputData.write(input_data);
+	}
+	public void serverResponseArrived(byte[] input_data) throws Exception {
+		serverInputData.write(input_data);
+	}
 	/* 画面に表示せず、送信パターン (画面に表示したくないコントロールデータの送信をしたいとき利用) */
-	public byte[] passThroughClientRequest() throws Exception { return null; }
-	public byte[] passThroughServerResponse() throws Exception { return null; }
+	public byte[] passThroughClientRequest() throws Exception {
+		return null;
+	}
+	public byte[] passThroughServerResponse() throws Exception {
+		return null;
+	}
 	/* 画面に表示せず、送信しないパターン (まだデータが溜まっていない状態が存在するとき利用) */
-	public byte[] clientRequestAvailable() throws Exception { byte[] ret = clientInputData.toByteArray(); clientInputData.reset(); return ret; }
-	public byte[] serverResponseAvailable() throws Exception { byte[] ret = serverInputData.toByteArray(); serverInputData.reset(); return ret; }
-	
+	public byte[] clientRequestAvailable() throws Exception {
+		byte[] ret = clientInputData.toByteArray();
+		clientInputData.reset();
+		return ret;
+	}
+	public byte[] serverResponseAvailable() throws Exception {
+		byte[] ret = serverInputData.toByteArray();
+		serverInputData.reset();
+		return ret;
+	}
+
 	/**
-	 * 再送するときに、新しいコネクションを利用するか、それとも既存のコネクションを利用するかの使い分け
-	 * true: 新しいコネクションを利用する (Default)
-	 * false: 既存のコネクションを利用する
+	 * 再送するときに、新しいコネクションを利用するか、それとも既存のコネクションを利用するかの使い分け true: 新しいコネクションを利用する
+	 * (Default) false: 既存のコネクションを利用する
 	 */
 	public boolean useNewConnectionForResend() {
 		return true;
 	}
 
 	/**
-	 * 再送するときに、新しいエンコーダーを利用するか、それとも既存のエンコーダーを利用するかの使い分け
-	 * true: 新しいエンコーダーを利用する (Default)
-	 * false: 既存のエンコーダーを利用する
+	 * 再送するときに、新しいエンコーダーを利用するか、それとも既存のエンコーダーを利用するかの使い分け true: 新しいエンコーダーを利用する
+	 * (Default) false: 既存のエンコーダーを利用する
 	 */
 	public boolean useNewEncoderForResend() {
 		return true;
 	}
 
 	/**
-	 * パケットのheadlineを返す。履歴ウィンドウで利用されます。
-	 * 文字化けすると重たくなるのでデフォルトではASCIIで表示可能な部分のみ表示する
+	 * パケットのheadlineを返す。履歴ウィンドウで利用されます。 文字化けすると重たくなるのでデフォルトではASCIIで表示可能な部分のみ表示する
 	 */
 	public String getSummarizedRequest(Packet packet) {
 		byte[] data = packet.getDecodedData();
@@ -113,7 +131,7 @@ public abstract class Encoder
 		prefix = StringUtils.toAscii(prefix);
 		return new String(prefix);
 	}
-	
+
 	/**
 	 * 再送時のみ呼び出されます。encode関数が実行される前に実行されます。
 	 */
@@ -158,13 +176,13 @@ public abstract class Encoder
 		return "";
 	}
 	/**
-	 * GroupId 
+	 * GroupId
 	 */
 	public void setGroupId(Packet packet) throws Exception {
 	}
 
 	/**
-	 * Flow Controls 
+	 * Flow Controls
 	 */
 	public void putToClientFlowControlledQueue(byte[] output_data) throws Exception {
 		clientOutputForFlowControl.write(output_data);

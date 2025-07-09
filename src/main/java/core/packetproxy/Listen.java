@@ -17,8 +17,7 @@ package packetproxy;
 
 import packetproxy.model.ListenPort;
 
-public class Listen
-{
+public class Listen {
 	private ListenPort listen_info;
 	private Proxy proxy;
 

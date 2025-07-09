@@ -19,18 +19,21 @@ import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.common.Binary;
 import packetproxy.common.Binary.HexString;
 import packetproxy.common.Utils;
-import org.apache.commons.lang3.ArrayUtils;
 
 @DatabaseTable(tableName = "modifications")
-public class Modification
-{
+public class Modification {
 	public static final int ALL_SERVER = -1;
 
-	public enum Direction { CLIENT_REQUEST, SERVER_RESPONSE, ALL };
-	public enum Method { SIMPLE, REGEX, BINARY };
+	public enum Direction {
+		CLIENT_REQUEST, SERVER_RESPONSE, ALL
+	};
+	public enum Method {
+		SIMPLE, REGEX, BINARY
+	};
 
 	@DatabaseField(generatedId = true)
 	private int id;
@@ -48,7 +51,7 @@ public class Modification
 	private String replaced;
 
 	public Modification() {
-		// ORMLite needs a no-arg constructor 
+		// ORMLite needs a no-arg constructor
 	}
 	public Modification(Direction direction, String pattern, String replaced, Method method, Server server) {
 		this.enabled = false;
@@ -77,7 +80,9 @@ public class Modification
 		return Servers.getInstance().query(this.server_id);
 	}
 	public String getServerName() throws Exception {
-		if (this.server_id == ALL_SERVER) { return "*"; }
+		if (this.server_id == ALL_SERVER) {
+			return "*";
+		}
 		Server server = Servers.getInstance().query(this.server_id);
 		return server != null ? server.toString() : "";
 	}
@@ -109,7 +114,7 @@ public class Modification
 		return id;
 	}
 	public void setId(int id) {
-	    this.id = id;
+		this.id = id;
 	}
 	public byte[] replace(byte[] data, Packet packet) throws Exception {
 		if (method == Method.SIMPLE) {
@@ -156,7 +161,7 @@ public class Modification
 			byte[] back_data = ArrayUtils.subarray(data, idx + binPattern.length, data.length);
 			data = ArrayUtils.addAll(front_data, binReplaced);
 			data = ArrayUtils.addAll(data, back_data);
-			idx = idx + binReplaced.length;
+			idx += binReplaced.length;
 			packet.setModified();
 		}
 		return data;

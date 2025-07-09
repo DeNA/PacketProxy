@@ -18,28 +18,22 @@ package packetproxy.common;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
 
-import packetproxy.util.PacketProxyUtility;
-
 public class CamelCase {
-	
+
 	/*
-	static public void main(String[] args) {
-		PacketProxyUtility util = PacketProxyUtility.getInstance();
-		try {
-			util.packetProxyLog(CamelCase.toCamelCase("1453"));
-			util.packetProxyLog(CamelCase.toCamelCase("a"));
-			util.packetProxyLog(CamelCase.toCamelCase("test"));
-			util.packetProxyLog(CamelCase.toCamelCase("abc_def_ghf"));
-			util.packetProxyLog(CamelCase.toCamelCase("abc-def-ghf"));
-			util.packetProxyLog(CamelCase.toCamelCase("abc_def-ghf"));
-			util.packetProxyLog(CamelCase.toCamelCase("abc%def$-ghf"));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	*/
-	
-	static public String toCamelCase(String s) {
+	 * static public void main(String[] args) { PacketProxyUtility util =
+	 * PacketProxyUtility.getInstance(); try {
+	 * util.packetProxyLog(CamelCase.toCamelCase("1453"));
+	 * util.packetProxyLog(CamelCase.toCamelCase("a"));
+	 * util.packetProxyLog(CamelCase.toCamelCase("test"));
+	 * util.packetProxyLog(CamelCase.toCamelCase("abc_def_ghf"));
+	 * util.packetProxyLog(CamelCase.toCamelCase("abc-def-ghf"));
+	 * util.packetProxyLog(CamelCase.toCamelCase("abc_def-ghf"));
+	 * util.packetProxyLog(CamelCase.toCamelCase("abc%def$-ghf")); } catch
+	 * (Exception e) { e.printStackTrace(); } }
+	 */
+
+	public static String toCamelCase(String s) {
 		Pattern pattern = Pattern.compile("([a-zA-Z][a-zA-Z0-9]*)");
 		Matcher matcher = pattern.matcher(s);
 		StringBuffer sb = new StringBuffer();
@@ -50,7 +44,7 @@ public class CamelCase {
 		return sb.toString();
 	}
 
-	static private String toProperCase(String s) {
+	private static String toProperCase(String s) {
 		return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
 	}
 }

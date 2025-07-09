@@ -20,21 +20,15 @@ import packetproxy.util.PacketProxyUtility;
 
 public class BinaryBuffer {
 	/*
-	 * static public void main(String[] args) {
-	 * try {
-	 * BinaryBuffer a = new BinaryBuffer("hello, world".getBytes());
-	 * a.remove(1, 1);
-	 * System.out.println(a.toString());
-	 * BinaryBuffer b = new BinaryBuffer("hello, world".getBytes());
-	 * b.insert(1, "aa".getBytes());
-	 * System.out.println(b.toString());
-	 * BinaryBuffer c = new BinaryBuffer("hello, world".getBytes());
-	 * c.insert(1, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".getBytes());
-	 * System.out.println(c.toString());
-	 * } catch (Exception e) {
-	 * e.printStackTrace();
-	 * }
-	 * }
+	 * static public void main(String[] args) { try { BinaryBuffer a = new
+	 * BinaryBuffer("hello, world".getBytes()); a.remove(1, 1);
+	 * System.out.println(a.toString()); BinaryBuffer b = new
+	 * BinaryBuffer("hello, world".getBytes()); b.insert(1, "aa".getBytes());
+	 * System.out.println(b.toString()); BinaryBuffer c = new
+	 * BinaryBuffer("hello, world".getBytes()); c.insert(1,
+	 * "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".getBytes());
+	 * System.out.println(c.toString()); } catch (Exception e) {
+	 * e.printStackTrace(); } }
 	 */
 
 	private int buffer_capacity = 4096;
@@ -135,7 +129,7 @@ public class BinaryBuffer {
 
 		int new_buffer_capacity = buffer_capacity;
 		while (new_buffer_capacity < n) {
-			new_buffer_capacity = new_buffer_capacity * 2;
+			new_buffer_capacity *= 2;
 		}
 
 		byte[] new_buffer = new byte[new_buffer_capacity];

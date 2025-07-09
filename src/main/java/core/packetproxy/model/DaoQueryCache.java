@@ -25,10 +25,16 @@ import java.util.List;
 // 並列実行時に壊れる可能性あり
 public class DaoQueryCache<T> {
 	private HashMap<String, HashMap<Integer, List<T>>> query_cache;
-	public DaoQueryCache() { clear(); }
-	public void clear() { query_cache = new HashMap(); }
+	public DaoQueryCache() {
+		clear();
+	}
+	public void clear() {
+		query_cache = new HashMap();
+	}
 	public List<T> query(String type, Object query) {
-		if (!query_cache.containsKey(type)) { return null; }
+		if (!query_cache.containsKey(type)) {
+			return null;
+		}
 		return query_cache.get(type).get(query.hashCode());
 	}
 	public void set(String type, Object query, T result) {

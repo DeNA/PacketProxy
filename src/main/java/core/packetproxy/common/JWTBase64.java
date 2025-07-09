@@ -17,13 +17,12 @@ package packetproxy.common;
 
 import org.apache.commons.codec.binary.Base64;
 
-public class JWTBase64 extends JWT
-{
+public class JWTBase64 extends JWT {
 	public JWTBase64(JWT jwt) {
 		super(jwt);
 	}
 	public JWTBase64(String jwtString) {
-		String[] jwtPart = jwtString.split("\\.",3);
+		String[] jwtPart = jwtString.split("\\.", 3);
 		header = new String(Base64.decodeBase64(jwtPart[0]));
 		payload = new String(Base64.decodeBase64(jwtPart[1]));
 	}

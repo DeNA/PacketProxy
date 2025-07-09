@@ -67,7 +67,8 @@ public class GUIServerNamePanel extends JPanel {
 					String url = http.getURL(packet.getServerPort(), packet.getUseSSL());
 					server_label.setText(String.format("%s (%s)", url, packet.getEncoder()));
 				} else {
-					server_label.setText(String.format("%s:%d (%s)", packet.getServerIP(), packet.getServerPort(), packet.getEncoder()));
+					server_label.setText(String.format("%s:%d (%s)", packet.getServerIP(), packet.getServerPort(),
+							packet.getEncoder()));
 				}
 			} else {
 				clearText();

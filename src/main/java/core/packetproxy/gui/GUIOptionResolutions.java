@@ -15,21 +15,13 @@
  */
 package packetproxy.gui;
 
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
 import packetproxy.model.Resolution;
 import packetproxy.model.Resolutions;
 
@@ -43,8 +35,8 @@ public class GUIOptionResolutions extends GUIOptionComponentBase<Resolution> {
 		this.resolutions = Resolutions.getInstance();
 		this.resolutions.addPropertyChangeListener(this);
 		this.table_ext_list = new ArrayList<Resolution>();
-		String[] menu = { "IP Addr", "Host", "Override", "Comment" };
-		int[] menuWidth = { 200, 200, 50, 100 };
+		String[] menu = {"IP Addr", "Host", "Override", "Comment"};
+		int[] menuWidth = {200, 200, 50, 100};
 
 		MouseAdapter tableAction = new MouseAdapter() {
 			@Override
@@ -114,12 +106,8 @@ public class GUIOptionResolutions extends GUIOptionComponentBase<Resolution> {
 	protected void addTableContent(Resolution resolution) {
 		table_ext_list.add(resolution);
 		try {
-			option_model.addRow(new Object[] {
-					resolution.getIp(),
-					resolution.getHostName(),
-					resolution.isEnabled(),
-					resolution.getComment()
-			});
+			option_model.addRow(new Object[]{resolution.getIp(), resolution.getHostName(), resolution.isEnabled(),
+					resolution.getComment()});
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

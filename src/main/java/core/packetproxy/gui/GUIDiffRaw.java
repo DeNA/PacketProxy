@@ -20,11 +20,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
 import packetproxy.model.Diff;
-import packetproxy.model.DiffSet;
 import packetproxy.model.DiffEventAdapter;
+import packetproxy.model.DiffSet;
 
-public class GUIDiffRaw extends GUIDiffBase
-{
+public class GUIDiffRaw extends GUIDiffBase {
 	protected JCheckBox jcCh;
 	@Override
 	protected DiffSet sortUniq(DiffSet ds) {

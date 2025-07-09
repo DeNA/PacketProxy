@@ -24,7 +24,7 @@ import javax.swing.ComboBoxEditor;
 import javax.swing.event.EventListenerList;
 
 public class FilterComboBoxEditor implements ComboBoxEditor {
-	final protected HintTextField editor;
+	protected final HintTextField editor;
 	int caret;
 
 	protected EventListenerList listenerList = new EventListenerList();
@@ -72,9 +72,9 @@ public class FilterComboBoxEditor implements ComboBoxEditor {
 		Object listeners[] = listenerList.getListenerList();
 		for (Object obj : listeners) {
 			if (obj instanceof ActionListener) {
-				ActionListener l = (ActionListener)obj;
-		        ActionEvent actionEvent = new ActionEvent(editor, ActionEvent.ACTION_PERFORMED, editor.getText());
-	            l.actionPerformed(actionEvent);
+				ActionListener l = (ActionListener) obj;
+				ActionEvent actionEvent = new ActionEvent(editor, ActionEvent.ACTION_PERFORMED, editor.getText());
+				l.actionPerformed(actionEvent);
 			}
 		}
 	}

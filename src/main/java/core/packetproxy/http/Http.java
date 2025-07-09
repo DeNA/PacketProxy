@@ -17,16 +17,6 @@ package packetproxy.http;
 
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
-import org.apache.commons.collections4.map.MultiValueMap;
-import org.apache.commons.compress.compressors.zstandard.ZstdCompressorInputStream;
-import org.apache.commons.compress.compressors.zstandard.ZstdCompressorOutputStream;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import packetproxy.PrivateDNSClient;
-import packetproxy.common.Parameter;
-import packetproxy.common.Utils;
-import packetproxy.util.PacketProxyUtility;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -38,6 +28,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import org.apache.commons.collections4.map.MultiValueMap;
+import org.apache.commons.compress.compressors.zstandard.ZstdCompressorInputStream;
+import org.apache.commons.compress.compressors.zstandard.ZstdCompressorOutputStream;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import packetproxy.PrivateDNSClient;
+import packetproxy.common.Parameter;
+import packetproxy.common.Utils;
+import packetproxy.util.PacketProxyUtility;
 
 public class Http {
 	private HttpHeader header;
@@ -71,47 +70,36 @@ public class Http {
 	}
 
 	/*
-	 * public static void main(String args[])
-	 * {
-	 * PacketProxyUtility util = PacketProxyUtility.getInstance();
-	 * try {
-	 * 
+	 * public static void main(String args[]) { PacketProxyUtility util =
+	 * PacketProxyUtility.getInstance(); try {
+	 *
 	 * String test1 =
 	 * "GET http://www.example.com/a/b/c.html?abc=h%20oge HTTP/1.1\r\nHost: www.example.com\r\nContent-Length: 4\r\nContent-Encoding: aaa\r\na: b\r\na: c\r\n\r\nbody"
-	 * ;
-	 * //String test1 =
+	 * ; //String test1 =
 	 * "GET http://www.example.com/a/b/c.html? HTTP/1.1\r\nHost: www.example.com\r\nContent-Length: 4\r\nContent-Encoding: aaa\r\na: b\r\na: c\r\n\r\nbody"
-	 * ;
-	 * //String test =
+	 * ; //String test =
 	 * "GET /a/b/c.html?abc=h%20oge HTTP/1.1\r\nHost: www.example.com\r\n\r\nbody";
 	 * String test = "HTTP/1.1 100 Continue\r\n\r\n";
-	 * //System.out.println(test1.length());
-	 * //test1 += "POST /aaa/bbb HTTP/1.1";
-	 * //System.out.println(test1.length());
-	 * Http http = new Http(test1.getBytes());
-	 * byte[] body = http.getBody();
-	 * util.packetProxyLog(new String(body));
+	 * //System.out.println(test1.length()); //test1 += "POST /aaa/bbb HTTP/1.1";
+	 * //System.out.println(test1.length()); Http http = new Http(test1.getBytes());
+	 * byte[] body = http.getBody(); util.packetProxyLog(new String(body));
 	 * util.packetProxyLog("%s:%d\n", http.getProxyHost(), http.getProxyPort());
 	 * util.packetProxyLog(http.getQueryAsString());
-	 * util.packetProxyLog(http.getPath());
-	 * List<Parameter> params = Arrays.asList("a=1", "e=2", "c=3", "a=2", "aa=1",
-	 * "b=2").stream().map((s) -> new Parameter(s)).collect(Collectors.toList());
-	 * http.setBodyParams(params);
+	 * util.packetProxyLog(http.getPath()); List<Parameter> params =
+	 * Arrays.asList("a=1", "e=2", "c=3", "a=2", "aa=1", "b=2").stream().map((s) ->
+	 * new Parameter(s)).collect(Collectors.toList()); http.setBodyParams(params);
 	 * util.packetProxyLog(new String(http.getBody(), "UTF-8"));
-	 * MultiValueMap<String, Parameter> map = http.getBodyParams();
-	 * List<String> list = http.getBodyParamsOrder();
-	 * 
+	 * MultiValueMap<String, Parameter> map = http.getBodyParams(); List<String>
+	 * list = http.getBodyParamsOrder();
+	 *
 	 * http.getBodyParamsOrder().stream().forEach(s ->
-	 * util.packetProxyLog((map.get(s).toString())));
-	 * // System.out.println("-----");
-	 * // System.out.println(new String(http.toByteArray()));
-	 * // System.out.println(parseHttpDelimiter(test1.getBytes()));
-	 * // System.out.println(new String(http.toByteArray()));
-	 * 
-	 * } catch (Exception e) {
-	 * e.printStackTrace();
-	 * }
-	 * }
+	 * util.packetProxyLog((map.get(s).toString()))); //
+	 * System.out.println("-----"); // System.out.println(new
+	 * String(http.toByteArray())); //
+	 * System.out.println(parseHttpDelimiter(test1.getBytes())); //
+	 * System.out.println(new String(http.toByteArray()));
+	 *
+	 * } catch (Exception e) { e.printStackTrace(); } }
 	 */
 
 	static final Pattern CONTINUE_PATTERN = Pattern.compile("HTTP/1.1 100 Continue\r?\n\r?\n",
@@ -187,7 +175,7 @@ public class Http {
 		return header_size + content_length;
 	}
 
-	static public boolean isHTTP(byte[] data) {
+	public static boolean isHTTP(byte[] data) {
 		return HttpHeader.isHTTPHeader(data);
 	}
 
@@ -268,7 +256,7 @@ public class Http {
 	}
 
 	public void setBody(byte[] body) {
-		this.body = body != null ? body : new byte[] {};
+		this.body = body != null ? body : new byte[]{};
 	}
 
 	public void disableContentLength() {
@@ -327,7 +315,8 @@ public class Http {
 		if (version.equals("HTTP/2") || version.equals("HTTP/3")) {
 			return getURI();
 		} else { /* HTTP/1.1 */
-			String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?" + getQueryAsString()
+			String query = (getQueryAsString() != null && getQueryAsString().length() > 0)
+					? "?" + getQueryAsString()
 					: "";
 			String path = getPath();
 			String host = header.getValue("Host").orElse(null);
@@ -358,7 +347,8 @@ public class Http {
 		if (flag_request) {
 			// String query = (getQuery() != null && getQuery().length() > 0) ?
 			// "?"+URLEncoder.encode(getQuery(),"utf-8") : "";
-			String query = (getQueryAsString() != null && getQueryAsString().length() > 0) ? "?" + getQueryAsString()
+			String query = (getQueryAsString() != null && getQueryAsString().length() > 0)
+					? "?" + getQueryAsString()
 					: "";
 			if (this.isProxy() && this.flag_disable_proxy_format_url == false) {
 				String proxyPort = (getServerPort() > 0) ? ":" + String.valueOf(getServerPort()) : "";
@@ -378,10 +368,8 @@ public class Http {
 		}
 		result = ArrayUtils.addAll(result, header.toByteArray());
 
-		if (body.length == 0 && flag_request && this.getHost() != null &&
-				(this.getHost().equals("dpoint.jp") ||
-						this.getHost().equals("id.smt.docomo.ne.jp") ||
-						this.getHost().equals("cfg.smt.docomo.ne.jp"))) {
+		if (body.length == 0 && flag_request && this.getHost() != null && (this.getHost().equals("dpoint.jp")
+				|| this.getHost().equals("id.smt.docomo.ne.jp") || this.getHost().equals("cfg.smt.docomo.ne.jp"))) {
 			// 特定サイトでは Content-Length: 0をつけるとうまく動かないので例外処理する
 		} else if (this.flag_disable_content_length) {
 			// content-lengthがいらないと明示的に指定したケース
@@ -404,8 +392,7 @@ public class Http {
 	}
 
 	public boolean isGzipEncoded() {
-		return getOriginalHeader().getValue("Content-Encoding")
-				.orElse("").equalsIgnoreCase("gzip");
+		return getOriginalHeader().getValue("Content-Encoding").orElse("").equalsIgnoreCase("gzip");
 	}
 
 	public void encodeBodyByGzip() throws Exception {
@@ -498,8 +485,8 @@ public class Http {
 	}
 
 	private static byte[] getHttpBody(byte[] input_data) throws Exception {
-		byte[][] search_words = { new String("\r\n\r\n").getBytes(), new String("\n\n").getBytes(),
-				new String("\r\r").getBytes() };
+		byte[][] search_words = {new String("\r\n\r\n").getBytes(), new String("\n\n").getBytes(),
+				new String("\r\r").getBytes()};
 		for (byte[] search_word : search_words) {
 			int idx;
 			if ((idx = Utils.indexOf(input_data, 0, input_data.length, search_word)) < 0) {
@@ -507,7 +494,7 @@ public class Http {
 			}
 			return ArrayUtils.subarray(input_data, idx + search_word.length, input_data.length);
 		}
-		return new byte[] {};
+		return new byte[]{};
 	}
 
 	private static byte[] zstd_decompress(byte[] input_data) throws Exception {
@@ -652,13 +639,8 @@ public class Http {
 	public String getCookie(String key) {
 		List<String> cookies = getHeader().getAllValue("Cookie");
 		Map<String, String> cookieMap;
-		cookieMap = cookies
-				.stream()
-				.flatMap(v -> Arrays.stream(v.split(";\\s*")))
-				.map(kv -> kv.split("="))
-				.collect(Collectors.toMap(
-						kv -> URLDecoder.decode(kv[0]),
-						kv -> URLDecoder.decode(kv[1])));
+		cookieMap = cookies.stream().flatMap(v -> Arrays.stream(v.split(";\\s*"))).map(kv -> kv.split("="))
+				.collect(Collectors.toMap(kv -> URLDecoder.decode(kv[0]), kv -> URLDecoder.decode(kv[1])));
 		return cookieMap.get(key);
 	}
 

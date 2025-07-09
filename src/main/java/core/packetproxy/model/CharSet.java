@@ -19,30 +19,29 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "charsets")
-public class CharSet
-{
-    @DatabaseField(generatedId = true)
-    private int id;
-    @DatabaseField(uniqueCombo = true)
-    private String charsetname;
+public class CharSet {
+	@DatabaseField(generatedId = true)
+	private int id;
+	@DatabaseField(uniqueCombo = true)
+	private String charsetname;
 
-    public CharSet() {
-        // ORMLite needs a no-arg constructor
-    }
-    public CharSet(String charsetname) {
-    	initialize(charsetname);
-    }
-    private void initialize(String charsetname) {
-        this.charsetname = charsetname;
-    }
-    @Override
+	public CharSet() {
+		// ORMLite needs a no-arg constructor
+	}
+	public CharSet(String charsetname) {
+		initialize(charsetname);
+	}
+	private void initialize(String charsetname) {
+		this.charsetname = charsetname;
+	}
+	@Override
 	public String toString() {
-    	return this.charsetname;
-    }
-    public String getCharSetName() {
-        return charsetname;
-    }
-    public void setCharsetName(String charsetname) {
-        this.charsetname = charsetname;
-    }
+		return this.charsetname;
+	}
+	public String getCharSetName() {
+		return charsetname;
+	}
+	public void setCharsetName(String charsetname) {
+		this.charsetname = charsetname;
+	}
 }

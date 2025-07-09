@@ -26,10 +26,8 @@ import java.util.stream.Collectors;
 import javax.swing.*;
 import javax.swing.text.StyledDocument;
 import packetproxy.model.DiffSet;
-import packetproxy.model.DiffEventAdapter;
 
-abstract class GUIDiffBase
-{
+abstract class GUIDiffBase {
 	protected static final long serialVersionUID = 1L;
 	protected int width;
 	protected int height;
@@ -85,7 +83,7 @@ abstract class GUIDiffBase
 		panelTarg.add(scrollTarg);
 
 		main_panel = new JPanel();
-		main_panel.setLayout(new GridLayout(1,2));
+		main_panel.setLayout(new GridLayout(1, 2));
 		main_panel.add(panelOrig);
 		main_panel.add(panelTarg);
 

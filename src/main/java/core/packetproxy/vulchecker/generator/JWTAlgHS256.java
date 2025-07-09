@@ -16,27 +16,26 @@
 
 package packetproxy.vulchecker.generator;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Base64;
 import packetproxy.common.JWTBase64;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-
 public class JWTAlgHS256 extends JWTBase64 {
 
-    private String key;
+	private String key;
 
-    public JWTAlgHS256(String jwtString, String key) throws Exception {
-        super(jwtString);
-        this.key = key;
-    }
+	public JWTAlgHS256(String jwtString, String key) throws Exception {
+		super(jwtString);
+		this.key = key;
+	}
 
-    @Override
-    protected String createSignature(String input) throws Exception {
-        SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "HmacSHA256");
-        Mac hs256 = Mac.getInstance("HmacSHA256");
-        hs256.init(keySpec);
-        byte[] mac = hs256.doFinal(input.getBytes());
-        return Base64.encodeBase64URLSafeString(mac);
-    }
+	@Override
+	protected String createSignature(String input) throws Exception {
+		SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "HmacSHA256");
+		Mac hs256 = Mac.getInstance("HmacSHA256");
+		hs256.init(keySpec);
+		byte[] mac = hs256.doFinal(input.getBytes());
+		return Base64.encodeBase64URLSafeString(mac);
+	}
 }

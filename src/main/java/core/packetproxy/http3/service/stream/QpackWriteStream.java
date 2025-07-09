@@ -16,37 +16,36 @@
 
 package packetproxy.http3.service.stream;
 
+import java.io.ByteArrayOutputStream;
 import packetproxy.quic.value.QuicMessage;
 import packetproxy.quic.value.QuicMessages;
 import packetproxy.quic.value.StreamId;
 import packetproxy.quic.value.VariableLengthInteger;
 
-import java.io.ByteArrayOutputStream;
-
 public class QpackWriteStream extends Stream implements WriteStream {
 
-    private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+	private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-    public QpackWriteStream(StreamId streamId, StreamType streamType) {
-        super(streamId, streamType);
-        try {
-            buffer.write(VariableLengthInteger.of(super.streamType.type).getBytes());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+	public QpackWriteStream(StreamId streamId, StreamType streamType) {
+		super(streamId, streamType);
+		try {
+			buffer.write(VariableLengthInteger.of(super.streamType.type).getBytes());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-    @Override
-    public synchronized void write(byte[] data) throws Exception {
-        buffer.write(data);
-    }
-    @Override
-    public synchronized QuicMessages readAllQuicMessages() {
-        QuicMessages msgs = QuicMessages.emptyList();
-        if (buffer.size() > 0) {
-            msgs.add(QuicMessage.of(super.streamId, buffer.toByteArray()));
-            buffer.reset();
-        }
-        return msgs;
-    }
+	@Override
+	public synchronized void write(byte[] data) throws Exception {
+		buffer.write(data);
+	}
+	@Override
+	public synchronized QuicMessages readAllQuicMessages() {
+		QuicMessages msgs = QuicMessages.emptyList();
+		if (buffer.size() > 0) {
+			msgs.add(QuicMessage.of(super.streamId, buffer.toByteArray()));
+			buffer.reset();
+		}
+		return msgs;
+	}
 }

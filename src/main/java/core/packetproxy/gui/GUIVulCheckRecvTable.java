@@ -15,23 +15,19 @@
  */
 package packetproxy.gui;
 
-import packetproxy.model.OneShotPacket;
-import packetproxy.model.OptionTableModel;
-
-import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.function.Consumer;
+import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.table.TableCellRenderer;
+import packetproxy.model.OneShotPacket;
+import packetproxy.model.OptionTableModel;
 
-public class GUIVulCheckRecvTable
-{
+public class GUIVulCheckRecvTable {
 	private String[] columnNames;
-	private int[] columnWidth = { 30, 200, 40, 40, 50, 50, 50 };
+	private int[] columnWidth = {30, 200, 40, 40, 50, 50, 50};
 	private OptionTableModel tableModel;
 	private JTable table;
 	private Consumer<Integer> onSelected;
@@ -41,11 +37,13 @@ public class GUIVulCheckRecvTable
 	}
 
 	public JComponent createPanel() throws Exception {
-		columnNames = new String[]{ "#", "Name", "Server Response", "Length", "Time[msec]", "Encode", "ALPN" };
+		columnNames = new String[]{"#", "Name", "Server Response", "Length", "Time[msec]", "Encode", "ALPN"};
 		tableModel = new OptionTableModel(columnNames, 0) {
 			private static final long serialVersionUID = 1L;
 			@Override
-			public boolean isCellEditable(int row, int column) { return false; }
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
 		};
 
 		table = new JTable(tableModel) {
@@ -82,11 +80,11 @@ public class GUIVulCheckRecvTable
 			public void keyPressed(KeyEvent e) {
 				try {
 					if (e.getKeyCode() == KeyEvent.VK_J) {
-						int p = table.getSelectedRow()+1;
-						p = p >= table.getRowCount() ? table.getRowCount()-1 : p;
+						int p = table.getSelectedRow() + 1;
+						p = p >= table.getRowCount() ? table.getRowCount() - 1 : p;
 						table.changeSelection(p, 0, false, false);
 					} else if (e.getKeyCode() == KeyEvent.VK_K) {
-						int p = table.getSelectedRow()-1;
+						int p = table.getSelectedRow() - 1;
 						p = p < 0 ? 0 : p;
 						table.changeSelection(p, 0, false, false);
 					}
@@ -114,7 +112,7 @@ public class GUIVulCheckRecvTable
 	public int getSelectedPacketId() {
 		int idx = table.getSelectedRow();
 		if (0 <= idx && idx < table.getRowCount())
-			return (Integer)table.getValueAt(idx, 0);
+			return (Integer) table.getValueAt(idx, 0);
 		else
 			return 0;
 	}
@@ -128,14 +126,7 @@ public class GUIVulCheckRecvTable
 	}
 
 	private Object[] makeRowDataFromPacket(int id, String name, OneShotPacket oneshot, long rtt) throws Exception {
-		return new Object[] {
-				id,
-				name,
-				oneshot.getSummarizedResponse(),
-				oneshot.getData().length,
-				rtt,
-				oneshot.getEncoder(),
-				oneshot.getAlpn()
-		};
+		return new Object[]{id, name, oneshot.getSummarizedResponse(), oneshot.getData().length, rtt,
+				oneshot.getEncoder(), oneshot.getAlpn()};
 	}
 }

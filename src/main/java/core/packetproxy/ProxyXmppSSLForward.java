@@ -15,20 +15,19 @@
  */
 package packetproxy;
 
+import static packetproxy.http.Https.createSSLContext;
+import static packetproxy.http.Https.createSSLSocketFactory;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import javax.net.ssl.SSLSocket;
 import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.common.Endpoint;
 import packetproxy.common.SocketEndpoint;
 import packetproxy.model.ListenPort;
 import packetproxy.util.PacketProxyUtility;
-
-import javax.net.ssl.SSLSocket;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-
-import static packetproxy.http.Https.createSSLContext;
-import static packetproxy.http.Https.createSSLSocketFactory;
 
 public class ProxyXmppSSLForward extends Proxy {
 	private ListenPort listen_info;

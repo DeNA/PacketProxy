@@ -15,29 +15,24 @@
  */
 package packetproxy.gui;
 
-import java.awt.Color;
 import java.awt.BorderLayout;
-import javax.swing.text.Position;
-import javax.swing.text.Document;
-import javax.swing.text.Highlighter;
-import javax.swing.text.StyledDocument;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.BadLocationException;
+import java.awt.Color;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
-import javax.swing.JPanel;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
-public class GUILog
-{
+public class GUILog {
 	private JTextPane text;
 	private JScrollPane scrollPane;
 	private JPanel mainPanel;
 	private static GUILog instance;
 	private Object thread_lock;
-	public static GUILog getInstance()
-	{
+	public static GUILog getInstance() {
 		if (instance == null) {
 			instance = new GUILog();
 		}

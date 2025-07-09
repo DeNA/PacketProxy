@@ -16,35 +16,34 @@
 
 package packetproxy.quic.value;
 
+import java.nio.ByteBuffer;
 import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
-
-import java.nio.ByteBuffer;
 
 @Getter
 public class VariableLengthPrecededBytes {
 
-    static public VariableLengthPrecededBytes of(byte[] bytes) {
-        return new VariableLengthPrecededBytes(bytes);
-    }
+	public static VariableLengthPrecededBytes of(byte[] bytes) {
+		return new VariableLengthPrecededBytes(bytes);
+	}
 
-    static public VariableLengthPrecededBytes parse(ByteBuffer buffer) {
-        long length = VariableLengthInteger.parse(buffer).getValue();
-        byte[] bytes = new byte[]{};
-        if (length > 0) {
-            bytes = new byte[(int) length];
-            buffer.get(bytes);
-        }
-        return new VariableLengthPrecededBytes(bytes);
-    }
+	public static VariableLengthPrecededBytes parse(ByteBuffer buffer) {
+		long length = VariableLengthInteger.parse(buffer).getValue();
+		byte[] bytes = new byte[]{};
+		if (length > 0) {
+			bytes = new byte[(int) length];
+			buffer.get(bytes);
+		}
+		return new VariableLengthPrecededBytes(bytes);
+	}
 
-    private byte[] bytes;
+	private byte[] bytes;
 
-    private VariableLengthPrecededBytes(byte[] bytes) {
-        this.bytes = bytes;
-    }
+	private VariableLengthPrecededBytes(byte[] bytes) {
+		this.bytes = bytes;
+	}
 
-    public byte[] serialize() {
-        return ArrayUtils.addAll(VariableLengthInteger.of(bytes.length).getBytes(), bytes);
-    }
+	public byte[] serialize() {
+		return ArrayUtils.addAll(VariableLengthInteger.of(bytes.length).getBytes(), bytes);
+	}
 }

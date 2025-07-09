@@ -17,24 +17,24 @@ package packetproxy.common;
 
 public class Parameter {
 	protected String name, value;
-	public Parameter(String s){
+	public Parameter(String s) {
 		String[] nameAndValue = s.split("=");
 		name = nameAndValue[0];
 		value = nameAndValue[1];
 	}
 
-	public Parameter(String name, String value){
+	public Parameter(String name, String value) {
 		this.name = name;
 		this.value = value;
 	}
 
-	public String getName(){
+	public String getName() {
 		return name;
 	}
-	public String getValue(){
+	public String getValue() {
 		return value;
 	}
-	public String toString(){
+	public String toString() {
 		return name + "=" + value;
 	}
 }

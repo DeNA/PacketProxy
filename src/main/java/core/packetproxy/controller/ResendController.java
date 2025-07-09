@@ -19,9 +19,7 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
 import javax.swing.SwingWorker;
-
 import packetproxy.Duplex;
 import packetproxy.DuplexAsync;
 import packetproxy.DuplexFactory;
@@ -82,14 +80,14 @@ public class ResendController {
 	/**
 	 * レスポンスを受け取って処理する必要があるとき用
 	 * ResendUsingNewConnectionを無名クラスでextendsしてprocessでList<OneShotPacket>受け取る
-	 * 
+	 *
 	 * @param worker
 	 */
 	public void resend(ResendWorker worker) {
 		worker.execute();
 	}
 
-	static public class ResendWorker extends SwingWorker<Object, OneShotPacket> {
+	public static class ResendWorker extends SwingWorker<Object, OneShotPacket> {
 		private PacketProxyUtility util;
 		int count;
 		OneShotPacket oneshot;
@@ -206,20 +204,12 @@ public class ResendController {
 
 				if (this.isDirectSend) {
 					this.duplex.sendToServer(this.preparedData);
-					OneShotPacket result = new OneShotPacket(
-							oneshot.getId(),
-							oneshot.getListenPort(),
-							oneshot.getClient(),
-							oneshot.getServer(),
-							oneshot.getServerName(),
-							oneshot.getUseSSL(),
+					OneShotPacket result = new OneShotPacket(oneshot.getId(), oneshot.getListenPort(),
+							oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(), oneshot.getUseSSL(),
 							I18nString.get(
 									"In case that packets were resend to already connected socket, results can't be displayed in this window. See the history window instead.")
 									.getBytes(),
-							oneshot.getEncoder(),
-							oneshot.getAlpn(),
-							Packet.Direction.SERVER,
-							oneshot.getConn(),
+							oneshot.getEncoder(), oneshot.getAlpn(), Packet.Direction.SERVER, oneshot.getConn(),
 							oneshot.getGroup());
 					this.onReceived.accept(result);
 					return;
@@ -227,20 +217,12 @@ public class ResendController {
 
 				this.duplex.execFastSend(this.preparedData);
 				if (isSync) {
-					OneShotPacket result = new OneShotPacket(
-							oneshot.getId(),
-							oneshot.getListenPort(),
-							oneshot.getClient(),
-							oneshot.getServer(),
-							oneshot.getServerName(),
-							oneshot.getUseSSL(),
+					OneShotPacket result = new OneShotPacket(oneshot.getId(), oneshot.getListenPort(),
+							oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(), oneshot.getUseSSL(),
 							I18nString.get(
 									"In case that packets were resend to already connected socket, results can't be displayed in this window. See the history window instead.")
 									.getBytes(),
-							oneshot.getEncoder(),
-							oneshot.getAlpn(),
-							Packet.Direction.SERVER,
-							oneshot.getConn(),
+							oneshot.getEncoder(), oneshot.getAlpn(), Packet.Direction.SERVER, oneshot.getConn(),
 							oneshot.getGroup());
 					this.onReceived.accept(result);
 				} else {
@@ -258,18 +240,9 @@ public class ResendController {
 						}
 					}
 
-					OneShotPacket result = new OneShotPacket(
-							oneshot.getId(),
-							oneshot.getListenPort(),
-							oneshot.getClient(),
-							oneshot.getServer(),
-							oneshot.getServerName(),
-							oneshot.getUseSSL(),
-							data,
-							oneshot.getEncoder(),
-							oneshot.getAlpn(),
-							Packet.Direction.SERVER,
-							oneshot.getConn(),
+					OneShotPacket result = new OneShotPacket(oneshot.getId(), oneshot.getListenPort(),
+							oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(), oneshot.getUseSSL(),
+							data, oneshot.getEncoder(), oneshot.getAlpn(), Packet.Direction.SERVER, oneshot.getConn(),
 							oneshot.getGroup());
 
 					this.onReceived.accept(result);

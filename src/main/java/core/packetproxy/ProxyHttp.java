@@ -19,7 +19,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-
 import packetproxy.Simplex.SimplexEventAdapter;
 import packetproxy.common.Endpoint;
 import packetproxy.common.EndpointFactory;
@@ -62,7 +61,7 @@ public class ProxyHttp extends Proxy {
 
 					@Override
 					public byte[] onChunkReceived(byte[] data) throws Exception {
-						byte[] result = new byte[] {};
+						byte[] result = new byte[]{};
 						synchronized (client_loopback) {
 
 							Http http = Http.create(data);
@@ -180,7 +179,8 @@ public class ProxyHttp extends Proxy {
 
 	private byte[] createConnection(Endpoint client, Endpoint server, byte[] input_data) throws Exception {
 		Server s = Servers.getInstance().queryByAddress(server.getAddress());
-		DuplexSync duplex = (s != null) ? DuplexFactory.createDuplexSync(client, server, s.getEncoder(), "http/1.1")
+		DuplexSync duplex = (s != null)
+				? DuplexFactory.createDuplexSync(client, server, s.getEncoder(), "http/1.1")
 				: DuplexFactory.createDuplexSync(client, server, "HTTP", "http/1.1");
 		duplex.send(input_data);
 		byte[] output_data = duplex.receive();

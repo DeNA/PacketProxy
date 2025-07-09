@@ -24,17 +24,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Base64;
-
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
 import packetproxy.common.Utils;
 
 @SuppressWarnings("serial")
-public class BinaryTextPane extends ExtendedTextPane
-{
+public class BinaryTextPane extends ExtendedTextPane {
 	private WrapEditorKit editor = new WrapEditorKit(new byte[]{});
 	private byte[] data;
 
@@ -53,11 +50,12 @@ public class BinaryTextPane extends ExtendedTextPane
 		base64_encoder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
-					int position_start = (int)(getSelectionStart()/3);
-					int position_end   = (int)(getSelectionEnd()/3)+1;
-					byte[] data_org = getData();//new String(getData(), "UTF-8").substring(position_start, position_end).getBytes();
-					byte[] data = Arrays.copyOfRange(data_org,position_start,position_end);
-					String copyData = new String(Base64.getEncoder().encode(data),"UTF-8");
+					int position_start = (int) (getSelectionStart() / 3);
+					int position_end = (int) (getSelectionEnd() / 3) + 1;
+					byte[] data_org = getData();// new String(getData(), "UTF-8").substring(position_start,
+												// position_end).getBytes();
+					byte[] data = Arrays.copyOfRange(data_org, position_start, position_end);
+					String copyData = new String(Base64.getEncoder().encode(data), "UTF-8");
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(copyData);
 					clipboard.setContents(selection, selection);
@@ -90,8 +88,7 @@ public class BinaryTextPane extends ExtendedTextPane
 	}
 
 	@Override
-	public byte[] getData()
-	{
+	public byte[] getData() {
 		return data;
 	}
 }

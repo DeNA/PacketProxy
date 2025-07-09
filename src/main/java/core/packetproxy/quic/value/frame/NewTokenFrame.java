@@ -17,14 +17,13 @@
 package packetproxy.quic.value.frame;
 
 import com.google.common.collect.ImmutableList;
+import java.nio.ByteBuffer;
+import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import packetproxy.quic.value.SimpleBytes;
 import packetproxy.quic.value.Token;
 import packetproxy.quic.value.VariableLengthInteger;
-
-import java.nio.ByteBuffer;
-import java.util.List;
 
 /*
 https://www.rfc-editor.org/rfc/rfc9000.html#section-19.7
@@ -39,38 +38,38 @@ NEW_TOKEN Frame {
 @EqualsAndHashCode(callSuper = true)
 public class NewTokenFrame extends Frame {
 
-    static public final byte TYPE = 0x7;
+	public static final byte TYPE = 0x7;
 
-    static public List<Byte> supportedTypes() {
-        return ImmutableList.of(TYPE);
-    }
+	public static List<Byte> supportedTypes() {
+		return ImmutableList.of(TYPE);
+	}
 
-    Token token;
+	Token token;
 
-    static public NewTokenFrame parse(byte[] bytes) {
-        return NewTokenFrame.parse(ByteBuffer.wrap(bytes));
-    }
+	public static NewTokenFrame parse(byte[] bytes) {
+		return NewTokenFrame.parse(ByteBuffer.wrap(bytes));
+	}
 
-    static public NewTokenFrame parse(ByteBuffer buffer) {
-        byte type = buffer.get();
-        assert(type == TYPE);
-        long tokenLength = VariableLengthInteger.parse(buffer).getValue();
-        if (tokenLength == 0) {
-            System.err.println("NewTokenFrame: error: FRAME_ENCODING_ERROR");
-        }
-        Token token = Token.of(SimpleBytes.parse(buffer, tokenLength).getBytes());
+	public static NewTokenFrame parse(ByteBuffer buffer) {
+		byte type = buffer.get();
+		assert (type == TYPE);
+		long tokenLength = VariableLengthInteger.parse(buffer).getValue();
+		if (tokenLength == 0) {
+			System.err.println("NewTokenFrame: error: FRAME_ENCODING_ERROR");
+		}
+		Token token = Token.of(SimpleBytes.parse(buffer, tokenLength).getBytes());
 
-        return new NewTokenFrame(token);
-    }
+		return new NewTokenFrame(token);
+	}
 
-    @Override
-    public byte[] getBytes() {
-        return new byte[]{ TYPE };
-    }
+	@Override
+	public byte[] getBytes() {
+		return new byte[]{TYPE};
+	}
 
-    @Override
-    public boolean isAckEliciting() {
-        return true;
-    }
+	@Override
+	public boolean isAckEliciting() {
+		return true;
+	}
 
 }

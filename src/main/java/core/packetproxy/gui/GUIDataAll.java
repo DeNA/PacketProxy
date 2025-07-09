@@ -16,19 +16,16 @@
 package packetproxy.gui;
 
 import java.awt.GridLayout;
-
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
-
 import packetproxy.common.I18nString;
 import packetproxy.model.Packet;
 
-public class GUIDataAll
-{
+public class GUIDataAll {
 	private JComponent main_panel;
 	private RawTextPane received_text;
 	private RawTextPane decoded_text;
@@ -55,7 +52,7 @@ public class GUIDataAll
 
 	public GUIDataAll() throws Exception {
 		main_panel = new JPanel();
-		main_panel.setLayout(new GridLayout(1,4));
+		main_panel.setLayout(new GridLayout(1, 4));
 		received_text = createTextPane(I18nString.get("Received"));
 		decoded_text = createTextPane(I18nString.get("Decoded"));
 		modified_text = createTextPane(I18nString.get("Modified"));

@@ -18,10 +18,6 @@ package packetproxy.gui;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.net.URI;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -33,13 +29,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
 import packetproxy.model.CAFactory;
-import packetproxy.model.InterceptOptions;
 import packetproxy.model.CAs.CA;
 import packetproxy.model.CAs.PacketProxyCAPerUser;
+import packetproxy.model.InterceptOptions;
 import packetproxy.util.PacketProxyUtility;
 
 public class GUIOption {
@@ -214,8 +209,8 @@ public class GUIOption {
 					CA ca = CAFactory.find(name).orElseThrow();
 					int option = JOptionPane.showConfirmDialog(owner,
 							String.format(I18nString.get("Regenerate %s?"), name),
-							String.format(I18nString.get("Regenerate CA certificate"), name),
-							JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+							String.format(I18nString.get("Regenerate CA certificate"), name), JOptionPane.YES_NO_OPTION,
+							JOptionPane.WARNING_MESSAGE);
 					if (option == JOptionPane.YES_OPTION) {
 						util.packetProxyLog("regenerate " + name);
 						ca.regenerateCA();

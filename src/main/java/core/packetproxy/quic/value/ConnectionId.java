@@ -16,39 +16,37 @@
 
 package packetproxy.quic.value;
 
+import java.nio.ByteBuffer;
+import java.security.SecureRandom;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Value;
 import org.apache.commons.codec.binary.Hex;
 import packetproxy.quic.utils.Constants;
 
-import java.nio.ByteBuffer;
-import java.security.SecureRandom;
-
 @Value(staticConstructor = "of")
 public class ConnectionId {
 
-    static public ConnectionId generateRandom() {
-        byte[] connId = new byte[Constants.CONNECTION_ID_SIZE];
-        new SecureRandom().nextBytes(connId);
-        return new ConnectionId(connId);
-    }
+	public static ConnectionId generateRandom() {
+		byte[] connId = new byte[Constants.CONNECTION_ID_SIZE];
+		new SecureRandom().nextBytes(connId);
+		return new ConnectionId(connId);
+	}
 
-    static public ConnectionId parse(ByteBuffer buffer, long length) {
-        byte[] connId = SimpleBytes.parse(buffer, length).getBytes();
-        return new ConnectionId(connId);
-    }
+	public static ConnectionId parse(ByteBuffer buffer, long length) {
+		byte[] connId = SimpleBytes.parse(buffer, length).getBytes();
+		return new ConnectionId(connId);
+	}
 
-    @Getter(AccessLevel.NONE)
-    byte[] connId;
+	@Getter(AccessLevel.NONE)
+	byte[] connId;
 
+	public byte[] getBytes() {
+		return connId;
+	}
 
-    public byte[] getBytes() {
-        return connId;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("ConnectionId([%s])", Hex.encodeHexString(this.connId));
-    }
+	@Override
+	public String toString() {
+		return String.format("ConnectionId([%s])", Hex.encodeHexString(this.connId));
+	}
 }

@@ -19,7 +19,6 @@ import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-
 import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.common.Protobuf3;
 import packetproxy.common.Utils;

@@ -25,7 +25,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 
 public class StringUtils {
-	
+
 	public static String randomUUID() {
 		/* UUID sample: a3faf181-996a-457d-831f-18767419788c */
 		StringBuilder sb = new StringBuilder();
@@ -40,7 +40,7 @@ public class StringUtils {
 		sb.append(RandomStringUtils.random(12, "0123456789abcdef"));
 		return sb.toString();
 	}
-	
+
 	public static byte[] prettyUpJson(byte[] json) {
 		try {
 			return prettyUpJson(new String(json)).getBytes("UTF-8");
@@ -49,31 +49,29 @@ public class StringUtils {
 		}
 		return prettyUpJson(new String(json)).getBytes();
 	}
-	
+
 	public static String prettyUpJson(String json) {
-		Map<?,?> jsonMap = (Map<?,?>)JSON.decode(json);
+		Map<?, ?> jsonMap = (Map<?, ?>) JSON.decode(json);
 		JSON encoder = new JSON();
-	    encoder.setPrettyPrint(true);
-	    encoder.setInitialIndent(0);
-	    encoder.setIndentText("    ");
-	    encoder.format(jsonMap);
-		return encoder.format(jsonMap)
-				.replace("\\u003C", "<")
-				.replace("\\u003E", ">");
+		encoder.setPrettyPrint(true);
+		encoder.setInitialIndent(0);
+		encoder.setIndentText("    ");
+		encoder.format(jsonMap);
+		return encoder.format(jsonMap).replace("\\u003C", "<").replace("\\u003E", ">");
 	}
 
 	public static byte[] minifyJson(byte[] json) {
 		return minifyJson(new String(json)).getBytes();
 	}
-	
+
 	public static String minifyJson(String json) {
-		Map<?,?> jsonMap = (Map<?,?>)JSON.decode(json);
+		Map<?, ?> jsonMap = (Map<?, ?>) JSON.decode(json);
 		return JSON.encode(jsonMap);
 	}
-	
+
 	public static int countChar(String s, char c, int start_idx, int end_idx) {
 		int count = 0;
-        end_idx = Math.min(s.length(), end_idx);
+		end_idx = Math.min(s.length(), end_idx);
 		for (int i = start_idx; i < end_idx; i++) {
 			if (s.charAt(i) == c)
 				count++;
@@ -83,13 +81,15 @@ public class StringUtils {
 
 	public static byte[] hexToByte(byte[] hexa) throws Exception {
 		String hex = new String(hexa).trim();
-		//assert(hex.length() % 2 == 0);
-		if (hex.length() % 2 != 0) { throw new Exception(I18nString.get("Length of string is not multiples of 2")); }
+		// assert(hex.length() % 2 == 0);
+		if (hex.length() % 2 != 0) {
+			throw new Exception(I18nString.get("Length of string is not multiples of 2"));
+		}
 
-		//System.out.println(hex);
+		// System.out.println(hex);
 		byte[] bytes = new byte[hex.length() / 2];
 		for (int index = 0; index < bytes.length; index++) {
-			bytes[index] =(byte) Integer.parseInt(hex.substring(index * 2, (index + 1) * 2), 16);
+			bytes[index] = (byte) Integer.parseInt(hex.substring(index * 2, (index + 1) * 2), 16);
 		}
 		return bytes;
 	}
@@ -116,11 +116,11 @@ public class StringUtils {
 		/// 16進数の文字列を返す。
 		return strbuf.toString();
 	}
-	
+
 	public static byte[] intToByte(int v, boolean littleEndian) {
 		byte[] bytes = new byte[4];
 		for (int i = 0; i < 4; i++) {
-			bytes[i] = (byte)(0xff & (v >> (i * 8)));
+			bytes[i] = (byte) (0xff & (v >> (i * 8)));
 		}
 		if (!littleEndian) {
 			ArrayUtils.reverse(bytes);
@@ -142,8 +142,8 @@ public class StringUtils {
 	 */
 	public static byte[] pseudoBinaryPatternReplace(byte[] input, String regex, String replace) {
 		byte[] input2 = input.clone();
-		for(int i=0; i<input2.length; ++i) {
-			if(input2[i] < 0x00) {
+		for (int i = 0; i < input2.length; ++i) {
+			if (input2[i] < 0x00) {
 				input2[i] = 0x01;
 			}
 		}
@@ -151,46 +151,46 @@ public class StringUtils {
 		Pattern pattern = Pattern.compile(regex);
 		Matcher matcher = pattern.matcher(pseudoString);
 		ByteArrayOutputStream result = new ByteArrayOutputStream();
-		if(matcher.find()) {
+		if (matcher.find()) {
 			String matched = matcher.group(0);
 			int from = pseudoString.indexOf(matched);
-			//System.err.println("Match! : " + pseudoString.length() + " : " + from + " : " + regex + " : " + pseudoString);
+			// System.err.println("Match! : " + pseudoString.length() + " : " + from + " : "
+			// + regex + " : " + pseudoString);
 			byte[] tmp_result = new byte[matched.length()];
-			for(int i=0; i<matched.length(); ++i) {
-				tmp_result[i] = input[from+i];
+			for (int i = 0; i < matched.length(); ++i) {
+				tmp_result[i] = input[from + i];
 			}
-			result.write(input,0,from);
-			//System.err.println(result);
-			result.write(replace.getBytes(),0,replace.getBytes().length);
-			//System.err.println(result);
-			result.write(input,from+matched.length(),input.length-(from+matched.length()));
-			//System.err.println(result);
+			result.write(input, 0, from);
+			// System.err.println(result);
+			result.write(replace.getBytes(), 0, replace.getBytes().length);
+			// System.err.println(result);
+			result.write(input, from + matched.length(), input.length - (from + matched.length()));
+			// System.err.println(result);
 		}
 		return result.toByteArray();
 	}
-	
+
 	public static int binaryFind(byte[] input, byte[] pattern) {
 		return binaryFind(input, pattern, 0);
 	}
-	
+
 	/**
 	 * inputからpatternで指定されたバイト列が見つかった最初の位置を返す
-	 * 
+	 *
 	 * @param input
 	 * @param pattern
 	 * @param fromIndex
 	 * @return
 	 */
 	public static int binaryFind(byte[] input, byte[] pattern, int fromIndex) {
-        BoyerMoore bm = new BoyerMoore(pattern);
-        int idx;
-        return (idx=bm.searchIn(input, fromIndex)) < 0 ? idx : idx + fromIndex;
+		BoyerMoore bm = new BoyerMoore(pattern);
+		int idx;
+		return (idx = bm.searchIn(input, fromIndex)) < 0 ? idx : idx + fromIndex;
 	}
 
 	/**
-	 * inputからpattenで指定されたバイト列が見つかった場合にreplaceに置き換える
-	 * patternとreplaceは同じ長さでなければならない
-	 * 
+	 * inputからpattenで指定されたバイト列が見つかった場合にreplaceに置き換える patternとreplaceは同じ長さでなければならない
+	 *
 	 * @param input
 	 * @param pattern
 	 * @param replace
@@ -202,10 +202,13 @@ public class StringUtils {
 		}
 
 		byte[] result = input.clone();
-		if (pattern.length == 0) { return result; }
+		if (pattern.length == 0) {
+			return result;
+		}
 		int start = 0;
 		while ((start = binaryFind(input, pattern, start)) > 0) {
-			// System.out.println("Replace : " + input.length + " : " + start + " : " + new String(byteToHex(pattern)) + " -> " + new String(byteToHex(replace)));
+			// System.out.println("Replace : " + input.length + " : " + start + " : " + new
+			// String(byteToHex(pattern)) + " -> " + new String(byteToHex(replace)));
 			for (int j = 0; j < replace.length; j++) {
 				result[start + j] = replace[j];
 			}
@@ -229,45 +232,47 @@ public class StringUtils {
 	public static byte[] toAscii(byte[] data) {
 		byte[] ret = data.clone();
 		for (int i = 0; i < ret.length; i++) {
-			if (ret[i] < 0x20 || 0xff <= ret[i]) { ret[i] = '.'; }
+			if (ret[i] < 0x20 || 0xff <= ret[i]) {
+				ret[i] = '.';
+			}
 		}
 		return ret;
 	}
 
 	public static boolean validatePrintableUTF8(byte[] data) {
-	    for (int i = 0; i < data.length; i++) {
-	        byte octet = data[i];
-	        if (octet == 0x0D || octet == 0x0A) {
-	        	continue;
-	        }
-	        if (0 < octet && octet < 0x20) {
-	        	return false;
-	        }
-	        if (octet == 0x7F) {
-	        	return false;
-	        }
-	        if ((octet & 0x80) == 0) {
-	            continue;
-	        }
-	        int end = 0;
-	        if ((octet & 0xE0) == 0xC0) {
-	            end = i + 1;
-	        } else if ((octet & 0xF0) == 0xE0) {
-	            end = i + 2;
-	        } else if ((octet & 0xF8) == 0xF0) {
-	            end = i + 3;
-	        } else { /* Java supports BMP only */
-	            return false;
-	        }
-	        while (i < end) {
-	            i++;
-	            octet = data[i];
-	            if ((octet & 0xC0) != 0x80) {
-	                return false;
-	            }
-	        }
-	    }
-	    return true;
+		for (int i = 0; i < data.length; i++) {
+			byte octet = data[i];
+			if (octet == 0x0D || octet == 0x0A) {
+				continue;
+			}
+			if (0 < octet && octet < 0x20) {
+				return false;
+			}
+			if (octet == 0x7F) {
+				return false;
+			}
+			if ((octet & 0x80) == 0) {
+				continue;
+			}
+			int end = 0;
+			if ((octet & 0xE0) == 0xC0) {
+				end = i + 1;
+			} else if ((octet & 0xF0) == 0xE0) {
+				end = i + 2;
+			} else if ((octet & 0xF8) == 0xF0) {
+				end = i + 3;
+			} else { /* Java supports BMP only */
+				return false;
+			}
+			while (i < end) {
+				i++;
+				octet = data[i];
+				if ((octet & 0xC0) != 0x80) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
-	
+
 }

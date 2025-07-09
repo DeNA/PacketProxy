@@ -19,7 +19,6 @@ import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
 import net.arnx.jsonic.JSON;
-
 import packetproxy.util.PacketProxyUtility;
 
 public class JWT {
@@ -27,20 +26,14 @@ public class JWT {
 	protected String payload;
 
 	/*
-	 * public static void main(String[] args) {
-	 * try {
-	 * JWT jwt = new
+	 * public static void main(String[] args) { try { JWT jwt = new
 	 * JWT("{ header: { a: \"hello\" }, payload: { b: \"world\", c: { d: \"hoge\" } } }"
 	 * );
 	 * PacketProxyUtility.getInstance().packetProxyLog(jwt.getPayloadValue("c/d"));
-	 * jwt.setHeaderValue("jwk/kid", "abc");
-	 * jwt.setHeaderValue("c", "ccc");
+	 * jwt.setHeaderValue("jwk/kid", "abc"); jwt.setHeaderValue("c", "ccc");
 	 * jwt.setPayloadValue("c/d","fuga");
-	 * PacketProxyUtility.getInstance().packetProxyLog(jwt.toJwtString());
-	 * } catch (Exception e) {
-	 * e.printStackTrace();
-	 * }
-	 * }
+	 * PacketProxyUtility.getInstance().packetProxyLog(jwt.toJwtString()); } catch
+	 * (Exception e) { e.printStackTrace(); } }
 	 */
 
 	public JWT() {

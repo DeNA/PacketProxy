@@ -16,10 +16,8 @@
 package packetproxy.http2;
 
 import java.io.ByteArrayOutputStream;
-
 import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
-
 import packetproxy.http2.frames.DataFrame;
 import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameFactory;
@@ -107,7 +105,8 @@ public class FlowControl {
 
 		int capacity = Math.min(windowSize, connectionWindowSize);
 		if (capacity == 0) {
-			System.err.printf("[HTTP/2 FlowControl] try to send %d data, but running out of window (streamId: %d)\n", queue.size(), this.streamId);
+			System.err.printf("[HTTP/2 FlowControl] try to send %d data, but running out of window (streamId: %d)\n",
+					queue.size(), this.streamId);
 			System.err.flush();
 			return null;
 		}
@@ -150,7 +149,7 @@ public class FlowControl {
 
 		// データの送信が終わっていたら、grpcヘッダを送信する
 		if (this.headersFrameSent && this.dataFrameSent && !this.grpcHeadersFrameSent && this.grpcHeaderFrame != null) {
-			//System.out.printf("[%d] gRPC HeadersFrame sent!\n", streamId);
+			// System.out.printf("[%d] gRPC HeadersFrame sent!\n", streamId);
 			stream.write(this.grpcHeaderFrame);
 			this.grpcHeadersFrameSent = true;
 		}

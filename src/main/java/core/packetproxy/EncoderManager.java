@@ -16,7 +16,6 @@
 package packetproxy;
 
 import com.google.common.collect.Sets;
-
 import java.io.File;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -35,15 +34,13 @@ import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
-
 import org.apache.commons.io.FilenameUtils;
 import packetproxy.encode.Encoder;
 
-public class EncoderManager
-{
+public class EncoderManager {
 	private static EncoderManager instance;
 	private boolean isDuplicated = false;
-	
+
 	public static EncoderManager getInstance() throws Exception {
 		if (instance == null) {
 			instance = new EncoderManager();
@@ -51,11 +48,11 @@ public class EncoderManager
 		return instance;
 	}
 
-	final static private String DEFAULT_PLUGIN_DIR = System.getProperty("user.home")+"/.packetproxy/plugins";
-	private HashMap<String,Class<Encoder>> module_list;
+	private static final String DEFAULT_PLUGIN_DIR = System.getProperty("user.home") + "/.packetproxy/plugins";
+	private HashMap<String, Class<Encoder>> module_list;
 	private static final String encode_package = "packetproxy.encode";
 	private static final Class<Encoder> encode_class = packetproxy.encode.Encoder.class;
-	
+
 	// リフレクションを利用して自動でモジュールをロードするようになったので、クラス名を追記する必要はありません。
 
 	private EncoderManager() {
@@ -67,7 +64,7 @@ public class EncoderManager
 	}
 	private void loadModules() throws Exception {
 		isDuplicated = false;
-		module_list = new HashMap<String,Class<Encoder>>();
+		module_list = new HashMap<String, Class<Encoder>>();
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		JavaFileManager fm = compiler.getStandardFileManager(new DiagnosticCollector<JavaFileObject>(), null, null);
 
@@ -76,11 +73,12 @@ public class EncoderManager
 			try {
 				Path encode_file_path = Paths.get(f.getName());
 				Path encode_file_name = encode_file_path.getFileName();
-				String encode_class_path = encode_package + "." + encode_file_name.toString().replaceAll("\\.class.*$", "");
+				String encode_class_path = encode_package + "."
+						+ encode_file_name.toString().replaceAll("\\.class.*$", "");
 				Class klass = Class.forName(encode_class_path);
-				if(encode_class.isAssignableFrom(klass) && !Modifier.isAbstract(klass.getModifiers())){
+				if (encode_class.isAssignableFrom(klass) && !Modifier.isAbstract(klass.getModifiers())) {
 					@SuppressWarnings("unchecked")
-					Encoder encoder = createInstance((Class<Encoder>)klass, null);
+					Encoder encoder = createInstance((Class<Encoder>) klass, null);
 					module_list.put(encoder.getName(), klass);
 				}
 			} catch (Exception e) {
@@ -90,34 +88,34 @@ public class EncoderManager
 		loadModulesFromJar(module_list);
 	}
 
-	private void loadModulesFromJar(HashMap<String,Class<Encoder>> module_list) throws Exception
-	{
+	private void loadModulesFromJar(HashMap<String, Class<Encoder>> module_list) throws Exception {
 		File[] files = new File(DEFAULT_PLUGIN_DIR).listFiles();
-		if(null==files){
+		if (null == files) {
 			return;
 		}
-		for(File file:files){
-			if(!file.isFile() || !"jar".equals(FilenameUtils.getExtension(file.getName()))){
+		for (File file : files) {
+			if (!file.isFile() || !"jar".equals(FilenameUtils.getExtension(file.getName()))) {
 				continue;
 			}
 			URLClassLoader urlClassLoader = URLClassLoader.newInstance(new URL[]{file.toURI().toURL()});
 			JarFile jarFile = new JarFile(file.getPath());
-			for (Enumeration<JarEntry> entries = jarFile.entries(); entries.hasMoreElements(); )
-			{
-				//Jar filter
+			for (Enumeration<JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
+				// Jar filter
 				JarEntry jarEntry = entries.nextElement();
-				if (jarEntry.isDirectory()) continue;
+				if (jarEntry.isDirectory())
+					continue;
 
 				// class filter
 				String fileName = jarEntry.getName();
-				if (!fileName.endsWith(".class")) continue;
+				if (!fileName.endsWith(".class"))
+					continue;
 
 				Class<?> klass;
 				try {
-					//jar内のクラスファイルの階層がパッケージに準拠している必要がある
-					//例: packetproxy.plugin.EncodeHTTPSample
-					//-> packetproxy/plugin/EncodeHTTPSample.class
-					String encode_class_path = fileName.replaceAll("\\.class.*$", "").replaceAll("/",".");
+					// jar内のクラスファイルの階層がパッケージに準拠している必要がある
+					// 例: packetproxy.plugin.EncodeHTTPSample
+					// -> packetproxy/plugin/EncodeHTTPSample.class
+					String encode_class_path = fileName.replaceAll("\\.class.*$", "").replaceAll("/", ".");
 					klass = urlClassLoader.loadClass(encode_class_path);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -125,17 +123,19 @@ public class EncoderManager
 				}
 
 				// Encode Classを継承しているか
-				if (!encode_class.isAssignableFrom(klass)) continue;
-				if (Modifier.isAbstract(klass.getModifiers())) continue;
+				if (!encode_class.isAssignableFrom(klass))
+					continue;
+				if (Modifier.isAbstract(klass.getModifiers()))
+					continue;
 
 				@SuppressWarnings("unchecked")
-				Encoder encoder = createInstance((Class<Encoder>)klass, null);
+				Encoder encoder = createInstance((Class<Encoder>) klass, null);
 				String encoderName = encoder.getName();
-				if(module_list.containsKey(encoderName)){
+				if (module_list.containsKey(encoderName)) {
 					isDuplicated = true;
 					encoderName += "-" + file.getName();
 				}
-				module_list.put(encoderName, (Class<Encoder>)klass);
+				module_list.put(encoderName, (Class<Encoder>) klass);
 			}
 		}
 	}
@@ -150,7 +150,7 @@ public class EncoderManager
 		module_list.remove(name);
 	}
 
-	public boolean hasDuplicateModules(){
+	public boolean hasDuplicateModules() {
 		return isDuplicated;
 	}
 
@@ -158,7 +158,7 @@ public class EncoderManager
 		String[] names = new String[module_list.size()];
 		int i = 0;
 		for (String name : module_list.keySet()) {
-				names[i++] = name;
+			names[i++] = name;
 		}
 		Arrays.sort(names);
 		return names;

@@ -16,25 +16,24 @@
 
 package packetproxy.quic.value.packet.shortheader;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.nio.ByteBuffer;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Test;
 import packetproxy.quic.value.PacketNumber;
 import packetproxy.quic.value.key.Key;
 
-import java.nio.ByteBuffer;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 class ShortHeaderPacketTest {
 
-    @Test
-    public void dataをインスタンス化した後getBytesで元に戻ること() throws Exception {
-        byte[] data = Hex.decodeHex("5d7be5e8ca341134a2a0de5cced82ebb3f369cc7035c0b52465da032887b7a0c".toCharArray());
-        byte[] secret = Hex.decodeHex("24ba37689b6e1e5ed9e1fbbf563718baeb2f11e4d1da18a04218761b386ab269".toCharArray());
-        Key key = Key.of(secret);
-        ShortHeaderPacket packet = new ShortHeaderPacket(ByteBuffer.wrap(data), key, PacketNumber.Infinite);
-        byte[] restoredData = packet.getBytes(key, PacketNumber.Infinite);
-        assertThat(data).isEqualTo(restoredData);
-    }
+	@Test
+	public void dataをインスタンス化した後getBytesで元に戻ること() throws Exception {
+		byte[] data = Hex.decodeHex("5d7be5e8ca341134a2a0de5cced82ebb3f369cc7035c0b52465da032887b7a0c".toCharArray());
+		byte[] secret = Hex.decodeHex("24ba37689b6e1e5ed9e1fbbf563718baeb2f11e4d1da18a04218761b386ab269".toCharArray());
+		Key key = Key.of(secret);
+		ShortHeaderPacket packet = new ShortHeaderPacket(ByteBuffer.wrap(data), key, PacketNumber.Infinite);
+		byte[] restoredData = packet.getBytes(key, PacketNumber.Infinite);
+		assertThat(data).isEqualTo(restoredData);
+	}
 
 }

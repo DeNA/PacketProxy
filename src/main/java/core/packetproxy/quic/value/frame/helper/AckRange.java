@@ -16,48 +16,47 @@
 
 package packetproxy.quic.value.frame.helper;
 
+import java.nio.ByteBuffer;
 import lombok.AllArgsConstructor;
 import lombok.Value;
-import packetproxy.quic.value.PacketNumber;
 import packetproxy.quic.utils.PacketNumbers;
+import packetproxy.quic.value.PacketNumber;
 import packetproxy.quic.value.SimpleBytes;
 import packetproxy.quic.value.VariableLengthInteger;
-
-import java.nio.ByteBuffer;
 
 @AllArgsConstructor
 @Value
 public class AckRange {
-    long gap;
-    long ackRangeLength;
+	long gap;
+	long ackRangeLength;
 
-    public AckRange(ByteBuffer buffer) {
-        this.gap = VariableLengthInteger.parse(buffer).getValue();
-        this.ackRangeLength = VariableLengthInteger.parse(buffer).getValue();
-    }
+	public AckRange(ByteBuffer buffer) {
+		this.gap = VariableLengthInteger.parse(buffer).getValue();
+		this.ackRangeLength = VariableLengthInteger.parse(buffer).getValue();
+	}
 
-    public long size() {
-        return this.gap + this.ackRangeLength + 2;
-    }
+	public long size() {
+		return this.gap + this.ackRangeLength + 2;
+	}
 
-    public PacketNumbers getAckPacketNumbers(long largestGapPn) {
-        long largestAckPn = largestGapPn - this.gap - 1;
-        PacketNumbers pns = new PacketNumbers();
-        for (long pn = largestAckPn; pn >= largestAckPn - this.ackRangeLength; pn--) {
-            pns.add(PacketNumber.of(pn));
-        }
-        return pns;
-    }
+	public PacketNumbers getAckPacketNumbers(long largestGapPn) {
+		long largestAckPn = largestGapPn - this.gap - 1;
+		PacketNumbers pns = new PacketNumbers();
+		for (long pn = largestAckPn; pn >= largestAckPn - this.ackRangeLength; pn--) {
+			pns.add(PacketNumber.of(pn));
+		}
+		return pns;
+	}
 
-    public byte[] serialize() {
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
-        buffer.put(VariableLengthInteger.of(this.gap).getBytes());
-        buffer.put(VariableLengthInteger.of(this.ackRangeLength).getBytes());
-        buffer.flip();
-        return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
-    }
+	public byte[] serialize() {
+		ByteBuffer buffer = ByteBuffer.allocate(1500);
+		buffer.put(VariableLengthInteger.of(this.gap).getBytes());
+		buffer.put(VariableLengthInteger.of(this.ackRangeLength).getBytes());
+		buffer.flip();
+		return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+	}
 
-    public String toString() {
-        return String.format("gap:%d, ackRangeLength:%d", this.gap, this.ackRangeLength);
-    }
+	public String toString() {
+		return String.format("gap:%d, ackRangeLength:%d", this.gap, this.ackRangeLength);
+	}
 }

@@ -15,6 +15,12 @@
  */
 package packetproxy.common;
 
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.URI;
+import java.util.Objects;
+import javax.net.ssl.SSLSocket;
 import packetproxy.PrivateDNSClient;
 import packetproxy.http.Https;
 import packetproxy.model.CAs.CA;
@@ -23,41 +29,37 @@ import packetproxy.model.Server;
 import packetproxy.quic.service.connection.ServerConnection;
 import packetproxy.quic.value.ConnectionIdPair;
 
-import javax.net.ssl.SSLSocket;
-import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.URI;
-import java.util.Objects;
-
-public class EndpointFactory
-{
+public class EndpointFactory {
 	public static Endpoint createClientEndpoint(Socket socket, InputStream lookaheadBuffer) throws Exception {
 		return new SocketEndpoint(socket, lookaheadBuffer);
 	}
-	
-	public static SSLSocketEndpoint[] createBothSideSSLEndpoints(Socket clientSocket, InputStream lookahead, InetSocketAddress serverAddr, InetSocketAddress upstreamProxyAddr, String serverName, CA ca) throws Exception {
+
+	public static SSLSocketEndpoint[] createBothSideSSLEndpoints(Socket clientSocket, InputStream lookahead,
+			InetSocketAddress serverAddr, InetSocketAddress upstreamProxyAddr, String serverName, CA ca)
+			throws Exception {
 		SSLSocket[] sslSockets = null;
 		SSLSocketEndpoint[] endpoints = null;
 		if (upstreamProxyAddr != null) {
-			sslSockets = Https.createBothSideSSLSockets(clientSocket, lookahead, serverAddr, upstreamProxyAddr, serverName, ca);
+			sslSockets = Https.createBothSideSSLSockets(clientSocket, lookahead, serverAddr, upstreamProxyAddr,
+					serverName, ca);
 			SSLSocketEndpoint clientEndpoint = new SSLSocketEndpoint(sslSockets[0], serverName);
 			SSLSocketEndpoint serverEndpoint = new SSLSocketEndpoint(sslSockets[1], serverName);
-			endpoints = new SSLSocketEndpoint[] { clientEndpoint, serverEndpoint };
+			endpoints = new SSLSocketEndpoint[]{clientEndpoint, serverEndpoint};
 		} else {
 			sslSockets = Https.createBothSideSSLSockets(clientSocket, lookahead, serverAddr, null, serverName, ca);
 			SSLSocketEndpoint clientEndpoint = new SSLSocketEndpoint(sslSockets[0], serverName);
 			SSLSocketEndpoint serverEndpoint = new SSLSocketEndpoint(sslSockets[1], serverName);
-			endpoints = new SSLSocketEndpoint[] { clientEndpoint, serverEndpoint };
+			endpoints = new SSLSocketEndpoint[]{clientEndpoint, serverEndpoint};
 		}
 		return endpoints;
 	}
-	
-	public static SSLSocketEndpoint createClientEndpointFromSNIServerName(Socket socket, String serverName, CA ca, InputStream is) throws Exception {
+
+	public static SSLSocketEndpoint createClientEndpointFromSNIServerName(Socket socket, String serverName, CA ca,
+			InputStream is) throws Exception {
 		SSLSocket ssl_client = Https.convertToServerSSLSocket(socket, serverName, ca, is);
 		return new SSLSocketEndpoint(ssl_client, serverName);
 	}
-	
+
 	public static Endpoint createFromURI(String uri) throws Exception {
 		URI u = new URI(uri);
 		String host = u.getHost();
@@ -70,11 +72,12 @@ public class EndpointFactory
 			throw new Exception(String.format("[Error] Unknown scheme!%s", u.getScheme()));
 		}
 	}
-	
+
 	public static Endpoint createFromOneShotPacket(OneShotPacket packet) throws Exception {
 		if (Objects.equals(packet.getAlpn(), "h3")) {
 			// HTTP3 on QUICの場合は特別対応
-			return new ServerConnection(ConnectionIdPair.generateRandom(), packet.getServerName(), packet.getServerPort());
+			return new ServerConnection(ConnectionIdPair.generateRandom(), packet.getServerName(),
+					packet.getServerPort());
 		} else if (packet.getUseSSL()) {
 			return new SSLSocketEndpoint(packet.getServer(), packet.getServerName(), packet.getAlpn());
 		} else {
@@ -82,7 +85,7 @@ public class EndpointFactory
 			return new SocketEndpoint(packet.getServer(), 10 * 1000);
 		}
 	}
-	
+
 	public static Endpoint createFromServer(Server server) throws Exception {
 		if (server.getUseSSL()) {
 			return new SSLSocketEndpoint(server.getAddress(), server.getIp(), null);

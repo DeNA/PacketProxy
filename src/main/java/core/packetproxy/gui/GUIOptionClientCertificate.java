@@ -15,18 +15,16 @@
  */
 package packetproxy.gui;
 
-import packetproxy.model.ClientCertificate;
-import packetproxy.model.ClientCertificates;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
+import packetproxy.model.ClientCertificate;
+import packetproxy.model.ClientCertificates;
 
 public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCertificate> {
 	private GUIOptionClientCertificateDialog dlg;
@@ -39,8 +37,8 @@ public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCer
 		clientCertificates.addPropertyChangeListener(this);
 		table_ext_list = new ArrayList<>();
 
-		String[] menu = { "Enabled", "Type", "Host", "Subject(CN)", "Issuer" };
-		int[] menuWidth = { 50, 50, 200, 100, 350 };
+		String[] menu = {"Enabled", "Type", "Host", "Subject(CN)", "Issuer"};
+		int[] menuWidth = {50, 50, 200, 100, 350};
 
 		MouseAdapter tableAction = new MouseAdapter() {
 			@Override
@@ -112,13 +110,8 @@ public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCer
 	protected void addTableContent(ClientCertificate certificate) {
 		table_ext_list.add(certificate);
 		try {
-			option_model.addRow(new Object[] {
-					certificate.isEnabled(),
-					certificate.getType().getText(),
-					certificate.getServerName(),
-					certificate.getSubject(),
-					certificate.getIssuer(),
-			});
+			option_model.addRow(new Object[]{certificate.isEnabled(), certificate.getType().getText(),
+					certificate.getServerName(), certificate.getSubject(), certificate.getIssuer(),});
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

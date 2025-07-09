@@ -17,15 +17,13 @@ package packetproxy.encode;
 
 import packetproxy.http.Http;
 
-public class EncodeHTTP extends EncodeHTTPBase
-{
+public class EncodeHTTP extends EncodeHTTPBase {
 	public EncodeHTTP(String ALPN) throws Exception {
 		super(ALPN);
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return "HTTP";
 	}
 

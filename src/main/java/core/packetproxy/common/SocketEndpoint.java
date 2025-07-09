@@ -21,11 +21,10 @@ import java.io.SequenceInputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-public class SocketEndpoint implements Endpoint
-{
+public class SocketEndpoint implements Endpoint {
 	Socket socket;
 	InputStream inputstream;
-	
+
 	public SocketEndpoint(Socket socket) throws Exception {
 		this.socket = socket;
 		inputstream = socket.getInputStream();
@@ -47,12 +46,12 @@ public class SocketEndpoint implements Endpoint
 		socket.connect(addr, timeout);
 		inputstream = socket.getInputStream();
 	}
-	
+
 	@Override
 	public InetSocketAddress getAddress() {
 		return new InetSocketAddress(socket.getInetAddress(), socket.getPort());
 	}
-	
+
 	@Override
 	public InputStream getInputStream() throws Exception {
 		return inputstream;
@@ -67,7 +66,7 @@ public class SocketEndpoint implements Endpoint
 	public int getLocalPort() {
 		return socket.getLocalPort();
 	}
-	
+
 	@Override
 	public String getName() {
 		return null;

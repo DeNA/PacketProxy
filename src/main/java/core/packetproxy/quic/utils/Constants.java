@@ -18,28 +18,22 @@ package packetproxy.quic.utils;
 
 public class Constants {
 
-    public enum Role {
-        CLIENT,
-        SERVER,
-    }
+	public enum Role {
+		CLIENT, SERVER,
+	}
 
-    public enum QuicPacketType {
-        PacketInitial,
-        PacketHandshake,
-        PacketZeroRTT,
-        PacketApplication,
-    }
+	public enum QuicPacketType {
+		PacketInitial, PacketHandshake, PacketZeroRTT, PacketApplication,
+	}
 
-    public enum PnSpaceType {
-        PnSpaceInitial,
-        PnSpaceHandshake,
-        PnSpaceApplicationData,
-    }
+	public enum PnSpaceType {
+		PnSpaceInitial, PnSpaceHandshake, PnSpaceApplicationData,
+	}
 
-    static public final int CONNECTION_ID_SIZE = 8; // Max: 20 bytes
-    static public final int TOKEN_SIZE = 16;
-    static public final long kGranularity = 1; // 1ms
-    static public final float kTimeThreshold = 9f/8f;
-    static public final long kPacketThreshold = 3;
+	public static final int CONNECTION_ID_SIZE = 8; // Max: 20 bytes
+	public static final int TOKEN_SIZE = 16;
+	public static final long kGranularity = 1; // 1ms
+	public static final float kTimeThreshold = 9f / 8f;
+	public static final long kPacketThreshold = 3;
 
 }

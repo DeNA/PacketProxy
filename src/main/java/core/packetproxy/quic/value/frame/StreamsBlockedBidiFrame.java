@@ -17,44 +17,43 @@
 package packetproxy.quic.value.frame;
 
 import com.google.common.collect.ImmutableList;
+import java.nio.ByteBuffer;
+import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import packetproxy.quic.value.VariableLengthInteger;
-
-import java.nio.ByteBuffer;
-import java.util.List;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
 public class StreamsBlockedBidiFrame extends Frame {
 
-    static public final byte TYPE = 0x16;
+	public static final byte TYPE = 0x16;
 
-    static public List<Byte> supportedTypes() {
-        return ImmutableList.of(TYPE);
-    }
+	public static List<Byte> supportedTypes() {
+		return ImmutableList.of(TYPE);
+	}
 
-    long maxStreams;
+	long maxStreams;
 
-    static public StreamsBlockedBidiFrame parse(byte[] bytes) {
-        return StreamsBlockedBidiFrame.parse(ByteBuffer.wrap(bytes));
-    }
+	public static StreamsBlockedBidiFrame parse(byte[] bytes) {
+		return StreamsBlockedBidiFrame.parse(ByteBuffer.wrap(bytes));
+	}
 
-    static public StreamsBlockedBidiFrame parse(ByteBuffer buffer) {
-        byte type = buffer.get();
-        assert(type == TYPE);
-        long maxStreams = VariableLengthInteger.parse(buffer).getValue();
-        return new StreamsBlockedBidiFrame(maxStreams);
-    }
+	public static StreamsBlockedBidiFrame parse(ByteBuffer buffer) {
+		byte type = buffer.get();
+		assert (type == TYPE);
+		long maxStreams = VariableLengthInteger.parse(buffer).getValue();
+		return new StreamsBlockedBidiFrame(maxStreams);
+	}
 
-    @Override
-    public byte[] getBytes() {
-        return new byte[]{ TYPE };
-    }
+	@Override
+	public byte[] getBytes() {
+		return new byte[]{TYPE};
+	}
 
-    @Override
-    public boolean isAckEliciting() {
-        return true;
-    }
+	@Override
+	public boolean isAckEliciting() {
+		return true;
+	}
 
 }

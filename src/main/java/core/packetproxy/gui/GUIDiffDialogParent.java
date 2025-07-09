@@ -23,8 +23,7 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class GUIDiffDialogParent extends JDialog
-{
+public class GUIDiffDialogParent extends JDialog {
 	private static final long serialVersionUID = 1L;
 	private int width;
 	private int height;
@@ -37,13 +36,16 @@ public class GUIDiffDialogParent extends JDialog
 	public void update() throws Exception {
 		try {
 			switch (data_pane.getSelectedIndex()) {
-				case 0:
-					raw_panel.update(); break;
-				case 1:
-					binary_panel.update(); break;
-				case 2:
-					json_panel.update(); break;
-				default:
+				case 0 :
+					raw_panel.update();
+					break;
+				case 1 :
+					binary_panel.update();
+					break;
+				case 2 :
+					json_panel.update();
+					break;
+				default :
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -67,7 +69,7 @@ public class GUIDiffDialogParent extends JDialog
 		Rectangle rect = owner.getBounds();
 		width = rect.width - 100;
 		height = rect.height - 100;
-		setBounds(rect.x + rect.width/2 - width/2, rect.y + rect.height/2 - height/2, width, height); /* ド真ん中 */
+		setBounds(rect.x + rect.width / 2 - width / 2, rect.y + rect.height / 2 - height / 2, width, height); /* ド真ん中 */
 
 		createPanel();
 		Container c = getContentPane();
@@ -93,7 +95,7 @@ public class GUIDiffDialogParent extends JDialog
 			raw_panel = new GUIDiffRaw();
 			binary_panel = new GUIDiffBinary();
 			json_panel = new GUIDiffJson();
-		}catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		JComponent raw_text = raw_panel.createPanel();

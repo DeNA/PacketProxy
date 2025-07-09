@@ -27,12 +27,10 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.*;
-
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.commons.net.util.SubnetUtils.SubnetInfo;
 import org.xbill.DNS.*;
 import org.xbill.DNS.Record;
-
 import packetproxy.model.ConfigBoolean;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
@@ -226,8 +224,7 @@ public class PrivateDNS {
 					if (spoofingIp.isAuto()) {
 						spoofingIpStrs = spoofAddrFactry.getSpoofAddr(cAddr);
 						spoofingIpStr = spoofingIpStrs.get(4);
-						spoofingIp6Str = spoofingIpStrs.get(6);
-						;
+						spoofingIp6Str = spoofingIpStrs.get(6);;
 					} else {
 						spoofingIpStr = spoofingIp.get();
 						spoofingIp6Str = spoofingIp.get6();

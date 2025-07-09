@@ -16,6 +16,10 @@
 
 package packetproxy.quic.service.framegenerator;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.quic.service.frame.Frames;
 import packetproxy.quic.value.QuicMessage;
@@ -23,60 +27,55 @@ import packetproxy.quic.value.StreamId;
 import packetproxy.quic.value.frame.Frame;
 import packetproxy.quic.value.frame.StreamFrame;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 public class MessagesToStreamFrames {
 
-    private final List<Frame> frameList = new ArrayList<>();
-    private final Map<StreamId, Long /* current Offset */> continuousStreamMap = new HashMap<>();
+	private final List<Frame> frameList = new ArrayList<>();
+	private final Map<StreamId, Long /* current Offset */> continuousStreamMap = new HashMap<>();
 
-    public synchronized void put(QuicMessage msg) {
-        StreamId streamId = msg.getStreamId();
+	public synchronized void put(QuicMessage msg) {
+		StreamId streamId = msg.getStreamId();
 
-        if (streamId.isBidirectional()) { /* bi-directional stream */
-            byte[] data = msg.getData();
-            int remaining = data.length;
-            int subOffset = 0;
-            while (remaining > 0) {
-                int subLength = Math.min(remaining, 1200);
-                byte[] subData = ArrayUtils.subarray(data, subOffset, subOffset + subLength);
-                boolean finishFlag = (subOffset + subLength == data.length);
-                this.frameList.add(StreamFrame.of(streamId, subOffset, subLength, subData, finishFlag));
-                remaining -= subLength;
-                subOffset += subLength;
-            }
+		if (streamId.isBidirectional()) { /* bi-directional stream */
+			byte[] data = msg.getData();
+			int remaining = data.length;
+			int subOffset = 0;
+			while (remaining > 0) {
+				int subLength = Math.min(remaining, 1200);
+				byte[] subData = ArrayUtils.subarray(data, subOffset, subOffset + subLength);
+				boolean finishFlag = (subOffset + subLength == data.length);
+				this.frameList.add(StreamFrame.of(streamId, subOffset, subLength, subData, finishFlag));
+				remaining -= subLength;
+				subOffset += subLength;
+			}
 
-        } else { /* uni-directional stream */
-            Long offsetObj = this.continuousStreamMap.get(streamId);
-            long offset = 0;
-            if (offsetObj != null) {
-                offset = offsetObj;
-            }
-            byte[] data = msg.getData();
-            int remaining = data.length;
-            int subOffset = 0;
-            while (remaining > 0) {
-                int subLength = Math.min(remaining, 1200);
-                byte[] subData = ArrayUtils.subarray(data, subOffset, subOffset + subLength);
-                this.frameList.add(StreamFrame.of(streamId, offset, subLength, subData, false));
-                remaining -= subLength;
-                subOffset += subLength;
-                offset += subLength;
-            }
-            this.continuousStreamMap.put(streamId, offset);
-        }
-    }
+		} else { /* uni-directional stream */
+			Long offsetObj = this.continuousStreamMap.get(streamId);
+			long offset = 0;
+			if (offsetObj != null) {
+				offset = offsetObj;
+			}
+			byte[] data = msg.getData();
+			int remaining = data.length;
+			int subOffset = 0;
+			while (remaining > 0) {
+				int subLength = Math.min(remaining, 1200);
+				byte[] subData = ArrayUtils.subarray(data, subOffset, subOffset + subLength);
+				this.frameList.add(StreamFrame.of(streamId, offset, subLength, subData, false));
+				remaining -= subLength;
+				subOffset += subLength;
+				offset += subLength;
+			}
+			this.continuousStreamMap.put(streamId, offset);
+		}
+	}
 
-    /**
-     * get and remove all StreamFrames
-     */
-    public synchronized Frames get() {
-        Frames frames = Frames.of(this.frameList);
-        this.frameList.clear();
-        return frames;
-    }
+	/**
+	 * get and remove all StreamFrames
+	 */
+	public synchronized Frames get() {
+		Frames frames = Frames.of(this.frameList);
+		this.frameList.clear();
+		return frames;
+	}
 
 }

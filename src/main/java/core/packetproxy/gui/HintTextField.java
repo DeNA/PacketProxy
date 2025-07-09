@@ -23,23 +23,20 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-
 import javax.swing.JTextField;
-
 import packetproxy.common.Utils;
 
-public class HintTextField extends JTextField
-{
+public class HintTextField extends JTextField {
 	private static final long serialVersionUID = 1L;
 
 	private String hint;
 
-	public void setHint(String hint){
-		this.hint=hint;
+	public void setHint(String hint) {
+		this.hint = hint;
 	}
-	public String getHint(){
-		if(hint==null)
-			hint="";
+	public String getHint() {
+		if (hint == null)
+			hint = "";
 		return hint;
 	}
 	public void setText(String arg0) {
@@ -47,10 +44,10 @@ public class HintTextField extends JTextField
 		repaint();
 	}
 
-	public HintTextField(String hint){
+	public HintTextField(String hint) {
 		super();
 		setHint(hint);
-		addFocusListener(new FocusListener(){
+		addFocusListener(new FocusListener() {
 			public void focusGained(FocusEvent arg0) {
 				repaint();
 			}
@@ -62,23 +59,23 @@ public class HintTextField extends JTextField
 
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		Graphics2D g2 = (Graphics2D)g;
+		Graphics2D g2 = (Graphics2D) g;
 
-		if( hasFocus() ){
-			return ;
+		if (hasFocus()) {
+			return;
 		}
-		if( getText().length()>0 ){
-			return ;
+		if (getText().length() > 0) {
+			return;
 		}
-		if( getHint().length()<1){
-			return ;
+		if (getHint().length() < 1) {
+			return;
 		}
 
-		Font oldFont=g2.getFont();
-		Color oldColor=g2.getColor();
+		Font oldFont = g2.getFont();
+		Color oldColor = g2.getColor();
 		{
-			Insets insets=getBorder().getBorderInsets(this);
-			int h=g2.getFontMetrics().getAscent();
+			Insets insets = getBorder().getBorderInsets(this);
+			int h = g2.getFontMetrics().getAscent();
 
 			if (Utils.isWindows()) {
 				g2.setColor(Color.LIGHT_GRAY);
@@ -87,7 +84,7 @@ public class HintTextField extends JTextField
 				g2.setColor(Color.GRAY);
 				g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 			}
-			g2.drawString(getHint(),insets.left,insets.top+h);
+			g2.drawString(getHint(), insets.left, insets.top + h);
 		}
 		g2.setFont(oldFont);
 		g2.setColor(oldColor);

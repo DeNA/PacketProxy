@@ -21,8 +21,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -35,7 +35,6 @@ import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.TableCellRenderer;
-
 import packetproxy.common.Utils;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.OptionTableModel;
@@ -44,7 +43,7 @@ import packetproxy.util.PacketProxyUtility;
 
 public class GUIBulkSenderTable {
 	private String[] columnNames;
-	private int[] columnWidth = { 60, 800 };
+	private int[] columnWidth = {60, 800};
 	private OptionTableModel tableModel;
 	private JTable table;
 	boolean updating = false;
@@ -77,9 +76,9 @@ public class GUIBulkSenderTable {
 	public JComponent createPanel() throws Exception {
 
 		if (type == Type.CLIENT)
-			columnNames = new String[] { "#", "Client Request" };
+			columnNames = new String[]{"#", "Client Request"};
 		else if (type == Type.SERVER)
-			columnNames = new String[] { "#", "Server Response" };
+			columnNames = new String[]{"#", "Server Response"};
 
 		tableModel = new OptionTableModel(columnNames, 0) {
 			private static final long serialVersionUID = 1L;
@@ -212,15 +211,9 @@ public class GUIBulkSenderTable {
 
 	private Object[] makeRowDataFromPacket(OneShotPacket oneshot) throws Exception {
 		if (this.type == Type.CLIENT) {
-			return new Object[] {
-					oneshot.getId(),
-					oneshot.getSummarizedRequest()
-			};
+			return new Object[]{oneshot.getId(), oneshot.getSummarizedRequest()};
 		} else {
-			return new Object[] {
-					oneshot.getId(),
-					oneshot.getSummarizedResponse()
-			};
+			return new Object[]{oneshot.getId(), oneshot.getSummarizedResponse()};
 		}
 	}
 

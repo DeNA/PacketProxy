@@ -15,6 +15,11 @@
  */
 package packetproxy.http2;
 
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
@@ -26,12 +31,6 @@ import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameUtils;
 import packetproxy.http2.frames.HeadersFrame;
 import packetproxy.model.Packet;
-
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class GrpcStreaming extends FramesBase {
 	private StreamManager clientStreamManager = new StreamManager();
@@ -58,8 +57,7 @@ public class GrpcStreaming extends FramesBase {
 		return filterFrames(serverStreamManager, frames);
 	}
 
-	private byte[] filterFrames(StreamManager streamManager, List<Frame> frames)
-			throws Exception {
+	private byte[] filterFrames(StreamManager streamManager, List<Frame> frames) throws Exception {
 		for (Frame frame : frames) {
 			streamManager.write(frame);
 		}
@@ -126,8 +124,7 @@ public class GrpcStreaming extends FramesBase {
 				// 余分なヘッダを削除
 				List<String> unusedHeaders = new ArrayList<>();
 				for (HeaderField field : httpHeaderSums.getHeader().getFields()) {
-					if (field.getName().startsWith("X-PacketProxy") ||
-							field.getName().startsWith("x-trailer-")) {
+					if (field.getName().startsWith("X-PacketProxy") || field.getName().startsWith("x-trailer-")) {
 						continue;
 					}
 					unusedHeaders.add(field.getName());

@@ -15,36 +15,31 @@
  */
 package packetproxy;
 
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.net.ssl.SNIServerName;
-
 import org.apache.commons.lang3.ArrayUtils;
-
-import com.google.re2j.Matcher;
-import com.google.re2j.Pattern;
-
 import packetproxy.common.EndpointFactory;
 import packetproxy.common.I18nString;
-import packetproxy.common.SocketEndpoint;
 import packetproxy.common.SSLCapabilities;
 import packetproxy.common.SSLExplorer;
 import packetproxy.common.SSLSocketEndpoint;
+import packetproxy.common.SocketEndpoint;
 import packetproxy.common.WrapEndpoint;
 import packetproxy.encode.EncodeHTTPBase;
 import packetproxy.encode.Encoder;
 import packetproxy.model.ListenPort;
+import packetproxy.model.SSLPassThroughs;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
-import packetproxy.model.SSLPassThroughs;
 import packetproxy.util.PacketProxyUtility;
 
 public class ProxySSLTransparent extends Proxy {
@@ -203,7 +198,7 @@ public class ProxySSLTransparent extends Proxy {
 				duplex = DuplexFactory.createDuplexAsync(client_e, server_e, "Sample", alpn);
 			}
 		} else {
-			if (alpn == null || alpn.length() == 0) {
+			if (alpn == null || alpn.isEmpty()) {
 				Encoder encoder = EncoderManager.getInstance().createInstance(server.getEncoder(), "");
 				if (encoder instanceof EncodeHTTPBase) {
 					/* The client does not support ALPN. It seems to be an old HTTP client */

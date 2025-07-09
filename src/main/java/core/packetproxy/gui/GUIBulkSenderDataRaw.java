@@ -17,15 +17,12 @@ package packetproxy.gui;
 
 import java.awt.BorderLayout;
 import java.util.function.Consumer;
-
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-
 import packetproxy.util.SearchBox;
 
-public class GUIBulkSenderDataRaw implements RawTextPane.DataChangedListener
-{
+public class GUIBulkSenderDataRaw implements RawTextPane.DataChangedListener {
 	private RawTextPane raw_text;
 	private SearchBox searchBox;
 	private JComponent panel;

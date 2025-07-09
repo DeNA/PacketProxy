@@ -24,7 +24,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -33,7 +32,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
-
 import packetproxy.controller.ResendController;
 import packetproxy.http.Http;
 import packetproxy.model.Diff;
@@ -85,9 +83,8 @@ public class GUIData {
 					int id = GUIHistory.getInstance().getSelectedPacketId();
 					Packet packet = Packets.getInstance().query(id);
 					Http http = Http.create(tabs.getRaw().getData());
-					String copyData = http.getMethod() + "\t" +
-							http.getURL(packet.getServerPort(), packet.getUseSSL()) + "\t" +
-							new String(http.getBody(), "UTF-8");
+					String copyData = http.getMethod() + "\t" + http.getURL(packet.getServerPort(), packet.getUseSSL())
+							+ "\t" + new String(http.getBody(), "UTF-8");
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(copyData);
 					clipboard.setContents(selection, selection);
@@ -361,13 +358,13 @@ public class GUIData {
 
 	public byte[] getData() {
 		if (tabs.getData() == null) {
-			return new byte[] {};
+			return new byte[]{};
 		}
 		try {
 			return tabs.getData();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return new byte[] {};
+		return new byte[]{};
 	}
 }

@@ -19,39 +19,38 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "filters")
-public class Filter
-{
-    @DatabaseField(generatedId = true)
-    private int id;
-    @DatabaseField(unique = true)
-    private String name;
-    @DatabaseField
-    private String filter;
-    
-    public Filter() {
-        // ORMLite needs a no-arg constructor 
-    }
-    public Filter(String name, String filter) {
-    	this.name = name;
-    	this.filter = filter;
-    }
-    public void setName(String name) {
-    	this.name = name;
-    }
-    public void setFilter(String filter) {
-    	this.filter = filter;
-    }
-    public int getId() {
-    	return this.id;
-    }
-    public String getName() {
-    	return this.name;
-    }
-    public String getFilter() {
-    	return this.filter;
-    }
-    @Override
+public class Filter {
+	@DatabaseField(generatedId = true)
+	private int id;
+	@DatabaseField(unique = true)
+	private String name;
+	@DatabaseField
+	private String filter;
+
+	public Filter() {
+		// ORMLite needs a no-arg constructor
+	}
+	public Filter(String name, String filter) {
+		this.name = name;
+		this.filter = filter;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public void setFilter(String filter) {
+		this.filter = filter;
+	}
+	public int getId() {
+		return this.id;
+	}
+	public String getName() {
+		return this.name;
+	}
+	public String getFilter() {
+		return this.filter;
+	}
+	@Override
 	public String toString() {
-    	return String.format("[ %s: %s ]", this.name, this.filter);
-    }
+		return String.format("[ %s: %s ]", this.name, this.filter);
+	}
 }

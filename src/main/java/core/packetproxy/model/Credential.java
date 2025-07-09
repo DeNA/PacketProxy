@@ -15,21 +15,20 @@
  */
 package packetproxy.model;
 
-public class Credential
-{
+public class Credential {
 	// should be public for JSONIC.
 	public String username;
 	public String password;
-	
+
 	public Credential() {
 		// needed for JSONIC library.
 	}
-	
+
 	public Credential(String username, String password) {
 		this.username = username;
 		this.password = password;
 	}
-	
+
 	public String getUsername() {
 		return this.username;
 	}

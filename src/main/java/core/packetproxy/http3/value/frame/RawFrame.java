@@ -17,50 +17,49 @@
 package packetproxy.http3.value.frame;
 
 import com.google.common.collect.ImmutableList;
+import java.nio.ByteBuffer;
+import java.util.List;
 import lombok.Value;
 import org.apache.commons.codec.binary.Hex;
 import packetproxy.quic.value.SimpleBytes;
 
-import java.nio.ByteBuffer;
-import java.util.List;
-
 @Value
 public class RawFrame implements Frame {
 
-    static public final long TYPE = 0x123456;
+	public static final long TYPE = 0x123456;
 
-    static public List<Long> supportedTypes() {
-        return ImmutableList.of(TYPE);
-    }
+	public static List<Long> supportedTypes() {
+		return ImmutableList.of(TYPE);
+	}
 
-    static public RawFrame of(byte[] bytes) {
-        return new RawFrame(bytes);
-    }
-    static public RawFrame parse(byte[] bytes) {
-        return of(bytes);
-    }
+	public static RawFrame of(byte[] bytes) {
+		return new RawFrame(bytes);
+	}
+	public static RawFrame parse(byte[] bytes) {
+		return of(bytes);
+	}
 
-    static public RawFrame parse(ByteBuffer buffer) {
-        byte[] frameData = SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
-        return new RawFrame(frameData);
-    }
+	public static RawFrame parse(ByteBuffer buffer) {
+		byte[] frameData = SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+		return new RawFrame(frameData);
+	}
 
-    long type;
-    byte[] data;
+	long type;
+	byte[] data;
 
-    public RawFrame(byte[] frameData) {
-        this.type = TYPE;
-        this.data = frameData;
-    }
+	public RawFrame(byte[] frameData) {
+		this.type = TYPE;
+		this.data = frameData;
+	}
 
-    @Override
-    public byte[] getBytes() throws Exception {
-        return this.data;
-    }
+	@Override
+	public byte[] getBytes() throws Exception {
+		return this.data;
+	}
 
-    @Override
-    public String toString() {
-        return String.format("RawFrame(data=[%s])", Hex.encodeHexString(this.data));
-    }
+	@Override
+	public String toString() {
+		return String.format("RawFrame(data=[%s])", Hex.encodeHexString(this.data));
+	}
 
 }

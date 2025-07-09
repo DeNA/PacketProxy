@@ -16,32 +16,30 @@
 package packetproxy.http2.frames;
 
 import java.io.ByteArrayOutputStream;
-
 import org.apache.commons.lang3.ArrayUtils;
-
 import packetproxy.http.Http;
 import packetproxy.http.HttpHeader;
 
 public class DataFrame extends Frame {
 
-    static public Type TYPE = Type.DATA; 
-    static public byte FLAG_END_STREAM = (byte)0x01;
-    static public byte FLAG_PADDED     = (byte)0x08;
+	public static Type TYPE = Type.DATA;
+	public static byte FLAG_END_STREAM = (byte) 0x01;
+	public static byte FLAG_PADDED = (byte) 0x08;
 
-    public DataFrame(int flags, int streamId, byte[] payload) {
-    	super(TYPE, flags, streamId, payload);
-    }
-    
-    public DataFrame(Frame frame) throws Exception {
+	public DataFrame(int flags, int streamId, byte[] payload) {
+		super(TYPE, flags, streamId, payload);
+	}
+
+	public DataFrame(Frame frame) throws Exception {
 		super(frame);
 		parsePayload();
-    }
+	}
 
 	public DataFrame(byte[] data) throws Exception {
 		super(data);
 		parsePayload();
 	}
-	
+
 	public DataFrame(Http http) throws Exception {
 		super();
 
@@ -54,13 +52,13 @@ public class DataFrame extends Frame {
 			super.flags = FLAG_END_STREAM;
 		}
 		super.payload = http.getBody();
-		super.origPayload = http.getBody(); 
+		super.origPayload = http.getBody();
 		super.extra = new byte[]{};
 		super.type = TYPE;
 		super.length = payload.length;
-		
+
 	}
-	
+
 	private void parsePayload() throws Exception {
 		if ((flags & FLAG_PADDED) > 0) {
 			int padLen = (payload[0] & 0xff);
@@ -70,9 +68,9 @@ public class DataFrame extends Frame {
 	}
 
 	@Override
-    public byte[] toByteArrayWithoutExtra() throws Exception {
+	public byte[] toByteArrayWithoutExtra() throws Exception {
 		return toByteArray();
-    }
+	}
 
 	public byte[] getHttp() throws Exception {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -84,7 +82,7 @@ public class DataFrame extends Frame {
 		baos.write(payload);
 		return baos.toByteArray();
 	}
-	
+
 	@Override
 	public String toString() {
 		return super.toString();

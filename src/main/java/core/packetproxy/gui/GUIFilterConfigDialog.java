@@ -19,23 +19,19 @@ import java.awt.Container;
 import java.awt.Rectangle;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-
 import javax.swing.BoxLayout;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-
 import packetproxy.common.I18nString;
 
-public class GUIFilterConfigDialog extends JDialog
-{
+public class GUIFilterConfigDialog extends JDialog {
 	private static final long serialVersionUID = 1L;
-    private int height = 500;
-    private int width = 800;
-    private JFrame owner;
-				
-	public void showDialog()
-	{
+	private int height = 500;
+	private int width = 800;
+	private JFrame owner;
+
+	public void showDialog() {
 		setModal(true);
 		setVisible(true);
 	}
@@ -46,17 +42,17 @@ public class GUIFilterConfigDialog extends JDialog
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-	    		dispose();
+				dispose();
 			}
 		});
-		
+
 		Rectangle rect = owner.getBounds();
-		setBounds(rect.x + rect.width/2 - width/2, rect.y + rect.height/2 - height/2, width, height); /* ド真ん中 */
+		setBounds(rect.x + rect.width / 2 - width / 2, rect.y + rect.height / 2 - height / 2, width, height); /* ド真ん中 */
 
 		Container c = getContentPane();
-		JPanel panel = new JPanel(); 
-	    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-	    panel.add(new GUIFilterConfig(owner).createPanel());
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.add(new GUIFilterConfig(owner).createPanel());
 		c.add(panel);
 
 	}
