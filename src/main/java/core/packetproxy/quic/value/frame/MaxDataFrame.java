@@ -17,47 +17,46 @@
 package packetproxy.quic.value.frame;
 
 import com.google.common.collect.ImmutableList;
+import java.nio.ByteBuffer;
+import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import packetproxy.quic.value.SimpleBytes;
 import packetproxy.quic.value.VariableLengthInteger;
 
-import java.nio.ByteBuffer;
-import java.util.List;
-
 @Value
 @EqualsAndHashCode(callSuper = true)
 public class MaxDataFrame extends Frame {
 
-    static public final byte TYPE = 0x10;
-    long maxData;
+	public static final byte TYPE = 0x10;
+	long maxData;
 
-    static public List<Byte> supportedTypes() {
-        return ImmutableList.of(TYPE);
-    }
+	public static List<Byte> supportedTypes() {
+		return ImmutableList.of(TYPE);
+	}
 
-    static public MaxDataFrame parse(byte[] bytes) {
-        return MaxDataFrame.parse(ByteBuffer.wrap(bytes));
-    }
+	public static MaxDataFrame parse(byte[] bytes) {
+		return MaxDataFrame.parse(ByteBuffer.wrap(bytes));
+	}
 
-    static public MaxDataFrame parse(ByteBuffer buffer) {
-        byte type = buffer.get();
-        long maxData = VariableLengthInteger.parse(buffer).getValue();
-        return new MaxDataFrame(maxData);
-    }
+	public static MaxDataFrame parse(ByteBuffer buffer) {
+		byte type = buffer.get();
+		long maxData = VariableLengthInteger.parse(buffer).getValue();
+		return new MaxDataFrame(maxData);
+	}
 
-    @Override
-    public byte[] getBytes() {
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
-        buffer.put(TYPE);
-        buffer.put(VariableLengthInteger.of(this.maxData).getBytes());
-        buffer.flip();
-        return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
-    }
+	@Override
+	public byte[] getBytes() {
+		ByteBuffer buffer = ByteBuffer.allocate(1500);
+		buffer.put(TYPE);
+		buffer.put(VariableLengthInteger.of(this.maxData).getBytes());
+		buffer.flip();
+		return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+	}
 
-    @Override
-    public boolean isAckEliciting() {
-        return true;
-    }
+	@Override
+	public boolean isAckEliciting() {
+		return true;
+	}
 
 }

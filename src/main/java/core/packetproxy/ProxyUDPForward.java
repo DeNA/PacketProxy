@@ -23,6 +23,7 @@ import packetproxy.model.ListenPort;
 import packetproxy.util.PacketProxyUtility;
 
 public class ProxyUDPForward extends Proxy {
+
 	private ListenPort listen_info;
 	private UDPServerSocket listen_socket;
 
@@ -34,7 +35,9 @@ public class ProxyUDPForward extends Proxy {
 	@Override
 	public void run() {
 		try {
+
 			while (true) {
+
 				Endpoint client_endpoint = listen_socket.accept();
 				PacketProxyUtility.getInstance().packetProxyLog("accept");
 
@@ -47,6 +50,7 @@ public class ProxyUDPForward extends Proxy {
 				DuplexManager.getInstance().registerDuplex(duplex);
 			}
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}

@@ -16,29 +16,29 @@
 
 package packetproxy.quic.value.transportparameter.bytearray;
 
+import java.nio.ByteBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 import packetproxy.quic.value.transportparameter.TransportParameter;
 
-import java.nio.ByteBuffer;
-
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Value
 public class OrigDestConnIdParameter extends TransportParameter {
-    static public final long ID = 0x0;
 
-    public OrigDestConnIdParameter(ByteBuffer buffer) {
-        super(buffer);
-    }
+	public static final long ID = 0x0;
 
-    public OrigDestConnIdParameter(byte[] destConnId) {
-        super(ID, destConnId.length, destConnId);
-    }
+	public OrigDestConnIdParameter(ByteBuffer buffer) {
+		super(buffer);
+	}
 
-    public byte[] getValue() {
-        return super.parameterValue;
-    }
+	public OrigDestConnIdParameter(byte[] destConnId) {
+		super(ID, destConnId.length, destConnId);
+	}
+
+	public byte[] getValue() {
+		return super.parameterValue;
+	}
 
 }

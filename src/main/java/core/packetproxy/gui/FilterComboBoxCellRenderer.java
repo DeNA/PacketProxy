@@ -22,18 +22,21 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 
-public class FilterComboBoxCellRenderer implements ListCellRenderer<String>
-{
+public class FilterComboBoxCellRenderer implements ListCellRenderer<String> {
+
 	protected DefaultListCellRenderer defaultRenderer = new DefaultListCellRenderer();
 
 	@Override
-	public Component getListCellRendererComponent(JList list, String value, int index, boolean isSelected, boolean cellHasFocus)
-	{
-		JLabel renderer = (JLabel) defaultRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+	public Component getListCellRendererComponent(JList list, String value, int index, boolean isSelected,
+			boolean cellHasFocus) {
+		JLabel renderer = (JLabel) defaultRenderer.getListCellRendererComponent(list, value, index, isSelected,
+				cellHasFocus);
 		if (isSelected || cellHasFocus) {
+
 			renderer.setForeground(new Color(0xff, 0xff, 0xff));
 			renderer.setBackground(new Color(0x80, 0x80, 0xff));
 		} else {
+
 			renderer.setForeground(new Color(0x00, 0x00, 0x00));
 			renderer.setBackground(new Color(0xff, 0xff, 0xff));
 		}

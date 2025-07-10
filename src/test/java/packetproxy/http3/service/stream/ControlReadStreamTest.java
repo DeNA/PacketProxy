@@ -16,20 +16,20 @@
 
 package packetproxy.http3.service.stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Test;
 import packetproxy.quic.value.QuicMessage;
 import packetproxy.quic.value.StreamId;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 class ControlReadStreamTest {
 
-    @Test
-    void 連続したFrameの順番が保たれること() throws Exception {
-        ControlReadStream stream = new ControlReadStream(StreamId.of(0x2));
-        stream.write(QuicMessage.of(StreamId.of(0x2), new byte[]{0x00, 0x04, 0x0})); // 0x40 0x00 は最小のSettingsFrame
-        assertThat(stream.readAllBytes()).isEqualTo(Hex.decodeHex("0400".toCharArray()));
-    }
+	@Test
+	void 連続したFrameの順番が保たれること() throws Exception {
+		ControlReadStream stream = new ControlReadStream(StreamId.of(0x2));
+		stream.write(QuicMessage.of(StreamId.of(0x2), new byte[]{0x00, 0x04, 0x0})); // 0x40 0x00 は最小のSettingsFrame
+		assertThat(stream.readAllBytes()).isEqualTo(Hex.decodeHex("0400".toCharArray()));
+	}
 
 }

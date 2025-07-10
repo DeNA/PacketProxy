@@ -20,5 +20,6 @@ import lombok.Value;
 
 @Value(staticConstructor = "of")
 public class UniStreamHeader {
-    long type;
+
+	long type;
 }

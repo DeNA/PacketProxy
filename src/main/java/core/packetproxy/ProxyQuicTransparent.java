@@ -26,6 +26,7 @@ import packetproxy.quic.value.ConnectionIdPair;
 import packetproxy.util.PacketProxyUtility;
 
 public class ProxyQuicTransparent extends Proxy {
+
 	private ListenPort listen_info;
 	private ClientConnections clientConnections;
 
@@ -37,39 +38,38 @@ public class ProxyQuicTransparent extends Proxy {
 	@Override
 	public void run() {
 		try {
+
 			while (true) {
+
 				ClientConnection clientConnection = this.clientConnections.accept();
 				PacketProxyUtility.getInstance().packetProxyLog("accept");
 
 				String sniServerName = clientConnection.getSNI();
 				PacketProxyUtility.getInstance().packetProxyLog("[QUIC-forward! using SNI] %s", sniServerName);
 
-				ServerConnection serverConnection = new ServerConnection(
-						ConnectionIdPair.generateRandom(),
-						sniServerName,
-						this.listen_info.getPort());
+				ServerConnection serverConnection = new ServerConnection(ConnectionIdPair.generateRandom(),
+						sniServerName, this.listen_info.getPort());
 
 				String encoder = "HTTP";
 				Server server = Servers.getInstance().queryByHostName(sniServerName);
 				if (server != null) {
+
 					String encoderTemp = Servers.getInstance().queryByHostName(sniServerName).getEncoder();
 					if (encoderTemp != null) {
+
 						encoder = encoderTemp;
 					}
 				}
 
 				String alpn = encoder.equals("HTTP") ? "h3" : null;
 
-				DuplexAsync duplex = DuplexFactory.createDuplexAsync(
-						clientConnection,
-						serverConnection,
-						encoder,
-						alpn);
+				DuplexAsync duplex = DuplexFactory.createDuplexAsync(clientConnection, serverConnection, encoder, alpn);
 
 				duplex.start();
 				DuplexManager.getInstance().registerDuplex(duplex);
 			}
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}

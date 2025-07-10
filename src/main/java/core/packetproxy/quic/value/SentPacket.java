@@ -16,35 +16,34 @@
 
 package packetproxy.quic.value;
 
+import java.time.Instant;
+import java.util.Optional;
 import lombok.Value;
 import packetproxy.quic.value.frame.AckFrame;
 import packetproxy.quic.value.packet.PnSpacePacket;
 
-import java.time.Instant;
-import java.util.Optional;
-
 @Value
 public class SentPacket {
 
-    PacketNumber packetNumber;
-    Instant timeSent;
-    PnSpacePacket packet;
+	PacketNumber packetNumber;
+	Instant timeSent;
+	PnSpacePacket packet;
 
-    public SentPacket(PnSpacePacket packet) {
-        this.packet = packet;
-        this.packetNumber = packet.getPacketNumber();
-        this.timeSent = Instant.now();
-    }
+	public SentPacket(PnSpacePacket packet) {
+		this.packet = packet;
+		this.packetNumber = packet.getPacketNumber();
+		this.timeSent = Instant.now();
+	}
 
-    public boolean isAckEliciting() {
-        return this.packet.isAckEliciting();
-    }
+	public boolean isAckEliciting() {
+		return this.packet.isAckEliciting();
+	}
 
-    public boolean hasAckFrame() {
-        return this.packet.hasAckFrame();
-    }
+	public boolean hasAckFrame() {
+		return this.packet.hasAckFrame();
+	}
 
-    public Optional<AckFrame> getAckFrame() {
-        return this.packet.getAckFrame();
-    }
+	public Optional<AckFrame> getAckFrame() {
+		return this.packet.getAckFrame();
+	}
 }

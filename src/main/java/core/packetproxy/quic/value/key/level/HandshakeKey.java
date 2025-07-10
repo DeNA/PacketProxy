@@ -24,13 +24,13 @@ import packetproxy.quic.value.key.Key;
 @Value
 public class HandshakeKey extends Key {
 
-    static public HandshakeKey of(byte[] secret) {
-        Key key = Key.of(secret);
-        return new HandshakeKey(key.getSecret(), key.getKey(), key.getIv(), key.getHp());
-    }
+	public static HandshakeKey of(byte[] secret) {
+		Key key = Key.of(secret);
+		return new HandshakeKey(key.getSecret(), key.getKey(), key.getIv(), key.getHp());
+	}
 
-    public HandshakeKey(byte[] secret, byte[] key, byte[] iv, byte[] hp) {
-        super(secret, key, iv, hp);
-    }
+	public HandshakeKey(byte[] secret, byte[] key, byte[] iv, byte[] hp) {
+		super(secret, key, iv, hp);
+	}
 
 }

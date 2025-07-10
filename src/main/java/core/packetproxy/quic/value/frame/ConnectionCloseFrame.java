@@ -17,70 +17,67 @@
 package packetproxy.quic.value.frame;
 
 import com.google.common.collect.ImmutableList;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
-import org.apache.commons.codec.binary.Hex;
-import packetproxy.quic.value.SimpleBytes;
-import packetproxy.quic.value.VariableLengthInteger;
-
 import java.nio.ByteBuffer;
 import java.util.List;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
+import packetproxy.quic.value.SimpleBytes;
+import packetproxy.quic.value.VariableLengthInteger;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
 public class ConnectionCloseFrame extends Frame {
 
-    static public List<Byte> supportedTypes() {
-        return ImmutableList.of((byte)0x1c, (byte)0x1d);
-    }
+	public static List<Byte> supportedTypes() {
+		return ImmutableList.of((byte) 0x1c, (byte) 0x1d);
+	}
 
-    static public ConnectionCloseFrame parse(byte[] bytes) {
-        return ConnectionCloseFrame.parse(ByteBuffer.wrap(bytes));
-    }
+	public static ConnectionCloseFrame parse(byte[] bytes) {
+		return ConnectionCloseFrame.parse(ByteBuffer.wrap(bytes));
+	}
 
-    static public ConnectionCloseFrame parse(ByteBuffer buffer) {
-        byte type = buffer.get();
-        assert(supportedTypes().stream().anyMatch(t -> t == type));
-        long errorCode = VariableLengthInteger.parse(buffer).getValue();
-        long frameType = (type == (byte)0x1c) ? VariableLengthInteger.parse(buffer).getValue() : 0;
-        long reasonPhraseLength = VariableLengthInteger.parse(buffer).getValue();
-        byte[] reasonPhrase = SimpleBytes.parse(buffer, reasonPhraseLength).getBytes();
-        return new ConnectionCloseFrame(type, errorCode, frameType, reasonPhrase);
-    }
+	public static ConnectionCloseFrame parse(ByteBuffer buffer) {
+		byte type = buffer.get();
+		assert (supportedTypes().stream().anyMatch(t -> t == type));
+		long errorCode = VariableLengthInteger.parse(buffer).getValue();
+		long frameType = (type == (byte) 0x1c) ? VariableLengthInteger.parse(buffer).getValue() : 0;
+		long reasonPhraseLength = VariableLengthInteger.parse(buffer).getValue();
+		byte[] reasonPhrase = SimpleBytes.parse(buffer, reasonPhraseLength).getBytes();
+		return new ConnectionCloseFrame(type, errorCode, frameType, reasonPhrase);
+	}
 
-    byte type;
-    long errorCode;
-    long frameType;
-    byte[] reasonPhrase;
+	byte type;
+	long errorCode;
+	long frameType;
+	byte[] reasonPhrase;
 
-    @Override
-    public byte[] getBytes() {
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
-        buffer.put(type);
-        buffer.putLong(errorCode);
-        if (type == (byte)0x1c) {
-            buffer.putLong(frameType);
-        }
-        buffer.put(VariableLengthInteger.of(reasonPhrase.length).getBytes());
-        buffer.put(reasonPhrase);
-        buffer.flip();
-        return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
-    }
+	@Override
+	public byte[] getBytes() {
+		ByteBuffer buffer = ByteBuffer.allocate(1500);
+		buffer.put(type);
+		buffer.putLong(errorCode);
+		if (type == (byte) 0x1c) {
 
-    @Override
-    public boolean isAckEliciting() {
-        return false;
-    }
+			buffer.putLong(frameType);
+		}
+		buffer.put(VariableLengthInteger.of(reasonPhrase.length).getBytes());
+		buffer.put(reasonPhrase);
+		buffer.flip();
+		return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+	}
 
-    public String getReasonPhraseString() {
-        return this.reasonPhrase != null ? new String(reasonPhrase) : "";
-    }
+	@Override
+	public boolean isAckEliciting() {
+		return false;
+	}
 
-    @Override
-    public String toString() {
-        return String.format("ConnectionCloseFrame(errorCode=%d, frameType=%d, reason=%s)",
-                this.errorCode,
-                this.frameType,
-                new String(this.reasonPhrase));
-    }
+	public String getReasonPhraseString() {
+		return this.reasonPhrase != null ? new String(reasonPhrase) : "";
+	}
+
+	@Override
+	public String toString() {
+		return String.format("ConnectionCloseFrame(errorCode=%d, frameType=%d, reason=%s)", this.errorCode,
+				this.frameType, new String(this.reasonPhrase));
+	}
 }

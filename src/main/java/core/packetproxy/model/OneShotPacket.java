@@ -16,7 +16,6 @@
 package packetproxy.model;
 
 import java.net.InetSocketAddress;
-
 import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.EncoderManager;
 import packetproxy.common.Range;
@@ -26,6 +25,7 @@ import packetproxy.model.Packet.Direction;
 import packetproxy.util.PacketProxyUtility;
 
 public class OneShotPacket implements PacketInfo, Cloneable {
+
 	private int id;
 	private Packet.Direction direction;
 	private byte[] data;
@@ -48,8 +48,7 @@ public class OneShotPacket implements PacketInfo, Cloneable {
 	public OneShotPacket(int id, int listen_port, InetSocketAddress client_addr, InetSocketAddress server_addr,
 			String server_name, boolean use_ssl, byte[] data, String encoder_name, String alpn, Packet.Direction dir,
 			int conn, long group) {
-		initialize(id, listen_port,
-				client_addr.getAddress().getHostAddress(), client_addr.getPort(),
+		initialize(id, listen_port, client_addr.getAddress().getHostAddress(), client_addr.getPort(),
 				server_addr.getAddress().getHostAddress(), server_addr.getPort(), server_name, use_ssl, data,
 				encoder_name, alpn, dir, conn, group);
 	}
@@ -104,7 +103,7 @@ public class OneShotPacket implements PacketInfo, Cloneable {
 	}
 
 	public byte[] getData() {
-		return this.data == null ? new byte[] {} : this.data;
+		return this.data == null ? new byte[]{} : this.data;
 	}
 
 	public void setAutoModified() {
@@ -188,6 +187,7 @@ public class OneShotPacket implements PacketInfo, Cloneable {
 	public String getSummarizedRequest() throws Exception {
 		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name, alpn);
 		if (encoder == null) {
+
 			PacketProxyUtility.getInstance().packetProxyLogErr("エンコードモジュール: %s が見当たらないので、Sample とみなしました", encoder_name);
 			encoder = EncoderManager.getInstance().createInstance("Sample", alpn);
 		}
@@ -197,6 +197,7 @@ public class OneShotPacket implements PacketInfo, Cloneable {
 	public String getSummarizedResponse() throws Exception {
 		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name, alpn);
 		if (encoder == null) {
+
 			PacketProxyUtility.getInstance().packetProxyLogErr("エンコードモジュール: %s が見当たらないので、Sample とみなしました", encoder_name);
 			encoder = EncoderManager.getInstance().createInstance("Sample", alpn);
 		}

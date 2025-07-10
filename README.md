@@ -9,13 +9,13 @@
 PacketProxy is an open-source proxy tool that can intercept and inspect any protocol over TCP/UDP, not limited to just HTTP/1.x, HTTP2, or HTTPS.
 
 PacketProxy is designed for testing web applications for internal use, which helps app development and finding vulnerabilities on your applications.
- 
+
 # Screenshot
 
 ![ScreenShot](./assets/images/screenshot.gif)
- 
+
 # Features
- 
+
 - **Full-featured local proxy tool**
   - Save all captured packets (i.e., requests and responses) and show them in the history tab
   - Filter/Search packets in the history tab (e.g. `requests==/api/v1/users` to show only requests whose path contains `/api/v1/users` )
@@ -42,12 +42,11 @@ You may also use Homebrewk to install PacketProxy if your platform is macOS. In 
 # Using PacketProxy
 
 Take a look at this page to get started: [For Users](https://github.com/DeNA/PacketProxy/wiki/Using-PacketProxy)
- 
+
 # Extending PacketProxy
 
 If you want to develop an extension to support additional protocols or improve core functionalities/UIs, please have a look at this page: [For Developers](https://github.com/DeNA/PacketProxy/wiki/Developing-PacketProxy)
 
- 
 # License
 
 This program is distributed under Apache License 2.0

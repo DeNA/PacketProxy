@@ -21,7 +21,6 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -31,14 +30,13 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
 import packetproxy.common.I18nString;
 import packetproxy.model.Modification;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
 
-public class GUIOptionModificationDialog extends JDialog
-{
+public class GUIOptionModificationDialog extends JDialog {
+
 	private static final long serialVersionUID = 1L;
 	private JButton button_cancel = new JButton(I18nString.get("Cancel"));
 	private JButton button_set = new JButton(I18nString.get("Save"));
@@ -61,6 +59,7 @@ public class GUIOptionModificationDialog extends JDialog
 		panel.add(object);
 		return panel;
 	}
+
 	private JComponent buttons() {
 		JPanel panel_button = new JPanel();
 		panel_button.setLayout(new BoxLayout(panel_button, BoxLayout.X_AXIS));
@@ -69,8 +68,8 @@ public class GUIOptionModificationDialog extends JDialog
 		panel_button.add(button_set);
 		return panel_button;
 	}
-	public Modification showDialog(Modification preset) throws Exception
-	{
+
+	public Modification showDialog(Modification preset) throws Exception {
 		text_pattern.setText(preset.getPattern());
 		text_replaced.setText(preset.getReplaced());
 		method_combo.setSelectedItem(preset.getMethod().toString());
@@ -80,22 +79,25 @@ public class GUIOptionModificationDialog extends JDialog
 		setVisible(true);
 		return modification;
 	}
-	public Modification showDialog()
-	{
+
+	public Modification showDialog() {
 		setModal(true);
 		setVisible(true);
 		return modification;
 	}
+
 	private JComponent createAppliedServers() throws Exception {
 		server_combo.addItem("*");
 		List<Server> servers = Servers.getInstance().queryAll();
 		for (Server server : servers) {
+
 			server_combo.addItem(server.toString());
 		}
 		server_combo.setEnabled(true);
 		server_combo.setMaximumRowCount(servers.size());
 		return label_and_object(I18nString.get("Applied server:"), server_combo);
 	}
+
 	private JComponent createTypeSetting() {
 		direction_combo.addItem("CLIENT_REQUEST");
 		direction_combo.addItem("SERVER_RESPONSE");
@@ -104,6 +106,7 @@ public class GUIOptionModificationDialog extends JDialog
 		direction_combo.setMaximumRowCount(3);
 		return label_and_object("Direction:", direction_combo);
 	}
+
 	private JComponent createReplaceMethodSetting() {
 		method_combo.addItem("SIMPLE");
 		method_combo.addItem("REGEX");
@@ -112,34 +115,37 @@ public class GUIOptionModificationDialog extends JDialog
 		method_combo.setMaximumRowCount(3);
 		return label_and_object("Method:", method_combo);
 	}
+
 	private JComponent createPatternSetting() {
 		return label_and_object("Pattern:", text_pattern);
 	}
+
 	private JComponent createReplacedSetting() {
 		return label_and_object("Replaced:", text_replaced);
 	}
+
 	public GUIOptionModificationDialog(JFrame owner) throws Exception {
 		super(owner);
 		setTitle(I18nString.get("Setting"));
 		Rectangle rect = owner.getBounds();
-		setBounds(rect.x + rect.width/2 - width/2, rect.y + rect.height/2 - height/2, width, height); /* ド真ん中 */
+		setBounds(rect.x + rect.width / 2 - width / 2, rect.y + rect.height / 2 - height / 2, width, height); /* ド真ん中 */
 
-		//text_pattern.addKeyListener(new KeyAdapter() {
-		//	@Override
-		//	public void keyReleased(KeyEvent arg0) {
-		//		String str = text_pattern.getText();
-		//		try {
-		//			int a = text_pattern.getCaretPosition();
-		//			Binary b = new Binary(new Binary.HexString(str));
-		//			text_pattern.setText(b.toHexString(16).toString());
-		//			text_pattern.setCaretPosition(a);
-		//		} catch (Exception e1) {
-		//		}
-		//	}
-		//});
+		// text_pattern.addKeyListener(new KeyAdapter() {
+		// @Override
+		// public void keyReleased(KeyEvent arg0) {
+		// String str = text_pattern.getText();
+		// try {
+		// int a = text_pattern.getCaretPosition();
+		// Binary b = new Binary(new Binary.HexString(str));
+		// text_pattern.setText(b.toHexString(16).toString());
+		// text_pattern.setCaretPosition(a);
+		// } catch (Exception e1) {
+		// }
+		// }
+		// });
 
 		Container c = getContentPane();
-		JPanel panel = new JPanel(); 
+		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
 		panel.add(createReplaceMethodSetting());
@@ -153,6 +159,7 @@ public class GUIOptionModificationDialog extends JDialog
 		c.add(panel);
 
 		button_cancel.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				modification = null;
@@ -161,35 +168,40 @@ public class GUIOptionModificationDialog extends JDialog
 		});
 
 		button_set.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
 
 					Modification.Direction type = null;
 					if (direction_combo.getSelectedItem().toString().equals("CLIENT_REQUEST")) {
+
 						type = Modification.Direction.CLIENT_REQUEST;
 					} else if (direction_combo.getSelectedItem().toString().equals("SERVER_RESPONSE")) {
+
 						type = Modification.Direction.SERVER_RESPONSE;
 					} else {
+
 						type = Modification.Direction.ALL;
 					}
 					Modification.Method method = null;
 					if (method_combo.getSelectedItem().toString().equals("SIMPLE")) {
+
 						method = Modification.Method.SIMPLE;
 					} else if (method_combo.getSelectedItem().toString().equals("REGEX")) {
+
 						method = Modification.Method.REGEX;
 					} else {
+
 						method = Modification.Method.BINARY;
 					}
 
 					String server_str = server_combo.getSelectedItem().toString();
-					modification = new Modification(type,
-							text_pattern.getText(),
-							text_replaced.getText(),
-							method,
+					modification = new Modification(type, text_pattern.getText(), text_replaced.getText(), method,
 							Servers.getInstance().queryByString(server_str));
 					dispose();
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}

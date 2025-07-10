@@ -16,6 +16,8 @@
 
 package packetproxy.http3.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Test;
 import packetproxy.http3.value.Setting;
@@ -24,17 +26,15 @@ import packetproxy.quic.value.QuicMessage;
 import packetproxy.quic.value.QuicMessages;
 import packetproxy.quic.value.StreamId;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 class StreamsReaderTest {
 
-    @Test
-    void SettingsFrameを読み込めること() throws Exception {
-        StreamsReader streams = new StreamsReader(Constants.Role.CLIENT);
-        streams.write(QuicMessages.of(QuicMessage.of(StreamId.of(0x2), Hex.decodeHex("00040401000700".toCharArray()))));
-        Setting settings = streams.getSetting().orElseThrow();
-        assertThat(settings.getQpackMaxTableCapacity()).isEqualTo(0);
-        assertThat(settings.getMaxFieldSectionSize()).isEqualTo(Long.MAX_VALUE);
-    }
+	@Test
+	void SettingsFrameを読み込めること() throws Exception {
+		StreamsReader streams = new StreamsReader(Constants.Role.CLIENT);
+		streams.write(QuicMessages.of(QuicMessage.of(StreamId.of(0x2), Hex.decodeHex("00040401000700".toCharArray()))));
+		Setting settings = streams.getSetting().orElseThrow();
+		assertThat(settings.getQpackMaxTableCapacity()).isEqualTo(0);
+		assertThat(settings.getMaxFieldSectionSize()).isEqualTo(Long.MAX_VALUE);
+	}
 
 }

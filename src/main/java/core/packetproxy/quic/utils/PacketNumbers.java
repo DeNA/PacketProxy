@@ -16,48 +16,47 @@
 
 package packetproxy.quic.utils;
 
-import lombok.ToString;
-import packetproxy.quic.value.PacketNumber;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import packetproxy.quic.value.PacketNumber;
 
 public class PacketNumbers {
 
-    List<PacketNumber> packetNumberList;
+	List<PacketNumber> packetNumberList;
 
-    public PacketNumbers() {
-        this.packetNumberList = new ArrayList<>();
-    }
+	public PacketNumbers() {
+		this.packetNumberList = new ArrayList<>();
+	}
 
-    public boolean add(PacketNumber packetNumber) {
-        return this.packetNumberList.add(packetNumber);
-    }
+	public boolean add(PacketNumber packetNumber) {
+		return this.packetNumberList.add(packetNumber);
+	}
 
-    public boolean addAll(PacketNumbers packetNumbers) {
-        return this.packetNumberList.addAll(packetNumbers.packetNumberList);
-    }
+	public boolean addAll(PacketNumbers packetNumbers) {
+		return this.packetNumberList.addAll(packetNumbers.packetNumberList);
+	}
 
-    public Stream<PacketNumber> stream() {
-        return this.packetNumberList.stream();
-    }
+	public Stream<PacketNumber> stream() {
+		return this.packetNumberList.stream();
+	}
 
-    public boolean isEmpty() {
-        return this.packetNumberList.isEmpty();
-    }
+	public boolean isEmpty() {
+		return this.packetNumberList.isEmpty();
+	}
 
-    public PacketNumber largest() {
-        Optional<PacketNumber> pn = this.packetNumberList.stream().max(Comparator.comparingLong(PacketNumber::getNumber));
-        return pn.orElse(null);
-    }
+	public PacketNumber largest() {
+		Optional<PacketNumber> pn = this.packetNumberList.stream()
+				.max(Comparator.comparingLong(PacketNumber::getNumber));
+		return pn.orElse(null);
+	}
 
-    public String toString() {
-        return String.format("PacketNumbers([%s])",
-                this.packetNumberList.stream().map(pn -> String.valueOf(pn.getNumber())).collect(Collectors.joining(",")));
-    }
+	public String toString() {
+		return String.format("PacketNumbers([%s])", this.packetNumberList.stream()
+				.map(pn -> String.valueOf(pn.getNumber())).collect(Collectors.joining(",")));
+	}
 
 }

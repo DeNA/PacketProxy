@@ -15,39 +15,35 @@
  */
 package packetproxy;
 
+import com.google.re2j.Matcher;
+import com.google.re2j.Pattern;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.net.ssl.SNIServerName;
-
 import org.apache.commons.lang3.ArrayUtils;
-
-import com.google.re2j.Matcher;
-import com.google.re2j.Pattern;
-
 import packetproxy.common.EndpointFactory;
 import packetproxy.common.I18nString;
-import packetproxy.common.SocketEndpoint;
 import packetproxy.common.SSLCapabilities;
 import packetproxy.common.SSLExplorer;
 import packetproxy.common.SSLSocketEndpoint;
+import packetproxy.common.SocketEndpoint;
 import packetproxy.common.WrapEndpoint;
 import packetproxy.encode.EncodeHTTPBase;
 import packetproxy.encode.Encoder;
 import packetproxy.model.ListenPort;
+import packetproxy.model.SSLPassThroughs;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
-import packetproxy.model.SSLPassThroughs;
 import packetproxy.util.PacketProxyUtility;
 
 public class ProxySSLTransparent extends Proxy {
+
 	private ListenPort listen_info;
 	private ServerSocket listen_socket;
 
@@ -64,19 +60,25 @@ public class ProxySSLTransparent extends Proxy {
 	public void run() {
 		List<Socket> clients = new ArrayList<Socket>();
 		while (!listen_socket.isClosed()) {
+
 			try {
+
 				Socket client = listen_socket.accept();
 				clients.add(client);
 				PacketProxyUtility.getInstance().packetProxyLog("[ProxySSLTransparent]: accept");
 				checkTransparentSSLProxy(client, listen_socket.getLocalPort());
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		}
 		for (Socket sc : clients) {
+
 			try {
+
 				sc.close();
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		}
@@ -91,9 +93,11 @@ public class ProxySSLTransparent extends Proxy {
 
 		// Read the header of TLS record
 		while (position < SSLExplorer.RECORD_HEADER_SIZE) {
+
 			int count = SSLExplorer.RECORD_HEADER_SIZE - position;
 			int n = ins.read(buffer, position, count);
 			if (n < 0) {
+
 				throw new Exception("unexpected end of stream!");
 			}
 			position += n;
@@ -102,13 +106,16 @@ public class ProxySSLTransparent extends Proxy {
 		// Get the required size to explore the SSL capabilities
 		int recordLength = SSLExplorer.getRequiredSize(buffer, 0, position);
 		if (buffer.length < recordLength) {
+
 			buffer = Arrays.copyOf(buffer, recordLength);
 		}
 
 		while (position < recordLength) {
+
 			int count = recordLength - position;
 			int n = ins.read(buffer, position, count);
 			if (n < 0) {
+
 				throw new Exception("unexpected end of stream!");
 			}
 			position += n;
@@ -117,11 +124,13 @@ public class ProxySSLTransparent extends Proxy {
 		// Explore
 		capabilities = SSLExplorer.explore(buffer, 0, recordLength);
 		if (capabilities == null) {
+
 			throw new Exception("capabilities not found.");
 		}
 
 		List<SNIServerName> serverNames = capabilities.getServerNames();
 		if (serverNames.isEmpty()) {
+
 			/* SNIヘッダが見当たらないので、通信をHTTP1を強制し、Hostヘッダを覗くことで宛先を知る必要がある */
 			/* クライアントわたすサーバ証明書は、宛先がわからないので packetproxy.com とする */
 			ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, position);
@@ -137,9 +146,11 @@ public class ProxySSLTransparent extends Proxy {
 			Matcher matcher = pattern.matcher(str);
 			String serverName = "";
 			if (matcher.find()) {
+
 				serverName = matcher.group(1);
 				PacketProxyUtility.getInstance().packetProxyLog("[SSL-forward!] %s", serverName);
 			} else {
+
 				throw new Exception(I18nString.get("[Error] SNI header was not found in SSL packets."));
 			}
 			WrapEndpoint wep_e = new WrapEndpoint(client_e, ArrayUtils.subarray(buff, 0, length));
@@ -150,12 +161,16 @@ public class ProxySSLTransparent extends Proxy {
 			createConnection(wep_e, server_e, server);
 
 		} else {
+
 			for (SNIServerName serverE : serverNames) {
+
 				String serverName = new String(serverE.getEncoded()); // 接続先サーバを取得
 				if (listen_info.getServer() != null) { // upstream proxy
+
 					PacketProxyUtility.getInstance()
 							.packetProxyLog("[SSL-forward through upstream proxy! using SNI] %s", serverName);
 				} else {
+
 					PacketProxyUtility.getInstance().packetProxyLog("[SSL-forward! using SNI] %s", serverName);
 				}
 				ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, position);
@@ -163,26 +178,32 @@ public class ProxySSLTransparent extends Proxy {
 				/* check server connection */
 				InetSocketAddress serverAddr;
 				try {
+
 					if (listen_info.getServer() != null) { // upstream proxy
+
 						serverAddr = listen_info.getServer().getAddress();
 					} else {
+
 						serverAddr = new InetSocketAddress(PrivateDNSClient.getByName(serverName), proxyPort);
 					}
 					Socket s = new Socket();
 					s.connect(serverAddr, 500); /* timeout: 500ms */
 					s.close();
 				} catch (Exception e) {
+
 					/* listenポート番号と同じポート番号へアクセスできないので443番にフォールバックする */
 					serverAddr = new InetSocketAddress(PrivateDNSClient.getByName(serverName), 443);
 					PacketProxyUtility.getInstance().packetProxyLog("[Fallback port] " + proxyPort + " -> 443");
 				}
 
 				if (SSLPassThroughs.getInstance().includes(serverName, listen_info.getPort())) {
+
 					SocketEndpoint server_e = new SocketEndpoint(serverAddr);
 					SocketEndpoint client_e = new SocketEndpoint(client, bais);
 					DuplexAsync duplex = new DuplexAsync(client_e, server_e);
 					duplex.start();
 				} else {
+
 					Server server = Servers.getInstance().queryByHostNameAndPort(serverName, serverAddr.getPort());
 					SSLSocketEndpoint[] eps = EndpointFactory.createBothSideSSLEndpoints(client, bais, serverAddr, null,
 							serverName, listen_info.getCA().get());
@@ -197,15 +218,21 @@ public class ProxySSLTransparent extends Proxy {
 		DuplexAsync duplex = null;
 		String alpn = client_e.getApplicationProtocol();
 		if (server == null) {
+
 			if (alpn.equals("h2") || alpn.equals("http/1.1") || alpn.equals("http/1.0")) {
+
 				duplex = DuplexFactory.createDuplexAsync(client_e, server_e, "HTTP", alpn);
 			} else {
+
 				duplex = DuplexFactory.createDuplexAsync(client_e, server_e, "Sample", alpn);
 			}
 		} else {
-			if (alpn == null || alpn.length() == 0) {
+
+			if (alpn == null || alpn.isEmpty()) {
+
 				Encoder encoder = EncoderManager.getInstance().createInstance(server.getEncoder(), "");
 				if (encoder instanceof EncodeHTTPBase) {
+
 					/* The client does not support ALPN. It seems to be an old HTTP client */
 					alpn = "http/1.1";
 				}

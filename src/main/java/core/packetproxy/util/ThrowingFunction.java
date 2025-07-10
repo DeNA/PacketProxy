@@ -3,17 +3,19 @@ package packetproxy.util;
 import java.util.function.Function;
 
 @FunctionalInterface
-public interface ThrowingFunction<T,R> extends Function<T,R> {
+public interface ThrowingFunction<T, R> extends Function<T, R> {
 
-    @Override
-    default R apply(T t) {
-        try {
-            return apply0(t);
-        } catch (Throwable ex) {
-            Throwing.sneakyThrow(ex);
-        }
-        return null;
-    }
+	@Override
+	default R apply(T t) {
+		try {
 
-    R apply0(T t) throws Throwable;
+			return apply0(t);
+		} catch (Throwable ex) {
+
+			Throwing.sneakyThrow(ex);
+		}
+		return null;
+	}
+
+	R apply0(T t) throws Throwable;
 }

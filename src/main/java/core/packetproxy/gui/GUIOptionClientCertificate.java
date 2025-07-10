@@ -15,20 +15,19 @@
  */
 package packetproxy.gui;
 
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.*;
 import packetproxy.model.ClientCertificate;
 import packetproxy.model.ClientCertificates;
 
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.List;
-
 public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCertificate> {
+
 	private GUIOptionClientCertificateDialog dlg;
 	private ClientCertificates clientCertificates;
 	private List<ClientCertificate> table_ext_list;
@@ -39,67 +38,84 @@ public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCer
 		clientCertificates.addPropertyChangeListener(this);
 		table_ext_list = new ArrayList<>();
 
-		String[] menu = { "Enabled", "Type", "Host", "Subject(CN)", "Issuer" };
-		int[] menuWidth = { 50, 50, 200, 100, 350 };
+		String[] menu = {"Enabled", "Type", "Host", "Subject(CN)", "Issuer"};
+		int[] menuWidth = {50, 50, 200, 100, 350};
 
 		MouseAdapter tableAction = new MouseAdapter() {
+
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
+
 					int columnIndex = table.columnAtPoint(e.getPoint());
 					int rowIndex = table.rowAtPoint(e.getPoint());
 					if (columnIndex == 0) { /* check box area */
+
 						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 0);
 						ClientCertificate certificate = getSelectedTableContent();
 						if (enable_checkbox) {
+
 							certificate.setDisabled();
 						} else {
+
 							certificate.setEnabled();
 						}
 						clientCertificates.update(certificate);
 					}
 					table.setRowSelectionInterval(rowIndex, rowIndex);
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
 		};
 		ActionListener addAction = new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					dlg = new GUIOptionClientCertificateDialog(owner);
 					ClientCertificate certificate = dlg.showDialog();
 					if (certificate != null) {
+
 						clientCertificates.create(certificate);
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
 		};
 		ActionListener editAction = new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					ClientCertificate oldClientCertificate = getSelectedTableContent();
 					dlg = new GUIOptionClientCertificateDialog(owner);
 					ClientCertificate certificate = dlg.showDialog(oldClientCertificate);
 					if (certificate != null) {
+
 						clientCertificates.delete(oldClientCertificate);
 						clientCertificates.create(certificate);
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
 		};
 		ActionListener removeAction = new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					clientCertificates.delete(getSelectedTableContent());
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -112,14 +128,11 @@ public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCer
 	protected void addTableContent(ClientCertificate certificate) {
 		table_ext_list.add(certificate);
 		try {
-			option_model.addRow(new Object[] {
-					certificate.isEnabled(),
-					certificate.getType().getText(),
-					certificate.getServerName(),
-					certificate.getSubject(),
-					certificate.getIssuer(),
-			});
+
+			option_model.addRow(new Object[]{certificate.isEnabled(), certificate.getType().getText(),
+					certificate.getServerName(), certificate.getSubject(), certificate.getIssuer(),});
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}
@@ -128,6 +141,7 @@ public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCer
 	protected void updateTable(List<ClientCertificate> certificateList) {
 		clearTableContents();
 		for (ClientCertificate certificate : certificateList) {
+
 			addTableContent(certificate);
 		}
 	}
@@ -135,8 +149,10 @@ public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCer
 	@Override
 	protected void updateImpl() {
 		try {
+
 			updateTable(clientCertificates.queryAll());
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}

@@ -21,42 +21,43 @@ import lombok.Getter;
 import packetproxy.quic.value.QuicMessage;
 import packetproxy.quic.value.StreamId;
 
-abstract public class Stream {
-    @Getter
-    @AllArgsConstructor
-    public enum StreamType {
-        ControlStreamType(0x0),
-        QpackEncoderStreamType(0x2),
-        QpackDecoderStreamType(0x3),
-        NoStreamType(0x4);
-        final long type;
-        public static StreamType of(final int typeId) {
-            for (StreamType streamType : StreamType.values()) {
-                if (streamType.type == typeId) {
-                    return streamType;
-                }
-            }
-            return null;
-        }
-    }
+public abstract class Stream {
 
-    public StreamId streamId;
-    public StreamType streamType;
+	@Getter
+	@AllArgsConstructor
+	public enum StreamType {
 
-    public Stream(StreamId streamId, StreamType streamType) {
-        this.streamId = streamId;
-        this.streamType = streamType;
-    }
+		ControlStreamType(0x0), QpackEncoderStreamType(0x2), QpackDecoderStreamType(0x3), NoStreamType(0x4);
+		final long type;
+		public static StreamType of(final int typeId) {
+			for (StreamType streamType : StreamType.values()) {
 
-    public boolean processable(StreamId streamId) {
-        return this.streamId.equals(streamId);
-    }
+				if (streamType.type == typeId) {
 
-    public boolean processable(QuicMessage msg) {
-        return this.processable(msg.getStreamId());
-    }
+					return streamType;
+				}
+			}
+			return null;
+		}
+	}
 
-    public boolean streamTypeEquals(long type) {
-        return this.streamType.type == type;
-    }
+	public StreamId streamId;
+	public StreamType streamType;
+
+	public Stream(StreamId streamId, StreamType streamType) {
+		this.streamId = streamId;
+		this.streamType = streamType;
+	}
+
+	public boolean processable(StreamId streamId) {
+		return this.streamId.equals(streamId);
+	}
+
+	public boolean processable(QuicMessage msg) {
+		return this.processable(msg.getStreamId());
+	}
+
+	public boolean streamTypeEquals(long type) {
+		return this.streamType.type == type;
+	}
 }

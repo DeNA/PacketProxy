@@ -25,7 +25,6 @@ import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
 import javax.swing.BoxLayout;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -33,13 +32,13 @@ import javax.swing.JTable;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
-
 import packetproxy.common.I18nString;
 import packetproxy.model.Filter;
 import packetproxy.model.Filters;
 import packetproxy.util.PacketProxyUtility;
 
 public class GUIFilterDropDownList extends JDialog {
+
 	private static final long serialVersionUID = 1L;
 	private List<Filter> defaultFilters;
 	private JTable table;
@@ -66,25 +65,30 @@ public class GUIFilterDropDownList extends JDialog {
 				"type != image && type != css && type != javascript && type != font");
 		defaultFilters.add(defaultFilter);
 
-		String[] columnNames = { "filter name", "filter" };
-		int[] columnWidth = { 150, width - 150 };
+		String[] columnNames = {"filter name", "filter"};
+		int[] columnWidth = {150, width - 150};
 		DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0) {
+
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
 		table = new JTable(tableModel) {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public Component prepareRenderer(TableCellRenderer tcr, int row, int column) {
 				Component c = super.prepareRenderer(tcr, row, column);
 				try {
+
 					if (row == mouseRow[0]) {
+
 						c.setForeground(new Color(0xff, 0xff, 0xff));
 						c.setBackground(new Color(0x80, 0x80, 0xff));
 					} else {
+
 						c.setForeground(new Color(0x00, 0x00, 0x00));
 						if (row % 2 == 0)
 							c.setBackground(new Color(0xff, 0xff, 0xff));
@@ -92,6 +96,7 @@ public class GUIFilterDropDownList extends JDialog {
 							c.setBackground(new Color(0xf0, 0xf0, 0xf0));
 					}
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 				return c;
@@ -99,6 +104,7 @@ public class GUIFilterDropDownList extends JDialog {
 		};
 
 		table.addMouseMotionListener(new MouseMotionAdapter() {
+
 			@Override
 			public void mouseMoved(MouseEvent e) {
 				Point p = e.getPoint();
@@ -109,30 +115,38 @@ public class GUIFilterDropDownList extends JDialog {
 
 		table.setTableHeader(null);
 		table.addMouseListener(new MouseAdapter() {
+
 			@Override
 			public void mouseReleased(MouseEvent arg0) {
 				try {
+
 					int idx = table.getSelectedRow();
 					if (0 <= idx && idx < table.getRowCount()) {
+
 						String name = (String) table.getValueAt(idx, 0);
 						String filter = (String) table.getValueAt(idx, 1);
 						consumer.accept(new Filter(name, filter));
 					} else {
+
 						PacketProxyUtility.getInstance().packetProxyLogErr(Integer.toString(idx));
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
 		});
 		if (Filters.getInstance().queryAll().isEmpty() && defaultFilters.isEmpty()) {
-			tableModel.addRow(new String[] { "--", I18nString.get("No filter") });
+
+			tableModel.addRow(new String[]{"--", I18nString.get("No filter")});
 		} else {
+
 			Filters.getInstance().queryAll().stream()
-					.forEach(filter -> tableModel.addRow(new String[] { filter.getName(), filter.getFilter() }));
-			defaultFilters.forEach(filter -> tableModel.addRow(new String[] { filter.getName(), filter.getFilter() }));
+					.forEach(filter -> tableModel.addRow(new String[]{filter.getName(), filter.getFilter()}));
+			defaultFilters.forEach(filter -> tableModel.addRow(new String[]{filter.getName(), filter.getFilter()}));
 		}
 		for (int i = 0; i < columnNames.length; i++) {
+
 			table.getColumn(columnNames[i]).setPreferredWidth(columnWidth[i]);
 		}
 		LineBorder border = new LineBorder(Color.GRAY, 1, false);

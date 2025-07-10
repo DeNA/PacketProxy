@@ -20,9 +20,14 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 
 public interface Endpoint {
-	public InputStream getInputStream() throws Exception;
-	public OutputStream getOutputStream() throws Exception;
-	public InetSocketAddress getAddress();
-	public int getLocalPort();
-	public String getName();
+
+	InputStream getInputStream() throws Exception;
+
+	OutputStream getOutputStream() throws Exception;
+
+	InetSocketAddress getAddress();
+
+	int getLocalPort();
+
+	String getName();
 }

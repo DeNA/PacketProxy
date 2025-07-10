@@ -15,47 +15,50 @@
  */
 package packetproxy;
 
-import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
-public class DuplexManager
-{
+public class DuplexManager {
+
 	private static DuplexManager instance;
-	
+
 	public static DuplexManager getInstance() throws Exception {
 		if (instance == null) {
+
 			instance = new DuplexManager();
 		}
 		return instance;
 	}
-	
-	private Map<Integer,Duplex> duplex_list;
-	
+
+	private Map<Integer, Duplex> duplex_list;
+
 	public DuplexManager() {
-		duplex_list = new HashMap<Integer,Duplex>();
+		duplex_list = new HashMap<Integer, Duplex>();
 	}
-	
+
 	public void closeAndClearDuplex(int listenPort) throws Exception {
-		for(Iterator<Integer> i = duplex_list.keySet().iterator();i.hasNext();){
+		for (Iterator<Integer> i = duplex_list.keySet().iterator(); i.hasNext();) {
+
 			int key = i.next();
 			Duplex d = duplex_list.get(key);
 			if (d.isListenPort(listenPort)) {
+
 				d.close();
 				i.remove();
 			}
 		}
 	}
-	
+
 	public int registerDuplex(Duplex duplex) {
 		duplex_list.put(duplex.hashCode(), duplex);
 		return duplex.hashCode();
 	}
-	
+
 	public Duplex getDuplex(int hash) {
 		return duplex_list.get(hash);
 	}
-	
+
 	public boolean has(int hash) {
 		return (duplex_list.get(hash) == null) ? false : true;
 	}

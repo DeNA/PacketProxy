@@ -18,13 +18,12 @@ package packetproxy;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 import org.apache.commons.lang3.ArrayUtils;
-
 import packetproxy.common.Endpoint;
 import packetproxy.model.OneShotPacket;
 
 public class DuplexSync extends Duplex {
+
 	private Endpoint server;
 	private OutputStream out;
 	private InputStream in;
@@ -52,6 +51,7 @@ public class DuplexSync extends Duplex {
 	public byte[] prepareFastSend(byte[] data) throws Exception {
 		int accepted_length = callOnClientPacketReceived(data);
 		if (accepted_length <= 0) {
+
 			return null;
 		}
 		byte[] accepted = ArrayUtils.subarray(data, 0, accepted_length);
@@ -73,6 +73,7 @@ public class DuplexSync extends Duplex {
 	public void send(byte[] data) throws Exception {
 		int accepted_length = callOnClientPacketReceived(data);
 		if (accepted_length <= 0) {
+
 			return;
 		}
 		byte[] accepted = ArrayUtils.subarray(data, 0, accepted_length);
@@ -107,9 +108,11 @@ public class DuplexSync extends Duplex {
 
 				byte[] available_data = callOnServerChunkAvailable();
 				if (available_data == null || available_data.length == 0) {
+
 					continue;
 				}
 				do {
+
 					byte[] decoded = callOnServerChunkReceived(available_data);
 					bout.write(decoded);
 					available_data = callOnServerChunkAvailable();

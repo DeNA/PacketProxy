@@ -16,19 +16,20 @@
 
 package packetproxy.http3.value;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.Test;
+
 class SettingTest {
-    @Test
-    void Builderが動作すること() {
-        Setting setting = Setting.builder().enableMetaData(1).qpackMaxTableCapacity(100).build();
-        assertThat(setting.getEnableMetaData()).isEqualTo(1);
-        assertThat(setting.getQpackMaxTableCapacity()).isEqualTo(100);
-        assertThat(setting.getH3Datagram()).isEqualTo(0);
-        assertThat(setting.getEnableConnectProtocol()).isEqualTo(0);
-        assertThat(setting.getMaxFieldSectionSize()).isEqualTo(Long.MAX_VALUE);
-    }
+
+	@Test
+	void Builderが動作すること() {
+		Setting setting = Setting.builder().enableMetaData(1).qpackMaxTableCapacity(100).build();
+		assertThat(setting.getEnableMetaData()).isEqualTo(1);
+		assertThat(setting.getQpackMaxTableCapacity()).isEqualTo(100);
+		assertThat(setting.getH3Datagram()).isEqualTo(0);
+		assertThat(setting.getEnableConnectProtocol()).isEqualTo(0);
+		assertThat(setting.getMaxFieldSectionSize()).isEqualTo(Long.MAX_VALUE);
+	}
 
 }

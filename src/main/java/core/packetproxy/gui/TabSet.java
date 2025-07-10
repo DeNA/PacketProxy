@@ -15,28 +15,23 @@
  */
 package packetproxy.gui;
 
+import static packetproxy.model.PropertyChangeEventType.SELECTED_INDEX;
+
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.EventObject;
-
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
 import packetproxy.common.Range;
 import packetproxy.util.PacketProxyUtility;
 import packetproxy.util.SearchBox;
-import static packetproxy.model.PropertyChangeEventType.SELECTED_INDEX;
 
 public class TabSet {
+
 	private PropertyChangeSupport changes = new PropertyChangeSupport(this);
 	private JPanel basePanel;
 	private JTabbedPane data_pane;
@@ -71,11 +66,14 @@ public class TabSet {
 		data_pane.addTab("Binary", binary_text);
 		data_pane.addTab("Json", json_text);
 		data_pane.addChangeListener(new ChangeListener() {
+
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				try {
+
 					update();
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -86,10 +84,12 @@ public class TabSet {
 		basePanel.setLayout(new BorderLayout());
 		basePanel.add(data_pane);
 		if (search == true) {
+
 			searchBox = new SearchBox();
 			basePanel.add(searchBox, BorderLayout.SOUTH);
 		}
 		if (copy == true) {
+
 			copyButton = new JButton("copy to clipboard");
 			basePanel.add(copyButton);
 		}
@@ -117,16 +117,18 @@ public class TabSet {
 
 	public byte[] getData() {
 		if (data == null) {
-			return new byte[] {};
+
+			return new byte[]{};
 		}
 		switch (getSelectedIndex()) {
-			case 0:
+
+			case 0 :
 				return raw_panel.getData();
-			case 1:
+			case 1 :
 				return binary_panel.getData();
-			case 2:
+			case 2 :
 				return json_panel.getData();
-			default:
+			default :
 				PacketProxyUtility.getInstance()
 						.packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
 				return raw_panel.getData();
@@ -163,47 +165,53 @@ public class TabSet {
 
 	private void update() {
 		if (data == null) {
+
 			return;
 		}
 		try {
+
 			switch (getSelectedIndex()) {
-				case 0:
+
+				case 0 :
 					raw_panel.setData(data);
 					break;
-				case 1:
+				case 1 :
 					binary_panel.setData(data);
 					break;
-				case 2:
+				case 2 :
 					json_panel.setData(PacketProxyUtility.getInstance().prettyFormatJSONInRawData(data));
 					break;
-				default:
+				default :
 					PacketProxyUtility.getInstance()
 							.packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
 					break;
 			}
 			if (searchBox == null) {
+
 				return;
 			}
 			switch (getSelectedIndex()) {
-				case 0:
+
+				case 0 :
 					searchBox.setVisible(true);
 					searchBox.setBaseText(raw_panel.getTextPane(), emphasis);
 					break;
-				case 1:
+				case 1 :
 					searchBox.setVisible(false);
 					// searchBox.setBaseText(binary_panel.getTextPane());
 					break;
-				case 2:
+				case 2 :
 					searchBox.setVisible(true);
 					searchBox.setBaseText(json_panel.getTextPane(), emphasis);
 					break;
-				default:
+				default :
 					PacketProxyUtility.getInstance()
 							.packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
 					break;
 			}
 			searchBox.textChanged();
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 		firePropertyChange(getSelectedIndex());

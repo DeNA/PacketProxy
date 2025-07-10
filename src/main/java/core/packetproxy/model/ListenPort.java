@@ -21,123 +21,135 @@ import java.util.Optional;
 import packetproxy.model.CAs.CA;
 
 @DatabaseTable(tableName = "listenports")
-public class ListenPort
-{
-    public enum Protocol {
-        TCP,
-        UDP
-    }
-    public enum TYPE {
-        HTTP_PROXY,
-        FORWARDER,
-        SSL_FORWARDER,
-        UDP_FORWARDER,
-        SSL_TRANSPARENT_PROXY,
-        HTTP_TRANSPARENT_PROXY,
-        XMPP_SSL_FORWARDER,
-        QUIC_FORWARDER,
-        QUIC_TRANSPARENT_PROXY
-    }
+public class ListenPort {
 
-    @DatabaseField(generatedId = true)
-    private int id;
-    @DatabaseField
-    private Boolean enabled;
-    @DatabaseField
-    private String ca_name;
-    @DatabaseField(uniqueCombo = true)
-    private int port;
-    @DatabaseField(uniqueCombo = true)
-    private TYPE type;
-    @DatabaseField(uniqueCombo = true)
-    private int server_id;
-    private Protocol protocol = null;
+	public enum Protocol {
+		TCP, UDP
+	}
+	public enum TYPE {
+		HTTP_PROXY, FORWARDER, SSL_FORWARDER, UDP_FORWARDER, SSL_TRANSPARENT_PROXY, HTTP_TRANSPARENT_PROXY, XMPP_SSL_FORWARDER, QUIC_FORWARDER, QUIC_TRANSPARENT_PROXY
+	}
 
-    private Protocol getProtocolForPortType(TYPE type) {
-        if (type == TYPE.QUIC_FORWARDER ||
-            type == TYPE.QUIC_TRANSPARENT_PROXY ||
-            type == TYPE.UDP_FORWARDER) {
-            return Protocol.UDP;
-        } else {
-            return Protocol.TCP;
-        }
-    }
+	@DatabaseField(generatedId = true)
+	private int id;
+	@DatabaseField
+	private Boolean enabled;
+	@DatabaseField
+	private String ca_name;
+	@DatabaseField(uniqueCombo = true)
+	private int port;
+	@DatabaseField(uniqueCombo = true)
+	private TYPE type;
+	@DatabaseField(uniqueCombo = true)
+	private int server_id;
+	private Protocol protocol = null;
 
-    public ListenPort() {
-        // ORMLite needs a no-arg constructor 
-    }
-    public ListenPort(int port, TYPE type) {
-    	this.enabled = false;
-    	this.port = port;
-    	this.type = type;
-    	this.server_id = 0;
-    	this.ca_name = "PacketProxy CA";
-        this.protocol = getProtocolForPortType(type);
-    }
-    public ListenPort(int port, TYPE type, Server server, String ca_name) {
-    	this.enabled = false;
-    	this.port = port;
-    	this.type = type;
-    	this.server_id = (server != null) ? server.getId() : 0;
-    	this.ca_name = ca_name;
-        this.protocol = getProtocolForPortType(type);
-    }
-    public boolean isEnabled() {
-    	return this.enabled;
-    }
-    public void setEnabled() {
-    	this.enabled = true;
-    }
-    public void setDisabled() {
-    	this.enabled = false;
-    }
-    public void setCA(CA ca) {
-    	this.ca_name = ca.getName();
-    }
-    public Optional<CA> getCA() {
-    	return CAFactory.find(this.ca_name);
-    }
-    public int getPort() {
-    	return this.port;
-    }
-    public void setPort(int port) {
-    	this.port = port;
-    }
-    public int getServerId() {
-    	return this.server_id;
-    }
-    public void setServerId(int server_id) {
-    	this.server_id = server_id;
-    }
-    public Server getServer() throws Exception {
-    	return Servers.getInstance().query(this.server_id);
-    }
-    public Protocol getProtocol() {
-        if (this.protocol == null) {
-            this.protocol = getProtocolForPortType(this.type);
-        }
-        return this.protocol;
-    }
-    public String getProtoPort() {
-        return String.format("%s %s", getProtocol(), getPort());
-    }
-    public TYPE getType() {
-    	return this.type;
-    }
-    public void setType(TYPE type) {
-    	this.type = type;
-    }
-    public int getId() {
-    	return id;
-    }
-    public void setId(int id) {
-        this.id = id;
-    }
-    @Override
-    public int hashCode() {
-    	return this.getId();
-    }
-    public boolean equals(ListenPort obj) {
-    	return this.getId() == obj.getId();
-    }
+	private Protocol getProtocolForPortType(TYPE type) {
+		if (type == TYPE.QUIC_FORWARDER || type == TYPE.QUIC_TRANSPARENT_PROXY || type == TYPE.UDP_FORWARDER) {
+
+			return Protocol.UDP;
+		} else {
+
+			return Protocol.TCP;
+		}
+	}
+
+	public ListenPort() {
+		// ORMLite needs a no-arg constructor
+	}
+
+	public ListenPort(int port, TYPE type) {
+		this.enabled = false;
+		this.port = port;
+		this.type = type;
+		this.server_id = 0;
+		this.ca_name = "PacketProxy CA";
+		this.protocol = getProtocolForPortType(type);
+	}
+
+	public ListenPort(int port, TYPE type, Server server, String ca_name) {
+		this.enabled = false;
+		this.port = port;
+		this.type = type;
+		this.server_id = (server != null) ? server.getId() : 0;
+		this.ca_name = ca_name;
+		this.protocol = getProtocolForPortType(type);
+	}
+
+	public boolean isEnabled() {
+		return this.enabled;
+	}
+
+	public void setEnabled() {
+		this.enabled = true;
+	}
+
+	public void setDisabled() {
+		this.enabled = false;
+	}
+
+	public void setCA(CA ca) {
+		this.ca_name = ca.getName();
+	}
+
+	public Optional<CA> getCA() {
+		return CAFactory.find(this.ca_name);
+	}
+
+	public int getPort() {
+		return this.port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	public int getServerId() {
+		return this.server_id;
+	}
+
+	public void setServerId(int server_id) {
+		this.server_id = server_id;
+	}
+
+	public Server getServer() throws Exception {
+		return Servers.getInstance().query(this.server_id);
+	}
+
+	public Protocol getProtocol() {
+		if (this.protocol == null) {
+
+			this.protocol = getProtocolForPortType(this.type);
+		}
+		return this.protocol;
+	}
+
+	public String getProtoPort() {
+		return String.format("%s %s", getProtocol(), getPort());
+	}
+
+	public TYPE getType() {
+		return this.type;
+	}
+
+	public void setType(TYPE type) {
+		this.type = type;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	@Override
+	public int hashCode() {
+		return this.getId();
+	}
+
+	public boolean equals(ListenPort obj) {
+		return this.getId() == obj.getId();
+	}
 }

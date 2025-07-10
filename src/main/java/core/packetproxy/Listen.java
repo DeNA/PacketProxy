@@ -17,20 +17,23 @@ package packetproxy;
 
 import packetproxy.model.ListenPort;
 
-public class Listen
-{
+public class Listen {
+
 	private ListenPort listen_info;
 	private Proxy proxy;
 
 	public ListenPort getListenInfo() {
 		return listen_info;
 	}
+
 	public void close() throws Exception {
 		if (proxy != null) {
+
 			proxy.close();
 			DuplexManager.getInstance().closeAndClearDuplex(listen_info.getPort());
 		}
 	}
+
 	public Listen(ListenPort listen_info) throws Exception {
 		this.listen_info = listen_info;
 		proxy = ProxyFactory.create(listen_info);

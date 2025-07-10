@@ -15,12 +15,12 @@
  */
 package packetproxy.common;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 public class Protobuf3Test {
+
 	@Test
 	public void testVarint150() throws Exception {
 		String data = "089601";

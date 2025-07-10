@@ -15,15 +15,15 @@
  */
 package packetproxy.model;
 
-import com.j256.ormlite.dao.Dao;
-import java.util.List;
-import java.beans.PropertyChangeSupport;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
-import packetproxy.model.DaoQueryCache;
-import packetproxy.model.Database.DatabaseMessage;
 import static packetproxy.model.PropertyChangeEventType.CONFIGS;
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+
+import com.j256.ormlite.dao.Dao;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.List;
+import packetproxy.model.Database.DatabaseMessage;
 
 public class Configs implements PropertyChangeListener {
 
@@ -32,6 +32,7 @@ public class Configs implements PropertyChangeListener {
 
 	public static Configs getInstance() throws Exception {
 		if (instance == null) {
+
 			instance = new Configs();
 		}
 		return instance;
@@ -62,6 +63,7 @@ public class Configs implements PropertyChangeListener {
 	public Config query(String key) throws Exception {
 		List<Config> ret = cache.query("query", key);
 		if (ret != null) {
+
 			return ret.get(0);
 		}
 
@@ -74,6 +76,7 @@ public class Configs implements PropertyChangeListener {
 	public List<Config> queryAll() throws Exception {
 		List<Config> ret = cache.query("queryAll", 0);
 		if (ret != null) {
+
 			return ret;
 		}
 
@@ -104,36 +107,40 @@ public class Configs implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (!DATABASE_MESSAGE.matches(evt)) {
+
 			return;
 		}
 
 		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
+
 			switch (message) {
-				case PAUSE:
+
+				case PAUSE :
 					// TODO ロックを取る
 					break;
-				case RESUME:
+				case RESUME :
 					// TODO ロックを解除
 					break;
-				case DISCONNECT_NOW:
+				case DISCONNECT_NOW :
 					instance = null;
 					break;
-				case RECONNECT:
+				case RECONNECT :
 					database = Database.getInstance();
 					dao = database.createTable(Config.class, this);
 					cache.clear();
 					firePropertyChange(CONFIGS.toString(), null, message);
 					break;
-				case RECREATE:
+				case RECREATE :
 					database = Database.getInstance();
 					dao = database.createTable(Config.class, this);
 					cache.clear();
 					break;
-				default:
+				default :
 					break;
 			}
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}

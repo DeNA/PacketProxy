@@ -15,6 +15,10 @@
  */
 package packetproxy.gui;
 
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+import static packetproxy.model.PropertyChangeEventType.FILTERS;
+import static packetproxy.model.PropertyChangeEventType.PACKETS;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -32,6 +36,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -40,11 +46,8 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -67,9 +70,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
-
 import org.apache.commons.io.FileUtils;
-
 import packetproxy.common.FilterTextParser;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
@@ -84,13 +85,11 @@ import packetproxy.model.OptionTableModel;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 import packetproxy.model.ResenderPackets;
-import static packetproxy.model.PropertyChangeEventType.PACKETS;
-import static packetproxy.model.PropertyChangeEventType.FILTERS;
-import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
 
 public class GUIHistory implements PropertyChangeListener {
+
 	private static GUIHistory instance;
 	private static JFrame owner;
 
@@ -106,6 +105,7 @@ public class GUIHistory implements PropertyChangeListener {
 
 	public static GUIHistory getInstance() throws Exception {
 		if (instance == null) {
+
 			instance = new GUIHistory(false);
 		}
 		return instance;
@@ -117,9 +117,9 @@ public class GUIHistory implements PropertyChangeListener {
 		return instance;
 	}
 
-	private String[] columnNames = { "#", "Client Request", "Server Response", "Length", "Client IP", "Client Port",
-			"Server IP", "Server Port", "Time", "Resend", "Modified", "Type", "Encode", "ALPN", "Group" };
-	private int[] columnWidth = { 60, 550, 50, 80, 160, 80, 160, 80, 100, 30, 30, 100, 100, 50, 30 };
+	private String[] columnNames = {"#", "Client Request", "Server Response", "Length", "Client IP", "Client Port",
+			"Server IP", "Server Port", "Time", "Resend", "Modified", "Type", "Encode", "ALPN", "Group"};
+	private int[] columnWidth = {60, 550, 50, 80, 160, 80, 160, 80, 100, 30, 30, 100, 100, 50, 30};
 	private JSplitPane split_panel;
 	private JPanel main_panel;
 	private OptionTableModel tableModel;
@@ -161,9 +161,12 @@ public class GUIHistory implements PropertyChangeListener {
 	public void filter() {
 		boolean result = sortByText((String) gui_filter.getText());
 		if (result == true) {
+
 			for (int i = 0; i < table.getRowCount(); i++) {
+
 				int id = (int) table.getValueAt(i, 0);
 				if (id == preferredPosition) {
+
 					table.changeSelection(i, 0, false, false);
 					int rowsVisible = table.getParent().getHeight() / table.getRowHeight() / 2;
 					Rectangle cellRect = table.getCellRect(i + rowsVisible, 0, true);
@@ -179,20 +182,25 @@ public class GUIHistory implements PropertyChangeListener {
 		gui_filter.setMaximumSize(new Dimension(Short.MAX_VALUE, gui_filter.getMinimumSize().height));
 
 		gui_filter.addKeyListener(new KeyAdapter() {
+
 			public void keyPressed(KeyEvent e) {
 				try {
+
 					switch (e.getKeyCode()) {
-						case KeyEvent.VK_ENTER:
+
+						case KeyEvent.VK_ENTER :
 							filter();
 							break;
 					}
 				} catch (Exception e1) {
+
 					// Nothing to do
 				}
 			}
 		});
 
 		gui_filter.addFocusListener(new FocusListener() {
+
 			@Override
 			public void focusLost(FocusEvent e) {
 				filter();
@@ -207,12 +215,15 @@ public class GUIHistory implements PropertyChangeListener {
 		filterConfigAdd.setMaximumSize(new Dimension(15, gui_filter.getMaximumSize().height));
 		filterConfigAdd.setBackground(filterConfigAdd.getBackground());
 		filterConfigAdd.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					GUIFilterConfigAddDialog dlg = new GUIFilterConfigAddDialog(owner, gui_filter.getText());
 					dlg.showDialog();
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -223,28 +234,35 @@ public class GUIHistory implements PropertyChangeListener {
 				new Dimension(filterConfigAdd.getMaximumSize().width, gui_filter.getMaximumSize().height));
 		filterDropDown.setBackground(filterDropDown.getBackground());
 		filterDropDown.addMouseListener(new MouseAdapter() {
+
 			GUIFilterDropDownList dlg = null;
 
 			@Override
 			public void mouseReleased(MouseEvent arg0) {
 				try {
+
 					if (dlg != null) {
+
 						dlg.dispose();
 						dlg = null;
 						filterDropDown.setSelected(false);
 					} else {
+
 						int x = gui_filter.getLocationOnScreen().x;
 						int y = gui_filter.getLocationOnScreen().y + gui_filter.getHeight();
 						int width = gui_filter.getWidth();
 						int height = 0;
 						dlg = new GUIFilterDropDownList(owner, width, filter -> {
+
 							try {
+
 								gui_filter.setText(filter.getFilter());
 								filterDropDown.setSelected(false);
 								filter();
 								dlg.dispose();
 								dlg = null;
 							} catch (Exception e1) {
+
 								e1.getStackTrace();
 							}
 						});
@@ -254,6 +272,7 @@ public class GUIHistory implements PropertyChangeListener {
 						filterDropDown.setSelected(true);
 					}
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
@@ -265,12 +284,15 @@ public class GUIHistory implements PropertyChangeListener {
 				new Dimension(filterConfigAdd.getMaximumSize().width, gui_filter.getMaximumSize().height));
 		filterConfig.setBackground(filterConfig.getBackground());
 		filterConfig.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					GUIFilterConfigDialog dlg = new GUIFilterConfigDialog(owner);
 					dlg.showDialog();
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -289,9 +311,11 @@ public class GUIHistory implements PropertyChangeListener {
 	private JMenuItem createMenuItem(String name, int key, KeyStroke hotkey, ActionListener l) {
 		JMenuItem out = new JMenuItem(name);
 		if (key >= 0) {
+
 			out.setMnemonic(key);
 		}
 		if (hotkey != null) {
+
 			out.setAccelerator(hotkey);
 		}
 		out.addActionListener(l);
@@ -300,6 +324,7 @@ public class GUIHistory implements PropertyChangeListener {
 
 	public JComponent createPanel() throws Exception {
 		tableModel = new OptionTableModel(columnNames, 0) {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -308,9 +333,11 @@ public class GUIHistory implements PropertyChangeListener {
 			}
 		};
 		tableModel.addTableModelListener(new TableModelListener() {
+
 			@Override
 			public void tableChanged(TableModelEvent e) {
 				if (e.getType() == TableModelEvent.INSERT) {
+
 					// List<Integer> ids = searchFromRequest("google");
 					// System.out.println(ids.toString());
 				}
@@ -318,24 +345,30 @@ public class GUIHistory implements PropertyChangeListener {
 		});
 
 		table = new JTable(tableModel) {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public Component prepareRenderer(TableCellRenderer tcr, int row, int column) {
 				Component c = super.prepareRenderer(tcr, row, column);
 				try {
+
 					int[] selected_rows = table.getSelectedRows();
 					boolean selected = false;
 					boolean first_selected = false;
 					if (selected_rows.length >= 2) {
+
 						for (int i = 0; i < selected_rows.length; i++) {
+
 							if (selected_rows[i] == row) {
+
 								selected = true;
 								first_selected = (table.getSelectedRow() == row);
 								break;
 							}
 						}
 					} else {
+
 						selected = (table.getSelectedRow() == row);
 						first_selected = selected;
 					}
@@ -344,23 +377,30 @@ public class GUIHistory implements PropertyChangeListener {
 							table.getColumnModel().getColumnIndex("Modified"));
 					boolean resend = (boolean) table.getValueAt(row, table.getColumnModel().getColumnIndex("Resend"));
 					if (selected) {
+
 						if (first_selected) {
+
 							c.setForeground(new Color(0xff, 0xff, 0xff));
 							c.setBackground(new Color(0x80, 0x80, 0xff));
 						} else {
+
 							c.setForeground(new Color(0xff, 0xff, 0xff));
 							c.setBackground(new Color(0xc0, 0xc0, 0xff));
 						}
 					} else if (colorManager.contains(packetId)) {
+
 						c.setForeground(new Color(0x00, 0x00, 0x00));
 						c.setBackground(colorManager.getColor(packetId));
 					} else if (resend) {
+
 						c.setForeground(new Color(0x00, 0x00, 0x00));
 						c.setBackground(new Color(0x87, 0xce, 0xfa));
 					} else if (modified) {
+
 						c.setForeground(new Color(0x00, 0x00, 0x00));
 						c.setBackground(new Color(0xff, 0xc0, 0xcb));
 					} else {
+
 						c.setForeground(new Color(0x00, 0x00, 0x00));
 						if (row % 2 == 0)
 							c.setBackground(new Color(0xff, 0xff, 0xff));
@@ -368,6 +408,7 @@ public class GUIHistory implements PropertyChangeListener {
 							c.setBackground(new Color(0xf0, 0xf0, 0xf0));
 					}
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 				return c;
@@ -375,16 +416,20 @@ public class GUIHistory implements PropertyChangeListener {
 		};
 		table.setRowHeight(FontManager.getInstance().getUIFontHeight(table));
 		for (int i = 0; i < columnNames.length; i++) {
+
 			table.getColumn(columnNames[i]).setPreferredWidth(columnWidth[i]);
 		}
 		((JComponent) table.getDefaultRenderer(Boolean.class)).setOpaque(true);
 		table.getSelectionModel().addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				try {
+
 					preferredPosition = getSelectedPacketId();
 					packets.refresh();
 				} catch (Exception e1) {
+
 					// Nothing to do
 				}
 			}
@@ -396,18 +441,22 @@ public class GUIHistory implements PropertyChangeListener {
 
 		int mask_key = ActionEvent.META_MASK;
 		if (!PacketProxyUtility.getInstance().isMac()) {
+
 			mask_key = ActionEvent.CTRL_MASK;
 		}
 		menu = new JPopupMenu();
 
 		JMenuItem send = createMenuItem("send", KeyEvent.VK_S, KeyStroke.getKeyStroke(KeyEvent.VK_S, mask_key),
 				new ActionListener() {
+
 					public void actionPerformed(ActionEvent actionEvent) {
 						try {
+
 							int id = GUIHistory.getInstance().getSelectedPacketId();
 							Packet packet = Packets.getInstance().query(id);
 							byte[] data = GUIPacket.getInstance().getData();
 							if (packet == null) {
+
 								return;
 							}
 							ResendController.getInstance().resend(packet.getOneShotPacket(data));
@@ -415,6 +464,7 @@ public class GUIHistory implements PropertyChangeListener {
 							Packets.getInstance().update(packet);
 							GUIHistory.getInstance().updateRequestOne(GUIHistory.getInstance().getSelectedPacketId());
 						} catch (Exception e1) {
+
 							e1.printStackTrace();
 						}
 					}
@@ -422,18 +472,23 @@ public class GUIHistory implements PropertyChangeListener {
 
 		JMenuItem sendToResender = createMenuItem("send to Resender", KeyEvent.VK_R,
 				KeyStroke.getKeyStroke(KeyEvent.VK_R, mask_key), new ActionListener() {
+
 					public void actionPerformed(ActionEvent actionEvent) {
 						try {
+
 							Packet packet = gui_packet.getPacket();
 							packet.setResend();
 							Packets.getInstance().update(packet);
 							if (packet.getModifiedData().length == 0) { // dropしたパケットの場合
+
 								GUIResender.getInstance().addResends(packet.getOneShotFromDecodedData());
 							} else {
+
 								GUIResender.getInstance().addResends(packet.getOneShotFromModifiedData());
 							}
 							GUIHistory.getInstance().updateRequestOne(GUIHistory.getInstance().getSelectedPacketId());
 						} catch (Exception e1) {
+
 							e1.printStackTrace();
 						}
 					}
@@ -441,21 +496,25 @@ public class GUIHistory implements PropertyChangeListener {
 
 		JMenuItem copyAll = createMenuItem("copy Method + URL + Body", KeyEvent.VK_M,
 				KeyStroke.getKeyStroke(KeyEvent.VK_M, mask_key), new ActionListener() {
+
 					public void actionPerformed(ActionEvent actionEvent) {
 						try {
+
 							Packet packet = gui_packet.getPacket();
 							Http http = Http.create(packet.getDecodedData());
 							CharSetUtility charsetutil = CharSetUtility.getInstance();
 							if (charsetutil.isAuto()) {
+
 								charsetutil.setGuessedCharSet(http.getBody());
 							}
-							String copyData = http.getMethod() + "\t" +
-									http.getURL(packet.getServerPort(), packet.getUseSSL()) + "\t" +
-									new String(http.getBody(), charsetutil.getCharSet());
+							String copyData = http.getMethod() + "\t"
+									+ http.getURL(packet.getServerPort(), packet.getUseSSL()) + "\t"
+									+ new String(http.getBody(), charsetutil.getCharSet());
 							Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 							StringSelection selection = new StringSelection(copyData);
 							clipboard.setContents(selection, selection);
 						} catch (Exception e1) {
+
 							e1.printStackTrace();
 						}
 					}
@@ -463,8 +522,10 @@ public class GUIHistory implements PropertyChangeListener {
 
 		JMenuItem copy = createMenuItem("copy URL", KeyEvent.VK_Y, KeyStroke.getKeyStroke(KeyEvent.VK_Y, mask_key),
 				new ActionListener() {
+
 					public void actionPerformed(ActionEvent actionEvent) {
 						try {
+
 							int id = GUIHistory.getInstance().getSelectedPacketId();
 							Packet packet = Packets.getInstance().query(id);
 							Http http = Http.create(packet.getDecodedData());
@@ -474,37 +535,47 @@ public class GUIHistory implements PropertyChangeListener {
 							clipboard.setContents(selection, selection);
 
 						} catch (Exception e1) {
+
 							e1.printStackTrace();
 						}
 					}
 				});
 
 		JMenuItem bulkSender = createMenuItem("send to Bulk Sender", -1, null, new ActionListener() {
+
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+
 					Packet packet = gui_packet.getPacket();
 					if (packet.getModifiedData().length == 0) { // dropしたパケットの場合
+
 						GUIBulkSender.getInstance().add(packet.getOneShotFromDecodedData(), packet.getId());
 					} else {
+
 						GUIBulkSender.getInstance().add(packet.getOneShotFromModifiedData(), packet.getId());
 					}
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
 		});
 
 		JMenuItem saveAll = createMenuItem("save all data to file", -1, null, new ActionListener() {
+
 			public void actionPerformed(ActionEvent actionEvent) {
 				WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "dat", "packet.dat");
 				filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
+
 					@Override
 					public void onApproved(File file, String extension) {
 						try {
+
 							byte[] data = gui_packet.getPacket().getReceivedData();
 							FileUtils.writeByteArrayToFile(file, data);
 							JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", file.getPath()));
 						} catch (Exception e1) {
+
 							e1.printStackTrace();
 							JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
 						}
@@ -525,17 +596,21 @@ public class GUIHistory implements PropertyChangeListener {
 		});
 
 		JMenuItem saveHttpBody = createMenuItem("save HTTP body to file", -1, null, new ActionListener() {
+
 			public void actionPerformed(ActionEvent actionEvent) {
 				WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "dat", "body.dat");
 				filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
+
 					@Override
 					public void onApproved(File file, String extension) {
 						try {
+
 							Http http = Http.create(gui_packet.getPacket().getDecodedData());
 							byte[] data = http.getBody();
 							FileUtils.writeByteArrayToFile(file, data);
 							JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", file.getPath()));
 						} catch (Exception e1) {
+
 							e1.printStackTrace();
 							JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
 						}
@@ -556,10 +631,13 @@ public class GUIHistory implements PropertyChangeListener {
 		});
 
 		JMenuItem addColorG = createMenuItem("add color (green)", -1, null, new ActionListener() {
+
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+
 					int[] selected_rows = table.getSelectedRows();
 					for (int i = 0; i < selected_rows.length; i++) {
+
 						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
 						colorManager.add(id, packetColorGreen);
 						Packet packet = Packets.getInstance().query(id);
@@ -567,16 +645,20 @@ public class GUIHistory implements PropertyChangeListener {
 						Packets.getInstance().update(packet);
 					}
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
 		});
 
 		JMenuItem addColorB = createMenuItem("add color (brown)", -1, null, new ActionListener() {
+
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+
 					int[] selected_rows = table.getSelectedRows();
 					for (int i = 0; i < selected_rows.length; i++) {
+
 						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
 						colorManager.add(id, packetColorBrown);
 						Packet packet = Packets.getInstance().query(id);
@@ -584,16 +666,20 @@ public class GUIHistory implements PropertyChangeListener {
 						Packets.getInstance().update(packet);
 					}
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
 		});
 
 		JMenuItem addColorY = createMenuItem("add color (yellow)", -1, null, new ActionListener() {
+
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+
 					int[] selected_rows = table.getSelectedRows();
 					for (int i = 0; i < selected_rows.length; i++) {
+
 						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
 						colorManager.add(id, packetColorYellow);
 						Packet packet = Packets.getInstance().query(id);
@@ -601,51 +687,64 @@ public class GUIHistory implements PropertyChangeListener {
 						Packets.getInstance().update(packet);
 					}
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
 		});
 
 		JMenuItem clearColor = createMenuItem("clear color", -1, null, new ActionListener() {
+
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+
 					int[] selected_rows = table.getSelectedRows();
 					for (int i = 0; i < selected_rows.length; i++) {
+
 						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
 						colorManager.clear(id);
 					}
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
 		});
 
 		JMenuItem delete_selected_items = createMenuItem("delete selected items", -1, null, new ActionListener() {
+
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+
 					int[] selected_rows = table.getSelectedRows();
 					for (int i = 0; i < selected_rows.length; i++) {
+
 						Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
 						colorManager.clear(id);
 						packets.delete(packets.query(id));
 					}
 					updateAll();
 				} catch (Exception e2) {
+
 					e2.printStackTrace();
 				}
 			}
 		});
 
 		JMenuItem delete_all = createMenuItem("delete all items", -1, null, new ActionListener() {
+
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+
 					for (int i = 0; i < table.getRowCount(); ++i) {
+
 						Integer id = (Integer) table.getValueAt(i, 0);
 						colorManager.clear(id);
 					}
 					packets.deleteAll();
 					updateAll();
 				} catch (Exception e2) {
+
 					e2.printStackTrace();
 				}
 			}
@@ -654,13 +753,15 @@ public class GUIHistory implements PropertyChangeListener {
 		/*
 		 * Copy HTTP request as curl command:
 		 * $ curl 'http://example.com' -X POST -H 'Cookie: hoge=huga; foo=bar' -H ...
-		 * 
+		 *
 		 * TODO: support --data-binary
 		 */
 		JMenuItem copyAsCurl = createMenuItem("copy as curl", -1, null, new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+
 					Http http = Http.create(gui_packet.getPacket().getDecodedData());
 					List<HeaderField> headerFields = http.getHeader().getFields();
 					ArrayList<String> commandList = new ArrayList<>();
@@ -677,6 +778,7 @@ public class GUIHistory implements PropertyChangeListener {
 
 					// -H 'Cookie: hoge=huga; foo=bar' -H ...
 					for (HeaderField hf : headerFields) {
+
 						commandList.add("-H");
 						commandList.add(String.format("'%s: %s'", hf.getName(), hf.getValue()));
 					}
@@ -685,6 +787,7 @@ public class GUIHistory implements PropertyChangeListener {
 					String body = new String(http.getBody());
 					// if body is not empty
 					if (body.trim().length() > 0) {
+
 						commandList.add("--data");
 						commandList.add(String.format("'%s'", body));
 					}
@@ -695,6 +798,7 @@ public class GUIHistory implements PropertyChangeListener {
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					clipboard.setContents(command, command);
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
@@ -716,10 +820,13 @@ public class GUIHistory implements PropertyChangeListener {
 		menu.add(delete_all);
 
 		table.addKeyListener(new KeyAdapter() {
+
 			public void keyPressed(KeyEvent e) {
 				try {
+
 					int mask_key = KeyEvent.META_MASK;
 					if (!PacketProxyUtility.getInstance().isMac()) {
+
 						mask_key = KeyEvent.CTRL_MASK;
 					}
 					int p;
@@ -728,47 +835,55 @@ public class GUIHistory implements PropertyChangeListener {
 					Clipboard clipboard;
 					StringSelection selection;
 					switch (e.getKeyCode()) {
-						case KeyEvent.VK_J:
+
+						case KeyEvent.VK_J :
 							p = table.getSelectedRow() + 1;
 							p = p >= table.getRowCount() ? table.getRowCount() - 1 : p;
 							table.changeSelection(p, 0, false, false);
 							break;
-						case KeyEvent.VK_K:
+						case KeyEvent.VK_K :
 							p = table.getSelectedRow() - 1;
 							p = p < 0 ? 0 : p;
 							table.changeSelection(p, 0, false, false);
 							break;
-						case KeyEvent.VK_Y:
+						case KeyEvent.VK_Y :
 							if ((e.getModifiers() & mask_key) == mask_key) {
+
 								copy.doClick();
 								break;
 							}
-						case KeyEvent.VK_S:
+						case KeyEvent.VK_S :
 							if ((e.getModifiers() & mask_key) == mask_key) {
+
 								send.doClick();
 							}
 							break;
-						case KeyEvent.VK_R:
+						case KeyEvent.VK_R :
 							if ((e.getModifiers() & mask_key) == mask_key) {
+
 								sendToResender.doClick();
 							}
 							break;
-						case KeyEvent.VK_M:
+						case KeyEvent.VK_M :
 							if ((e.getModifiers() & mask_key) == mask_key) {
+
 								copyAll.doClick();
 							}
 					}
 					preferredPosition = getSelectedPacketId();
 				} catch (Exception e1) {
+
 					// Nothing to do
 				}
 			}
 		});
 
 		table.addMouseListener(new MouseAdapter() {
+
 			@Override
 			public void mouseReleased(MouseEvent event) {
 				if (Utils.isWindows() && event.isPopupTrigger()) {
+
 					menu.show(event.getComponent(), event.getX(), event.getY());
 				}
 				autoScroll.doDisable();
@@ -777,25 +892,33 @@ public class GUIHistory implements PropertyChangeListener {
 			@Override
 			public void mousePressed(MouseEvent event) {
 				try {
+
 					if (event.isPopupTrigger()) {
+
 						menu.show(event.getComponent(), event.getX(), event.getY());
 					}
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
 		});
 		table.addComponentListener(new ComponentAdapter() {
+
 			public void componentResized(ComponentEvent e) {
 				try {
+
 					if (autoScroll.isEnabled()) {
+
 						table.scrollRectToVisible(table.getCellRect(table.getRowCount() - 1, 0, true));
 						table.changeSelection(table.getRowCount() - 1, 0, false, false);
 						int packetId = getSelectedPacketId();
 						Packet packet = packets.query(packetId);
 						int retryCount = 10;
 						while (packet.getDecodedData() == null || packet.getDecodedData().length == 0) {
+
 							if (retryCount-- <= 0) {
+
 								break;
 							}
 							Thread.sleep(100);
@@ -804,6 +927,7 @@ public class GUIHistory implements PropertyChangeListener {
 						gui_packet.setPacket(packet);
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -832,8 +956,10 @@ public class GUIHistory implements PropertyChangeListener {
 	public List<Integer> searchFromRequest(String searchWord) {
 		List<Integer> ids = new ArrayList<Integer>();
 		for (int i = 0; i < table.getRowCount(); i++) {
+
 			String req = (String) tableModel.getValueAt(i, 1);
 			if (req.matches(String.format(".*%s.*", searchWord))) {
+
 				ids.add(i);
 			}
 		}
@@ -843,32 +969,36 @@ public class GUIHistory implements PropertyChangeListener {
 	public int getSelectedPacketId() {
 		int idx = table.getSelectedRow();
 		if (0 <= idx && idx < table.getRowCount()) {
+
 			return (Integer) table.getValueAt(idx, 0);
 		} else {
+
 			return 0;
 		}
 	}
 
 	private void saveHistoryWithAlertDialog() {
 		if (dialogOnce) {
+
 			return;
 
 		}
 		dialogOnce = true;
-		JOptionPane.showMessageDialog(owner,
-				"データベースのサイズが上限値(2GB)を越えそうです。Historyを保存してください。",
-				"Warning",
+		JOptionPane.showMessageDialog(owner, "データベースのサイズが上限値(2GB)を越えそうです。Historyを保存してください。", "Warning",
 				JOptionPane.WARNING_MESSAGE);
 
 		WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "sqlite3");
 		filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
+
 			@Override
 			public void onApproved(File file, String extension) {
 				try {
+
 					Database.getInstance().Save(file.getAbsolutePath());
 					JOptionPane.showMessageDialog(null, "データを保存しました。");
 					updateRequest(true);
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 					JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
 				}
@@ -890,28 +1020,38 @@ public class GUIHistory implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (PACKETS.matches(evt)) {
+
 			handlePacketsPropertyChange(evt);
 		} else if (FILTERS.matches(evt)) {
+
 			handleFiltersPropertyChange(evt);
 		} else if (DATABASE_MESSAGE.matches(evt)) {
+
 			handleDatabaseMessagePropertyChange(evt);
 		}
 	}
 
 	private void handlePacketsPropertyChange(PropertyChangeEvent evt) {
 		SwingUtilities.invokeLater(() -> {
+
 			try {
+
 				Object arg1 = evt.getNewValue();
 				if (arg1 instanceof Boolean) {
+
 					handleBooleanPacketValue((Boolean) arg1);
 				} else if (arg1 instanceof Integer) {
+
 					handleIntegerPacketValue((Integer) arg1);
 				} else if (arg1 instanceof DatabaseMessage && (DatabaseMessage) arg1 == DatabaseMessage.RECONNECT) {
+
 					updateAllAsync();
 				} else {
+
 					updateRequest(true);
 				}
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		});
@@ -919,6 +1059,7 @@ public class GUIHistory implements PropertyChangeListener {
 
 	private void handleBooleanPacketValue(boolean value) {
 		if (value) {
+
 			// sqlite3のファイル上限(2GB)回避(model/Packets.javaから通知)
 			saveHistoryWithAlertDialog();
 		}
@@ -926,24 +1067,31 @@ public class GUIHistory implements PropertyChangeListener {
 
 	private void handleIntegerPacketValue(int value) throws Exception {
 		if (value < 0) {
+
 			int positiveValue = value * -1;
 			tableModel.addRow(makeRowDataFromPacket(packets.query(positiveValue)));
 			id_row.put(positiveValue, tableModel.getRowCount() - 1);
 		} else {
+
 			updateRequestOne(value);
 		}
 	}
 
 	private void handleFiltersPropertyChange(PropertyChangeEvent evt) {
 		SwingUtilities.invokeLater(() -> {
+
 			try {
+
 				Object arg1 = evt.getNewValue();
 				if (arg1 instanceof DatabaseMessage && (DatabaseMessage) arg1 == DatabaseMessage.RECONNECT) {
+
 					updateAllAsync();
 				} else {
+
 					filter();
 				}
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		});
@@ -951,12 +1099,16 @@ public class GUIHistory implements PropertyChangeListener {
 
 	private void handleDatabaseMessagePropertyChange(PropertyChangeEvent evt) {
 		SwingUtilities.invokeLater(() -> {
+
 			try {
+
 				Object arg1 = evt.getNewValue();
 				if (arg1 instanceof DatabaseMessage && (DatabaseMessage) arg1 == DatabaseMessage.RECONNECT) {
+
 					updateAllAsync();
 				}
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		});
@@ -964,6 +1116,7 @@ public class GUIHistory implements PropertyChangeListener {
 
 	public void updateRequestOne(int id) throws Exception {
 		synchronized (update_packet_ids) {
+
 			update_packet_ids.add(id);
 		}
 		updateRequest(false);
@@ -976,14 +1129,17 @@ public class GUIHistory implements PropertyChangeListener {
 		int select_id = getSelectedPacketId();
 		// SingleThreadExecutor経由で実行しているので、このSwingWorkerは直列で動く
 		SwingWorker<Packet, Packet> worker = new SwingWorker<Packet, Packet>() {
+
 			@Override
 			protected Packet doInBackground() throws Exception {
 				HashSet<Integer> update_targets = new HashSet<Integer>();
 				synchronized (update_packet_ids) {
+
 					update_targets = (HashSet<Integer>) update_packet_ids.clone();
 					update_packet_ids.clear();
 				}
 				for (int id : update_targets) {
+
 					Packet packet = packets.query(id);
 					publish(packet);
 				}
@@ -993,10 +1149,13 @@ public class GUIHistory implements PropertyChangeListener {
 			@Override
 			protected void process(List<Packet> packets) {
 				try {
+
 					for (Packet packet : packets) {
+
 						updateOne(packet);
 					}
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
@@ -1004,12 +1163,15 @@ public class GUIHistory implements PropertyChangeListener {
 			@Override
 			protected void done() {
 				try {
+
 					Packet packet = get();
 					if (packet != null) {
+
 						gui_packet.setPacket(packet);
 					}
 					// sortByText(gui_filter.getText());
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
@@ -1023,6 +1185,7 @@ public class GUIHistory implements PropertyChangeListener {
 		List<Packet> packetList = packets.queryAll();
 		tableModel.setRowCount(0);
 		for (Packet packet : packetList) {
+
 			tableModel.addRow(makeRowDataFromPacket(packet));
 			id_row.put(packet.getId(), tableModel.getRowCount() - 1);
 		}
@@ -1034,26 +1197,29 @@ public class GUIHistory implements PropertyChangeListener {
 		tableModel.setRowCount(0);
 		colorManager.clear();
 		for (Packet packet : packetList) {
+
 			int id = packet.getId();
 			String color = packet.getColor();
 
-			tableModel.addRow(new Object[] {
-					packet.getId(), "Loading...", "Loading...", 0, "Loading...", "", "Loading...", "",
-					"00:00:00 1900/01/01 Z", false, false, "", "", "", (long) -1
-			});
+			tableModel.addRow(new Object[]{packet.getId(), "Loading...", "Loading...", 0, "Loading...", "",
+					"Loading...", "", "00:00:00 1900/01/01 Z", false, false, "", "", "", (long) -1});
 			id_row.put(id, tableModel.getRowCount() - 1);
 
 			if (Objects.equals(color, "green")) {
+
 				colorManager.add(id, packetColorGreen);
 			} else if (Objects.equals(color, "brown")) {
+
 				colorManager.add(id, packetColorBrown);
 			} else if (Objects.equals(color, "yellow")) {
+
 				colorManager.add(id, packetColorYellow);
 			}
 		}
 		update_packet_ids.clear();
 
 		new Thread(new Runnable() {
+
 			GUIHistory history = null;
 			int count = 0;
 
@@ -1061,17 +1227,23 @@ public class GUIHistory implements PropertyChangeListener {
 			public void run() {
 				long limit = 100;
 				for (long i = count; i > 0; i -= limit) {
+
 					try {
+
 						long offset;
 						if (i - limit < 0) {
+
 							offset = 0;
 							limit = i;
 						} else {
+
 							offset = i - limit;
 						}
 						List<Packet> packetList = history.packets.queryRange(offset, limit);
 						for (Packet packet : packetList) {
+
 							SwingUtilities.invokeLater(new Runnable() {
+
 								GUIHistory history = null;
 								Packet packet = null;
 
@@ -1083,8 +1255,10 @@ public class GUIHistory implements PropertyChangeListener {
 
 								public void run() {
 									try {
+
 										updateOne(packet);
 									} catch (Exception e) {
+
 										// TODO Auto-generated catch block
 										e.printStackTrace();
 									}
@@ -1092,6 +1266,7 @@ public class GUIHistory implements PropertyChangeListener {
 							}.set(history, packet));
 						}
 					} catch (Exception e) {
+
 						e.printStackTrace();
 					}
 				}
@@ -1108,13 +1283,16 @@ public class GUIHistory implements PropertyChangeListener {
 
 	private void updateOne(Packet packet) throws Exception {
 		if (id_row == null || packet == null) {
+
 			return;
 		}
 		Integer row_index = id_row.getOrDefault(packet.getId(), tableModel.getRowCount() - 1);
 		Object[] row_data = makeRowDataFromPacket(packet);
 
 		for (int i = 0; i < columnNames.length; i++) {
+
 			if (row_data[i] == tableModel.getValueAt(row_index, i)) {
+
 				continue;
 			}
 			tableModel.setValueAt(row_data[i], row_index, i);
@@ -1129,48 +1307,42 @@ public class GUIHistory implements PropertyChangeListener {
 
 		byte[] data = null;
 		if (packet.getDecodedData().length > 0) {
+
 			data = packet.getDecodedData();
 		} else {
+
 			data = packet.getModifiedData();
 		}
 
 		int length = data.length;
 
 		SimpleDateFormat date_format = new SimpleDateFormat("HH:mm:ss yyyy/MM/dd Z");
-		return new Object[] {
-				packet.getId(),
-				packet.getSummarizedRequest(),
-				packet.getSummarizedResponse(),
-				length,
-				client_ip,
-				client_port,
-				server_ip,
-				server_port,
-				date_format.format(packet.getDate()),
-				packet.getResend(),
-				packet.getModified(),
-				packet.getContentType(),
-				packet.getEncoder(),
-				packet.getAlpn(),
-				packet.getGroup()
-		};
+		return new Object[]{packet.getId(), packet.getSummarizedRequest(), packet.getSummarizedResponse(), length,
+				client_ip, client_port, server_ip, server_port, date_format.format(packet.getDate()),
+				packet.getResend(), packet.getModified(), packet.getContentType(), packet.getEncoder(),
+				packet.getAlpn(), packet.getGroup()};
 	}
 
 	private boolean sortByText(String text) {
-		if (text.equals("")) {
+		if (text.isEmpty()) {
+
 			sorter.setRowFilter(null);
 			return true;
 		}
 		try {
+
 			sorter.setRowFilter(FilterTextParser.parse(text));
 			return true;
 		} catch (ParseException e) {
+
 			// // ignore
 			// e.printStackTrace();
 		} catch (NumberFormatException e) {
+
 			// // ignore
 			// e.printStackTrace();
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 		return false;

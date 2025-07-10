@@ -21,15 +21,17 @@ import packetproxy.model.Packet;
 import packetproxy.model.Server;
 
 public class InterceptController {
+
 	private static InterceptController instance;
-	
+
 	public static InterceptController getInstance() throws Exception {
 		if (instance == null) {
+
 			instance = new InterceptController();
 		}
 		return instance;
 	}
-	
+
 	private boolean forward;
 	private boolean forward_multiple;
 	private byte[] intercepted_data;
@@ -46,11 +48,14 @@ public class InterceptController {
 		this.thread_lock = new Object();
 		this.resend_controller = ResendController.getInstance();
 	}
+
 	public void enableInterceptMode() {
 		interceptModel.enableInterceptMode();
 	}
+
 	public void disableInterceptMode(byte[] data) {
 		synchronized (lock) {
+
 			forward = true;
 			forward_multiple = false;
 			intercepted_data = data;
@@ -58,60 +63,78 @@ public class InterceptController {
 			lock.notify();
 		}
 	}
+
 	public void forward(byte[] data) {
 		synchronized (lock) {
+
 			forward = true;
 			forward_multiple = false;
 			intercepted_data = data;
 			lock.notify();
 		}
 	}
+
 	public void forward_multiple(byte[] data) {
 		synchronized (lock) {
+
 			forward = true;
 			forward_multiple = true;
 			intercepted_data = data;
 			lock.notify();
 		}
 	}
+
 	public void drop() {
 		synchronized (lock) {
+
 			forward = false;
 			forward_multiple = false;
 			intercepted_data = null;
 			lock.notify();
 		}
 	}
+
 	public byte[] received(byte[] data, Server server, Packet client_packet) throws Exception {
 		return received(data, server, client_packet, null);
 	}
+
 	public byte[] received(byte[] data, Server server, Packet client_packet, Packet server_packet) throws Exception {
 		Packet target_packet = server_packet == null ? client_packet : server_packet;
 		synchronized (thread_lock) {
+
 			// Intercept=ON & InterceptOption=ON、かつ、指定されたルールにマッチした場合にのみIntercept
 			boolean is_target_packet = interceptModel.isInterceptEnabled();
 			if (is_target_packet) {
+
 				if (InterceptOptions.getInstance().isEnabled()) {
+
 					if (server_packet == null) {
+
 						is_target_packet = InterceptOptions.getInstance().interceptOnRequest(server, client_packet);
 					} else {
-						is_target_packet = InterceptOptions.getInstance().interceptOnResponse(server, client_packet, server_packet);
+
+						is_target_packet = InterceptOptions.getInstance().interceptOnResponse(server, client_packet,
+								server_packet);
 					}
 				}
 			}
 			if (!is_target_packet) {
+
 				return data;
 			}
 
 			synchronized (lock) {
+
 				interceptModel.setData(data, client_packet, server_packet);
 				lock.wait();
 				interceptModel.clearData();
 				if (forward == false) { // drop
+
 					return new byte[]{};
 				}
 				if (forward_multiple == true) {
-					//Forward x20(= original x 1 + copy x 19)
+
+					// Forward x20(= original x 1 + copy x 19)
 					resend_controller.resend(target_packet.getOneShotPacket(intercepted_data), 19, true);
 					target_packet.setResend();
 				}

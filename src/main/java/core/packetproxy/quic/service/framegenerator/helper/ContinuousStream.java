@@ -16,51 +16,54 @@
 
 package packetproxy.quic.service.framegenerator.helper;
 
+import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import lombok.Getter;
 import packetproxy.quic.value.QuicMessage;
 import packetproxy.quic.value.StreamId;
 import packetproxy.quic.value.frame.StreamFrame;
 
-import java.io.ByteArrayOutputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 @Getter
 public class ContinuousStream {
-    private final Map<Long/*offset*/, StreamFrame> frameMap = new HashMap<>();
-    private final StreamId streamId;
-    private long currentOffset = 0;
-    private boolean finished = false;
 
-    public ContinuousStream(StreamId streamId) {
-        this.streamId = streamId;
-    }
+	private final Map<Long/*offset*/, StreamFrame> frameMap = new HashMap<>();
+	private final StreamId streamId;
+	private long currentOffset = 0;
+	private boolean finished = false;
 
-    public void put(StreamFrame frame) {
-        if (frame.isFinished()) {
-            this.finished = true;
-        }
-        this.frameMap.put(frame.getOffset(), frame);
-    }
+	public ContinuousStream(StreamId streamId) {
+		this.streamId = streamId;
+	}
 
-    public Optional<QuicMessage> get() throws Exception {
-        ByteArrayOutputStream data = new ByteArrayOutputStream();
+	public void put(StreamFrame frame) {
+		if (frame.isFinished()) {
 
-        StreamFrame frame = this.frameMap.get(this.currentOffset);
-        if (frame == null) {
-            return Optional.empty();
-        }
-        data.write(frame.getStreamData());
-        this.currentOffset += frame.getLength();
+			this.finished = true;
+		}
+		this.frameMap.put(frame.getOffset(), frame);
+	}
 
-        /* process continuous frame if they exist */
-        while (this.frameMap.get(this.currentOffset) != null) {
-            StreamFrame extraFrame = this.frameMap.get(this.currentOffset);
-            data.write(extraFrame.getBytes());
-            this.currentOffset += extraFrame.getLength();
-        }
+	public Optional<QuicMessage> get() throws Exception {
+		ByteArrayOutputStream data = new ByteArrayOutputStream();
 
-        return Optional.of(QuicMessage.of(this.streamId, data.toByteArray()));
-    }
+		StreamFrame frame = this.frameMap.get(this.currentOffset);
+		if (frame == null) {
+
+			return Optional.empty();
+		}
+		data.write(frame.getStreamData());
+		this.currentOffset += frame.getLength();
+
+		/* process continuous frame if they exist */
+		while (this.frameMap.get(this.currentOffset) != null) {
+
+			StreamFrame extraFrame = this.frameMap.get(this.currentOffset);
+			data.write(extraFrame.getBytes());
+			this.currentOffset += extraFrame.getLength();
+		}
+
+		return Optional.of(QuicMessage.of(this.streamId, data.toByteArray()));
+	}
 }

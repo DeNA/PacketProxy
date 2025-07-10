@@ -19,21 +19,21 @@ import java.nio.ByteBuffer;
 
 public class GoawayFrame extends Frame {
 
-    static protected Type TYPE = Type.GOAWAY;
-    
-    private int lastStreamId;
-    private int errorCode;
+	protected static Type TYPE = Type.GOAWAY;
 
-    public GoawayFrame(Frame frame) throws Exception {
+	private int lastStreamId;
+	private int errorCode;
+
+	public GoawayFrame(Frame frame) throws Exception {
 		super(frame);
 		parsePayload();
-    }
+	}
 
 	public GoawayFrame(byte[] data) throws Exception {
 		super(data);
 		parsePayload();
 	}
-	
+
 	private void parsePayload() throws Exception {
 		ByteBuffer bb = ByteBuffer.allocate(4096);
 		bb.put(payload);
@@ -41,11 +41,11 @@ public class GoawayFrame extends Frame {
 		lastStreamId = bb.getInt();
 		errorCode = bb.getInt();
 	}
-	
+
 	public int getLastStreamId() {
 		return lastStreamId;
 	}
-	
+
 	public int getErrorCode() {
 		return errorCode;
 	}

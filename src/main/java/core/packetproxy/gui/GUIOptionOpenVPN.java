@@ -22,16 +22,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeEvent;
-import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
@@ -44,7 +39,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
-
 import packetproxy.OpenVPN;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
@@ -53,6 +47,7 @@ import packetproxy.model.OpenVPNForwardPort;
 import packetproxy.model.OpenVPNForwardPorts;
 
 public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort> {
+
 	private GUIOptionOpenVPNDialog dig;
 	private JCheckBox checkBox;
 	private JComboBox<String> vpnProtocol;
@@ -72,56 +67,70 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 		this.openVPNForwardPorts.addPropertyChangeListener(this);
 		this.table_ext_list = new ArrayList<OpenVPNForwardPort>();
 
-		String[] menu = { "Proto", "src port", "dst port" };
-		int[] menuWidth = { 80, 80, 80 };
+		String[] menu = {"Proto", "src port", "dst port"};
+		int[] menuWidth = {80, 80, 80};
 		MouseAdapter tableAction = new MouseAdapter() {
+
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
+
 					int columnIndex = table.columnAtPoint(e.getPoint());
 					int rowIndex = table.rowAtPoint(e.getPoint());
 					table.setRowSelectionInterval(rowIndex, columnIndex);
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
 		};
 		ActionListener addAction = new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					dig = new GUIOptionOpenVPNDialog(owner);
 					OpenVPNForwardPort forwardPort = dig.showDialog();
 					if (forwardPort != null) {
+
 						OpenVPNForwardPorts.getInstance().create(forwardPort);
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
 		};
 		ActionListener editAction = new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					OpenVPNForwardPort forwardPort = getSelectedTableContent();
 					dig = new GUIOptionOpenVPNDialog(owner);
 					OpenVPNForwardPort newPort = dig.showDialog(forwardPort);
 					if (newPort != null) {
+
 						OpenVPNForwardPorts.getInstance().delete(forwardPort);
 						OpenVPNForwardPorts.getInstance().create(newPort);
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
 		};
 		ActionListener removeAction = new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					OpenVPNForwardPorts.getInstance().delete(getSelectedTableContent());
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -139,12 +148,11 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 	protected void addTableContent(OpenVPNForwardPort forwardPort) {
 		table_ext_list.add(forwardPort);
 		try {
-			option_model.addRow(new Object[] {
-					forwardPort.getType().toString(),
-					forwardPort.getFromPort(),
-					forwardPort.getToPort(),
-			});
+
+			option_model.addRow(new Object[]{forwardPort.getType().toString(), forwardPort.getFromPort(),
+					forwardPort.getToPort(),});
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}
@@ -153,6 +161,7 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 	protected void updateTable(List<OpenVPNForwardPort> forwardPorts) {
 		clearTableContents();
 		for (OpenVPNForwardPort forwardPort : forwardPorts) {
+
 			addTableContent(forwardPort);
 		}
 	}
@@ -160,8 +169,10 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 	@Override
 	protected void updateImpl() {
 		try {
+
 			updateTable(openVPNForwardPorts.queryAll());
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}
@@ -241,12 +252,16 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 
 	public String getSpoofingIP() {
 		if (auto.isSelected()) {
+
 			try {
+
 				return getLocalIP();
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		} else {
+
 			return textField.getText();
 		}
 		return "";
@@ -255,7 +270,9 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 	private JCheckBox createCheckBox() {
 		checkBox = new JCheckBox(I18nString.get("Use OpenVPN"));
 		checkBox.addActionListener(e -> {
+
 			if (checkBox.isSelected()) {
+
 				String proto = vpnProtocol.getSelectedItem().toString();
 				openVPN.startServer(this.getSpoofingIP(), proto);
 			} else
@@ -287,8 +304,10 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 	private JTextField createAddressField() {
 		JTextField text = new JTextField("");
 		try {
+
 			text.setText(getLocalIP());
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 		text.setMaximumSize(new Dimension(300, 30));
@@ -298,12 +317,15 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 
 	public void updateState() {
 		try {
+
 			checkBox.setSelected(new ConfigBoolean("OpenVPN").getState());
 			if (checkBox.isSelected()) {
+
 				String proto = this.vpnProtocol.getSelectedItem().toString();
 				openVPN.startServer(this.getSpoofingIP(), proto);
 			}
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}
@@ -314,9 +336,11 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 		String pubIp = null, corpIp = null;
 
 		while (enuIfs.hasMoreElements()) {
+
 			NetworkInterface ni = (NetworkInterface) enuIfs.nextElement();
 			Enumeration<InetAddress> enuAddrs = ni.getInetAddresses();
 			while (enuAddrs.hasMoreElements()) {
+
 				InetAddress in4 = (InetAddress) enuAddrs.nextElement();
 				String ip = in4.getHostAddress();
 				if (ip.contains(":"))
@@ -326,6 +350,7 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 		}
 
 		for (String ip : ips) {
+
 			if (ip.startsWith("172.23"))
 				corpIp = ip;
 			if (ip.startsWith("172.25"))
@@ -336,8 +361,11 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 		if (corpIp != null)
 			return corpIp;
 		if (!ips.isEmpty()) {
+
 			for (String ip : ips) {
+
 				if (!ip.equals("127.0.0.1")) {
+
 					return ip;
 				}
 			}

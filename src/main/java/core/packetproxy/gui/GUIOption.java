@@ -18,10 +18,6 @@ package packetproxy.gui;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.net.URI;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -33,16 +29,16 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
 import packetproxy.model.CAFactory;
-import packetproxy.model.InterceptOptions;
 import packetproxy.model.CAs.CA;
 import packetproxy.model.CAs.PacketProxyCAPerUser;
+import packetproxy.model.InterceptOptions;
 import packetproxy.util.PacketProxyUtility;
 
 public class GUIOption {
+
 	private JFrame owner;
 
 	public GUIOption(JFrame owner) {
@@ -125,15 +121,20 @@ public class GUIOption {
 		JCheckBox interceptRule = new JCheckBox(I18nString.get("Use these intercept rules"));
 		interceptRule.setSelected(InterceptOptions.getInstance().isEnabled());
 		interceptRule.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent ae) {
 				try {
+
 					if (interceptRule.isSelected()) {
+
 						InterceptOptions.getInstance().setEnabled(true);
 					} else {
+
 						InterceptOptions.getInstance().setEnabled(false);
 					}
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
@@ -187,6 +188,7 @@ public class GUIOption {
 
 		JComboBox<String> ca_combo = new JComboBox<String>();
 		CAFactory.queryExportable().forEach(ca -> {
+
 			ca_combo.addItem(ca.getUTF8Name());
 			ca_combo.setEnabled(true);
 		});
@@ -195,6 +197,7 @@ public class GUIOption {
 
 		JButton exportCertButton = new JButton(I18nString.get("Export"));
 		exportCertButton.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				CA ca = CAFactory.findByUTF8Name((String) ca_combo.getSelectedItem()).get();
@@ -206,21 +209,25 @@ public class GUIOption {
 
 		JButton regenerateCertButton = new JButton(I18nString.get("Regenerate"));
 		regenerateCertButton.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				PacketProxyUtility util = PacketProxyUtility.getInstance();
 				try {
+
 					String name = ca_combo.getSelectedItem().toString();
 					CA ca = CAFactory.find(name).orElseThrow();
 					int option = JOptionPane.showConfirmDialog(owner,
 							String.format(I18nString.get("Regenerate %s?"), name),
-							String.format(I18nString.get("Regenerate CA certificate"), name),
-							JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+							String.format(I18nString.get("Regenerate CA certificate"), name), JOptionPane.YES_NO_OPTION,
+							JOptionPane.WARNING_MESSAGE);
 					if (option == JOptionPane.YES_OPTION) {
+
 						util.packetProxyLog("regenerate " + name);
 						ca.regenerateCA();
 					}
 				} catch (Exception exp) {
+
 					util.packetProxyLogErr("RegenerateCertButton Action Error: " + exp.getMessage());
 				}
 			}
@@ -228,6 +235,7 @@ public class GUIOption {
 
 		JButton importCertButton = new JButton(I18nString.get("Import another certificate and private key"));
 		importCertButton.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				PacketProxyCAPerUser ca = (PacketProxyCAPerUser) CAFactory.findByUTF8Name("PacketProxy per-user CA")

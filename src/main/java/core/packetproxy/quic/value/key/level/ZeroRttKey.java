@@ -24,13 +24,13 @@ import packetproxy.quic.value.key.Key;
 @Value
 public class ZeroRttKey extends Key {
 
-    static public ZeroRttKey of(byte[] secret) {
-        Key key = Key.of(secret);
-        return new ZeroRttKey(key.getSecret(), key.getKey(), key.getIv(), key.getHp());
-    }
+	public static ZeroRttKey of(byte[] secret) {
+		Key key = Key.of(secret);
+		return new ZeroRttKey(key.getSecret(), key.getKey(), key.getIv(), key.getHp());
+	}
 
-    public ZeroRttKey(byte[] secret, byte[] key, byte[] iv, byte[] hp) {
-        super(secret, key, iv, hp);
-    }
+	public ZeroRttKey(byte[] secret, byte[] key, byte[] iv, byte[] hp) {
+		super(secret, key, iv, hp);
+	}
 
 }

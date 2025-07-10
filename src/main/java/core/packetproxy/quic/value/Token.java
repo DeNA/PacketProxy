@@ -16,32 +16,31 @@
 
 package packetproxy.quic.value;
 
+import java.security.SecureRandom;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Value;
 import org.apache.commons.codec.binary.Hex;
 
-import java.security.SecureRandom;
-
 @Value(staticConstructor = "of")
 public class Token {
 
-    static public Token generateRandom(int size) {
-        byte[] token = new byte[size];
-        new SecureRandom().nextBytes(token);
-        return new Token(token);
-    }
+	public static Token generateRandom(int size) {
+		byte[] token = new byte[size];
+		new SecureRandom().nextBytes(token);
+		return new Token(token);
+	}
 
-    @Getter(AccessLevel.NONE)
-    byte[] token;
+	@Getter(AccessLevel.NONE)
+	byte[] token;
 
-    public byte[] getBytes() {
-        return token;
-    }
+	public byte[] getBytes() {
+		return token;
+	}
 
-    @Override
-    public String toString() {
-        return String.format("Token([%s])", Hex.encodeHexString(this.token));
-    }
+	@Override
+	public String toString() {
+		return String.format("Token([%s])", Hex.encodeHexString(this.token));
+	}
 
 }

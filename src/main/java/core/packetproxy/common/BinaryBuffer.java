@@ -52,12 +52,14 @@ public class BinaryBuffer {
 	@Override
 	public String toString() {
 		try {
+
 			String msg = String.format("capacity: %d, data: %d, data_utf8: %d\n", buffer_capacity, data_size,
 					data_size_in_utf8);
 			// Binary b = new Binary(ArrayUtils.subarray(buffer, 0, data_size));
 			// return msg + b.toHexString(32).toString();
 			return msg;
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 		return "";
@@ -106,6 +108,7 @@ public class BinaryBuffer {
 		// length = 6;
 		// }
 		if (data_size < index + length) {
+
 			PacketProxyUtility.getInstance().packetProxyLog("[Error] Something wrong (%d < %d + %d)", data_size, index,
 					length);
 			return;
@@ -121,6 +124,7 @@ public class BinaryBuffer {
 		if (in == null)
 			return;
 		if (data_size + in.length > buffer_capacity) {
+
 			expandBuffer(data_size + in.length);
 		}
 		System.arraycopy(buffer, index, buffer, index + in.length, data_size - index);
@@ -135,7 +139,8 @@ public class BinaryBuffer {
 
 		int new_buffer_capacity = buffer_capacity;
 		while (new_buffer_capacity < n) {
-			new_buffer_capacity = new_buffer_capacity * 2;
+
+			new_buffer_capacity *= 2;
 		}
 
 		byte[] new_buffer = new byte[new_buffer_capacity];

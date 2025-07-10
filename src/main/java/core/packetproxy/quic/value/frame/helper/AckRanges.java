@@ -16,75 +16,79 @@
 
 package packetproxy.quic.value.frame.helper;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import packetproxy.quic.utils.PacketNumbers;
-import packetproxy.quic.value.SimpleBytes;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import packetproxy.quic.utils.PacketNumbers;
+import packetproxy.quic.value.SimpleBytes;
 
 @Getter
 @EqualsAndHashCode
 public class AckRanges implements Iterable<AckRange> {
-    static public final AckRanges emptyAckRanges = new AckRanges();
 
-    private List<AckRange> ackRanges;
+	public static final AckRanges emptyAckRanges = new AckRanges();
 
-    public AckRanges(ByteBuffer buffer, long rangeCount) {
-        this.ackRanges = new ArrayList<>();
-        for (long i = 0; i < rangeCount; i++) {
-            this.ackRanges.add(new AckRange(buffer));
-        }
-    }
+	private List<AckRange> ackRanges;
 
-    public AckRanges(List<AckRange> ackRanges) {
-        this.ackRanges = ackRanges;
-    }
+	public AckRanges(ByteBuffer buffer, long rangeCount) {
+		this.ackRanges = new ArrayList<>();
+		for (long i = 0; i < rangeCount; i++) {
 
-    private AckRanges() {
-        this.ackRanges = Collections.emptyList();
-    }
+			this.ackRanges.add(new AckRange(buffer));
+		}
+	}
 
-    public PacketNumbers getAckPacketNumbers(long largestGapPn) {
-        PacketNumbers pns = new PacketNumbers();
-        for (AckRange ackRange : ackRanges) {
-            pns.addAll(ackRange.getAckPacketNumbers(largestGapPn));
-            largestGapPn -= ackRange.size();
-        }
-        return pns;
-    }
+	public AckRanges(List<AckRange> ackRanges) {
+		this.ackRanges = ackRanges;
+	}
 
-    public byte[] serialize() {
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
-        for (AckRange ackRange: this.ackRanges) {
-            buffer.put(ackRange.serialize());
-        }
-        buffer.flip();
-        return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
-    }
+	private AckRanges() {
+		this.ackRanges = Collections.emptyList();
+	}
 
-    public String toString() {
-        String rangeMsg = "";
-        for (AckRange ackRange: this.ackRanges) {
-            rangeMsg += ackRange + "|";
-        }
-        return "{" + rangeMsg + "}";
-    }
+	public PacketNumbers getAckPacketNumbers(long largestGapPn) {
+		PacketNumbers pns = new PacketNumbers();
+		for (AckRange ackRange : ackRanges) {
 
-    public int size() {
-        return this.ackRanges.size();
-    }
+			pns.addAll(ackRange.getAckPacketNumbers(largestGapPn));
+			largestGapPn -= ackRange.size();
+		}
+		return pns;
+	}
 
-    public AckRange get(int index) {
-        return this.ackRanges.get(0);
-    }
+	public byte[] serialize() {
+		ByteBuffer buffer = ByteBuffer.allocate(1500);
+		for (AckRange ackRange : this.ackRanges) {
 
-    @Override
-    public Iterator<AckRange> iterator() {
-        return this.ackRanges.iterator();
-    }
+			buffer.put(ackRange.serialize());
+		}
+		buffer.flip();
+		return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+	}
+
+	public String toString() {
+		String rangeMsg = "";
+		for (AckRange ackRange : this.ackRanges) {
+
+			rangeMsg += ackRange + "|";
+		}
+		return "{" + rangeMsg + "}";
+	}
+
+	public int size() {
+		return this.ackRanges.size();
+	}
+
+	public AckRange get(int index) {
+		return this.ackRanges.get(0);
+	}
+
+	@Override
+	public Iterator<AckRange> iterator() {
+		return this.ackRanges.iterator();
+	}
 }

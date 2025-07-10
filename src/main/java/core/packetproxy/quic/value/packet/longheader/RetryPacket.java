@@ -16,14 +16,13 @@
 
 package packetproxy.quic.value.packet.longheader;
 
+import java.nio.ByteBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
-import packetproxy.quic.value.SimpleBytes;
 import packetproxy.quic.value.ConnectionIdPair;
+import packetproxy.quic.value.SimpleBytes;
 import packetproxy.quic.value.VariableLengthInteger;
-
-import java.nio.ByteBuffer;
 
 /*
 https://datatracker.ietf.org/doc/html/rfc9000#section-17.2.5
@@ -46,23 +45,23 @@ Retry Packet {
 @Value
 public class RetryPacket extends LongHeaderPacket {
 
-    static public boolean is(byte type) {
-        return (type & 0xf0) == 0xf0;
-    }
+	public static boolean is(byte type) {
+		return (type & 0xf0) == 0xf0;
+	}
 
-    byte[] token;
-    byte[] tag;
+	byte[] token;
+	byte[] tag;
 
-    public RetryPacket(ByteBuffer buffer) {
-        super(buffer);
-        long length = VariableLengthInteger.parse(buffer).getValue();
-        this.token = SimpleBytes.parse(buffer, length).getBytes();
-        this.tag = SimpleBytes.parse(buffer, 16).getBytes();
-    }
+	public RetryPacket(ByteBuffer buffer) {
+		super(buffer);
+		long length = VariableLengthInteger.parse(buffer).getValue();
+		this.token = SimpleBytes.parse(buffer, length).getBytes();
+		this.tag = SimpleBytes.parse(buffer, 16).getBytes();
+	}
 
-    public RetryPacket(byte type, int version, ConnectionIdPair connIdPair, byte[] token, byte[] tag) {
-        super(type, version, connIdPair);
-        this.token = token;
-        this.tag = tag;
-    }
+	public RetryPacket(byte type, int version, ConnectionIdPair connIdPair, byte[] token, byte[] tag) {
+		super(type, version, connIdPair);
+		this.token = token;
+		this.tag = tag;
+	}
 }

@@ -19,10 +19,10 @@ import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
 import net.arnx.jsonic.JSON;
-
 import packetproxy.util.PacketProxyUtility;
 
 public class JWT {
+
 	protected String header;
 	protected String payload;
 
@@ -99,6 +99,7 @@ public class JWT {
 		String[] keys = keystr.split("/");
 		Map<String, Object> cur = new JSON().parse(chunk);
 		for (int i = 0; i < keys.length - 1; i++) {
+
 			if (cur == null)
 				return null;
 			cur = forceCast(cur.get(keys[i]));
@@ -113,7 +114,9 @@ public class JWT {
 		Map<String, Object> cur = new JSON().parse(chunk);
 		Map<String, Object> root = cur;
 		for (int i = 0; i < keys.length - 1; i++) {
+
 			if (!cur.containsKey(keys[i])) {
+
 				cur.put(keys[i], new HashMap<String, Object>());
 			}
 			cur = forceCast(cur.get(keys[i]));

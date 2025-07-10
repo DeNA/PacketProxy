@@ -24,7 +24,8 @@ import javax.swing.ComboBoxEditor;
 import javax.swing.event.EventListenerList;
 
 public class FilterComboBoxEditor implements ComboBoxEditor {
-	final protected HintTextField editor;
+
+	protected final HintTextField editor;
 	int caret;
 
 	protected EventListenerList listenerList = new EventListenerList();
@@ -32,6 +33,7 @@ public class FilterComboBoxEditor implements ComboBoxEditor {
 	public FilterComboBoxEditor() {
 		editor = new HintTextField("フィルタ文字列　(ex: request == example.com && type == image)");
 		editor.addKeyListener(new KeyAdapter() {
+
 			public void keyReleased(KeyEvent e) {
 				caret = editor.getCaretPosition();
 				fireActionEvent(editor.getText());
@@ -61,6 +63,7 @@ public class FilterComboBoxEditor implements ComboBoxEditor {
 	// ドロップダウンリストから選択した時に呼ばれる
 	public void setItem(Object newValue) {
 		if (newValue instanceof String) {
+
 			String str = (String) newValue;
 			editor.setText(str);
 			editor.setCaretPosition(caret);
@@ -71,10 +74,12 @@ public class FilterComboBoxEditor implements ComboBoxEditor {
 	protected void fireActionEvent(String str) {
 		Object listeners[] = listenerList.getListenerList();
 		for (Object obj : listeners) {
+
 			if (obj instanceof ActionListener) {
-				ActionListener l = (ActionListener)obj;
-		        ActionEvent actionEvent = new ActionEvent(editor, ActionEvent.ACTION_PERFORMED, editor.getText());
-	            l.actionPerformed(actionEvent);
+
+				ActionListener l = (ActionListener) obj;
+				ActionEvent actionEvent = new ActionEvent(editor, ActionEvent.ACTION_PERFORMED, editor.getText());
+				l.actionPerformed(actionEvent);
 			}
 		}
 	}

@@ -16,7 +16,16 @@
 package packetproxy.model;
 
 public class DiffEventAdapter implements DiffEventListener {
-	@Override public void foundDelDelta(int pos, int length) throws Exception {}
-	@Override public void foundInsDelta(int pos, int length) throws Exception {}
-	@Override public void foundChgDelta(int pos, int length) throws Exception {}
+
+	@Override
+	public void foundDelDelta(int pos, int length) throws Exception {
+	}
+
+	@Override
+	public void foundInsDelta(int pos, int length) throws Exception {
+	}
+
+	@Override
+	public void foundChgDelta(int pos, int length) throws Exception {
+	}
 }

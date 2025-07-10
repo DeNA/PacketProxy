@@ -15,8 +15,8 @@
  */
 package packetproxy;
 
+public class Proxy extends Thread {
 
-public class Proxy extends Thread
-{
-	public void close() throws Exception{};
+	public void close() throws Exception {
+	};
 }

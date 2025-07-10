@@ -16,26 +16,27 @@
 
 package packetproxy.http3.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Test;
 import packetproxy.quic.value.StreamId;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 class Http3Test {
 
-    @Test
-    void HttpとHttpRawが相互に変換できること() throws Exception {
-        Http3 http3 = new Http3();
+	@Test
+	void HttpとHttpRawが相互に変換できること() throws Exception {
+		Http3 http3 = new Http3();
 
-        HttpRaw testHttpRaw = HttpRaw.of(
-                StreamId.of(0), Hex.decodeHex("0000d1508b9c475cbe474d612af5153fd7518860d5485f2bce9a685f5088c6cfe96c3b015c1f".toCharArray()),
-                new byte[]{});
+		HttpRaw testHttpRaw = HttpRaw.of(StreamId.of(0),
+				Hex.decodeHex(
+						"0000d1508b9c475cbe474d612af5153fd7518860d5485f2bce9a685f5088c6cfe96c3b015c1f".toCharArray()),
+				new byte[]{});
 
-        byte[] http = http3.generateReqHttp(testHttpRaw); // HttpRaw → Http に変換
-        HttpRaw httpRaw = http3.generateHttpRaw(http); // Http → HttpRaw に変換
+		byte[] http = http3.generateReqHttp(testHttpRaw); // HttpRaw → Http に変換
+		HttpRaw httpRaw = http3.generateHttpRaw(http); // Http → HttpRaw に変換
 
-        assertThat(httpRaw.getEncodedHeader()).isEqualTo(testHttpRaw.getEncodedHeader());
-    }
+		assertThat(httpRaw.getEncodedHeader()).isEqualTo(testHttpRaw.getEncodedHeader());
+	}
 
 }

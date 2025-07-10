@@ -16,6 +16,8 @@
 
 package packetproxy.http3.service.stream;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.http3.service.HttpRaw;
 import packetproxy.http3.value.frame.DataFrame;
@@ -23,34 +25,31 @@ import packetproxy.http3.value.frame.HeadersFrame;
 import packetproxy.quic.value.QuicMessage;
 import packetproxy.quic.value.QuicMessages;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class HttpWriteStreams implements WriteStream {
 
-    private final List<HttpRaw> httpRaws = new ArrayList<>();
+	private final List<HttpRaw> httpRaws = new ArrayList<>();
 
-    @Override
-    public synchronized void write(byte[] data) throws Exception {
-        /* not supported */
-    }
+	@Override
+	public synchronized void write(byte[] data) throws Exception {
+		/* not supported */
+	}
 
-    public synchronized void write(HttpRaw httpRaw) throws Exception {
-        this.httpRaws.add(httpRaw);
-    }
+	public synchronized void write(HttpRaw httpRaw) throws Exception {
+		this.httpRaws.add(httpRaw);
+	}
 
-    @Override
-    public synchronized QuicMessages readAllQuicMessages() {
-        QuicMessages msgs = QuicMessages.emptyList();
-        httpRaws.forEach(httpRaw -> {
-            /* Header と Body を一緒にする*/
-            byte[] headerBody = ArrayUtils.addAll(
-                    HeadersFrame.of(httpRaw.getEncodedHeader()).getBytes(),
-                    DataFrame.of(httpRaw.getBody()).getBytes());
-            msgs.add(QuicMessage.of(httpRaw.getStreamId(), headerBody));
-        });
-        httpRaws.clear();
-        return msgs;
-    }
+	@Override
+	public synchronized QuicMessages readAllQuicMessages() {
+		QuicMessages msgs = QuicMessages.emptyList();
+		httpRaws.forEach(httpRaw -> {
+
+			/* Header と Body を一緒にする*/
+			byte[] headerBody = ArrayUtils.addAll(HeadersFrame.of(httpRaw.getEncodedHeader()).getBytes(),
+					DataFrame.of(httpRaw.getBody()).getBytes());
+			msgs.add(QuicMessage.of(httpRaw.getStreamId(), headerBody));
+		});
+		httpRaws.clear();
+		return msgs;
+	}
 
 }

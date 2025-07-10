@@ -26,15 +26,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import javax.net.ssl.SSLException;
 import javax.swing.event.EventListenerList;
-
 import org.apache.commons.lang3.ArrayUtils;
-
 import packetproxy.util.PacketProxyUtility;
 
 class Simplex extends Thread {
+
 	private final int TIMEOUT = 30 * 1000;
 	private InputStream in;
 	private OutputStream out;
@@ -46,20 +44,22 @@ class Simplex extends Thread {
 	protected EventListenerList simplexEventListenerList = new EventListenerList();
 
 	public interface SimplexEventListener extends EventListener {
-		public void onChunkArrived(byte[] data) throws Exception;
 
-		public byte[] onChunkPassThrough() throws Exception;
+		void onChunkArrived(byte[] data) throws Exception;
 
-		public byte[] onChunkAvailable() throws Exception;
+		byte[] onChunkPassThrough() throws Exception;
 
-		public int onPacketReceived(byte[] data) throws Exception;
+		byte[] onChunkAvailable() throws Exception;
 
-		public byte[] onChunkReceived(byte[] data) throws Exception;
+		int onPacketReceived(byte[] data) throws Exception;
 
-		public byte[] onChunkSend(byte[] data) throws Exception;
+		byte[] onChunkReceived(byte[] data) throws Exception;
+
+		byte[] onChunkSend(byte[] data) throws Exception;
 	}
 
 	public abstract static class SimplexEventAdapter implements SimplexEventListener {
+
 		ByteArrayOutputStream inputData = new ByteArrayOutputStream();
 
 		@Override
@@ -113,9 +113,11 @@ class Simplex extends Thread {
 
 	public int callOnPacketReceived(byte[] data) throws Exception {
 		if (!isEnabledSimplexEvent()) {
+
 			return data.length;
 		}
 		for (SimplexEventListener listener : simplexEventListenerList.getListeners(SimplexEventListener.class)) {
+
 			return listener.onPacketReceived(data);
 		}
 		return data.length;
@@ -123,18 +125,22 @@ class Simplex extends Thread {
 
 	public void callOnChunkArrived(byte[] data) throws Exception {
 		if (!isEnabledSimplexEvent()) {
+
 			return;
 		}
 		for (SimplexEventListener listener : simplexEventListenerList.getListeners(SimplexEventListener.class)) {
+
 			listener.onChunkArrived(data);
 		}
 	}
 
 	public byte[] callOnChunkPassThrough() throws Exception {
 		if (!isEnabledSimplexEvent()) {
+
 			return null;
 		}
 		for (SimplexEventListener listener : simplexEventListenerList.getListeners(SimplexEventListener.class)) {
+
 			return listener.onChunkPassThrough();
 		}
 		return null;
@@ -142,9 +148,11 @@ class Simplex extends Thread {
 
 	public byte[] callOnChunkAvailable() throws Exception {
 		if (!isEnabledSimplexEvent()) {
+
 			return null;
 		}
 		for (SimplexEventListener listener : simplexEventListenerList.getListeners(SimplexEventListener.class)) {
+
 			return listener.onChunkAvailable();
 		}
 		return null;
@@ -152,9 +160,11 @@ class Simplex extends Thread {
 
 	public byte[] callOnChunkReceived(byte[] data) throws Exception {
 		if (!isEnabledSimplexEvent()) {
+
 			return data;
 		}
 		for (SimplexEventListener listener : simplexEventListenerList.getListeners(SimplexEventListener.class)) {
+
 			return listener.onChunkReceived(data);
 		}
 		return data;
@@ -162,9 +172,11 @@ class Simplex extends Thread {
 
 	public byte[] callOnChunkSend(byte[] data) throws Exception {
 		if (!isEnabledSimplexEvent()) {
+
 			return data;
 		}
 		for (SimplexEventListener listener : simplexEventListenerList.getListeners(SimplexEventListener.class)) {
+
 			return listener.onChunkSend(data);
 		}
 		return data;
@@ -181,19 +193,24 @@ class Simplex extends Thread {
 	public void run() {
 		PacketProxyUtility util = PacketProxyUtility.getInstance();
 		if (in == null) {
+
 			return;
 		}
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		Callable<Integer> readTask = new Callable<Integer>() {
+
 			public Integer call() throws Exception {
 				int ret;
 				try {
+
 					ret = in.read(input_data);
 				} catch (SSLException e) {
+
 					// System.err.println(String.format("SSLException: %s", e.getMessage()));
 					ret = -1; // should be finished
 				} catch (SocketException e) {
+
 					// System.err.println(String.format("SocketException: %s", e.getMessage()));
 					ret = -1; // should be finished
 				}
@@ -202,18 +219,23 @@ class Simplex extends Thread {
 		};
 
 		try {
+
 			while (!flag_break_loop) {
+
 				Future<Integer> future = executor.submit(readTask);
 				int timeout = bout.size() > 0 ? TIMEOUT : 24 * 60 * 60 * 1000;
 				int length = future.get(timeout, TimeUnit.MILLISECONDS);
 				if (length == -1) {
+
 					break;
 				}
 
 				bout.write(input_data, 0, length);
 				while (bout.size() > 0) {
+
 					int accepted_input_size = callOnPacketReceived(bout.toByteArray());
 					if (accepted_input_size < 0 || accepted_input_size > bout.size()) {
+
 						break;
 					}
 					byte[] accepted_array = ArrayUtils.subarray(bout.toByteArray(), 0, accepted_input_size);
@@ -225,54 +247,69 @@ class Simplex extends Thread {
 
 					for (byte[] pass_through_data = callOnChunkPassThrough(); pass_through_data != null
 							&& pass_through_data.length > 0; pass_through_data = callOnChunkPassThrough()) {
+
 						out.write(pass_through_data);
 						out.flush();
 					}
 
 					for (byte[] available_data = callOnChunkAvailable(); available_data != null
 							&& available_data.length > 0; available_data = callOnChunkAvailable()) {
+
 						byte[] send_data = callOnChunkReceived(available_data);
 						if (send_data != null && send_data.length > 0) {
+
 							send(send_data);
 						}
 					}
 				}
 			}
 		} catch (TimeoutException e) {
+
 			e.printStackTrace();
 			util.packetProxyLogErrWithStackTrace(e);
 			util.packetProxyLog("-----");
 			util.packetProxyLog(new String(bout.toByteArray()));
 			util.packetProxyLog("-----");
 			try {
+
 				in.close();
 			} catch (Exception e1) {
+
 				e1.printStackTrace();
 				util.packetProxyLogErrWithStackTrace(e);
 			}
 		} catch (SSLException e) {
+
 			// System.err.println(String.format("SSLException: %s", e.getMessage()));
 		} catch (SocketException e) {
+
 			// System.err.println(String.format("SocketException: %s", e.getMessage()));
 		} catch (Exception e) {
+
 			e.printStackTrace();
 			util.packetProxyLogErrWithStackTrace(e);
 		} finally {
+
 			executor.shutdownNow();
 			if (flag_close) {
+
 				try {
+
 					if (in != null)
 						in.close();
 					if (out != null)
 						out.close();
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 					util.packetProxyLogErrWithStackTrace(e1);
 				}
 				try {
+
 					if (out != null)
 						out.close();
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 					util.packetProxyLogErrWithStackTrace(e1);
 				}
@@ -283,6 +320,7 @@ class Simplex extends Thread {
 	public void send(byte[] input_data) throws Exception {
 		input_data = callOnChunkSend(input_data);
 		if (out != null && input_data != null) {
+
 			out.write(input_data);
 			out.flush();
 		}
@@ -290,6 +328,7 @@ class Simplex extends Thread {
 
 	public void sendWithoutRecording(byte[] input_data) throws Exception {
 		if (out != null) {
+
 			out.write(input_data);
 			out.flush();
 		}

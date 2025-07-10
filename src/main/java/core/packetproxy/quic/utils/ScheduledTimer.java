@@ -16,7 +16,6 @@
 
 package packetproxy.quic.utils;
 
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.Executors;
@@ -26,28 +25,31 @@ import java.util.concurrent.TimeUnit;
 
 public class ScheduledTimer {
 
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    private final Runnable onTimeout;
-    private ScheduledFuture<?> future;
+	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+	private final Runnable onTimeout;
+	private ScheduledFuture<?> future;
 
-    public ScheduledTimer(Runnable onTimeout) {
-        this.onTimeout = onTimeout;
-        this.future = null;
-    }
+	public ScheduledTimer(Runnable onTimeout) {
+		this.onTimeout = onTimeout;
+		this.future = null;
+	}
 
-    public synchronized void update(Instant time) {
-        if (time == Instant.MAX) {
-            this.cancel();
-        } else {
-            long delay = Duration.between(Instant.now(), time).toMillis();
-            this.future = this.scheduler.schedule(this.onTimeout, delay, TimeUnit.MILLISECONDS);
-        }
-    }
+	public synchronized void update(Instant time) {
+		if (time == Instant.MAX) {
 
-    public synchronized void cancel() {
-        if (this.future != null) {
-            this.future.cancel(false);
-        }
-    }
+			this.cancel();
+		} else {
+
+			long delay = Duration.between(Instant.now(), time).toMillis();
+			this.future = this.scheduler.schedule(this.onTimeout, delay, TimeUnit.MILLISECONDS);
+		}
+	}
+
+	public synchronized void cancel() {
+		if (this.future != null) {
+
+			this.future.cancel(false);
+		}
+	}
 
 }

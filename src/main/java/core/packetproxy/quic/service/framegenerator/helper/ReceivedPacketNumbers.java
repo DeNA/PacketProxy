@@ -16,71 +16,77 @@
 
 package packetproxy.quic.service.framegenerator.helper;
 
+import java.util.TreeSet;
 import packetproxy.util.PacketProxyUtility;
 
-import java.util.TreeSet;
-
 public class ReceivedPacketNumbers {
-    private TreeSet<Long> unreceivedPacketNumbers = new TreeSet<>();
 
-    public void unreceived(long packetNumber) {
-        unreceivedPacketNumbers.add(packetNumber);
-    }
+	private TreeSet<Long> unreceivedPacketNumbers = new TreeSet<>();
 
-    public void received(long packetNumber) {
-        unreceivedPacketNumbers.remove(packetNumber);
-    }
+	public void unreceived(long packetNumber) {
+		unreceivedPacketNumbers.add(packetNumber);
+	}
 
-    public boolean isReceived(long packetNumber) {
-        return !unreceivedPacketNumbers.contains(packetNumber);
-    }
+	public void received(long packetNumber) {
+		unreceivedPacketNumbers.remove(packetNumber);
+	}
 
-    public boolean isUnreceived(long packetNumber) {
-        return unreceivedPacketNumbers.contains(packetNumber);
-    }
+	public boolean isReceived(long packetNumber) {
+		return !unreceivedPacketNumbers.contains(packetNumber);
+	}
 
-    public long getSmallestOfRange(long largestOfRange, long smallestValid) {
-        assert (smallestValid <= largestOfRange);
-        if (unreceivedPacketNumbers.contains(largestOfRange)) {
-            PacketProxyUtility.getInstance().packetProxyLogErr("[QUIC] Error: AckRange: %d isn't in ack_range",
-                    largestOfRange);
-            return 0;
-        }
-        return getSmallestReceived(largestOfRange, smallestValid);
-    }
+	public boolean isUnreceived(long packetNumber) {
+		return unreceivedPacketNumbers.contains(packetNumber);
+	}
 
-    public long getSmallestOfGap(long largestOfGap, long smallestValid) {
-        assert (smallestValid <= largestOfGap);
-        if (!unreceivedPacketNumbers.contains(largestOfGap)) {
-            PacketProxyUtility.getInstance().packetProxyLogErr("[QUIC] Error: AckRange: %d isn't in gap", largestOfGap);
-            return 0;
-        }
-        return getSmallestUnreceived(largestOfGap, smallestValid);
-    }
+	public long getSmallestOfRange(long largestOfRange, long smallestValid) {
+		assert (smallestValid <= largestOfRange);
+		if (unreceivedPacketNumbers.contains(largestOfRange)) {
 
-    public void clearLessThan(long packetNumber) {
-        unreceivedPacketNumbers.removeIf(pn -> pn < packetNumber);
-    }
+			PacketProxyUtility.getInstance().packetProxyLogErr("[QUIC] Error: AckRange: %d isn't in ack_range",
+					largestOfRange);
+			return 0;
+		}
+		return getSmallestReceived(largestOfRange, smallestValid);
+	}
 
-    private long getSmallestUnreceived(long largestOfGap, long smallestValid) {
-        assert (smallestValid <= largestOfGap);
-        for (long i = largestOfGap; i >= smallestValid; i--) {
-            if (!unreceivedPacketNumbers.contains(i)) {
-                return i + 1;
-            }
-        }
-        return smallestValid;
-    }
+	public long getSmallestOfGap(long largestOfGap, long smallestValid) {
+		assert (smallestValid <= largestOfGap);
+		if (!unreceivedPacketNumbers.contains(largestOfGap)) {
 
-    private long getSmallestReceived(long largestOfRange, long smallestValid) {
-        assert (smallestValid <= largestOfRange);
-        if (unreceivedPacketNumbers.isEmpty()) { // 全部受信済み
-            return smallestValid;
-        }
-        if (largestOfRange < unreceivedPacketNumbers.first()) { // 全部受信済み
-            return smallestValid;
-        }
-        return Math.max(smallestValid, unreceivedPacketNumbers.floor(largestOfRange) + 1);
-    }
+			PacketProxyUtility.getInstance().packetProxyLogErr("[QUIC] Error: AckRange: %d isn't in gap", largestOfGap);
+			return 0;
+		}
+		return getSmallestUnreceived(largestOfGap, smallestValid);
+	}
+
+	public void clearLessThan(long packetNumber) {
+		unreceivedPacketNumbers.removeIf(pn -> pn < packetNumber);
+	}
+
+	private long getSmallestUnreceived(long largestOfGap, long smallestValid) {
+		assert (smallestValid <= largestOfGap);
+		for (long i = largestOfGap; i >= smallestValid; i--) {
+
+			if (!unreceivedPacketNumbers.contains(i)) {
+
+				return i + 1;
+			}
+		}
+		return smallestValid;
+	}
+
+	private long getSmallestReceived(long largestOfRange, long smallestValid) {
+		assert (smallestValid <= largestOfRange);
+		if (unreceivedPacketNumbers.isEmpty()) { // 全部受信済み
+
+			return smallestValid;
+		}
+		if (largestOfRange < unreceivedPacketNumbers.first()) { // 全部受信済み
+
+			return smallestValid;
+		}
+		return Math.max(smallestValid, unreceivedPacketNumbers.floor(largestOfRange) + 1);
+	}
 
 }

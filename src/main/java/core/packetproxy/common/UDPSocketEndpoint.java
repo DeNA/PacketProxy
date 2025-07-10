@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class UDPSocketEndpoint implements Endpoint {
+
 	private DatagramSocket socket;
 	private InetSocketAddress serverAddr;
 	private PipeEndpoint pipe;
@@ -34,7 +35,7 @@ public class UDPSocketEndpoint implements Endpoint {
 		socket = new DatagramSocket();
 		serverAddr = addr;
 		pipe = new PipeEndpoint(addr);
-        loop();
+		loop();
 	}
 
 	@Override
@@ -55,19 +56,23 @@ public class UDPSocketEndpoint implements Endpoint {
 	private void loop() {
 		ExecutorService executor = Executors.newFixedThreadPool(2);
 		Callable<Void> sendTask = new Callable<Void>() {
+
 			public Void call() throws Exception {
 				while (true) {
+
 					InputStream is = pipe.getRawEndpoint().getInputStream();
 					byte[] input_data = new byte[BUFSIZE];
 					int len = is.read(input_data);
 					DatagramPacket sendPacket = new DatagramPacket(input_data, 0, len, serverAddr);
-					socket.send(sendPacket);                  
+					socket.send(sendPacket);
 				}
 			}
 		};
 		Callable<Void> recvTask = new Callable<Void>() {
+
 			public Void call() throws Exception {
 				while (true) {
+
 					byte[] buf = new byte[BUFSIZE];
 					DatagramPacket recvPacket = new DatagramPacket(buf, BUFSIZE);
 					socket.receive(recvPacket);
@@ -85,7 +90,7 @@ public class UDPSocketEndpoint implements Endpoint {
 	public int getLocalPort() {
 		return socket.getLocalPort();
 	}
-	
+
 	@Override
 	public String getName() {
 		return null;

@@ -21,8 +21,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.*;
-
 import lombok.Value;
+import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.common.Endpoint;
 import packetproxy.common.EndpointFactory;
 import packetproxy.common.StringUtils;
@@ -31,9 +31,9 @@ import packetproxy.model.ListenPort;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
 import packetproxy.util.PacketProxyUtility;
-import org.apache.commons.lang3.ArrayUtils;
 
 public class ProxyHttpTransparent extends Proxy {
+
 	private ListenPort listen_info;
 	private ServerSocket listen_socket;
 
@@ -49,11 +49,14 @@ public class ProxyHttpTransparent extends Proxy {
 	@Override
 	public void run() {
 		while (!listen_socket.isClosed()) {
+
 			try {
+
 				Socket client = listen_socket.accept();
 				PacketProxyUtility.getInstance().packetProxyLog("[ProxyHttpTransparent]: accept");
 				createHttpTransparentProxy(client);
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		}
@@ -61,6 +64,7 @@ public class ProxyHttpTransparent extends Proxy {
 
 	@Value
 	static class HostPort {
+
 		String hostName;
 		int port;
 
@@ -72,10 +76,13 @@ public class ProxyHttpTransparent extends Proxy {
 	private HostPort parseHostName(byte[] buffer) throws Exception {
 		int start = 0;
 		if ((start = StringUtils.binaryFind(buffer, "Host:".getBytes())) > 0) {
+
 			start += 5;
 		} else if ((start = StringUtils.binaryFind(buffer, "host:".getBytes())) > 0) {
+
 			start += 5;
 		} else {
+
 			throw new Exception("Host: header field is not found in beginning of 4096 bytes of packets.");
 		}
 		int end = StringUtils.binaryFind(buffer, "\n".getBytes(), start);
@@ -85,11 +92,13 @@ public class ProxyHttpTransparent extends Proxy {
 		Pattern pattern = Pattern.compile("^ *([^:\n\r]+)(?::([0-9]+))?");
 		Matcher matcher = pattern.matcher(serverCand);
 		if (matcher.find()) {
+
 			if (matcher.group(1) != null)
 				server = matcher.group(1);
 			if (matcher.group(2) != null)
 				port = Integer.parseInt(matcher.group(2));
 		} else {
+
 			throw new Exception("Host: header field format is not recognized.");
 		}
 		return new HostPort(server, port);
@@ -103,17 +112,21 @@ public class ProxyHttpTransparent extends Proxy {
 		byte[] input_data = new byte[4096];
 		int length = 0;
 		while ((length = ins.read(input_data, 0, input_data.length)) != -1) {
+
 			bout.write(input_data, 0, length);
 			int accepted_input_size = 0;
 			if (bout.size() > 0 && (accepted_input_size = Http.parseHttpDelimiter(bout.toByteArray())) > 0) {
+
 				hostPort = parseHostName(ArrayUtils.subarray(bout.toByteArray(), 0, accepted_input_size));
 				break;
 			}
 		}
 		if (hostPort == null) {
+
 			PacketProxyUtility.getInstance().packetProxyLogErr(new String(input_data));
 			PacketProxyUtility.getInstance().packetProxyLogErr("bout length == " + bout.size());
 			if (bout.size() == 0) {
+
 				PacketProxyUtility.getInstance().packetProxyLogErr("empty request!!");
 				return;
 			}
@@ -124,18 +137,22 @@ public class ProxyHttpTransparent extends Proxy {
 		ByteArrayInputStream lookaheadBuffer = new ByteArrayInputStream(bout.toByteArray());
 
 		try {
+
 			Endpoint client_e = EndpointFactory.createClientEndpoint(client, lookaheadBuffer);
 
 			Endpoint server_e = null;
 			if (listen_info.getServer() != null) { // upstream proxy
+
 				server_e = EndpointFactory.createServerEndpoint(listen_info.getServer().getAddress());
 			} else {
+
 				server_e = EndpointFactory.createServerEndpoint(hostPort.getInetSocketAddress());
 			}
 
 			Server server = Servers.getInstance().queryByHostNameAndPort(hostPort.getHostName(), listen_info.getPort());
 			createConnection(client_e, server_e, server);
 		} catch (ConnectException e) {
+
 			InetSocketAddress addr = hostPort.getInetSocketAddress();
 			PacketProxyUtility.getInstance()
 					.packetProxyLog("Connection Refused: " + addr.getHostName() + ":" + addr.getPort());

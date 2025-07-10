@@ -16,88 +16,88 @@
 
 package packetproxy.quic.service.pnspace.helper;
 
+import java.util.*;
 import lombok.NoArgsConstructor;
+import packetproxy.quic.utils.PacketNumbers;
+import packetproxy.quic.value.PacketNumber;
 import packetproxy.quic.value.SentPacket;
 import packetproxy.quic.value.frame.AckFrame;
 import packetproxy.quic.value.packet.PnSpacePacket;
-import packetproxy.quic.value.PacketNumber;
-import packetproxy.quic.utils.PacketNumbers;
-
-import java.util.*;
 
 @NoArgsConstructor
 public class SentPackets implements Iterable<SentPacket> {
-    private Map<PacketNumber, SentPacket> sentPacketMap = new HashMap<>();
 
-    public SentPackets(Collection<SentPacket> sentPacketList) {
-        sentPacketList.stream().forEach(spkt -> this.sentPacketMap.put(spkt.getPacketNumber(), spkt));
-    }
+	private Map<PacketNumber, SentPacket> sentPacketMap = new HashMap<>();
 
-    public synchronized void add(SentPacket sentPacket) {
-        this.sentPacketMap.put(sentPacket.getPacketNumber(), sentPacket);
-    }
+	public SentPackets(Collection<SentPacket> sentPacketList) {
+		sentPacketList.stream().forEach(spkt -> this.sentPacketMap.put(spkt.getPacketNumber(), spkt));
+	}
 
-    public synchronized void sent(PnSpacePacket packet) {
-        this.sentPacketMap.put(packet.getPacketNumber(), new SentPacket(packet));
-    }
+	public synchronized void add(SentPacket sentPacket) {
+		this.sentPacketMap.put(sentPacket.getPacketNumber(), sentPacket);
+	}
 
-    public synchronized SentPacket get(PacketNumber pn) {
-        return this.sentPacketMap.get(pn);
-    }
+	public synchronized void sent(PnSpacePacket packet) {
+		this.sentPacketMap.put(packet.getPacketNumber(), new SentPacket(packet));
+	}
 
-    public synchronized boolean isEmpty() {
-        return this.sentPacketMap.isEmpty();
-    }
+	public synchronized SentPacket get(PacketNumber pn) {
+		return this.sentPacketMap.get(pn);
+	}
 
-    public synchronized boolean hasAnyAckElicitingPacket() {
-        return this.sentPacketMap.values().stream().anyMatch(SentPacket::isAckEliciting);
-    }
+	public synchronized boolean isEmpty() {
+		return this.sentPacketMap.isEmpty();
+	}
 
-    public synchronized Optional<SentPacket> getLargest() {
-        return this.sentPacketMap.values().stream().max(Comparator.comparingLong(spkt -> spkt.getPacketNumber().getNumber()));
-    }
+	public synchronized boolean hasAnyAckElicitingPacket() {
+		return this.sentPacketMap.values().stream().anyMatch(SentPacket::isAckEliciting);
+	}
 
-    public synchronized Optional<AckFrame> getLargestAckFrame() {
-        return this.sentPacketMap.values().stream()
-                .filter(SentPacket::hasAckFrame)
-                .map(spkt -> spkt.getAckFrame())
-                .max(Comparator.comparingLong(ackFrame -> ackFrame.get().getLargestAcknowledged()))
-                .flatMap(a -> a);
-    }
+	public synchronized Optional<SentPacket> getLargest() {
+		return this.sentPacketMap.values().stream()
+				.max(Comparator.comparingLong(spkt -> spkt.getPacketNumber().getNumber()));
+	}
 
-    /**
-     * @return newly acked PacketNumbers
-     */
-    public synchronized SentPackets detectAndRemoveAckedPackets(AckFrame ackFrame) {
-        PacketNumbers ackPns = ackFrame.getAckedPacketNumbers();
-        SentPackets newlyAckedPns = new SentPackets();
-        ackPns.stream().forEach(pn -> {
-            if (sentPacketMap.containsKey(pn)) {
-                SentPacket sentPacket = sentPacketMap.remove(pn);
-                newlyAckedPns.add(sentPacket);
-            }
-        });
-        return newlyAckedPns;
-    }
+	public synchronized Optional<AckFrame> getLargestAckFrame() {
+		return this.sentPacketMap.values().stream().filter(SentPacket::hasAckFrame).map(spkt -> spkt.getAckFrame())
+				.max(Comparator.comparingLong(ackFrame -> ackFrame.get().getLargestAcknowledged())).flatMap(a -> a);
+	}
 
-    public void removePacket(SentPacket sentPacket) {
-        this.removePacket(sentPacket.getPacketNumber());
-    }
+	/**
+	 * @return newly acked PacketNumbers
+	 */
+	public synchronized SentPackets detectAndRemoveAckedPackets(AckFrame ackFrame) {
+		PacketNumbers ackPns = ackFrame.getAckedPacketNumbers();
+		SentPackets newlyAckedPns = new SentPackets();
+		ackPns.stream().forEach(pn -> {
 
-    public synchronized void removePacket(PacketNumber packetNumber) {
-        this.sentPacketMap.remove(packetNumber);
-    }
+			if (sentPacketMap.containsKey(pn)) {
 
-    public synchronized SentPackets getUnAckedPackets() {
-        return new SentPackets(new ArrayList<>(this.sentPacketMap.values()));
-    }
+				SentPacket sentPacket = sentPacketMap.remove(pn);
+				newlyAckedPns.add(sentPacket);
+			}
+		});
+		return newlyAckedPns;
+	}
 
-    public synchronized void clear() {
-        this.sentPacketMap.clear();
-    }
+	public void removePacket(SentPacket sentPacket) {
+		this.removePacket(sentPacket.getPacketNumber());
+	}
 
-    @Override
-    public Iterator<SentPacket> iterator() {
-        return this.sentPacketMap.values().iterator();
-    }
+	public synchronized void removePacket(PacketNumber packetNumber) {
+		this.sentPacketMap.remove(packetNumber);
+	}
+
+	public synchronized SentPackets getUnAckedPackets() {
+		return new SentPackets(new ArrayList<>(this.sentPacketMap.values()));
+	}
+
+	public synchronized void clear() {
+		this.sentPacketMap.clear();
+	}
+
+	@Override
+	public Iterator<SentPacket> iterator() {
+		return this.sentPacketMap.values().iterator();
+	}
 }

@@ -17,9 +17,9 @@ package packetproxy.common;
 
 import lombok.Value;
 
-@Value(staticConstructor="of")
-public class Range
-{
+@Value(staticConstructor = "of")
+public class Range {
+
 	int positionStart;
 	int positionEnd;
 

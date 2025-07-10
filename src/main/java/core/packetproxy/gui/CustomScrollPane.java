@@ -18,58 +18,69 @@ package packetproxy.gui;
 import java.awt.Component;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import javax.swing.JScrollPane;
 import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
 
 public class CustomScrollPane extends JScrollPane {
+
 	public CustomScrollPane() {
 		super();
 		addMouseWheelListener(new CustomMouseWheelListener());
 	}
 	class CustomMouseWheelListener implements MouseWheelListener {
+
 		private JScrollBar bar;
 		private int previousValue = 0;
-		private JScrollPane parentScrollPane; 
+		private JScrollPane parentScrollPane;
 
 		private JScrollPane getParentScrollPane() {
 			if (parentScrollPane == null) {
+
 				Component parent = getParent();
 				while (!(parent instanceof JScrollPane) && parent != null) {
+
 					parent = parent.getParent();
 				}
-				parentScrollPane = (JScrollPane)parent;
+				parentScrollPane = (JScrollPane) parent;
 			}
 			return parentScrollPane;
 		}
+
 		public CustomMouseWheelListener() {
 			bar = CustomScrollPane.this.getVerticalScrollBar();
 		}
+
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			JScrollPane parent = getParentScrollPane();
 			if (parent != null) {
+
 				if (e.getWheelRotation() < 0) {
+
 					if (bar.getValue() == 0 && previousValue == 0) {
+
 						parent.dispatchEvent(cloneEvent(e));
 					}
 				} else {
+
 					if (bar.getValue() == getMax() && previousValue == getMax()) {
+
 						parent.dispatchEvent(cloneEvent(e));
 					}
 				}
 				previousValue = bar.getValue();
-			}
-			else {
+			} else {
+
 				CustomScrollPane.this.removeMouseWheelListener(this);
 			}
 		}
+
 		private int getMax() {
 			return bar.getMaximum() - bar.getVisibleAmount();
 		}
+
 		private MouseWheelEvent cloneEvent(MouseWheelEvent e) {
-			return new MouseWheelEvent(getParentScrollPane(), e.getID(), e
-					.getWhen(), e.getModifiers(), 1, 1, e
-					.getClickCount(), false, e.getScrollType(), e
-					.getScrollAmount(), e.getWheelRotation());
+			return new MouseWheelEvent(getParentScrollPane(), e.getID(), e.getWhen(), e.getModifiers(), 1, 1,
+					e.getClickCount(), false, e.getScrollType(), e.getScrollAmount(), e.getWheelRotation());
 		}
 	}
 }

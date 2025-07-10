@@ -15,18 +15,18 @@
  */
 package packetproxy.gui;
 
-import packetproxy.model.CharSet;
-import packetproxy.model.CharSets;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
+import packetproxy.model.CharSet;
+import packetproxy.model.CharSets;
 
 public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet> {
+
 	private GUIOptionCharSetDialog dlg;
 	private CharSets charsets;
 	private List<CharSet> charsets_list;
@@ -36,46 +36,57 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet> {
 		charsets = CharSets.getInstance();
 		charsets.addPropertyChangeListener(this);
 		charsets_list = new ArrayList<CharSet>();
-		String[] menu = { "CharSetName" };
-		int[] menuWidth = { 200, 80, 50, 160, 60, 60, 100 };
+		String[] menu = {"CharSetName"};
+		int[] menuWidth = {200, 80, 50, 160, 60, 60, 100};
 		MouseAdapter tableAction = new MouseAdapter() {
+
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
+
 					int columnIndex = table.columnAtPoint(e.getPoint());
 					int rowIndex = table.rowAtPoint(e.getPoint());
 					if (columnIndex == 4) { /* Spoof DNS area */
+
 						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 4);
 						CharSet charset = getSelectedTableContent();
 						charsets.update(charset);
 					}
 					table.setRowSelectionInterval(rowIndex, rowIndex);
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
 		};
 		ActionListener addAction = new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					dlg = new GUIOptionCharSetDialog(owner);
 					List<CharSet> charsetList = dlg.showDialog();
 					for (CharSet charset : charsetList) {
+
 						charsets.create(charset);
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
 		};
 		ActionListener removeAction = new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					CharSet charset = getSelectedTableContent();
 					charsets.delete(charset);
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -87,14 +98,14 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet> {
 	@Override
 	protected void addTableContent(CharSet charSet) {
 		charsets_list.add(charSet);
-		option_model.addRow(new Object[] {
-				charSet.getCharSetName() });
+		option_model.addRow(new Object[]{charSet.getCharSetName()});
 	}
 
 	@Override
 	protected void updateTable(List<CharSet> charsetList) {
 		clearTableContents();
 		for (CharSet charset : charsetList) {
+
 			addTableContent(charset);
 		}
 	}
@@ -102,8 +113,10 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet> {
 	@Override
 	protected void updateImpl() {
 		try {
+
 			updateTable(charsets.queryAll());
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}

@@ -17,63 +17,60 @@
 package packetproxy.quic.value.frame;
 
 import com.google.common.collect.ImmutableList;
+import java.nio.ByteBuffer;
+import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.apache.commons.codec.binary.Hex;
 import packetproxy.quic.value.SimpleBytes;
 import packetproxy.quic.value.VariableLengthInteger;
 
-import java.nio.ByteBuffer;
-import java.util.List;
-
 @Value
 @EqualsAndHashCode(callSuper = true)
 public class CryptoFrame extends Frame {
 
-    static public final byte TYPE = 0x06;
+	public static final byte TYPE = 0x06;
 
-    static public List<Byte> supportedTypes() {
-        return ImmutableList.of(TYPE);
-    }
+	public static List<Byte> supportedTypes() {
+		return ImmutableList.of(TYPE);
+	}
 
-    long offset;
+	long offset;
 
-    byte[] data;
+	byte[] data;
 
-    static public CryptoFrame parse(byte[] bytes) {
-        return CryptoFrame.parse(ByteBuffer.wrap(bytes));
-    }
+	public static CryptoFrame parse(byte[] bytes) {
+		return CryptoFrame.parse(ByteBuffer.wrap(bytes));
+	}
 
-    static public CryptoFrame parse(ByteBuffer buffer) {
-        byte type = buffer.get();
-        assert(type == TYPE);
-        long offset = VariableLengthInteger.parse(buffer).getValue();
-        long length = VariableLengthInteger.parse(buffer).getValue();
-        byte[] data = SimpleBytes.parse(buffer, length).getBytes();
-        return new CryptoFrame(offset, data);
-    }
+	public static CryptoFrame parse(ByteBuffer buffer) {
+		byte type = buffer.get();
+		assert (type == TYPE);
+		long offset = VariableLengthInteger.parse(buffer).getValue();
+		long length = VariableLengthInteger.parse(buffer).getValue();
+		byte[] data = SimpleBytes.parse(buffer, length).getBytes();
+		return new CryptoFrame(offset, data);
+	}
 
-    @Override
-    public byte[] getBytes() {
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
-        buffer.put(TYPE);
-        buffer.put(VariableLengthInteger.of(this.offset).getBytes());
-        buffer.put(VariableLengthInteger.of(this.data.length).getBytes());
-        buffer.put(data);
-        buffer.flip();
-        return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
-    }
+	@Override
+	public byte[] getBytes() {
+		ByteBuffer buffer = ByteBuffer.allocate(1500);
+		buffer.put(TYPE);
+		buffer.put(VariableLengthInteger.of(this.offset).getBytes());
+		buffer.put(VariableLengthInteger.of(this.data.length).getBytes());
+		buffer.put(data);
+		buffer.flip();
+		return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+	}
 
-    @Override
-    public String toString() {
-        return String.format("CryptFrame(offset=%d, length=%d, data=%s)",
-                this.offset,
-                this.data.length,
-                Hex.encodeHexString(this.data));
-    }
+	@Override
+	public String toString() {
+		return String.format("CryptFrame(offset=%d, length=%d, data=%s)", this.offset, this.data.length,
+				Hex.encodeHexString(this.data));
+	}
 
-    @Override
-    public boolean isAckEliciting() {
-        return true;
-    }
+	@Override
+	public boolean isAckEliciting() {
+		return true;
+	}
 }

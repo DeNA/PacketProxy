@@ -16,15 +16,26 @@
 package packetproxy.model;
 
 public interface PacketInfo {
-    public Packet.Direction getDirection();
-    public int getId();
-    public int getListenPort();
-    public String getClientIP();
-    public int getClientPort();
-    public String getServerIP();
-    public int getServerPort();
-    public boolean getUseSSL();
-    public String getEncoder();
-    public String getAlpn();
-    public int getConn();
+
+	Packet.Direction getDirection();
+
+	int getId();
+
+	int getListenPort();
+
+	String getClientIP();
+
+	int getClientPort();
+
+	String getServerIP();
+
+	int getServerPort();
+
+	boolean getUseSSL();
+
+	String getEncoder();
+
+	String getAlpn();
+
+	int getConn();
 }

@@ -22,7 +22,6 @@ import java.awt.event.ItemEvent;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -36,15 +35,14 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
 import packetproxy.common.I18nString;
 import packetproxy.model.ClientCertificate;
 import packetproxy.model.ClientCertificates;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
 
-public class GUIOptionClientCertificateDialog extends JDialog
-{
+public class GUIOptionClientCertificateDialog extends JDialog {
+
 	private static final long serialVersionUID = 1L;
 
 	private JFrame owner;
@@ -54,8 +52,8 @@ public class GUIOptionClientCertificateDialog extends JDialog
 
 	private JComboBox<String> certificateTypeCombo = new JComboBox<String>();
 	private JTextField certificatePathField = new JTextField();
-    private JFileChooser certFilePath = new JFileChooser();
-    private JPasswordField storePasswordField = new JPasswordField();
+	private JFileChooser certFilePath = new JFileChooser();
+	private JPasswordField storePasswordField = new JPasswordField();
 	private JPasswordField keyPasswordField = new JPasswordField();
 	private JComboBox<String> serverCombo = new JComboBox<String>();
 
@@ -71,6 +69,7 @@ public class GUIOptionClientCertificateDialog extends JDialog
 		panel.add(object);
 		return panel;
 	}
+
 	private JComponent buttons() {
 		JPanel panel_button = new JPanel();
 		panel_button.setLayout(new BoxLayout(panel_button, BoxLayout.X_AXIS));
@@ -80,26 +79,27 @@ public class GUIOptionClientCertificateDialog extends JDialog
 		return panel_button;
 	}
 
-    public ClientCertificate showDialog() throws Exception {
+	public ClientCertificate showDialog() throws Exception {
 		if (Servers.getInstance().queryAll().isEmpty()) {
+
 			JOptionPane.showMessageDialog(this.owner,
 					I18nString.get("Set server you wish to connect into 'Servers setting' first."),
-					I18nString.get("Message"),
-					JOptionPane.INFORMATION_MESSAGE);
+					I18nString.get("Message"), JOptionPane.INFORMATION_MESSAGE);
 			certificate = null;
 		} else {
+
 			setModal(true);
-        	setVisible(true);
+			setVisible(true);
 		}
-        return certificate;
-    }
+		return certificate;
+	}
 
 	public ClientCertificate showDialog(ClientCertificate preset) throws Exception {
-	    certificateTypeCombo.setSelectedItem(preset.getType().getText());
-	    certificatePathField.setText(preset.getPath());
-	    storePasswordField.setText(preset.getStorePassword());
-	    keyPasswordField.setText(preset.getKeyPassword());
-	    serverCombo.setSelectedItem(preset.getServerName());
+		certificateTypeCombo.setSelectedItem(preset.getType().getText());
+		certificatePathField.setText(preset.getPath());
+		storePasswordField.setText(preset.getStorePassword());
+		keyPasswordField.setText(preset.getKeyPassword());
+		serverCombo.setSelectedItem(preset.getServerName());
 
 		setModal(true);
 		setVisible(true);
@@ -107,64 +107,80 @@ public class GUIOptionClientCertificateDialog extends JDialog
 	}
 
 	private JComponent createCertificateTypeSetting() {
-	    for (ClientCertificate.Type t: ClientCertificate.Type.values()) {
+		for (ClientCertificate.Type t : ClientCertificate.Type.values()) {
+
 			certificateTypeCombo.addItem(t.getText());
 		}
-        certificateTypeCombo.setSelectedIndex(0); /* default p12 */
+		certificateTypeCombo.setSelectedIndex(0); /* default p12 */
 		certificateTypeCombo.setMaximumRowCount(ClientCertificate.Type.values().length);
-	    certificateTypeCombo.addItemListener(e -> {
+		certificateTypeCombo.addItemListener(e -> {
+
 			if (e.getStateChange() == ItemEvent.SELECTED) {
+
 				String t = (String) e.getItem();
 				certFilePath.resetChoosableFileFilters();
-				switch (ClientCertificate.Type.getTypeFromText(t)){
-					case JKS:
-						certFilePath.addChoosableFileFilter(new FileNameExtensionFilter(I18nString.get("Client Certificate file (*.jks)"), "jks"));
+				switch (ClientCertificate.Type.getTypeFromText(t)) {
+
+					case JKS :
+						certFilePath.addChoosableFileFilter(
+								new FileNameExtensionFilter(I18nString.get("Client Certificate file (*.jks)"), "jks"));
 						break;
-					case P12:
-						certFilePath.addChoosableFileFilter(new FileNameExtensionFilter(I18nString.get("Client Certificate file (*.p12, *.pfx)"), "p12", "pfx"));
+					case P12 :
+						certFilePath.addChoosableFileFilter(new FileNameExtensionFilter(
+								I18nString.get("Client Certificate file (*.p12, *.pfx)"), "p12", "pfx"));
 						break;
-					default:
+					default :
 				}
 			}
 		});
-		certFilePath.addChoosableFileFilter(new FileNameExtensionFilter(I18nString.get("Client Certificate file (*.p12, *.pfx)"), "p12", "pfx"));
+		certFilePath.addChoosableFileFilter(
+				new FileNameExtensionFilter(I18nString.get("Client Certificate file (*.p12, *.pfx)"), "p12", "pfx"));
 
 		return label_and_object(I18nString.get("Type of certificate file:"), certificateTypeCombo);
 	}
+
 	private JComponent createCertificatePathSetting() {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
 		JButton button = new JButton(I18nString.get("choose..."));
 		button.addActionListener(arg0 -> {
+
 			try {
+
 				certFilePath.setAcceptAllFileFilterUsed(false);
 				certFilePath.showOpenDialog(panel);
 				File file = certFilePath.getSelectedFile();
 				if (file != null) {
+
 					certificatePathField.setText(file.getPath());
 				}
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		});
 
-        panel.add(certificatePathField);
-        panel.add(button);
+		panel.add(certificatePathField);
+		panel.add(button);
 
 		return label_and_object(I18nString.get("Certificate file:"), panel);
 	}
+
 	private JComponent createStorePasswordSetting() {
 		return label_and_object(I18nString.get("Password of the certifacate file:"), storePasswordField);
 	}
+
 	private JComponent createKeyPasswordSetting() {
 		keyPasswordField.setEnabled(true);
 		return label_and_object(I18nString.get("Password of the secret key:"), keyPasswordField);
 	}
+
 	private JComponent createAppliedServers() throws Exception {
 		// TODO: 任意のホスト名も選べるようにする
 		List<Server> servers = Servers.getInstance().queryAll();
 		for (Server server : servers) {
+
 			serverCombo.addItem(server.toString());
 		}
 		serverCombo.setEnabled(true);
@@ -179,60 +195,62 @@ public class GUIOptionClientCertificateDialog extends JDialog
 		Rectangle rect = owner.getBounds();
 		int height = 500;
 		int width = 800;
-		setBounds(rect.x + rect.width/2 - width/2, rect.y + rect.height/2 - height/2, width, height); /* ド真ん中 */
+		setBounds(rect.x + rect.width / 2 - width / 2, rect.y + rect.height / 2 - height / 2, width, height); /* ド真ん中 */
 
 		Container c = getContentPane();
 		JPanel panel = new JPanel();
-	    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.add(createCertificateTypeSetting());
 		panel.add(createCertificatePathSetting());
 		panel.add(createStorePasswordSetting());
-        panel.add(createKeyPasswordSetting());
-	    panel.add(createAppliedServers());
-	    panel.add(buttons());
+		panel.add(createKeyPasswordSetting());
+		panel.add(createAppliedServers());
+		panel.add(buttons());
 		c.add(panel);
 
-	    buttonCancel.addActionListener(e -> {
+		buttonCancel.addActionListener(e -> {
+
 			certificate = null;
 			dispose();
 		});
 
 		buttonSet.addActionListener(e -> {
+
 			try {
-				ClientCertificate.Type type =
-						ClientCertificate.Type.getTypeFromText(Objects.requireNonNull(certificateTypeCombo.getSelectedItem()).toString());
+
+				ClientCertificate.Type type = ClientCertificate.Type
+						.getTypeFromText(Objects.requireNonNull(certificateTypeCombo.getSelectedItem()).toString());
 				String serverName = (String) serverCombo.getSelectedItem();
 
-				assert(type != null);
-				assert(serverName != null);
+				assert (type != null);
+				assert (serverName != null);
 
 				try {
-					certificate = ClientCertificate.convert(type,
-						Servers.getInstance().queryByString(serverName),
-						certificatePathField.getText(),
-						storePasswordField.getPassword(),
-						keyPasswordField.getPassword());
+
+					certificate = ClientCertificate.convert(type, Servers.getInstance().queryByString(serverName),
+							certificatePathField.getText(), storePasswordField.getPassword(),
+							keyPasswordField.getPassword());
 				} catch (Exception e2) {
+
 					certificate = null;
 					JOptionPane.showMessageDialog(this.owner,
-							I18nString.get("[Error] incorrect certificate file password."),
-							I18nString.get("Message"),
+							I18nString.get("[Error] incorrect certificate file password."), I18nString.get("Message"),
 							JOptionPane.INFORMATION_MESSAGE);
 					return;
 				}
 
 				if (ClientCertificates.getInstance().hasCorrectSecretKey(certificate) == false) {
+
 					certificate = null;
-					JOptionPane.showMessageDialog(this.owner,
-							I18nString.get("[Error] incorrect secret key password."),
-							I18nString.get("Message"),
-							JOptionPane.INFORMATION_MESSAGE);
+					JOptionPane.showMessageDialog(this.owner, I18nString.get("[Error] incorrect secret key password."),
+							I18nString.get("Message"), JOptionPane.INFORMATION_MESSAGE);
 					return;
 				}
 
 				dispose();
 
 			} catch (Exception e1) {
+
 				e1.printStackTrace();
 			}
 		});

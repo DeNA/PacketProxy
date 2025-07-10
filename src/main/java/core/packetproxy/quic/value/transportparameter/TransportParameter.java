@@ -16,12 +16,11 @@
 
 package packetproxy.quic.value.transportparameter;
 
+import java.nio.ByteBuffer;
 import lombok.*;
 import lombok.experimental.NonFinal;
 import packetproxy.quic.value.SimpleBytes;
 import packetproxy.quic.value.VariableLengthInteger;
-
-import java.nio.ByteBuffer;
 
 /*
 https://www.rfc-editor.org/rfc/rfc9000.html#transport-parameter-encoding
@@ -53,22 +52,23 @@ ID: Description
 @AllArgsConstructor
 @Value
 public abstract class TransportParameter {
-    protected long parameterId;
-    protected long parameterLength;
-    protected byte[] parameterValue;
 
-    public TransportParameter(ByteBuffer buffer) {
-        this.parameterId = VariableLengthInteger.parse(buffer).getValue();
-        this.parameterLength = VariableLengthInteger.parse(buffer).getValue();
-        this.parameterValue = SimpleBytes.parse(buffer, this.parameterLength).getBytes();
-    }
+	protected long parameterId;
+	protected long parameterLength;
+	protected byte[] parameterValue;
 
-    public byte[] getBytes() {
-        ByteBuffer buffer = ByteBuffer.allocate(4096);
-        buffer.put(VariableLengthInteger.of(this.parameterId).getBytes());
-        buffer.put(VariableLengthInteger.of(this.parameterLength).getBytes());
-        buffer.put(this.parameterValue);
-        buffer.flip();
-        return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
-    }
+	public TransportParameter(ByteBuffer buffer) {
+		this.parameterId = VariableLengthInteger.parse(buffer).getValue();
+		this.parameterLength = VariableLengthInteger.parse(buffer).getValue();
+		this.parameterValue = SimpleBytes.parse(buffer, this.parameterLength).getBytes();
+	}
+
+	public byte[] getBytes() {
+		ByteBuffer buffer = ByteBuffer.allocate(4096);
+		buffer.put(VariableLengthInteger.of(this.parameterId).getBytes());
+		buffer.put(VariableLengthInteger.of(this.parameterLength).getBytes());
+		buffer.put(this.parameterValue);
+		buffer.flip();
+		return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+	}
 }

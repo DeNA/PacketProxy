@@ -18,14 +18,17 @@ package packetproxy.http;
 import packetproxy.util.PacketProxyUtility;
 
 public class HeaderField {
+
 	private String name, value;
 
 	public HeaderField(String rawLine) {
 		String[] fields = rawLine.split(":", 2);
 		if (fields.length == 2) {
+
 			name = fields[0].trim();
 			value = fields[1].trim();
 		} else {
+
 			PacketProxyUtility.getInstance().packetProxyLogErr("invalid header field");
 			new Throwable().printStackTrace();
 		}

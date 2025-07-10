@@ -1,13 +1,13 @@
 package packetproxy.model;
 
-import java.net.InetSocketAddress;
-
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import java.net.InetSocketAddress;
 
 @DatabaseTable(tableName = "resender_packets")
 public class ResenderPacket {
+
 	@DatabaseField(generatedId = true)
 	private int id;
 	@DatabaseField(uniqueCombo = true)
@@ -47,7 +47,9 @@ public class ResenderPacket {
 		// ORMLite needs a no-arg constructor
 	}
 
-	public ResenderPacket(int resends_index, int resend_index, Packet.Direction direction, byte[] data, int listen_port, String client_ip, int client_port, String server_ip, int server_port, String server_name, boolean use_ssl, String encoder_name, String alpn, boolean auto_modified, int conn, long group) {
+	public ResenderPacket(int resends_index, int resend_index, Packet.Direction direction, byte[] data, int listen_port,
+			String client_ip, int client_port, String server_ip, int server_port, String server_name, boolean use_ssl,
+			String encoder_name, String alpn, boolean auto_modified, int conn, long group) {
 		this.resends_index = resends_index;
 		this.resend_index = resend_index;
 		this.direction = direction;
@@ -79,7 +81,9 @@ public class ResenderPacket {
 	}
 
 	public OneShotPacket getOneShotPacket() {
-		OneShotPacket oneShotPacket = new OneShotPacket(-1, listen_port, new InetSocketAddress(client_ip, client_port), new InetSocketAddress(server_ip, server_port), server_name, use_ssl, data, encoder_name, alpn, direction, conn, group);
+		OneShotPacket oneShotPacket = new OneShotPacket(-1, listen_port, new InetSocketAddress(client_ip, client_port),
+				new InetSocketAddress(server_ip, server_port), server_name, use_ssl, data, encoder_name, alpn,
+				direction, conn, group);
 		return oneShotPacket;
 	}
 }

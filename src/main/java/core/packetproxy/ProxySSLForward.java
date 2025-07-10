@@ -20,18 +20,18 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-
 import packetproxy.common.EndpointFactory;
 import packetproxy.common.SSLSocketEndpoint;
 import packetproxy.common.SocketEndpoint;
 import packetproxy.encode.EncodeHTTPBase;
 import packetproxy.encode.Encoder;
 import packetproxy.model.ListenPort;
-import packetproxy.model.Server;
 import packetproxy.model.SSLPassThroughs;
+import packetproxy.model.Server;
 import packetproxy.util.PacketProxyUtility;
 
 public class ProxySSLForward extends Proxy {
+
 	private ListenPort listen_info;
 	private ServerSocket listen_socket;
 
@@ -44,19 +44,25 @@ public class ProxySSLForward extends Proxy {
 	public void run() {
 		List<Socket> clients = new ArrayList<Socket>();
 		while (!listen_socket.isClosed()) {
+
 			try {
+
 				Socket client = listen_socket.accept();
 				clients.add(client);
 				PacketProxyUtility.getInstance().packetProxyLog("[SSLForward] accept");
 				checkSSLForward(client);
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		}
 		for (Socket sc : clients) {
+
 			try {
+
 				sc.close();
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		}
@@ -66,11 +72,13 @@ public class ProxySSLForward extends Proxy {
 		Server server = listen_info.getServer();
 		InetSocketAddress serverAddr = server.getAddress();
 		if (SSLPassThroughs.getInstance().includes(server.getIp(), listen_info.getPort())) {
+
 			SocketEndpoint server_e = new SocketEndpoint(serverAddr);
 			SocketEndpoint client_e = new SocketEndpoint(client);
 			DuplexAsync duplex = new DuplexAsync(client_e, server_e);
 			duplex.start();
 		} else {
+
 			SSLSocketEndpoint[] eps = EndpointFactory.createBothSideSSLEndpoints(client, null, serverAddr, null,
 					listen_info.getServer().getIp(), listen_info.getCA().get());
 			createConnection(eps[0], eps[1], listen_info.getServer());
@@ -82,15 +90,21 @@ public class ProxySSLForward extends Proxy {
 		DuplexAsync duplex = null;
 		String alpn = client_e.getApplicationProtocol();
 		if (server == null) {
+
 			if (alpn.equals("h2") || alpn.equals("http/1.1") || alpn.equals("http/1.0")) {
+
 				duplex = DuplexFactory.createDuplexAsync(client_e, server_e, "HTTP", alpn);
 			} else {
+
 				duplex = DuplexFactory.createDuplexAsync(client_e, server_e, "Sample", alpn);
 			}
 		} else {
-			if (alpn == null || alpn.length() == 0) {
+
+			if (alpn == null || alpn.isEmpty()) {
+
 				Encoder encoder = EncoderManager.getInstance().createInstance(server.getEncoder(), "");
 				if (encoder instanceof EncodeHTTPBase) {
+
 					/* The client does not support ALPN. It seems to be an old HTTP client */
 					alpn = "http/1.1";
 				}

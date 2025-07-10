@@ -15,8 +15,8 @@
  */
 package packetproxy.encode;
 
-public class EncodeSample extends Encoder
-{
+public class EncodeSample extends Encoder {
+
 	public EncodeSample(String ALPN) {
 		super(ALPN);
 	}

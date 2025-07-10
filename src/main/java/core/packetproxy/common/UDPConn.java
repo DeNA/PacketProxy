@@ -26,21 +26,22 @@ import java.util.concurrent.Executors;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 
 public class UDPConn {
+
 	private PipeEndpoint pipe;
 	private InetSocketAddress addr;
-	
+
 	public UDPConn(InetSocketAddress addr) throws Exception {
 		this.addr = addr;
 		this.pipe = new PipeEndpoint(addr);
 	}
-	
+
 	public void put(byte[] data, int offset, int length) throws Exception {
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		bout.write(data, offset, length);
 		put(bout.toByteArray());
 		bout.close();
 	}
-	
+
 	public void put(byte[] data) throws Exception {
 		OutputStream os = pipe.getRawEndpoint().getOutputStream();
 		os.write(data);
@@ -50,8 +51,10 @@ public class UDPConn {
 	public void getAutomatically(final BlockingQueue<DatagramPacket> queue) throws Exception {
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		Callable<Void> recvTask = new Callable<Void>() {
+
 			public Void call() throws Exception {
 				while (true) {
+
 					InputStream is = pipe.getRawEndpoint().getInputStream();
 					byte[] buf = new byte[4096];
 					int len = is.read(buf);
@@ -62,7 +65,7 @@ public class UDPConn {
 		};
 		executor.submit(recvTask);
 	}
-	
+
 	public Endpoint getEndpoint() throws Exception {
 		return pipe.getProxyRawEndpoint();
 	}

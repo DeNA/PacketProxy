@@ -16,6 +16,8 @@
 
 package packetproxy.quic.service.pnspace.level;
 
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import packetproxy.quic.service.connection.Connection;
 import packetproxy.quic.service.frame.FramesBuilder;
@@ -24,25 +26,22 @@ import packetproxy.quic.service.pnspace.PnSpace;
 import packetproxy.quic.utils.Constants;
 import packetproxy.quic.value.frame.Frame;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Getter
 public class HandshakePnSpace extends PnSpace {
 
-    public HandshakePnSpace(Connection conn) {
-        super(conn, Constants.PnSpaceType.PnSpaceHandshake);
-    }
+	public HandshakePnSpace(Connection conn) {
+		super(conn, Constants.PnSpaceType.PnSpaceHandshake);
+	}
 
-    @Override
-    public List<QuicPacketBuilder> getAndRemoveSendFramesAndConvertPacketBuilders() {
-        List<QuicPacketBuilder> builders = new ArrayList<>();
-        for (Frame frame: sendFrameQueue.pollAll()) {
-            builders.add(QuicPacketBuilder.getBuilder()
-                    .setPnSpaceType(Constants.PnSpaceType.PnSpaceHandshake)
-                    .setFramesBuilder(new FramesBuilder().add(frame)));
-        }
-        return builders;
-    }
+	@Override
+	public List<QuicPacketBuilder> getAndRemoveSendFramesAndConvertPacketBuilders() {
+		List<QuicPacketBuilder> builders = new ArrayList<>();
+		for (Frame frame : sendFrameQueue.pollAll()) {
+
+			builders.add(QuicPacketBuilder.getBuilder().setPnSpaceType(Constants.PnSpaceType.PnSpaceHandshake)
+					.setFramesBuilder(new FramesBuilder().add(frame)));
+		}
+		return builders;
+	}
 
 }

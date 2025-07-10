@@ -15,27 +15,27 @@
  */
 package packetproxy.model;
 
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+import static packetproxy.model.PropertyChangeEventType.INTERCEPT_OPTIONS;
+
+import com.j256.ormlite.dao.Dao;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
-
-import com.j256.ormlite.dao.Dao;
-import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
-import static packetproxy.model.PropertyChangeEventType.INTERCEPT_OPTIONS;
-
-import packetproxy.model.ConfigBoolean;
 import packetproxy.model.Database.DatabaseMessage;
 import packetproxy.model.InterceptOption.Direction;
 
 public class InterceptOptions implements PropertyChangeListener {
+
 	private static InterceptOptions instance;
 	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 	public static InterceptOptions getInstance() throws Exception {
 		if (instance == null) {
+
 			instance = new InterceptOptions();
 		}
 		return instance;
@@ -51,13 +51,10 @@ public class InterceptOptions implements PropertyChangeListener {
 		int i1Num = dao.queryBuilder().where().eq("Direction", InterceptOption.Direction.ALL_THE_OTHER_REQUESTS).query()
 				.size();
 		if (i1Num == 0) {
-			InterceptOption i1 = new InterceptOption(
-					InterceptOption.Direction.ALL_THE_OTHER_REQUESTS,
-					InterceptOption.Type.REQUEST,
-					InterceptOption.Relationship.ARE_INTERCEPTED,
-					"",
-					InterceptOption.Method.UNDEFINED,
-					null);
+
+			InterceptOption i1 = new InterceptOption(InterceptOption.Direction.ALL_THE_OTHER_REQUESTS,
+					InterceptOption.Type.REQUEST, InterceptOption.Relationship.ARE_INTERCEPTED, "",
+					InterceptOption.Method.UNDEFINED, null);
 			i1.setEnabled();
 			dao.create(i1);
 			cache.clear();
@@ -65,13 +62,10 @@ public class InterceptOptions implements PropertyChangeListener {
 		int i2Num = dao.queryBuilder().where().eq("Direction", InterceptOption.Direction.ALL_THE_OTHER_RESPONSES)
 				.query().size();
 		if (i2Num == 0) {
-			InterceptOption i2 = new InterceptOption(
-					InterceptOption.Direction.ALL_THE_OTHER_RESPONSES,
-					InterceptOption.Type.REQUEST,
-					InterceptOption.Relationship.ARE_INTERCEPTED,
-					"",
-					InterceptOption.Method.UNDEFINED,
-					null);
+
+			InterceptOption i2 = new InterceptOption(InterceptOption.Direction.ALL_THE_OTHER_RESPONSES,
+					InterceptOption.Type.REQUEST, InterceptOption.Relationship.ARE_INTERCEPTED, "",
+					InterceptOption.Method.UNDEFINED, null);
 			i2.setEnabled();
 			dao.create(i2);
 			cache.clear();
@@ -85,6 +79,7 @@ public class InterceptOptions implements PropertyChangeListener {
 		cache = new DaoQueryCache<InterceptOption>();
 		enabled = new ConfigBoolean("InterceptOptions");
 		if (!isLatestVersion()) {
+
 			RecreateTable();
 		}
 	}
@@ -135,22 +130,30 @@ public class InterceptOptions implements PropertyChangeListener {
 	private List<InterceptOption> sort(List<InterceptOption> list) {
 		List<InterceptOption> sorted = new ArrayList<>();
 		for (InterceptOption l : list) {
+
 			if (l.isDirection(Direction.REQUEST)) {
+
 				sorted.add(l);
 			}
 		}
 		for (InterceptOption l : list) {
+
 			if (l.isDirection(Direction.ALL_THE_OTHER_REQUESTS)) {
+
 				sorted.add(l);
 			}
 		}
 		for (InterceptOption l : list) {
+
 			if (l.isDirection(Direction.RESPONSE)) {
+
 				sorted.add(l);
 			}
 		}
 		for (InterceptOption l : list) {
+
 			if (l.isDirection(Direction.ALL_THE_OTHER_RESPONSES)) {
+
 				sorted.add(l);
 			}
 		}
@@ -159,8 +162,10 @@ public class InterceptOptions implements PropertyChangeListener {
 
 	public List<InterceptOption> queryAll() throws Exception {
 		try {
+
 			List<InterceptOption> ret = cache.query("queryAll", 0);
 			if (ret != null) {
+
 				return ret;
 			}
 
@@ -171,6 +176,7 @@ public class InterceptOptions implements PropertyChangeListener {
 			cache.set("queryAll", 0, ret);
 			return ret;
 		} catch (Exception e) {
+
 			database.dropTable(InterceptOption.class);
 			dao = database.createTable(InterceptOption.class, this);
 			setDefaultRulesIfNotFound();
@@ -181,22 +187,19 @@ public class InterceptOptions implements PropertyChangeListener {
 	public List<InterceptOption> queryEnabled(Server server) throws Exception {
 		int server_id = InterceptOption.ALL_SERVER;
 		if (server != null) {
+
 			server_id = server.getId();
 		}
 
 		List<InterceptOption> ret = cache.query("queryEnabled", server_id);
 		if (ret != null) {
+
 			return ret;
 		}
 
 		setDefaultRulesIfNotFound();
-		List<InterceptOption> list = dao.queryBuilder().where()
-				.eq("server_id", server_id)
-				.or()
-				.eq("server_id", InterceptOption.ALL_SERVER)
-				.and()
-				.eq("enabled", true)
-				.query();
+		List<InterceptOption> list = dao.queryBuilder().where().eq("server_id", server_id).or()
+				.eq("server_id", InterceptOption.ALL_SERVER).and().eq("enabled", true).query();
 		ret = sort(list);
 
 		cache.set("queryEnabled", server_id, ret);
@@ -205,28 +208,35 @@ public class InterceptOptions implements PropertyChangeListener {
 
 	public boolean interceptOnRequest(Server server, Packet client_packet) throws Exception {
 		for (InterceptOption intercept : queryEnabled(server)) {
+
 			if (intercept.isDirection(InterceptOption.Direction.REQUEST)) {
+
 				switch (intercept.getRelationship()) {
-					case IS_INTERCEPTED_IF_IT_MATCHES:
+
+					case IS_INTERCEPTED_IF_IT_MATCHES :
 						if (intercept.match(client_packet, null)) {
+
 							return true;
 						}
 						break;
-					case IS_NOT_INTERCEPTED_IF_IT_MATCHES:
+					case IS_NOT_INTERCEPTED_IF_IT_MATCHES :
 						if (intercept.match(client_packet, null)) {
+
 							return false;
 						}
 						break;
-					default:
+					default :
 						break;
 				}
 			} else if (intercept.isDirection(Direction.ALL_THE_OTHER_REQUESTS)) {
+
 				switch (intercept.getRelationship()) {
-					case ARE_INTERCEPTED:
+
+					case ARE_INTERCEPTED :
 						return true;
-					case ARE_NOT_INTERCEPTED:
+					case ARE_NOT_INTERCEPTED :
 						return false;
-					default:
+					default :
 						return true;
 				}
 			}
@@ -236,34 +246,42 @@ public class InterceptOptions implements PropertyChangeListener {
 
 	public boolean interceptOnResponse(Server server, Packet client_packet, Packet server_packet) throws Exception {
 		for (InterceptOption intercept : queryEnabled(server)) {
+
 			if (intercept.getDirection() == InterceptOption.Direction.RESPONSE) {
+
 				switch (intercept.getRelationship()) {
-					case IS_INTERCEPTED_IF_IT_MATCHES:
+
+					case IS_INTERCEPTED_IF_IT_MATCHES :
 						if (intercept.match(client_packet, server_packet)) {
+
 							return true;
 						}
 						break;
-					case IS_NOT_INTERCEPTED_IF_IT_MATCHES:
+					case IS_NOT_INTERCEPTED_IF_IT_MATCHES :
 						if (intercept.match(client_packet, server_packet)) {
+
 							return false;
 						}
 						break;
-					case IS_INTERCEPTED_IF_REQUEST_WAS_INTERCEPTED:
+					case IS_INTERCEPTED_IF_REQUEST_WAS_INTERCEPTED :
 						// パケットにフラグを立てた方がいいけどDBが変わるので一旦これで
 						if (interceptOnRequest(server, client_packet)) {
+
 							return true;
 						}
 						break;
-					default:
+					default :
 						break;
 				}
 			} else if (intercept.isDirection(Direction.ALL_THE_OTHER_RESPONSES)) {
+
 				switch (intercept.getRelationship()) {
-					case ARE_INTERCEPTED:
+
+					case ARE_INTERCEPTED :
 						return true;
-					case ARE_NOT_INTERCEPTED:
+					case ARE_NOT_INTERCEPTED :
 						return false;
-					default:
+					default :
 						break;
 				}
 			}
@@ -282,35 +300,39 @@ public class InterceptOptions implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (!DATABASE_MESSAGE.matches(evt)) {
+
 			return;
 		}
 
 		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
+
 			switch (message) {
-				case PAUSE:
+
+				case PAUSE :
 					// TODO ロックを取る
 					break;
-				case RESUME:
+				case RESUME :
 					// TODO ロックを解除
 					break;
-				case DISCONNECT_NOW:
+				case DISCONNECT_NOW :
 					break;
-				case RECONNECT:
+				case RECONNECT :
 					database = Database.getInstance();
 					dao = database.createTable(InterceptOption.class, this);
 					cache.clear();
 					firePropertyChange(message);
 					break;
-				case RECREATE:
+				case RECREATE :
 					database = Database.getInstance();
 					dao = database.createTable(InterceptOption.class, this);
 					cache.clear();
 					break;
-				default:
+				default :
 					break;
 			}
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}
@@ -331,11 +353,10 @@ public class InterceptOptions implements PropertyChangeListener {
 	}
 
 	private void RecreateTable() throws Exception {
-		int option = JOptionPane.showConfirmDialog(null,
-				"InterceptOptionsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",
-				"テーブルの更新",
-				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+		int option = JOptionPane.showConfirmDialog(null, "InterceptOptionsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",
+				"テーブルの更新", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 		if (option == JOptionPane.YES_OPTION) {
+
 			database.dropTable(InterceptOption.class);
 			dao = database.createTable(InterceptOption.class, this);
 		}

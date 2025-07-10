@@ -1,15 +1,14 @@
 package packetproxy.quic.value.packet.longheader.pnspace;
 
+import java.nio.ByteBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
-import packetproxy.quic.value.key.Key;
-import packetproxy.quic.value.packet.longheader.LongHeaderPnSpacePacket;
+import packetproxy.quic.utils.Constants;
 import packetproxy.quic.value.ConnectionIdPair;
 import packetproxy.quic.value.PacketNumber;
-import packetproxy.quic.utils.Constants;
-
-import java.nio.ByteBuffer;
+import packetproxy.quic.value.key.Key;
+import packetproxy.quic.value.packet.longheader.LongHeaderPnSpacePacket;
 
 /* Ref: RFC 9000
 Handshake Packet {
@@ -33,26 +32,28 @@ Handshake Packet {
 @Value
 public class HandshakePacket extends LongHeaderPnSpacePacket {
 
-    static public final byte TYPE = (byte)0xe0;
+	public static final byte TYPE = (byte) 0xe0;
 
-    static public boolean is(byte type) {
-        return (type & (byte)0xf0) == TYPE;
-    }
+	public static boolean is(byte type) {
+		return (type & (byte) 0xf0) == TYPE;
+	}
 
-    static public HandshakePacket of(int version, ConnectionIdPair connIdPair, PacketNumber packetNumber, byte[] payload) {
-        return new HandshakePacket(TYPE, version, connIdPair, packetNumber, payload);
-    }
+	public static HandshakePacket of(int version, ConnectionIdPair connIdPair, PacketNumber packetNumber,
+			byte[] payload) {
+		return new HandshakePacket(TYPE, version, connIdPair, packetNumber, payload);
+	}
 
-    public HandshakePacket(byte type, int version, ConnectionIdPair connIdPair, PacketNumber packetNumber, byte[] payload) {
-        super(type, version, connIdPair, packetNumber, payload);
-    }
+	public HandshakePacket(byte type, int version, ConnectionIdPair connIdPair, PacketNumber packetNumber,
+			byte[] payload) {
+		super(type, version, connIdPair, packetNumber, payload);
+	}
 
-    public HandshakePacket(ByteBuffer buffer, Key key, PacketNumber largestAckedPn) throws Exception {
-        super(buffer, key, largestAckedPn);
-    }
+	public HandshakePacket(ByteBuffer buffer, Key key, PacketNumber largestAckedPn) throws Exception {
+		super(buffer, key, largestAckedPn);
+	}
 
-    @Override
-    public Constants.PnSpaceType getPnSpaceType() {
-        return Constants.PnSpaceType.PnSpaceHandshake;
-    }
+	@Override
+	public Constants.PnSpaceType getPnSpaceType() {
+		return Constants.PnSpaceType.PnSpaceHandshake;
+	}
 }

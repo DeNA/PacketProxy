@@ -22,6 +22,7 @@ import java.util.Map;
 public class TableCustomColorManager {
 
 	class LineColor {
+
 		private int packetId;
 		private Color color;
 
@@ -29,19 +30,22 @@ public class TableCustomColorManager {
 			this.packetId = packetId;
 			this.color = color;
 		}
+
 		public int getPacketID() {
 			return this.packetId;
 		}
+
 		public Color getColor() {
 			return this.color;
 		}
+
 		@Override
 		public String toString() {
 			return String.format("{%d:%s}", this.packetId, this.color.toString());
 		}
 	}
 
-	private Map<Integer,LineColor> coloredLines;
+	private Map<Integer, LineColor> coloredLines;
 
 	public TableCustomColorManager() {
 		this.coloredLines = new HashMap<Integer, LineColor>();
@@ -65,6 +69,7 @@ public class TableCustomColorManager {
 
 	public Color getColor(int packetId) throws Exception {
 		if (coloredLines.containsKey(packetId)) {
+
 			return coloredLines.get(packetId).getColor();
 		}
 		throw new Exception("line color is not registered.");

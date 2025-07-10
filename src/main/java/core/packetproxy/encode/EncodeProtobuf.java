@@ -18,8 +18,8 @@ package packetproxy.encode;
 import packetproxy.common.Protobuf3;
 import packetproxy.http.Http;
 
-public class EncodeProtobuf extends EncodeHTTPBase
-{
+public class EncodeProtobuf extends EncodeHTTPBase {
+
 	public EncodeProtobuf(String ALPN) throws Exception {
 		super(ALPN);
 	}
@@ -28,7 +28,7 @@ public class EncodeProtobuf extends EncodeHTTPBase
 	public String getName() {
 		return "Protocol Buffer over HTTP";
 	}
-	
+
 	private Http decodeProtobuf3(Http inputHttp) throws Exception {
 		byte[] body = inputHttp.getBody();
 		String decoded = Protobuf3.decode(body);
@@ -47,8 +47,9 @@ public class EncodeProtobuf extends EncodeHTTPBase
 	protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
 		var contentType = inputHttp.getFirstHeader("Content-Type");
 		if (contentType.contains("protobuf") || contentType.startsWith("application/octet-stream")) {
-            return decodeProtobuf3(inputHttp);
-        }
+
+			return decodeProtobuf3(inputHttp);
+		}
 		return inputHttp;
 	}
 
@@ -56,8 +57,9 @@ public class EncodeProtobuf extends EncodeHTTPBase
 	protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
 		var contentType = inputHttp.getFirstHeader("Content-Type");
 		if (contentType.contains("protobuf") || contentType.startsWith("application/octet-stream")) {
-            return encodeProtobuf3(inputHttp);
-        }
+
+			return encodeProtobuf3(inputHttp);
+		}
 		return inputHttp;
 	}
 
@@ -65,8 +67,9 @@ public class EncodeProtobuf extends EncodeHTTPBase
 	protected Http decodeServerResponseHttp(Http inputHttp) throws Exception {
 		var contentType = inputHttp.getFirstHeader("Content-Type");
 		if (contentType.contains("protobuf") || contentType.startsWith("application/octet-stream")) {
-            return decodeProtobuf3(inputHttp);
-        }
+
+			return decodeProtobuf3(inputHttp);
+		}
 		return inputHttp;
 	}
 
@@ -74,8 +77,9 @@ public class EncodeProtobuf extends EncodeHTTPBase
 	protected Http encodeServerResponseHttp(Http inputHttp) throws Exception {
 		var contentType = inputHttp.getFirstHeader("Content-Type");
 		if (contentType.contains("protobuf") || contentType.startsWith("application/octet-stream")) {
-            return encodeProtobuf3(inputHttp);
-        }
+
+			return encodeProtobuf3(inputHttp);
+		}
 		return inputHttp;
 	}
 }

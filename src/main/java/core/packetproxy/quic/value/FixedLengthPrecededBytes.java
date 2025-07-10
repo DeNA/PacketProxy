@@ -16,35 +16,34 @@
 
 package packetproxy.quic.value;
 
-import lombok.Getter;
-
 import java.nio.ByteBuffer;
+import lombok.Getter;
 
 @Getter
 public class FixedLengthPrecededBytes {
 
-    static public FixedLengthPrecededBytes of(byte[] bytes) {
-        return new FixedLengthPrecededBytes(bytes);
-    }
+	public static FixedLengthPrecededBytes of(byte[] bytes) {
+		return new FixedLengthPrecededBytes(bytes);
+	}
 
-    static public FixedLengthPrecededBytes parse(ByteBuffer buffer) {
-        byte length = buffer.get();
-        byte[] bytes = new byte[length];
-        buffer.get(bytes);
-        return new FixedLengthPrecededBytes(bytes);
-    }
+	public static FixedLengthPrecededBytes parse(ByteBuffer buffer) {
+		byte length = buffer.get();
+		byte[] bytes = new byte[length];
+		buffer.get(bytes);
+		return new FixedLengthPrecededBytes(bytes);
+	}
 
-    private byte[] bytes;
+	private byte[] bytes;
 
-    private FixedLengthPrecededBytes(byte[] bytes) {
-        this.bytes = bytes;
-    }
+	private FixedLengthPrecededBytes(byte[] bytes) {
+		this.bytes = bytes;
+	}
 
-    public byte[] serialize() {
-        ByteBuffer buffer = ByteBuffer.allocate(255);
-        buffer.put((byte)bytes.length);
-        buffer.put(bytes);
-        buffer.flip();
-        return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
-    }
+	public byte[] serialize() {
+		ByteBuffer buffer = ByteBuffer.allocate(255);
+		buffer.put((byte) bytes.length);
+		buffer.put(bytes);
+		buffer.flip();
+		return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+	}
 }

@@ -16,34 +16,34 @@
 
 package packetproxy.quic.value;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import packetproxy.quic.utils.Constants;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class ConnectionIdTest {
 
-    @Test
-    public void ランダムなConnectionIdを生成できること() {
-        ConnectionId connId = ConnectionId.generateRandom();
-        Assertions.assertEquals(Constants.CONNECTION_ID_SIZE, connId.getBytes().length);
-    }
+	@Test
+	public void ランダムなConnectionIdを生成できること() {
+		ConnectionId connId = ConnectionId.generateRandom();
+		Assertions.assertEquals(Constants.CONNECTION_ID_SIZE, connId.getBytes().length);
+	}
 
-    @Test
-    public void ByteArrayが同じならEqualになること() throws Exception {
-        byte[] connIdBytes = Hex.decodeHex("11223344".toCharArray());
-        ConnectionId connId1 = ConnectionId.of(connIdBytes);
-        ConnectionId connId2= ConnectionId.of(connIdBytes);
-        assertEquals(connId1, connId2);
-    }
+	@Test
+	public void ByteArrayが同じならEqualになること() throws Exception {
+		byte[] connIdBytes = Hex.decodeHex("11223344".toCharArray());
+		ConnectionId connId1 = ConnectionId.of(connIdBytes);
+		ConnectionId connId2 = ConnectionId.of(connIdBytes);
+		assertEquals(connId1, connId2);
+	}
 
-    @Test
-    public void 複数個のインスタンスがお互いにランダムになっていること() throws Exception {
-        ConnectionId connId1 = ConnectionId.generateRandom();
-        ConnectionId connId2 = ConnectionId.generateRandom();
-        assertNotEquals(connId1, connId2);
-    }
+	@Test
+	public void 複数個のインスタンスがお互いにランダムになっていること() throws Exception {
+		ConnectionId connId1 = ConnectionId.generateRandom();
+		ConnectionId connId2 = ConnectionId.generateRandom();
+		assertNotEquals(connId1, connId2);
+	}
 
 }

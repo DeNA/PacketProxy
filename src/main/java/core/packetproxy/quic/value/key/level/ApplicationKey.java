@@ -24,13 +24,13 @@ import packetproxy.quic.value.key.Key;
 @Value
 public class ApplicationKey extends Key {
 
-    static public ApplicationKey of(byte[] secret) {
-        Key key = Key.of(secret);
-        return new ApplicationKey(key.getSecret(), key.getKey(), key.getIv(), key.getHp());
-    }
+	public static ApplicationKey of(byte[] secret) {
+		Key key = Key.of(secret);
+		return new ApplicationKey(key.getSecret(), key.getKey(), key.getIv(), key.getHp());
+	}
 
-    public ApplicationKey(byte[] secret, byte[] key, byte[] iv, byte[] hp) {
-        super(secret, key, iv, hp);
-    }
+	public ApplicationKey(byte[] secret, byte[] key, byte[] iv, byte[] hp) {
+		super(secret, key, iv, hp);
+	}
 
 }

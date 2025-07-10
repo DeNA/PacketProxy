@@ -15,26 +15,19 @@
  */
 package packetproxy.gui;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
 import packetproxy.model.Modification;
 import packetproxy.model.Modifications;
 import packetproxy.util.PacketProxyUtility;
 
 public class GUIOptionModifications extends GUIOptionComponentBase<Modification> {
+
 	private GUIOptionModificationDialog dlg;
 	private Modifications modifications;
 	private List<Modification> table_ext_list;
@@ -44,69 +37,86 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 		modifications = Modifications.getInstance();
 		modifications.addPropertyChangeListener(this);
 		table_ext_list = new ArrayList<Modification>();
-		String[] menu = { "Enabled", "Type", "Method", "Pattern", "Replaced", "Applied Server" };
-		int[] menuWidth = { 50, 100, 50, 180, 180, 150 };
+		String[] menu = {"Enabled", "Type", "Method", "Pattern", "Replaced", "Applied Server"};
+		int[] menuWidth = {50, 100, 50, 180, 180, 150};
 		MouseAdapter tableAction = new MouseAdapter() {
+
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
+
 					int columnIndex = table.columnAtPoint(e.getPoint());
 					int rowIndex = table.rowAtPoint(e.getPoint());
 					if (columnIndex == 0) { /* check box area */
+
 						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 0);
 						Modification mod = getSelectedTableContent();
 						if (enable_checkbox == true) {
+
 							mod.setDisabled();
 						} else {
+
 							mod.setEnabled();
 						}
 						modifications.update(mod);
 					}
 					table.setRowSelectionInterval(rowIndex, rowIndex);
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
 		};
 		ActionListener addAction = new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					dlg = new GUIOptionModificationDialog(owner);
 					Modification mod = dlg.showDialog();
 					if (mod != null) {
+
 						mod.setEnabled();
 						modifications.create(mod);
 					}
 					PacketProxyUtility.getInstance().packetProxyLog("Modification button is pressed.");
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
 		};
 		ActionListener editAction = new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					Modification old_mod = getSelectedTableContent();
 					dlg = new GUIOptionModificationDialog(owner);
 					Modification new_mod = dlg.showDialog(old_mod);
 					if (new_mod != null) {
+
 						modifications.delete(old_mod);
 						new_mod.setEnabled();
 						modifications.create(new_mod);
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
 		};
 		ActionListener removeAction = new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					modifications.delete(getSelectedTableContent());
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -119,15 +129,11 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 	protected void addTableContent(Modification mod) {
 		table_ext_list.add(mod);
 		try {
-			option_model.addRow(new Object[] {
-					mod.isEnabled(),
-					mod.getDirection(),
-					mod.getMethod(),
-					mod.getPattern(),
-					mod.getReplaced(),
-					mod.getServerName()
-			});
+
+			option_model.addRow(new Object[]{mod.isEnabled(), mod.getDirection(), mod.getMethod(), mod.getPattern(),
+					mod.getReplaced(), mod.getServerName()});
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}
@@ -136,6 +142,7 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 	protected void updateTable(List<Modification> modList) {
 		clearTableContents();
 		for (Modification mod : modList) {
+
 			addTableContent(mod);
 		}
 	}
@@ -143,8 +150,10 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 	@Override
 	protected void updateImpl() {
 		try {
+
 			updateTable(modifications.queryAll());
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}

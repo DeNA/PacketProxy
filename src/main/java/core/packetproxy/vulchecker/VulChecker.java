@@ -18,9 +18,11 @@ package packetproxy.vulchecker;
 import com.google.common.collect.ImmutableList;
 import packetproxy.vulchecker.generator.Generator;
 
-abstract public class VulChecker {
-    public String getName() {
-        return "unknown";
-    }
-    abstract public ImmutableList<Generator> getGenerators();
+public abstract class VulChecker {
+
+	public String getName() {
+		return "unknown";
+	}
+
+	public abstract ImmutableList<Generator> getGenerators();
 }

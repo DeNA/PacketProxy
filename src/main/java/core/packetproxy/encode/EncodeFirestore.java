@@ -15,8 +15,8 @@
  */
 package packetproxy.encode;
 
-public class EncodeFirestore extends EncodeHTTPStreamingResponse
-{
+public class EncodeFirestore extends EncodeHTTPStreamingResponse {
+
 	@Override
 	public String getName() {
 		return "Firestore";

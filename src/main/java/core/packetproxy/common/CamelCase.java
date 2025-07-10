@@ -18,10 +18,8 @@ package packetproxy.common;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
 
-import packetproxy.util.PacketProxyUtility;
-
 public class CamelCase {
-	
+
 	/*
 	static public void main(String[] args) {
 		PacketProxyUtility util = PacketProxyUtility.getInstance();
@@ -38,19 +36,20 @@ public class CamelCase {
 		}
 	}
 	*/
-	
-	static public String toCamelCase(String s) {
+
+	public static String toCamelCase(String s) {
 		Pattern pattern = Pattern.compile("([a-zA-Z][a-zA-Z0-9]*)");
 		Matcher matcher = pattern.matcher(s);
 		StringBuffer sb = new StringBuffer();
 		while (matcher.find()) {
+
 			matcher.appendReplacement(sb, toProperCase(matcher.group()));
 		}
 		matcher.appendTail(sb);
 		return sb.toString();
 	}
 
-	static private String toProperCase(String s) {
+	private static String toProperCase(String s) {
 		return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
 	}
 }

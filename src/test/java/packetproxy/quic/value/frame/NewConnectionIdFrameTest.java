@@ -16,23 +16,24 @@
 
 package packetproxy.quic.value.frame;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Test;
 import packetproxy.quic.value.ConnectionId;
 import packetproxy.quic.value.Token;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 class NewConnectionIdFrameTest {
 
-    @Test
-    public void smoke() throws Exception {
-        NewConnectionIdFrame frame = new NewConnectionIdFrame(1, 0, ConnectionId.generateRandom(), Token.of(Hex.decodeHex("11223344556677889900112233445566".toCharArray())));
-        byte[] data = frame.getBytes();
+	@Test
+	public void smoke() throws Exception {
+		NewConnectionIdFrame frame = new NewConnectionIdFrame(1, 0, ConnectionId.generateRandom(),
+				Token.of(Hex.decodeHex("11223344556677889900112233445566".toCharArray())));
+		byte[] data = frame.getBytes();
 
-        NewConnectionIdFrame frame2 = NewConnectionIdFrame.parse(data);
-        System.out.println(frame2);
-        assertThat(frame).isEqualTo(frame2);
-    }
+		NewConnectionIdFrame frame2 = NewConnectionIdFrame.parse(data);
+		System.out.println(frame2);
+		assertThat(frame).isEqualTo(frame2);
+	}
 
 }

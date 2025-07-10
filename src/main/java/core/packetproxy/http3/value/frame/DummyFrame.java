@@ -17,47 +17,46 @@
 package packetproxy.http3.value.frame;
 
 import com.google.common.collect.ImmutableList;
-import lombok.Value;
-import packetproxy.quic.value.VariableLengthInteger;
-
 import java.io.ByteArrayOutputStream;
 import java.util.List;
+import lombok.Value;
+import packetproxy.quic.value.VariableLengthInteger;
 
 @Value
 public class DummyFrame implements Frame {
 
-    static public final long TYPE = 0x33; /* dummy type */
+	public static final long TYPE = 0x33; /* dummy type */
 
-    static public DummyFrame of(long value) {
-        return new DummyFrame(value);
-    }
+	public static DummyFrame of(long value) {
+		return new DummyFrame(value);
+	}
 
-    static public List<Long> supportedTypes() {
-        return ImmutableList.of(TYPE);
-    }
+	public static List<Long> supportedTypes() {
+		return ImmutableList.of(TYPE);
+	}
 
-    long type;
-    long value;
+	long type;
+	long value;
 
-    private DummyFrame(long value) {
-        this.type = TYPE;
-        this.value = value;
-    }
+	private DummyFrame(long value) {
+		this.type = TYPE;
+		this.value = value;
+	}
 
-    public byte[] getData() {
-        return VariableLengthInteger.of(this.value).getBytes();
-    }
+	public byte[] getData() {
+		return VariableLengthInteger.of(this.value).getBytes();
+	}
 
-    @Override
-    public byte[] getBytes() throws Exception {
-        ByteArrayOutputStream dataFrameStream = new ByteArrayOutputStream();
-        dataFrameStream.write(VariableLengthInteger.of(this.type).getBytes());
-        dataFrameStream.write(VariableLengthInteger.of(this.value).getBytes());
-        return dataFrameStream.toByteArray();
-    }
+	@Override
+	public byte[] getBytes() throws Exception {
+		ByteArrayOutputStream dataFrameStream = new ByteArrayOutputStream();
+		dataFrameStream.write(VariableLengthInteger.of(this.type).getBytes());
+		dataFrameStream.write(VariableLengthInteger.of(this.value).getBytes());
+		return dataFrameStream.toByteArray();
+	}
 
-    @Override
-    public String toString() {
-        return String.format("DummyFrame(value=%d)", this.value);
-    }
+	@Override
+	public String toString() {
+		return String.format("DummyFrame(value=%d)", this.value);
+	}
 }

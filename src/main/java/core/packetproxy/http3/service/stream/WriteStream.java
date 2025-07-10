@@ -19,6 +19,8 @@ package packetproxy.http3.service.stream;
 import packetproxy.quic.value.QuicMessages;
 
 public interface WriteStream {
-        void write(byte[] data) throws Exception;
-        QuicMessages readAllQuicMessages();
+
+	void write(byte[] data) throws Exception;
+
+	QuicMessages readAllQuicMessages();
 }

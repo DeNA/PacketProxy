@@ -15,23 +15,24 @@
  */
 package packetproxy.model;
 
+import static packetproxy.model.PropertyChangeEventType.MODIFICATIONS_UPDATED;
+
 import com.j256.ormlite.dao.Dao;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.List;
 import javax.swing.JOptionPane;
-import packetproxy.model.DaoQueryCache;
 import packetproxy.model.Database.DatabaseMessage;
-import static packetproxy.model.PropertyChangeEventType.MODIFICATIONS_UPDATED;
-import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 
 public class Modifications implements PropertyChangeListener {
+
 	private static Modifications instance;
 	private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 	public static Modifications getInstance() throws Exception {
 		if (instance == null) {
+
 			instance = new Modifications();
 		}
 		return instance;
@@ -48,6 +49,7 @@ public class Modifications implements PropertyChangeListener {
 		dao = database.createTable(Modification.class, this);
 		cache = new DaoQueryCache<Modification>();
 		if (!isLatestVersion()) {
+
 			RecreateTable();
 		}
 	}
@@ -93,6 +95,7 @@ public class Modifications implements PropertyChangeListener {
 	public Modification query(int id) throws Exception {
 		List<Modification> ret = cache.query("query", 0);
 		if (ret != null) {
+
 			return ret.get(0);
 		}
 
@@ -105,6 +108,7 @@ public class Modifications implements PropertyChangeListener {
 	public List<Modification> queryAll() throws Exception {
 		List<Modification> ret = cache.query("queryAll", 0);
 		if (ret != null) {
+
 			return ret;
 		}
 
@@ -117,21 +121,18 @@ public class Modifications implements PropertyChangeListener {
 	public List<Modification> queryEnabled(Server server) throws Exception {
 		int server_id = Modification.ALL_SERVER;
 		if (server != null) {
+
 			server_id = server.getId();
 		}
 
 		List<Modification> ret = cache.query("queryEnabled", server_id);
 		if (ret != null) {
+
 			return ret;
 		}
 
-		ret = dao.queryBuilder().where()
-				.eq("server_id", server_id)
-				.or()
-				.eq("server_id", Modification.ALL_SERVER)
-				.and()
-				.eq("enabled", true)
-				.query();
+		ret = dao.queryBuilder().where().eq("server_id", server_id).or().eq("server_id", Modification.ALL_SERVER).and()
+				.eq("enabled", true).query();
 
 		cache.set("queryEnabled", server_id, ret);
 		return ret;
@@ -139,6 +140,7 @@ public class Modifications implements PropertyChangeListener {
 
 	public byte[] replaceOnRequest(byte[] data, Server server, Packet client_packet) throws Exception {
 		for (Modification mod : queryEnabled(server)) {
+
 			if (mod.getDirection() == Modification.Direction.CLIENT_REQUEST
 					|| mod.getDirection() == Modification.Direction.ALL)
 				data = mod.replace(data, client_packet);
@@ -148,6 +150,7 @@ public class Modifications implements PropertyChangeListener {
 
 	public byte[] replaceOnResponse(byte[] data, Server server, Packet server_packet) throws Exception {
 		for (Modification mod : queryEnabled(server)) {
+
 			if (mod.getDirection() == Modification.Direction.SERVER_RESPONSE
 					|| mod.getDirection() == Modification.Direction.ALL)
 				data = mod.replace(data, server_packet);
@@ -162,35 +165,39 @@ public class Modifications implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (!(evt.getSource() instanceof Database)) {
+
 			return;
 		}
 
 		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
+
 			switch (message) {
-				case PAUSE:
+
+				case PAUSE :
 					// TODO ロックを取る
 					break;
-				case RESUME:
+				case RESUME :
 					// TODO ロックを解除
 					break;
-				case DISCONNECT_NOW:
+				case DISCONNECT_NOW :
 					break;
-				case RECONNECT:
+				case RECONNECT :
 					database = Database.getInstance();
 					dao = database.createTable(Modification.class, this);
 					cache.clear();
 					firePropertyChange();
 					break;
-				case RECREATE:
+				case RECREATE :
 					database = Database.getInstance();
 					dao = database.createTable(Modification.class, this);
 					cache.clear();
 					break;
-				default:
+				default :
 					break;
 			}
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}
@@ -203,11 +210,10 @@ public class Modifications implements PropertyChangeListener {
 	}
 
 	private void RecreateTable() throws Exception {
-		int option = JOptionPane.showConfirmDialog(null,
-				"Modificationsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",
-				"テーブルの更新",
-				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+		int option = JOptionPane.showConfirmDialog(null, "Modificationsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",
+				"テーブルの更新", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 		if (option == JOptionPane.YES_OPTION) {
+
 			database.dropTable(Modification.class);
 			dao = database.createTable(Modification.class, this);
 			cache.clear();

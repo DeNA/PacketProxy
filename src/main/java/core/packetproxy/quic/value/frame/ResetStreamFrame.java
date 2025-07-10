@@ -17,13 +17,12 @@
 package packetproxy.quic.value.frame;
 
 import com.google.common.collect.ImmutableList;
+import java.nio.ByteBuffer;
+import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import packetproxy.quic.value.SimpleBytes;
 import packetproxy.quic.value.VariableLengthInteger;
-
-import java.nio.ByteBuffer;
-import java.util.List;
 
 /*
 https://www.rfc-editor.org/rfc/rfc9000.html#section-19.4
@@ -39,43 +38,43 @@ RESET_STREAM Frame {
 @EqualsAndHashCode(callSuper = true)
 public class ResetStreamFrame extends Frame {
 
-    static public final byte TYPE = 0x04;
+	public static final byte TYPE = 0x04;
 
-    static public List<Byte> supportedTypes() {
-        return ImmutableList.of(TYPE);
-    }
+	public static List<Byte> supportedTypes() {
+		return ImmutableList.of(TYPE);
+	}
 
-    static public ResetStreamFrame parse(byte[] bytes) {
-        return ResetStreamFrame.parse(ByteBuffer.wrap(bytes));
-    }
+	public static ResetStreamFrame parse(byte[] bytes) {
+		return ResetStreamFrame.parse(ByteBuffer.wrap(bytes));
+	}
 
-    static public ResetStreamFrame parse(ByteBuffer buffer) {
-        byte type = buffer.get();
-        assert(type == TYPE);
-        long streamId = VariableLengthInteger.parse(buffer).getValue();
-        long applicationProtocolErrorCode = VariableLengthInteger.parse(buffer).getValue();
-        long finalSize = VariableLengthInteger.parse(buffer).getValue();
-        return new ResetStreamFrame(streamId, applicationProtocolErrorCode, finalSize);
-    }
+	public static ResetStreamFrame parse(ByteBuffer buffer) {
+		byte type = buffer.get();
+		assert (type == TYPE);
+		long streamId = VariableLengthInteger.parse(buffer).getValue();
+		long applicationProtocolErrorCode = VariableLengthInteger.parse(buffer).getValue();
+		long finalSize = VariableLengthInteger.parse(buffer).getValue();
+		return new ResetStreamFrame(streamId, applicationProtocolErrorCode, finalSize);
+	}
 
-    long streamId;
-    long applicationErrorCode;
-    long finalSize;
+	long streamId;
+	long applicationErrorCode;
+	long finalSize;
 
-    @Override
-    public byte[] getBytes() {
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
-        buffer.put(TYPE);
-        buffer.put(VariableLengthInteger.of(this.streamId).getBytes());
-        buffer.put(VariableLengthInteger.of(this.applicationErrorCode).getBytes());
-        buffer.put(VariableLengthInteger.of(this.finalSize).getBytes());
-        buffer.flip();
-        return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
-    }
+	@Override
+	public byte[] getBytes() {
+		ByteBuffer buffer = ByteBuffer.allocate(1500);
+		buffer.put(TYPE);
+		buffer.put(VariableLengthInteger.of(this.streamId).getBytes());
+		buffer.put(VariableLengthInteger.of(this.applicationErrorCode).getBytes());
+		buffer.put(VariableLengthInteger.of(this.finalSize).getBytes());
+		buffer.flip();
+		return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+	}
 
-    @Override
-    public boolean isAckEliciting(){
-        return true;
-    }
+	@Override
+	public boolean isAckEliciting() {
+		return true;
+	}
 
 }

@@ -1,25 +1,25 @@
 package packetproxy.model;
 
-import java.util.List;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.beans.PropertyChangeEvent;
-
-import javax.swing.JOptionPane;
-
-import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.stmt.DeleteBuilder;
-
-import packetproxy.model.Database.DatabaseMessage;
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import static packetproxy.model.PropertyChangeEventType.RESENDER_PACKETS;
 
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.DeleteBuilder;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.List;
+import javax.swing.JOptionPane;
+import packetproxy.model.Database.DatabaseMessage;
+
 public class ResenderPackets implements PropertyChangeListener {
+
 	private static ResenderPackets instance;
 	private PropertyChangeSupport changes = new PropertyChangeSupport(this);
 
 	public static ResenderPackets getInstance() throws Exception {
 		if (instance == null) {
+
 			instance = new ResenderPackets();
 		}
 		return instance;
@@ -35,10 +35,13 @@ public class ResenderPackets implements PropertyChangeListener {
 
 	public void initTable(boolean restore) throws Exception {
 		if (restore) {
+
 			if (!isLatestVersion()) {
+
 				RecreateTable();
 			}
 		} else {
+
 			database.dropTable(ResenderPacket.class);
 			database.createTable(ResenderPacket.class, this);
 		}
@@ -79,33 +82,37 @@ public class ResenderPackets implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (!DATABASE_MESSAGE.matches(evt)) {
+
 			return;
 		}
 
 		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
+
 			switch (message) {
-				case PAUSE:
+
+				case PAUSE :
 					// TODO ロックを取る
 					break;
-				case RESUME:
+				case RESUME :
 					// TODO ロックを解除
 					break;
-				case DISCONNECT_NOW:
+				case DISCONNECT_NOW :
 					break;
-				case RECONNECT:
+				case RECONNECT :
 					database = Database.getInstance();
 					dao = database.createTable(ResenderPacket.class, this);
 					firePropertyChange(message);
 					break;
-				case RECREATE:
+				case RECREATE :
 					database = Database.getInstance();
 					dao = database.createTable(ResenderPacket.class, this);
 					break;
-				default:
+				default :
 					break;
 			}
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}
@@ -117,11 +124,10 @@ public class ResenderPackets implements PropertyChangeListener {
 	}
 
 	private void RecreateTable() throws Exception {
-		int option = JOptionPane.showConfirmDialog(null,
-				"resender_packetsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",
-				"テーブルの更新",
-				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+		int option = JOptionPane.showConfirmDialog(null, "resender_packetsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",
+				"テーブルの更新", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 		if (option == JOptionPane.YES_OPTION) {
+
 			database.dropTable(ResenderPacket.class);
 			dao = database.createTable(ResenderPacket.class, this);
 		}

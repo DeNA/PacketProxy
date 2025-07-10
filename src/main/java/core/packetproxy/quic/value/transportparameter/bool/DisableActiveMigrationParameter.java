@@ -16,25 +16,25 @@
 
 package packetproxy.quic.value.transportparameter.bool;
 
+import java.nio.ByteBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 import packetproxy.quic.value.transportparameter.TransportParameter;
 
-import java.nio.ByteBuffer;
-
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @Value
 public class DisableActiveMigrationParameter extends TransportParameter {
-    static public final long ID = 0xc;
 
-    public DisableActiveMigrationParameter(ByteBuffer buffer) {
-        super(buffer);
-    }
+	public static final long ID = 0xc;
 
-    public DisableActiveMigrationParameter() {
-        super(ID, 0, new byte[0]);
-    }
+	public DisableActiveMigrationParameter(ByteBuffer buffer) {
+		super(buffer);
+	}
+
+	public DisableActiveMigrationParameter() {
+		super(ID, 0, new byte[0]);
+	}
 
 }

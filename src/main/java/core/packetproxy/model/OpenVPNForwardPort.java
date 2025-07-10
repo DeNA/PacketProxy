@@ -20,78 +20,79 @@ import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "openvpn_forward_ports")
 public class OpenVPNForwardPort {
-    public enum TYPE {
-        TCP("tcp"),
-        UDP("udp");
 
-        private final String proto;
+	public enum TYPE {
 
-        private TYPE(String proto) {
-            this.proto = proto;
-        }
+		TCP("tcp"), UDP("udp");
 
-        public String toString() {
-            return this.proto;
-        }
-    }
+		private final String proto;
 
-    @DatabaseField(generatedId = true)
-    private int id;
-    @DatabaseField(uniqueCombo = true)
-    private TYPE type;
-    @DatabaseField(uniqueCombo = true)
-    private int fromPort;
-    @DatabaseField(uniqueCombo = true)
-    private int toPort;
+		private TYPE(String proto) {
+			this.proto = proto;
+		}
 
-    public OpenVPNForwardPort() {
-        // ORMLite needs a no-arg constructor
-    }
+		public String toString() {
+			return this.proto;
+		}
+	}
 
-    public OpenVPNForwardPort(TYPE type, int fromPort, int toPort) {
-        this.type = type;
-        this.fromPort = fromPort;
-        this.toPort = toPort;
-    }
+	@DatabaseField(generatedId = true)
+	private int id;
+	@DatabaseField(uniqueCombo = true)
+	private TYPE type;
+	@DatabaseField(uniqueCombo = true)
+	private int fromPort;
+	@DatabaseField(uniqueCombo = true)
+	private int toPort;
 
-    public void setId(int id) {
-        this.id = id;
-    }
+	public OpenVPNForwardPort() {
+		// ORMLite needs a no-arg constructor
+	}
 
-    public int getId() {
-        return this.id;
-    }
+	public OpenVPNForwardPort(TYPE type, int fromPort, int toPort) {
+		this.type = type;
+		this.fromPort = fromPort;
+		this.toPort = toPort;
+	}
 
-    public void setType(TYPE type) {
-        this.type = type;
-    }
+	public void setId(int id) {
+		this.id = id;
+	}
 
-    public TYPE getType() {
-        return this.type;
-    }
+	public int getId() {
+		return this.id;
+	}
 
-    public void setFromPort(int fromPort) {
-        this.fromPort = fromPort;
-    }
+	public void setType(TYPE type) {
+		this.type = type;
+	}
 
-    public int getFromPort() {
-        return this.fromPort;
-    }
+	public TYPE getType() {
+		return this.type;
+	}
 
-    public void setToPort(int toPort) {
-        this.toPort = toPort;
-    }
+	public void setFromPort(int fromPort) {
+		this.fromPort = fromPort;
+	}
 
-    public int getToPort() {
-        return this.toPort;
-    }
+	public int getFromPort() {
+		return this.fromPort;
+	}
 
-    @Override
-    public int hashCode() {
-        return this.getId();
-    }
+	public void setToPort(int toPort) {
+		this.toPort = toPort;
+	}
 
-    public boolean equals(OpenVPNForwardPort obj) {
-        return this.getId() == obj.getId();
-    }
+	public int getToPort() {
+		return this.toPort;
+	}
+
+	@Override
+	public int hashCode() {
+		return this.getId();
+	}
+
+	public boolean equals(OpenVPNForwardPort obj) {
+		return this.getId() == obj.getId();
+	}
 }

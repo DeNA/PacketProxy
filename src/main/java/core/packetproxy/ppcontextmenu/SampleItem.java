@@ -20,8 +20,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import packetproxy.gui.GUIPacket;
 import org.apache.commons.io.FileUtils;
+import packetproxy.gui.GUIPacket;
 
 public class SampleItem extends PPContextMenu {
 
@@ -31,7 +31,7 @@ public class SampleItem extends PPContextMenu {
 	}
 
 	@Override
-	public void action() throws Exception{
+	public void action() throws Exception {
 		JFileChooser saveFile = new JFileChooser("packet.dat");
 		saveFile.setAcceptAllFileFilterUsed(false);
 		saveFile.addChoosableFileFilter(new FileNameExtensionFilter("データファイル (.dat)", "dat"));
@@ -40,7 +40,8 @@ public class SampleItem extends PPContextMenu {
 		GUIPacket gui_packet = (GUIPacket) this.dependentData.get("gui_packet");
 		byte[] data = gui_packet.getPacket().getReceivedData();
 		FileUtils.writeByteArrayToFile(file, data);
-		JOptionPane.showMessageDialog((JFrame) this.dependentData.get("main_frame"), String.format("%sに保存しました！", file.getPath()));
-		
+		JOptionPane.showMessageDialog((JFrame) this.dependentData.get("main_frame"),
+				String.format("%sに保存しました！", file.getPath()));
+
 	}
 }

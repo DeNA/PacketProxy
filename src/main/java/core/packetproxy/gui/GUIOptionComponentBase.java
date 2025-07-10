@@ -20,26 +20,25 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
-import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.List;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.RowFilter;
-import javax.swing.table.TableRowSorter;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import packetproxy.common.I18nString;
+import javax.swing.table.TableRowSorter;
 import packetproxy.common.FontManager;
+import packetproxy.common.I18nString;
 import packetproxy.model.OptionTableModel;
 
 public abstract class GUIOptionComponentBase<T> implements PropertyChangeListener {
+
 	protected JFrame owner;
 	protected OptionTableModel option_model;
 	protected JTable table;
@@ -57,6 +56,7 @@ public abstract class GUIOptionComponentBase<T> implements PropertyChangeListene
 	protected JComponent createComponent(String[] menu, int[] menuWidth, MouseAdapter tableAction,
 			ActionListener addAction, ActionListener editAction, ActionListener removeAction) throws Exception {
 		option_model = new OptionTableModel(menu, 0) {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -70,6 +70,7 @@ public abstract class GUIOptionComponentBase<T> implements PropertyChangeListene
 
 		table = new JTable(option_model);
 		for (int i = 0; i < menu.length; i++) {
+
 			table.getColumn(menu[i]).setPreferredWidth(menuWidth[i]);
 		}
 		((JComponent) table.getDefaultRenderer(Boolean.class)).setOpaque(true);
@@ -93,6 +94,7 @@ public abstract class GUIOptionComponentBase<T> implements PropertyChangeListene
 	protected JComponent createComponentForServers(String[] menu, int[] menuWidth, MouseAdapter tableAction,
 			ActionListener addAction, ActionListener editAction, ActionListener removeAction) throws Exception {
 		option_model = new OptionTableModel(menu, 0) {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -130,8 +132,10 @@ public abstract class GUIOptionComponentBase<T> implements PropertyChangeListene
 			void handleUpdate() {
 				RowFilter<OptionTableModel, Object> filter = null;
 				try {
+
 					filter = RowFilter.regexFilter(filterText.getText(), 0);
 				} catch (Exception ex) {
+
 				}
 				sorter.setRowFilter(filter);
 			}
@@ -139,6 +143,7 @@ public abstract class GUIOptionComponentBase<T> implements PropertyChangeListene
 
 		table = new JTable(option_model);
 		for (int i = 0; i < menu.length; i++) {
+
 			table.getColumn(menu[i]).setPreferredWidth(menuWidth[i]);
 		}
 		((JComponent) table.getDefaultRenderer(Boolean.class)).setOpaque(true);
@@ -183,16 +188,19 @@ public abstract class GUIOptionComponentBase<T> implements PropertyChangeListene
 		button_remove.setMaximumSize(new Dimension(100, height));
 
 		if (null != addAction) {
+
 			panel.add(button_add);
 			button_add.addActionListener(addAction);
 		}
 
 		if (null != editAction) {
+
 			panel.add(button_edit);
 			button_edit.addActionListener(editAction);
 		}
 
 		if (null != removeAction) {
+
 			panel.add(button_remove);
 			button_remove.addActionListener(removeAction);
 		}

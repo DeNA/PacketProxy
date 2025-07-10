@@ -17,59 +17,61 @@
 package packetproxy.http3.value.frame;
 
 import com.google.common.collect.ImmutableList;
+import java.nio.ByteBuffer;
+import java.util.List;
 import lombok.Value;
 import packetproxy.quic.value.SimpleBytes;
 import packetproxy.quic.value.VariableLengthInteger;
 
-import java.nio.ByteBuffer;
-import java.util.List;
-
 @Value
 public class GreaseFrame implements Frame {
 
-    static final long GreaseType = 0xDEADBEEFL;
+	static final long GreaseType = 0xDEADBEEFL;
 
-    static public List<Long> supportedTypes() {
-        return ImmutableList.of(GreaseType);
-    }
+	public static List<Long> supportedTypes() {
+		return ImmutableList.of(GreaseType);
+	}
 
-    static public GreaseFrame of(long type, byte[] bytes) {
-        return new GreaseFrame(type, bytes);
-    }
-    static public GreaseFrame parse(long type, byte[] bytes) {
-        return of(type, bytes);
-    }
+	public static GreaseFrame of(long type, byte[] bytes) {
+		return new GreaseFrame(type, bytes);
+	}
 
-    static public GreaseFrame parse(ByteBuffer buffer) {
-        long frameType = VariableLengthInteger.parse(buffer).getValue();
-        int startOfLength = buffer.position();
-        long frameLength = VariableLengthInteger.parse(buffer).getValue();
-        byte[] frameData = new byte[]{};
-        if (frameLength > buffer.remaining()) {
-            buffer.position(startOfLength);
-            frameData = SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
-        } else {
-            frameData = SimpleBytes.parse(buffer, frameLength).getBytes();
-        }
-        return new GreaseFrame(frameType, frameData);
-    }
+	public static GreaseFrame parse(long type, byte[] bytes) {
+		return of(type, bytes);
+	}
 
-    long type;
-    byte[] data;
+	public static GreaseFrame parse(ByteBuffer buffer) {
+		long frameType = VariableLengthInteger.parse(buffer).getValue();
+		int startOfLength = buffer.position();
+		long frameLength = VariableLengthInteger.parse(buffer).getValue();
+		byte[] frameData = new byte[]{};
+		if (frameLength > buffer.remaining()) {
 
-    public GreaseFrame(long frameType, byte[] frameData) {
-        this.type = frameType;
-        this.data = frameData;
-    }
+			buffer.position(startOfLength);
+			frameData = SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+		} else {
 
-    @Override
-    public byte[] getBytes() throws Exception {
-        return this.data;
-    }
+			frameData = SimpleBytes.parse(buffer, frameLength).getBytes();
+		}
+		return new GreaseFrame(frameType, frameData);
+	}
 
-    @Override
-    public String toString() {
-        return String.format("GreaseFrame(type=0x%x,data=[%s])", this.type, new String(this.data));
-    }
+	long type;
+	byte[] data;
+
+	public GreaseFrame(long frameType, byte[] frameData) {
+		this.type = frameType;
+		this.data = frameData;
+	}
+
+	@Override
+	public byte[] getBytes() throws Exception {
+		return this.data;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("GreaseFrame(type=0x%x,data=[%s])", this.type, new String(this.data));
+	}
 
 }

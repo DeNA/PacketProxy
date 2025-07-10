@@ -24,7 +24,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -33,7 +32,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
-
 import packetproxy.controller.ResendController;
 import packetproxy.http.Http;
 import packetproxy.model.Diff;
@@ -79,19 +77,21 @@ public class GUIData {
 
 		copy_url_body_button = new JButton("copy Method+URL+Body");
 		copy_url_body_button.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+
 					int id = GUIHistory.getInstance().getSelectedPacketId();
 					Packet packet = Packets.getInstance().query(id);
 					Http http = Http.create(tabs.getRaw().getData());
-					String copyData = http.getMethod() + "\t" +
-							http.getURL(packet.getServerPort(), packet.getUseSSL()) + "\t" +
-							new String(http.getBody(), "UTF-8");
+					String copyData = http.getMethod() + "\t" + http.getURL(packet.getServerPort(), packet.getUseSSL())
+							+ "\t" + new String(http.getBody(), "UTF-8");
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(copyData);
 					clipboard.setContents(selection, selection);
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -99,9 +99,11 @@ public class GUIData {
 
 		copy_body_button = new JButton("copy Body");
 		copy_body_button.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					int id = GUIHistory.getInstance().getSelectedPacketId();
 					Packet packet = Packets.getInstance().query(id);
 					Http http = Http.create(tabs.getRaw().getData());
@@ -110,6 +112,7 @@ public class GUIData {
 					StringSelection selection = new StringSelection(body);
 					clipboard.setContents(selection, selection);
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -118,9 +121,11 @@ public class GUIData {
 
 		copy_url_button = new JButton("copy URL");
 		copy_url_button.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					int id = GUIHistory.getInstance().getSelectedPacketId();
 					Packet packet = Packets.getInstance().query(id);
 					Http http = Http.create(tabs.getRaw().getData());
@@ -130,6 +135,7 @@ public class GUIData {
 					clipboard.setContents(selection, selection);
 
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -138,17 +144,22 @@ public class GUIData {
 
 		resend_button = new JButton("send");
 		resend_button.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					byte[] data = null;
 					int index = tabs.getSelectedIndex();
 					if (index == 0) {
+
 						data = tabs.getRaw().getData();
 					} else if (index == 1) {
+
 						data = tabs.getBinary().getData();
 					}
 					if (data != null) {
+
 						int id = GUIHistory.getInstance().getSelectedPacketId();
 						Packet packet = Packets.getInstance().query(id);
 						ResendController.getInstance().resend(packet.getOneShotPacket(data));
@@ -157,6 +168,7 @@ public class GUIData {
 						GUIHistory.getInstance().updateRequestOne(id);
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -166,17 +178,22 @@ public class GUIData {
 		resend_multiple_button = new JButton("send x 20");
 		resend_multiple_button.setAlignmentX(0.5f);
 		resend_multiple_button.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					byte[] data = null;
 					int index = tabs.getSelectedIndex();
 					if (index == 0) {
+
 						data = tabs.getRaw().getData();
 					} else if (index == 1) {
+
 						data = tabs.getBinary().getData();
 					}
 					if (data != null) {
+
 						int id = GUIHistory.getInstance().getSelectedPacketId();
 						Packet packet = Packets.getInstance().query(id);
 						ResendController.getInstance().resend(packet.getOneShotPacket(data), 20);
@@ -185,6 +202,7 @@ public class GUIData {
 						GUIHistory.getInstance().updateRequestOne(id);
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -193,17 +211,22 @@ public class GUIData {
 		send_to_resender_button = new JButton("send to Resender");
 		send_to_resender_button.setAlignmentX(0.5f);
 		send_to_resender_button.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+
 					byte[] data = null;
 					int index = tabs.getSelectedIndex();
 					if (index == 0) {
+
 						data = tabs.getRaw().getData();
 					} else if (index == 1) {
+
 						data = tabs.getBinary().getData();
 					}
 					if (data != null) {
+
 						int id = GUIHistory.getInstance().getSelectedPacketId();
 						Packet packet = Packets.getInstance().query(id);
 						packet.setResend();
@@ -212,6 +235,7 @@ public class GUIData {
 						GUIHistory.getInstance().updateRequestOne(id);
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -220,22 +244,28 @@ public class GUIData {
 		stop_diff_button = new JButton("stop diff");
 		stop_diff_button.setAlignmentX(0.5f);
 		stop_diff_button.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					if (isDiff) {
+
 						Diff.getInstance().clearAsOriginal();
 						DiffBinary.getInstance().clearAsOriginal();
 						DiffJson.getInstance().clearAsOriginal();
 						if (isOrigColorExists) {
+
 							isOrigColorExists = false;
 							GUIHistory.getInstance().addCustomColoring(origIndex, new Color(0xb0, 0xb0, 0xb0)); // Gray
 						} else {
+
 							GUIHistory.getInstance().addCustomColoring(origIndex, Color.WHITE);
 						}
 						isDiff = false;
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -244,15 +274,18 @@ public class GUIData {
 		diff_button = new JButton("diff!!");
 		diff_button.setAlignmentX(0.5f);
 		diff_button.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					Diff.getInstance().markAsTarget(tabs.getRaw().getData());
 					DiffBinary.getInstance().markAsTarget(tabs.getBinary().getData());
 					DiffJson.getInstance().markAsTarget(tabs.getJson().getData());
 					GUIDiffDialogParent dlg = new GUIDiffDialogParent(owner);
 					dlg.showDialog();
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -261,17 +294,22 @@ public class GUIData {
 		diff_orig_button = new JButton("mark as orig");
 		diff_orig_button.setAlignmentX(0.5f);
 		diff_orig_button.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					if (isDiff) {
+
 						Diff.getInstance().clearAsOriginal();
 						DiffBinary.getInstance().clearAsOriginal();
 						DiffJson.getInstance().clearAsOriginal();
 						if (isOrigColorExists) {
+
 							isOrigColorExists = false;
 							GUIHistory.getInstance().addCustomColoring(origIndex, origColor);
 						} else {
+
 							GUIHistory.getInstance().addCustomColoring(origIndex, Color.WHITE);
 						}
 					}
@@ -280,6 +318,7 @@ public class GUIData {
 					DiffBinary.getInstance().markAsOriginal(tabs.getBinary().getData());
 					DiffJson.getInstance().markAsOriginal(tabs.getJson().getData());
 					if (GUIHistory.getInstance().containsColor()) {
+
 						origColor = GUIHistory.getInstance().getColor();
 						isOrigColorExists = true;
 					}
@@ -287,18 +326,22 @@ public class GUIData {
 					GUIHistory.getInstance().addCustomColoringToCursorPos(new Color(0xb0, 0xb0, 0xb0)); // Gray
 					PacketProxyUtility.getInstance().packetProxyLog("Diff: original text was saved!");
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
 		});
 
 		charSetCombo.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				charSetUtility.setCharSet((String) charSetCombo.getSelectedItem());
 				try {
+
 					GUIPacket.getInstance().update();
 				} catch (Exception e2) {
+
 					e2.printStackTrace();
 				}
 			}
@@ -306,6 +349,7 @@ public class GUIData {
 		charSetCombo.setMaximumSize(new Dimension(150, charSetCombo.getMaximumSize().height));
 
 		charSetCombo.addMouseListener(new MouseAdapter() {
+
 			@Override
 			public void mousePressed(MouseEvent e) {
 				super.mousePressed(e);
@@ -341,12 +385,15 @@ public class GUIData {
 	public void updateCharSetCombo() {
 		charSetCombo.removeAllItems();
 		for (String charSetName : charSetUtility.getAvailableCharSetList()) {
+
 			charSetCombo.addItem(charSetName);
 		}
 		String charSetName = CharSetUtility.getInstance().getCharSetForGUIComponent();
 		if (charSetUtility.getAvailableCharSetList().contains(charSetName)) {
+
 			charSetCombo.setSelectedItem(charSetName);
 		} else {
+
 			charSetCombo.setSelectedIndex(0);
 		}
 	}
@@ -361,13 +408,16 @@ public class GUIData {
 
 	public byte[] getData() {
 		if (tabs.getData() == null) {
-			return new byte[] {};
+
+			return new byte[]{};
 		}
 		try {
+
 			return tabs.getData();
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
-		return new byte[] {};
+		return new byte[]{};
 	}
 }
