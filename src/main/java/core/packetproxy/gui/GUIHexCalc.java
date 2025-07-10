@@ -22,21 +22,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
 import org.apache.commons.codec.binary.Hex;
-
 import packetproxy.common.Binary;
 import packetproxy.common.StringUtils;
 
-public class GUIHexCalc
-{
+public class GUIHexCalc {
+
 	private JTextField int_before;
 	private JTextField int_hex;
 	private JTextField str_before;
@@ -45,7 +42,7 @@ public class GUIHexCalc
 	private JComponent int_panel;
 	private JComponent str_panel;
 	private JComponent main_panel;
-	
+
 	public GUIHexCalc() {
 		createIntPanel();
 		createStrPanel();
@@ -64,6 +61,7 @@ public class GUIHexCalc
 	private void createIntPanel() {
 		int_before = new JTextField();
 		int_before.addKeyListener(new KeyAdapter() {
+
 			@Override
 			public void keyReleased(KeyEvent keyEvent) {
 				int_to_hex_translation();
@@ -71,11 +69,14 @@ public class GUIHexCalc
 		});
 		int_hex = new JTextField();
 		int_hex.addKeyListener(new KeyAdapter() {
+
 			@Override
 			public void keyReleased(KeyEvent keyEvent) {
 				try {
+
 					hex_to_int_translation();
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -83,6 +84,7 @@ public class GUIHexCalc
 		String[] combodata = {"Little Endian", "Big Endian"};
 		endian_box = new JComboBox<String>(combodata);
 		endian_box.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				int_to_hex_translation();
@@ -90,52 +92,56 @@ public class GUIHexCalc
 		});
 
 		int_panel = new JPanel();
-	    int_panel.setBackground(Color.WHITE);
-	    int_panel.setLayout(new BoxLayout(int_panel, BoxLayout.X_AXIS));
+		int_panel.setBackground(Color.WHITE);
+		int_panel.setLayout(new BoxLayout(int_panel, BoxLayout.X_AXIS));
 
-	    JLabel label = new JLabel("Integer <-> Hex");
-	    label.setHorizontalAlignment(JLabel.CENTER);
-	    label.setMaximumSize(new Dimension(100, label.getMaximumSize().height));
-	    int_panel.add(label);
-	    endian_box.setMaximumSize(new Dimension(100, label.getMaximumSize().height * 2));
-	    int_panel.add(endian_box);
-	    int_before.setMaximumSize(new Dimension(300, label.getMaximumSize().height * 2));
-	    int_panel.add(int_before);
-	    int_hex.setMaximumSize(new Dimension(400, label.getMaximumSize().height * 2));
-	    int_panel.add(int_hex);
-	    int_panel.setMaximumSize(new Dimension(Short.MAX_VALUE, label.getMaximumSize().height * 2));
+		JLabel label = new JLabel("Integer <-> Hex");
+		label.setHorizontalAlignment(JLabel.CENTER);
+		label.setMaximumSize(new Dimension(100, label.getMaximumSize().height));
+		int_panel.add(label);
+		endian_box.setMaximumSize(new Dimension(100, label.getMaximumSize().height * 2));
+		int_panel.add(endian_box);
+		int_before.setMaximumSize(new Dimension(300, label.getMaximumSize().height * 2));
+		int_panel.add(int_before);
+		int_hex.setMaximumSize(new Dimension(400, label.getMaximumSize().height * 2));
+		int_panel.add(int_hex);
+		int_panel.setMaximumSize(new Dimension(Short.MAX_VALUE, label.getMaximumSize().height * 2));
 	}
 
 	private void createStrPanel() {
 		str_before = new JTextField();
 		str_before.addKeyListener(new KeyAdapter() {
+
 			public void keyReleased(KeyEvent keyEvent) {
 				str_to_hex_translation();
 			}
 		});
 		str_hex = new JTextField();
 		str_hex.addKeyListener(new KeyAdapter() {
+
 			public void keyReleased(KeyEvent keyEvent) {
 				try {
+
 					hex_to_str_translation();
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
 		});
 
 		str_panel = new JPanel();
-	    str_panel.setBackground(Color.WHITE);
-	    str_panel.setLayout(new BoxLayout(str_panel, BoxLayout.X_AXIS));
-	    JLabel label = new JLabel("String <-> Hex");
-	    label.setHorizontalAlignment(JLabel.CENTER);
-	    label.setMaximumSize(new Dimension(100, label.getMaximumSize().height));
-	    str_panel.add(label);
-	    str_before.setMaximumSize(new Dimension(400, label.getMaximumSize().height * 2));
-	    str_panel.add(str_before);
-	    str_hex.setMaximumSize(new Dimension(400, label.getMaximumSize().height * 2));
-	    str_panel.setMaximumSize(new Dimension(Short.MAX_VALUE, label.getMaximumSize().height * 2));
-	    str_panel.add(str_hex);
+		str_panel.setBackground(Color.WHITE);
+		str_panel.setLayout(new BoxLayout(str_panel, BoxLayout.X_AXIS));
+		JLabel label = new JLabel("String <-> Hex");
+		label.setHorizontalAlignment(JLabel.CENTER);
+		label.setMaximumSize(new Dimension(100, label.getMaximumSize().height));
+		str_panel.add(label);
+		str_before.setMaximumSize(new Dimension(400, label.getMaximumSize().height * 2));
+		str_panel.add(str_before);
+		str_hex.setMaximumSize(new Dimension(400, label.getMaximumSize().height * 2));
+		str_panel.setMaximumSize(new Dimension(Short.MAX_VALUE, label.getMaximumSize().height * 2));
+		str_panel.add(str_hex);
 	}
 
 	private void str_to_hex_translation() {
@@ -144,6 +150,7 @@ public class GUIHexCalc
 
 	private void int_to_hex_translation() {
 		if (int_before.getText().isEmpty()) {
+
 			int_hex.setText("");
 			return;
 		}
@@ -154,22 +161,27 @@ public class GUIHexCalc
 
 	private void hex_to_int_translation() throws Exception {
 		if (int_hex.getText().isEmpty()) {
+
 			int_before.setText("");
 			return;
 		}
 		try {
+
 			Boolean endian = (endian_box.getSelectedItem().equals("Little Endian")) ? true : false;
 			Binary b = new Binary(new Binary.HexString(int_hex.getText()));
 			int_before.setText(Integer.toString(b.toInt(endian)));
 		} catch (IllegalArgumentException e) {
+
 			/* Ignore case */
 		}
 	}
-	
+
 	private void hex_to_str_translation() throws Exception {
 		try {
+
 			str_before.setText(new Binary(new Binary.HexString(str_hex.getText())).toAsciiString().toString());
 		} catch (IllegalArgumentException e) {
+
 			/* Ignore case */
 		}
 	}

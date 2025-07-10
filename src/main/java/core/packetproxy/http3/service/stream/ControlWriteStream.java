@@ -16,47 +16,51 @@
 
 package packetproxy.http3.service.stream;
 
+import java.io.ByteArrayOutputStream;
 import packetproxy.http3.value.Setting;
 import packetproxy.http3.value.frame.SettingsFrame;
 import packetproxy.quic.value.QuicMessage;
 import packetproxy.quic.value.QuicMessages;
 import packetproxy.quic.value.StreamId;
 
-import java.io.ByteArrayOutputStream;
-
 public class ControlWriteStream extends Stream implements WriteStream {
 
-    private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+	private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-    public ControlWriteStream(StreamId streamId) {
-        super(streamId, StreamType.ControlStreamType);
-        try {
-            buffer.write(new byte[]{ (byte) super.streamType.type });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+	public ControlWriteStream(StreamId streamId) {
+		super(streamId, StreamType.ControlStreamType);
+		try {
 
-    public synchronized void write(Setting setting) {
-        this.write(SettingsFrame.of(setting).getBytes());
-    }
+			buffer.write(new byte[]{(byte) super.streamType.type});
+		} catch (Exception e) {
 
-    @Override
-    public synchronized void write(byte[] data) {
-        try {
-            buffer.write(data);
-        } catch (Exception e) {
-            e.printStackTrace(); /* 致命的なエラー */
-        }
-    }
+			e.printStackTrace();
+		}
+	}
 
-    @Override
-    public synchronized QuicMessages readAllQuicMessages() {
-        QuicMessages msgs = QuicMessages.emptyList();
-        if (buffer.size() > 0) {
-            msgs.add(QuicMessage.of(super.streamId, buffer.toByteArray()));
-            buffer.reset();
-        }
-        return msgs;
-    }
+	public synchronized void write(Setting setting) {
+		this.write(SettingsFrame.of(setting).getBytes());
+	}
+
+	@Override
+	public synchronized void write(byte[] data) {
+		try {
+
+			buffer.write(data);
+		} catch (Exception e) {
+
+			e.printStackTrace(); /* 致命的なエラー */
+		}
+	}
+
+	@Override
+	public synchronized QuicMessages readAllQuicMessages() {
+		QuicMessages msgs = QuicMessages.emptyList();
+		if (buffer.size() > 0) {
+
+			msgs.add(QuicMessage.of(super.streamId, buffer.toByteArray()));
+			buffer.reset();
+		}
+		return msgs;
+	}
 }

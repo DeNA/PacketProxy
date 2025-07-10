@@ -21,7 +21,8 @@ import packetproxy.model.OneShotPacket;
 
 @Value
 public class VulCheckPattern {
-    String name;
-    OneShotPacket packet;
-    Range range;
+
+	String name;
+	OneShotPacket packet;
+	Range range;
 }

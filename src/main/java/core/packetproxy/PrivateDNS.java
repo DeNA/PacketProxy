@@ -27,18 +27,17 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.*;
-
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.commons.net.util.SubnetUtils.SubnetInfo;
 import org.xbill.DNS.*;
 import org.xbill.DNS.Record;
-
 import packetproxy.model.ConfigBoolean;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
 import packetproxy.util.PacketProxyUtility;
 
 public class PrivateDNS {
+
 	static int BUFSIZE = 1024;
 	static int PORT = 53;
 	static String dnsServer = "8.8.8.8";
@@ -51,6 +50,7 @@ public class PrivateDNS {
 	private SpoofAddrFactory spoofAddrFactry = new SpoofAddrFactory();
 
 	class SpoofAddrFactory {
+
 		private List<SubnetInfo> subnets = new ArrayList<SubnetInfo>();
 		private Map<Integer, Inet6Address> ifscopes = new HashMap<>();
 		private String defaultAddr = null;
@@ -59,9 +59,12 @@ public class PrivateDNS {
 		SpoofAddrFactory() throws Exception {
 			Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
 			for (NetworkInterface netint : Collections.list(nets)) {
+
 				for (InterfaceAddress intAddress : netint.getInterfaceAddresses()) {
+
 					InetAddress addr = intAddress.getAddress();
 					if (addr instanceof Inet4Address) {
+
 						short length = intAddress.getNetworkPrefixLength();
 						if (length < 0)
 							continue;
@@ -69,16 +72,22 @@ public class PrivateDNS {
 						SubnetUtils subnet = new SubnetUtils(cidr);
 						subnets.add(subnet.getInfo());
 						if (defaultAddr == null) {
+
 							defaultAddr = addr.getHostAddress();
 						} else if (defaultAddr.equals("127.0.0.1")) {
+
 							defaultAddr = addr.getHostAddress();
 						}
 					} else {
+
 						if (!addr.isMulticastAddress() && !addr.isLinkLocalAddress() && !addr.isSiteLocalAddress()) {
+
 							ifscopes.put(((Inet6Address) addr).getScopeId(), (Inet6Address) addr);
 							if (defaultAddr6 == null) {
+
 								defaultAddr6 = (Inet6Address) addr;
 							} else if (defaultAddr6.isLoopbackAddress()) {
+
 								defaultAddr6 = (Inet6Address) addr;
 							}
 						}
@@ -90,19 +99,26 @@ public class PrivateDNS {
 		Map<Integer, String> getSpoofAddr(InetAddress addr) {
 			Map<Integer, String> spoofAddrs = new HashMap<>();
 			if (addr instanceof Inet4Address) {
+
 				for (SubnetInfo subnet : subnets) {
+
 					if (subnet.isInRange(addr.getHostAddress())) {
+
 						spoofAddrs.put(4, subnet.getAddress());
 					}
 				}
 				if (spoofAddrs.get(4) == null) {
+
 					spoofAddrs.put(4, defaultAddr);
 				}
 				spoofAddrs.put(6, defaultAddr6.getHostAddress());
 			} else {
+
 				if (ifscopes.containsKey(((Inet6Address) addr).getScopeId())) {
+
 					spoofAddrs.put(6, ifscopes.get(((Inet6Address) addr).getScopeId()).getHostAddress());
 				} else {
+
 					spoofAddrs.put(6, defaultAddr6.getHostAddress());
 				}
 				spoofAddrs.put(4, defaultAddr);
@@ -113,6 +129,7 @@ public class PrivateDNS {
 
 	public static PrivateDNS getInstance() throws Exception {
 		if (instance == null) {
+
 			instance = new PrivateDNS();
 		}
 		return instance;
@@ -132,16 +149,21 @@ public class PrivateDNS {
 
 	public void start(DNSSpoofingIPGetter dnsSpoofingIPGetter) {
 		synchronized (lock) {
+
 			if (dns == null) {
+
 				try {
+
 					dns = new PrivateDNSImp(dnsSpoofingIPGetter);
 					if (dns.isRunning()) {
+
 						dns.start();
 						state.setState(true);
 					} else {
 
 					}
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
@@ -150,12 +172,16 @@ public class PrivateDNS {
 
 	public void stop() {
 		synchronized (lock) {
+
 			if (dns != null) {
+
 				dns.finish();
 				dns = null;
 				try {
+
 					state.setState(false);
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
@@ -164,6 +190,7 @@ public class PrivateDNS {
 
 	@SuppressWarnings("unused")
 	private class PrivateDNSImp extends Thread {
+
 		private DNSSpoofingIPGetter spoofingIp;
 
 		private InetAddress cAddr;
@@ -179,11 +206,13 @@ public class PrivateDNS {
 
 		public PrivateDNSImp(DNSSpoofingIPGetter dnsSpoofingIPGetter) throws Exception {
 			try {
+
 				this.spoofingIp = dnsSpoofingIPGetter;
 				soc = new DatagramSocket(PORT, InetAddress.getByName(spoofingIp.getInt()));
 				recvPacket = new DatagramPacket(buf, BUFSIZE);
 				sendPacket = null;
 			} catch (BindException e) {
+
 				util.packetProxyLogErr("cannot boot private DNS server (permission issue or already listened)");
 				return;
 			}
@@ -200,6 +229,7 @@ public class PrivateDNS {
 
 		public void finish() {
 			if (isRunning()) {
+
 				s_soc.close();
 				soc.close();
 				s_soc = null;
@@ -210,7 +240,9 @@ public class PrivateDNS {
 		public void run() {
 			util.packetProxyLog("Private DNS Server started.");
 			while (true) {
+
 				try {
+
 					soc.receive(recvPacket);
 					cAddr = recvPacket.getAddress();
 					cPort = recvPacket.getPort();
@@ -224,11 +256,12 @@ public class PrivateDNS {
 					// ((Inet6Address)cAddr).getScopeId()));
 					// }
 					if (spoofingIp.isAuto()) {
+
 						spoofingIpStrs = spoofAddrFactry.getSpoofAddr(cAddr);
 						spoofingIpStr = spoofingIpStrs.get(4);
-						spoofingIp6Str = spoofingIpStrs.get(6);
-						;
+						spoofingIp6Str = spoofingIpStrs.get(6);;
 					} else {
+
 						spoofingIpStr = spoofingIp.get();
 						spoofingIp6Str = spoofingIp.get6();
 					}
@@ -249,20 +282,27 @@ public class PrivateDNS {
 					byte[] res = null;
 
 					try {
+
 						if (queryRecType == Type.A) {
+
 							addr = PrivateDNSClient.getByName(queryHostName);
 							if (addr instanceof Inet6Address) {
+
 								throw new UnknownHostException();
 							}
 						} else if (queryRecType == Type.AAAA) {
+
 							addr = PrivateDNSClient.getByName6(queryHostName);
 							if (addr == null) {
+
 								throw new UnknownHostException();
 							}
 						} else if (queryRecType == Type.HTTPS) {
+
 							util.packetProxyLog("[DNS Query] '%s' [HTTPS]", queryHostName);
 							jnamed jn;
 							if (isTargetHost(queryHostName)) {
+
 								Name label = Name.fromString(queryHostName + ".");
 								Name svcDomain = Name.fromString(".");
 								HTTPSRecord.ParameterAlpn alpn = new HTTPSRecord.ParameterAlpn();
@@ -272,6 +312,7 @@ public class PrivateDNS {
 								jn = new jnamed(record);
 								util.packetProxyLog("Force to access '%s' with HTTP3", queryHostName);
 							} else {
+
 								Record[] records = PrivateDNSClient.getHTTPSRecord(queryHostName);
 								jn = new jnamed(records);
 							}
@@ -280,6 +321,7 @@ public class PrivateDNS {
 							soc.send(sendPacket);
 							continue;
 						} else {
+
 							util.packetProxyLog("[DNS Query] Unsupported Query Type: '%s' [%s]", queryHostName,
 									queryRecTypeName);
 							throw new UnsupportedOperationException();
@@ -291,14 +333,18 @@ public class PrivateDNS {
 						// util.packetProxyLog(String.format("[DNS Response Address] '%s'", ip));
 
 						if (isTargetHost(queryHostName)) {
+
 							if (queryRecType == Type.A) {
+
 								// ToDo GUIにIPv4有効チェックを追加し、無効のときはスキップするようにする。
 								ip = spoofingIpStr;
 								util.packetProxyLog("Replaced to " + ip);
 							}
 						}
 						if (isTargetHost6(queryHostName)) {
+
 							if (queryRecType == Type.AAAA) {
+
 								// ToDo GUIにIPv6有効チェックを追加し、無効のときはスキップするようにする。
 								ip = spoofingIp6Str;
 								util.packetProxyLog("Replaced to " + ip);
@@ -308,16 +354,19 @@ public class PrivateDNS {
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 
 					} catch (UnknownHostException e) {
+
 						util.packetProxyLogErr("[DNS Query] Unknown Host: '%s' [%s]", queryHostName, queryRecTypeName);
 						jnamed jn = new jnamed();
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 
 					} catch (UnsupportedOperationException e) {
+
 						// Not implemented yet
 						jnamed jn = new jnamed();
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 
 					} catch (Exception e) {
+
 						util.packetProxyLogErr("[DNS Query] Unknown Error: '%s' [%s]", queryHostName, queryRecTypeName);
 						jnamed jn = new jnamed();
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
@@ -326,12 +375,15 @@ public class PrivateDNS {
 					sendPacket = new DatagramPacket(res, res.length, cAddr, cPort);
 					soc.send(sendPacket);
 				} catch (SocketException e) {
+
 					e.printStackTrace();
 					finish();
 					return;
 				} catch (IOException e) {
+
 					e.printStackTrace();
 				} catch (Exception e) {
+
 					e.printStackTrace();
 					finish();
 					return;
@@ -342,7 +394,9 @@ public class PrivateDNS {
 		private boolean isTargetHost(String hostName) throws Exception {
 			List<Server> server_list = servers.queryResolvedByDNS();
 			for (Server server : server_list) {
+
 				if (hostName.equals(server.getIp())) {
+
 					return true;
 				}
 			}
@@ -352,7 +406,9 @@ public class PrivateDNS {
 		private boolean isTargetHost6(String hostName) throws Exception {
 			List<Server> server_list = servers.queryResolvedByDNS6();
 			for (Server server : server_list) {
+
 				if (hostName.equals(server.getIp())) {
+
 					return true;
 				}
 			}

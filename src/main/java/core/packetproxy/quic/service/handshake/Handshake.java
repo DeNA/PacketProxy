@@ -20,6 +20,6 @@ import net.luminis.tls.Message;
 
 public interface Handshake {
 
-    void received(Message message) throws Exception;
+	void received(Message message) throws Exception;
 
 }

@@ -16,72 +16,74 @@
 
 package packetproxy.http3.value.frame;
 
-import lombok.ToString;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import lombok.ToString;
 
 @ToString
 public class Frames {
 
-    static public Frames emptyList() {
-        return new Frames();
-    }
-    static public Frames of(Frame frame) {
-        return new Frames(List.of(frame));
-    }
-    static public Frames of(Frame frame1, Frame frame2) {
-        return new Frames(List.of(frame1, frame2));
-    }
-    static public Frames of(Frame frame1, Frame frame2, Frame frame3) {
-        return new Frames(List.of(frame1, frame2, frame3));
-    }
+	public static Frames emptyList() {
+		return new Frames();
+	}
 
-    private final ArrayList<Frame> frames = new ArrayList<>();
+	public static Frames of(Frame frame) {
+		return new Frames(List.of(frame));
+	}
 
-    private Frames() {
-    }
+	public static Frames of(Frame frame1, Frame frame2) {
+		return new Frames(List.of(frame1, frame2));
+	}
 
-    private Frames(List<Frame> frames) {
-        this.frames.addAll(frames);
-    }
+	public static Frames of(Frame frame1, Frame frame2, Frame frame3) {
+		return new Frames(List.of(frame1, frame2, frame3));
+	}
 
-    public void clear() {
-        this.frames.clear();
-    }
+	private final ArrayList<Frame> frames = new ArrayList<>();
 
-    public boolean add(Frame frame) {
-        return this.frames.add(frame);
-    }
+	private Frames() {
+	}
 
-    public boolean addAll(Frames frames) {
-        return this.frames.addAll(frames.frames);
-    }
+	private Frames(List<Frame> frames) {
+		this.frames.addAll(frames);
+	}
 
-    public Frame get(int index) {
-        return this.frames.get(index);
-    }
+	public void clear() {
+		this.frames.clear();
+	}
 
-    public int size() {
-        return this.frames.size();
-    }
+	public boolean add(Frame frame) {
+		return this.frames.add(frame);
+	}
 
-    public boolean isEmpty() {
-        return this.frames.isEmpty();
-    }
+	public boolean addAll(Frames frames) {
+		return this.frames.addAll(frames.frames);
+	}
 
-    public void forEach(Consumer<Frame> action) {
-        this.frames.forEach(action);
-    }
+	public Frame get(int index) {
+		return this.frames.get(index);
+	}
 
-    public boolean anyMatch(Predicate<Frame> pred) {
-        return this.frames.stream().anyMatch(pred);
-    }
+	public int size() {
+		return this.frames.size();
+	}
 
-    public List<Frame> toList() {
-        return (ArrayList<Frame>) this.frames.clone();
-    }
+	public boolean isEmpty() {
+		return this.frames.isEmpty();
+	}
+
+	public void forEach(Consumer<Frame> action) {
+		this.frames.forEach(action);
+	}
+
+	public boolean anyMatch(Predicate<Frame> pred) {
+		return this.frames.stream().anyMatch(pred);
+	}
+
+	public List<Frame> toList() {
+		return (ArrayList<Frame>) this.frames.clone();
+	}
 
 }

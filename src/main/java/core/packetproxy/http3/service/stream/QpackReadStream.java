@@ -16,48 +16,52 @@
 
 package packetproxy.http3.service.stream;
 
+import static packetproxy.util.Throwing.rethrow;
+
+import java.io.ByteArrayOutputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.http3.value.frame.Frames;
 import packetproxy.http3.value.frame.RawFrame;
 import packetproxy.quic.value.QuicMessage;
 import packetproxy.quic.value.StreamId;
 
-import java.io.ByteArrayOutputStream;
-
-import static packetproxy.util.Throwing.rethrow;
-
 public class QpackReadStream extends Stream implements ReadStream {
 
-    private boolean hasWrite = false;
-    private final Frames frames = Frames.emptyList();
+	private boolean hasWrite = false;
+	private final Frames frames = Frames.emptyList();
 
-    public QpackReadStream(StreamId streamId, StreamType streamType) {
-        super(streamId, streamType);
-    }
+	public QpackReadStream(StreamId streamId, StreamType streamType) {
+		super(streamId, streamType);
+	}
 
-    @Override
-    public synchronized void write(QuicMessage msg) throws Exception {
-        byte[] targetData = msg.getData();
-        if (!this.hasWrite) {
-            if (!super.streamTypeEquals(targetData[0])) {
-                throw new Exception(String.format("QpackStream.java: Error: Not start with %x. (actual: %x)", super.streamType.type, targetData[0]));
-            }
-            targetData = ArrayUtils.subarray(targetData, 1, targetData.length);
-            this.hasWrite = true;
-        }
-        if (targetData.length > 0) {
-            this.frames.add(RawFrame.of(targetData));
-        }
-    }
+	@Override
+	public synchronized void write(QuicMessage msg) throws Exception {
+		byte[] targetData = msg.getData();
+		if (!this.hasWrite) {
 
-    @Override
-    public synchronized byte[] readAllBytes() {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        this.frames.forEach(rethrow(frame -> {
-            bytes.write(frame.getBytes());
-        }));
-        this.frames.clear();
-        return bytes.toByteArray();
-    }
+			if (!super.streamTypeEquals(targetData[0])) {
+
+				throw new Exception(String.format("QpackStream.java: Error: Not start with %x. (actual: %x)",
+						super.streamType.type, targetData[0]));
+			}
+			targetData = ArrayUtils.subarray(targetData, 1, targetData.length);
+			this.hasWrite = true;
+		}
+		if (targetData.length > 0) {
+
+			this.frames.add(RawFrame.of(targetData));
+		}
+	}
+
+	@Override
+	public synchronized byte[] readAllBytes() {
+		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+		this.frames.forEach(rethrow(frame -> {
+
+			bytes.write(frame.getBytes());
+		}));
+		this.frames.clear();
+		return bytes.toByteArray();
+	}
 
 }

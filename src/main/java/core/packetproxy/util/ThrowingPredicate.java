@@ -5,15 +5,17 @@ import java.util.function.Predicate;
 @FunctionalInterface
 public interface ThrowingPredicate<T> extends Predicate<T> {
 
-    @Override
-    default boolean test(final T e) {
-        try {
-            return test0(e);
-        } catch (Throwable ex) {
-            Throwing.sneakyThrow(ex);
-        }
-        return true;
-    }
+	@Override
+	default boolean test(final T e) {
+		try {
 
-    boolean test0(T e) throws Throwable;
+			return test0(e);
+		} catch (Throwable ex) {
+
+			Throwing.sneakyThrow(ex);
+		}
+		return true;
+	}
+
+	boolean test0(T e) throws Throwable;
 }

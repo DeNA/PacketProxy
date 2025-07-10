@@ -23,6 +23,7 @@ import packetproxy.quic.value.ConnectionIdPair;
 import packetproxy.util.PacketProxyUtility;
 
 public class ProxyQuicForward extends Proxy {
+
 	private ListenPort listen_info;
 	private ClientConnections clientConnections;
 
@@ -34,27 +35,26 @@ public class ProxyQuicForward extends Proxy {
 	@Override
 	public void run() {
 		try {
+
 			while (true) {
+
 				ClientConnection clientConnection = this.clientConnections.accept();
 				PacketProxyUtility.getInstance().packetProxyLog("accept");
 
 				String serverName = this.listen_info.getServer().getIp();
 				PacketProxyUtility.getInstance().packetProxyLog("[QUIC-forward!] %s", serverName);
 
-				ServerConnection serverConnection = new ServerConnection(
-						ConnectionIdPair.generateRandom(),
-						serverName,
+				ServerConnection serverConnection = new ServerConnection(ConnectionIdPair.generateRandom(), serverName,
 						this.listen_info.getPort());
 
-				DuplexAsync duplex = DuplexFactory.createDuplexAsync(
-						clientConnection,
-						serverConnection,
+				DuplexAsync duplex = DuplexFactory.createDuplexAsync(clientConnection, serverConnection,
 						this.listen_info.getServer().getEncoder());
 
 				duplex.start();
 				DuplexManager.getInstance().registerDuplex(duplex);
 			}
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}

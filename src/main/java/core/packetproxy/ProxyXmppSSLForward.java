@@ -15,22 +15,22 @@
  */
 package packetproxy;
 
+import static packetproxy.http.Https.createSSLContext;
+import static packetproxy.http.Https.createSSLSocketFactory;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import javax.net.ssl.SSLSocket;
 import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.common.Endpoint;
 import packetproxy.common.SocketEndpoint;
 import packetproxy.model.ListenPort;
 import packetproxy.util.PacketProxyUtility;
 
-import javax.net.ssl.SSLSocket;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-
-import static packetproxy.http.Https.createSSLContext;
-import static packetproxy.http.Https.createSSLSocketFactory;
-
 public class ProxyXmppSSLForward extends Proxy {
+
 	private ListenPort listen_info;
 	private ServerSocket listen_socket;
 	private boolean finishFlag = false;
@@ -43,7 +43,9 @@ public class ProxyXmppSSLForward extends Proxy {
 	@Override
 	public void run() {
 		while (!listen_socket.isClosed()) {
+
 			try {
+
 				Socket client = listen_socket.accept();
 				PacketProxyUtility.getInstance().packetProxyLog("accept");
 
@@ -60,6 +62,7 @@ public class ProxyXmppSSLForward extends Proxy {
 				createConnection(new SocketEndpoint(clientSSLSocket), new SocketEndpoint(serverSSLSocket));
 
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		}
@@ -72,14 +75,19 @@ public class ProxyXmppSSLForward extends Proxy {
 		OutputStream sO = server.getOutputStream();
 
 		Thread clientT = new Thread(() -> {
+
 			try {
+
 				byte[] buff = new byte[4096];
 				do {
+
 					if (finishFlag)
 						return;
 					if (cI.available() > 0) {
+
 						int len = cI.read(buff, 0, buff.length);
 						if (len < 0) {
+
 							System.err.println("ERROR: xmpp client socket closed");
 							return;
 						}
@@ -90,27 +98,35 @@ public class ProxyXmppSSLForward extends Proxy {
 					sleep(1000); // wait 1s
 				} while (true);
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		});
 
 		Thread serverT = new Thread(() -> {
+
 			try {
+
 				byte[] buff = new byte[4096];
 				do {
+
 					if (finishFlag)
 						return;
 					if (sI.available() > 0) {
+
 						int len2 = sI.read(buff, 0, buff.length);
 						if (len2 < 0) {
+
 							System.err.println("ERROR: xmpp server socket closed");
 							return;
 						}
 						String body = new String(ArrayUtils.subarray(buff, 0, len2));
 						// System.out.println("<--" + body);
 						if (body.contains("proceed")) {
+
 							finishFlag = true;
 							while (clientT.isAlive()) {
+
 								sleep(1000);
 							}
 						}
@@ -118,6 +134,7 @@ public class ProxyXmppSSLForward extends Proxy {
 					}
 				} while (true);
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		});

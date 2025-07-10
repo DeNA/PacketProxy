@@ -17,47 +17,51 @@ package packetproxy.gui;
 
 import javax.swing.*;
 
-public class Splash{
+public class Splash {
 
-    private JWindow mSplashScreen;
+	private JWindow mSplashScreen;
 
-    public Splash(){
-        createSplash();
-    }
+	public Splash() {
+		createSplash();
+	}
 
-    private void runAsync(final Runnable runnable){
-        if(SwingUtilities.isEventDispatchThread()){
-            runnable.run();
-        }else {
-            SwingUtilities.invokeLater(runnable);
-        }
-    }
+	private void runAsync(final Runnable runnable) {
+		if (SwingUtilities.isEventDispatchThread()) {
 
-    private void createSplash(){
-        ImageIcon img = new ImageIcon(getClass().getResource("/gui/splash.png"));
-        JLabel splashLabel   = new JLabel(img);
-        mSplashScreen  = new JWindow(new JFrame());
-        mSplashScreen.getContentPane().add(splashLabel);
-        mSplashScreen.pack();
-        mSplashScreen.setLocationRelativeTo(null);
-    }
+			runnable.run();
+		} else {
 
-    public void show(){
-        runAsync(new Runnable() {
-            @Override
-            public void run() {
-                mSplashScreen.setVisible(true);
-            }
-        });
-    }
+			SwingUtilities.invokeLater(runnable);
+		}
+	}
 
-    public void close(){
-        runAsync(new Runnable() {
-            @Override
-            public void run() {
-                mSplashScreen.setVisible(false);
-                mSplashScreen = null;
-            }
-        });
-    }
+	private void createSplash() {
+		ImageIcon img = new ImageIcon(getClass().getResource("/gui/splash.png"));
+		JLabel splashLabel = new JLabel(img);
+		mSplashScreen = new JWindow(new JFrame());
+		mSplashScreen.getContentPane().add(splashLabel);
+		mSplashScreen.pack();
+		mSplashScreen.setLocationRelativeTo(null);
+	}
+
+	public void show() {
+		runAsync(new Runnable() {
+
+			@Override
+			public void run() {
+				mSplashScreen.setVisible(true);
+			}
+		});
+	}
+
+	public void close() {
+		runAsync(new Runnable() {
+
+			@Override
+			public void run() {
+				mSplashScreen.setVisible(false);
+				mSplashScreen = null;
+			}
+		});
+	}
 }

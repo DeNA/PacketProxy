@@ -19,7 +19,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-
 import packetproxy.Simplex.SimplexEventAdapter;
 import packetproxy.common.Endpoint;
 import packetproxy.common.EndpointFactory;
@@ -34,6 +33,7 @@ import packetproxy.model.Servers;
 import packetproxy.util.PacketProxyUtility;
 
 public class ProxyHttp extends Proxy {
+
 	private ListenPort listen_info;
 	private ServerSocket listen_socket;
 
@@ -46,7 +46,9 @@ public class ProxyHttp extends Proxy {
 	public void run() {
 		List<Socket> clients = new ArrayList<Socket>();
 		while (!listen_socket.isClosed()) {
+
 			try {
+
 				PacketProxyUtility util = PacketProxyUtility.getInstance();
 				final Socket client = listen_socket.accept();
 				clients.add(client);
@@ -55,6 +57,7 @@ public class ProxyHttp extends Proxy {
 				final Simplex client_loopback = new Simplex(client.getInputStream(), client.getOutputStream());
 
 				client_loopback.addSimplexEventListener(new SimplexEventAdapter() {
+
 					@Override
 					public int onPacketReceived(byte[] data) throws Exception {
 						return Http.parseHttpDelimiter(data);
@@ -62,7 +65,7 @@ public class ProxyHttp extends Proxy {
 
 					@Override
 					public byte[] onChunkReceived(byte[] data) throws Exception {
-						byte[] result = new byte[] {};
+						byte[] result = new byte[]{};
 						synchronized (client_loopback) {
 
 							Http http = Http.create(data);
@@ -78,26 +81,31 @@ public class ProxyHttp extends Proxy {
 
 								String serverName = http.getServerName();
 								if (serverName.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")) {
+
 									serverName = Https.getCommonName(http.getServerAddr());
 									util.packetProxyLog("Overwrite CN: %s --> %s", http.getServerName(), serverName);
 								}
 
 								if (SSLPassThroughs.getInstance().includes(serverName, listen_info.getPort())) {
+
 									SocketEndpoint server_e = new SocketEndpoint(http.getServerAddr());
 									SocketEndpoint client_e = new SocketEndpoint(client);
 									DuplexAsync d = new DuplexAsync(client_e, server_e);
 									d.start();
 
 								} else {
+
 									SSLSocketEndpoint clientE;
 									SSLSocketEndpoint serverE;
 									if (listen_info.getServer() != null) { // upstream proxyに接続する時
+
 										SSLSocketEndpoint[] es = EndpointFactory.createBothSideSSLEndpoints(client,
 												null, http.getServerAddr(), listen_info.getServer().getAddress(),
 												http.getServerName(), listen_info.getCA().get());
 										clientE = es[0];
 										serverE = es[1];
 									} else { // 直接サーバに接続する時
+
 										SSLSocketEndpoint[] es = EndpointFactory.createBothSideSSLEndpoints(client,
 												null, http.getServerAddr(), null, http.getServerName(),
 												listen_info.getCA().get());
@@ -106,6 +114,7 @@ public class ProxyHttp extends Proxy {
 									}
 									String ALPN = clientE.getApplicationProtocol();
 									if (ALPN == null || ALPN.length() == 0) {
+
 										/* The client does not support ALPN. It seems to be an old HTTP client */
 										ALPN = "http/1.1";
 									}
@@ -125,19 +134,24 @@ public class ProxyHttp extends Proxy {
 								Endpoint server_e = null;
 
 								if (next != null) { // connect to upstream proxy
+
 									server_e = new SocketEndpoint(next.getAddress());
 								} else {
+
 									http.disableProxyFormatUrl(); // direct connect!
 									Server s = Servers.getInstance().queryByAddress(http.getServerAddr());
 									if (s != null) {
+
 										server_e = EndpointFactory.createFromServer(s);
 									} else {
+
 										server_e = new SocketEndpoint(http.getServerAddr());
 									}
 								}
 
 								boolean flag_keepalive = false;
 								if (http.getHeader().getAll("Connection").contains("keep-alive")) {
+
 									flag_keepalive = true;
 								}
 								http.getHeader().update("Connection", "close");
@@ -147,9 +161,11 @@ public class ProxyHttp extends Proxy {
 
 								if (response.getHeader().getAll("Connection").contains("keep-alive")
 										&& flag_keepalive == true) {
+
 									response.getHeader().update("Connection", "keep-alive");
 									response.getHeader().update("Proxy-Connection", "keep-alive");
 								} else {
+
 									response.getHeader().update("Connection", "close");
 									response.getHeader().update("Proxy-Connection", "close");
 									client_loopback.close();
@@ -162,13 +178,17 @@ public class ProxyHttp extends Proxy {
 				});
 				client_loopback.start();
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		}
 		for (Socket sc : clients) {
+
 			try {
+
 				sc.close();
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		}
@@ -180,7 +200,8 @@ public class ProxyHttp extends Proxy {
 
 	private byte[] createConnection(Endpoint client, Endpoint server, byte[] input_data) throws Exception {
 		Server s = Servers.getInstance().queryByAddress(server.getAddress());
-		DuplexSync duplex = (s != null) ? DuplexFactory.createDuplexSync(client, server, s.getEncoder(), "http/1.1")
+		DuplexSync duplex = (s != null)
+				? DuplexFactory.createDuplexSync(client, server, s.getEncoder(), "http/1.1")
 				: DuplexFactory.createDuplexSync(client, server, "HTTP", "http/1.1");
 		duplex.send(input_data);
 		byte[] output_data = duplex.receive();

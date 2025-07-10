@@ -24,33 +24,33 @@ public class EncodeMsgPack extends EncodeHTTPBase {
 		super(ALPN);
 	}
 
-    @Override
-    public String getName() {
-        return "MessagePack over HTTP";
-    }
+	@Override
+	public String getName() {
+		return "MessagePack over HTTP";
+	}
 
-    @Override
-    protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
-        inputHttp.setBody(MessagePack.decode(inputHttp.getBody()).getBytes());
-        return inputHttp;
-    }
+	@Override
+	protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
+		inputHttp.setBody(MessagePack.decode(inputHttp.getBody()).getBytes());
+		return inputHttp;
+	}
 
-    @Override
-    protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
-        inputHttp.setBody(MessagePack.encode(new String(inputHttp.getBody())));
-        return inputHttp;
-    }
+	@Override
+	protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
+		inputHttp.setBody(MessagePack.encode(new String(inputHttp.getBody())));
+		return inputHttp;
+	}
 
-    @Override
-    protected Http decodeServerResponseHttp(Http inputHttp) throws Exception {
-        inputHttp.setBody(MessagePack.decode(inputHttp.getBody()).getBytes());
-        return inputHttp;
-    }
+	@Override
+	protected Http decodeServerResponseHttp(Http inputHttp) throws Exception {
+		inputHttp.setBody(MessagePack.decode(inputHttp.getBody()).getBytes());
+		return inputHttp;
+	}
 
-    @Override
-    protected Http encodeServerResponseHttp(Http inputHttp) throws Exception {
-        inputHttp.setBody(MessagePack.encode(new String(inputHttp.getBody())));
-        return inputHttp;
-    }
+	@Override
+	protected Http encodeServerResponseHttp(Http inputHttp) throws Exception {
+		inputHttp.setBody(MessagePack.encode(new String(inputHttp.getBody())));
+		return inputHttp;
+	}
 
 }

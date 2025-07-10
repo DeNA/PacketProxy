@@ -5,13 +5,13 @@
 # PacketProxyとは？
 
 PacketProxyは、HTTP1/HTTP2/HTTPS通信だけでなく、より低レイヤーのTCP/UDPを利用したバイナリ通信にも対応した、オープンソースのローカルプロキシツールです。
-  
+
 個人や社内の内部アプリケーションの開発補助や脆弱性診断での利用を目的にしています。
- 
+
 # スクリーンショット
 
 ![ScreenShot](./assets/images/screenshot.gif)
- 
+
 # 特徴
 
 - **ローカルプロキシツールとしての主要な機能が備わっています**
@@ -31,7 +31,7 @@ PacketProxyは、HTTP1/HTTP2/HTTPS通信だけでなく、より低レイヤー�
   - Windows、macOS、Linuxに対応
 
 # インストール
-  
+
 [ダウンロードページ](https://github.com/DeNA/PacketProxy/releases)より、各OS用のイメージをダウンロードしてインストールしてください。
 
 あるいは、
@@ -42,13 +42,13 @@ MacOSでHomebrewを利用しているなら `$ brew install packetproxy` コマ�
 # 使ってみる
 
 [利用者のページ](https://github.com/DeNA/PacketProxy/wiki/%E4%BD%BF%E3%81%A3%E3%81%A6%E3%81%BF%E3%82%8B)をみてください。
- 
+
 # 開発する
 
 新しいプロトコル（例：特定ゲームの独自通信プロトコル等）への拡張を開発したい場合や、PacketProxyの本体を開発したい場合は
 [開発者のページ](https://github.com/DeNA/PacketProxy/wiki/%E9%96%8B%E7%99%BA%E3%81%99%E3%82%8B)
 をみてください。
- 
+
 # ライセンス
 
 Apache License 2.0

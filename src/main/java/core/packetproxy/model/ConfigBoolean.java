@@ -16,6 +16,7 @@
 package packetproxy.model;
 
 public class ConfigBoolean {
+
 	private String key;
 	private Configs configs;
 	private Config config;
@@ -25,6 +26,7 @@ public class ConfigBoolean {
 		configs = Configs.getInstance();
 		config = configs.query(key);
 		if (config == null) {
+
 			configs.create(new Config(key, "false"));
 		}
 	}

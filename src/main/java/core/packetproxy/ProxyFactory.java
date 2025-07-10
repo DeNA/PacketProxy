@@ -15,51 +15,59 @@
  */
 package packetproxy;
 
+import java.net.ServerSocket;
 import packetproxy.common.I18nString;
 import packetproxy.model.ListenPort;
 import packetproxy.util.PacketProxyUtility;
-
-import java.net.ServerSocket;
 
 public class ProxyFactory {
 
 	public static Proxy create(ListenPort listen_info) throws Exception {
 		Proxy proxy = null;
 		if (listen_info.getType() == ListenPort.TYPE.HTTP_PROXY) {
+
 			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
 			proxy = new ProxyHttp(listen_socket, listen_info);
 
 		} else if (listen_info.getType() == ListenPort.TYPE.SSL_FORWARDER) {
+
 			PacketProxyUtility.getInstance().packetProxyLog("type is SSL_FORWARDER");
 			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
 			proxy = new ProxySSLForward(listen_socket, listen_info);
 
 		} else if (listen_info.getType() == ListenPort.TYPE.HTTP_TRANSPARENT_PROXY) {
+
 			PacketProxyUtility.getInstance().packetProxyLog("type is HTTP_TRANSPARENT_PROXY");
 			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
 			proxy = new ProxyHttpTransparent(listen_socket, listen_info);
 
 		} else if (listen_info.getType() == ListenPort.TYPE.SSL_TRANSPARENT_PROXY) {
+
 			PacketProxyUtility.getInstance().packetProxyLog("type is SSL_TRANSPARENT_PROXY");
 			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
 			proxy = new ProxySSLTransparent(listen_socket, listen_info);
 
 		} else if (listen_info.getType() == ListenPort.TYPE.UDP_FORWARDER) {
+
 			proxy = new ProxyUDPForward(listen_info);
 
 		} else if (listen_info.getType() == ListenPort.TYPE.QUIC_FORWARDER) {
+
 			proxy = new ProxyQuicForward(listen_info);
 
 		} else if (listen_info.getType() == ListenPort.TYPE.QUIC_TRANSPARENT_PROXY) {
+
 			proxy = new ProxyQuicTransparent(listen_info);
 
 		} else if (listen_info.getType() == ListenPort.TYPE.XMPP_SSL_FORWARDER) {
+
 			PacketProxyUtility.getInstance().packetProxyLog("type is XMPP_SSL_FORWARDER");
 			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
 			listen_socket.setReuseAddress(true);
 			proxy = new ProxyXmppSSLForward(listen_socket, listen_info);
 
 		} else { /* FORWARDER */
+
 			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
 			listen_socket.setReuseAddress(true);
 			proxy = new ProxyForward(listen_socket, listen_info);

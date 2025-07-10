@@ -19,34 +19,35 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-
 import packetproxy.common.FontManager;
 import packetproxy.common.Range;
 
 @SuppressWarnings("serial")
-public class SearchBox extends JPanel
-{
+public class SearchBox extends JPanel {
+
 	private JTextPane baseText;
 	private Range emphasisArea = null;
 	private JTextField search_text;
 
-	public void setBaseText (JTextPane textPane) {
+	public void setBaseText(JTextPane textPane) {
 		this.baseText = textPane;
 		this.emphasisArea = null;
 	}
+
 	public void setBaseText(JTextPane textPane, Range emphasisArea) {
 		this.baseText = textPane;
 		this.emphasisArea = emphasisArea;
 	}
+
 	public void setText(String text) {
 		search_text.setText(text);
 	}
+
 	public String getText() {
 		return search_text.getText();
 	}
@@ -57,24 +58,29 @@ public class SearchBox extends JPanel
 		search_text = new JTextField();
 		search_text.setFont(FontManager.getInstance().getFont());
 		search_text.addKeyListener(new KeyListener() {
+
 			private String prev_word = null;
 			private int cur_pos = 0;
 			@Override
 			public void keyReleased(KeyEvent arg0) {
 				try {
+
 					// テキストの色変更
 					search_text.setFont(FontManager.getInstance().getFont());
 					updateSearchText();
 
 					// returnキーの時は、そこへ移動してハイライト
 					if (arg0.getKeyChar() == '\n') {
+
 						String word = search_text.getText();
 						if (word.equals(prev_word) == false) {
+
 							prev_word = word;
 							cur_pos = 0;
 						}
-						cur_pos = searchText(cur_pos+word.length(), word);
+						cur_pos = searchText(cur_pos + word.length(), word);
 						if (cur_pos >= 0 && baseText != null) {
+
 							javax.swing.text.StyledDocument document = baseText.getStyledDocument();
 							javax.swing.text.MutableAttributeSet attributes = new javax.swing.text.SimpleAttributeSet();
 							attributes = new javax.swing.text.SimpleAttributeSet();
@@ -84,12 +90,15 @@ public class SearchBox extends JPanel
 						}
 					}
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
+
 			@Override
 			public void keyTyped(KeyEvent arg0) {
 			}
+
 			@Override
 			public void keyPressed(KeyEvent e) {
 			}
@@ -104,14 +113,15 @@ public class SearchBox extends JPanel
 		add(search_count);
 	}
 
-
 	private int searchText(int start, String word) {
 		if (baseText == null) {
+
 			return 0;
 		}
 		String str = baseText.getText();
 		int found = 0;
 		if ((found = str.indexOf(word, start)) >= 0) {
+
 			return found;
 		}
 		return -1;
@@ -119,16 +129,22 @@ public class SearchBox extends JPanel
 
 	public int coloringSearchText() {
 		if (baseText == null) {
+
 			return 0;
 		}
 		javax.swing.text.StyledDocument document = baseText.getStyledDocument();
 		String str = baseText.getText();
 		String search_string = search_text.getText();
 		if (str.length() > 1000000) {
-			//System.err.println("[Warning] coloringSearchText: too long string. Skipping Highlight");
+
+			// System.err.println("[Warning] coloringSearchText: too long string. Skipping
+			// Highlight");
 			return -1;
 		}
-		if (str.length() == 0 || search_string.length() == 0) { return 0; }
+		if (str.isEmpty() || search_string.isEmpty()) {
+
+			return 0;
+		}
 
 		javax.swing.text.MutableAttributeSet attributes = new javax.swing.text.SimpleAttributeSet();
 
@@ -136,6 +152,7 @@ public class SearchBox extends JPanel
 		int cnt = 0;
 		int start = 0;
 		while ((start = str.indexOf(search_string, start)) >= 0) {
+
 			cnt++;
 			javax.swing.text.StyleConstants.setBackground(attributes, java.awt.Color.yellow);
 			document.setCharacterAttributes(start, search_string.length(), attributes, false);
@@ -146,6 +163,7 @@ public class SearchBox extends JPanel
 
 	public void coloringEmphasis() {
 		if (emphasisArea == null) {
+
 			return;
 		}
 		javax.swing.text.StyledDocument document = baseText.getStyledDocument();
@@ -154,7 +172,7 @@ public class SearchBox extends JPanel
 		javax.swing.text.StyleConstants.setBold(attributes, true);
 		int start = emphasisArea.getPositionStart();
 		int end = emphasisArea.getPositionEnd();
-		document.setCharacterAttributes(start, end-start, attributes, false);
+		document.setCharacterAttributes(start, end - start, attributes, false);
 	}
 
 	public void coloringClear() {
@@ -182,15 +200,19 @@ public class SearchBox extends JPanel
 		javax.swing.text.StyledDocument document = baseText.getStyledDocument();
 		String str = baseText.getText();
 		if (str.length() > 1000000) {
-			//System.err.println("[Warning] coloringHTTPText: too long string. Skipping Highlight");
+
+			// System.err.println("[Warning] coloringHTTPText: too long string. Skipping
+			// Highlight");
 			return;
 		}
 
 		javax.swing.text.MutableAttributeSet attributes = new javax.swing.text.SimpleAttributeSet();
 		// 色を変える
-		com.google.re2j.Pattern pattern = com.google.re2j.Pattern.compile("([a-zA-Z0-9%.,/*_+-]+)=([a-zA-Z0-9%.,/*_+-]+)", com.google.re2j.Pattern.MULTILINE);
+		com.google.re2j.Pattern pattern = com.google.re2j.Pattern
+				.compile("([a-zA-Z0-9%.,/*_+-]+)=([a-zA-Z0-9%.,/*_+-]+)", com.google.re2j.Pattern.MULTILINE);
 		com.google.re2j.Matcher matcher = pattern.matcher(str);
 		while (matcher.find()) {
+
 			String key = matcher.group(1);
 			String value = matcher.group(2);
 			int key_start = matcher.start();
@@ -199,8 +221,8 @@ public class SearchBox extends JPanel
 			document.setCharacterAttributes(key_start, key.length(), attributes, false);
 			javax.swing.text.StyleConstants.setForeground(attributes, java.awt.Color.red);
 			document.setCharacterAttributes(value_start, value.length(), attributes, false);
-			//			System.out.println("key = " + key);
-			//			System.out.println("value = " + value);
+			// System.out.println("key = " + key);
+			// System.out.println("value = " + value);
 		}
 	}
 
@@ -220,9 +242,11 @@ public class SearchBox extends JPanel
 		String countLabel = "Not found";
 		Color countColor = Color.GRAY;
 		if (count < 0) {
+
 			countLabel = "Too Long";
 			countColor = Color.RED;
 		} else if (count > 0) {
+
 			countLabel = String.format("%d found", count);
 			countColor = Color.YELLOW;
 		}
@@ -231,7 +255,6 @@ public class SearchBox extends JPanel
 	}
 
 	public void textChanged() {
-	    updateAll();
+		updateAll();
 	}
 }
-

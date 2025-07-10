@@ -16,38 +16,38 @@
 package packetproxy.model;
 
 import difflib.Chunk;
-import difflib.Delta;
-import difflib.DiffUtils;
-import difflib.Patch;
-import java.util.Arrays;
-import java.util.EventListener;
 import java.util.List;
 import javax.swing.event.EventListenerList;
-import packetproxy.model.DiffEventAdapter;
-import packetproxy.model.DiffEventListener;
 
-public abstract class DiffBase
-{
-	//static public void main(String[] args) {
-	//	try {
-	//	Diff diff = Diff.getInstance();
-	//	diff.markAsOriginal("hello\nw orld\naaaa\nhoge".getBytes());
-	//	diff.markAsTarget("hello\nworld\nhoge".getBytes());
-	//	diff.diff(new DiffEventAdapter() {
-	//		@Override public void foundDelDelta(int pos, int length) throws Exception { System.out.println(String.format("Orig DEL: %d %d", pos, length)); }
-	//		@Override public void foundInsDelta(int pos, int length) throws Exception { System.out.println(String.format("Orig INS: %d %d", pos, length)); }
-	//		@Override public void foundChgDelta(int pos, int length) throws Exception { System.out.println(String.format("Orig CHG: %d %d", pos, length)); }
-	//	}, new DiffEventAdapter() {
-	//		@Override public void foundDelDelta(int pos, int length) throws Exception { System.out.println(String.format("Targ DEL: %d %d", pos, length)); }
-	//		@Override public void foundInsDelta(int pos, int length) throws Exception { System.out.println(String.format("Targ INS: %d %d", pos, length)); }
-	//		@Override public void foundChgDelta(int pos, int length) throws Exception { System.out.println(String.format("Targ CHG: %d %d", pos, length)); }
-	//	});
-	//	} catch (Exception e) {
-	//		e.printStackTrace();
-	//	}
-	//}
+public abstract class DiffBase {
+
+	// static public void main(String[] args) {
+	// try {
+	// Diff diff = Diff.getInstance();
+	// diff.markAsOriginal("hello\nw orld\naaaa\nhoge".getBytes());
+	// diff.markAsTarget("hello\nworld\nhoge".getBytes());
+	// diff.diff(new DiffEventAdapter() {
+	// @Override public void foundDelDelta(int pos, int length) throws Exception {
+	// System.out.println(String.format("Orig DEL: %d %d", pos, length)); }
+	// @Override public void foundInsDelta(int pos, int length) throws Exception {
+	// System.out.println(String.format("Orig INS: %d %d", pos, length)); }
+	// @Override public void foundChgDelta(int pos, int length) throws Exception {
+	// System.out.println(String.format("Orig CHG: %d %d", pos, length)); }
+	// }, new DiffEventAdapter() {
+	// @Override public void foundDelDelta(int pos, int length) throws Exception {
+	// System.out.println(String.format("Targ DEL: %d %d", pos, length)); }
+	// @Override public void foundInsDelta(int pos, int length) throws Exception {
+	// System.out.println(String.format("Targ INS: %d %d", pos, length)); }
+	// @Override public void foundChgDelta(int pos, int length) throws Exception {
+	// System.out.println(String.format("Targ CHG: %d %d", pos, length)); }
+	// });
+	// } catch (Exception e) {
+	// e.printStackTrace();
+	// }
+	// }
 	//
-	public DiffBase() {}
+	public DiffBase() {
+	}
 	protected EventListenerList diffEventListenerList = new EventListenerList();
 	protected byte[] orig = null;
 	protected DiffSet set;
@@ -58,6 +58,7 @@ public abstract class DiffBase
 
 	public void markAsOriginal(byte[] orig) throws Exception {
 		if (orig != null && orig.length > 200 * 1024) {
+
 			throw new Exception("Text is Too Long!");
 		}
 		this.orig = orig;
@@ -69,6 +70,7 @@ public abstract class DiffBase
 
 	public void markAsTarget(byte[] target) throws Exception {
 		if (target != null && target.length > 200 * 1024) {
+
 			throw new Exception("Text is Too Long!");
 		}
 		this.set = new DiffSet(this.orig, target);
@@ -81,23 +83,28 @@ public abstract class DiffBase
 	protected static int sumOfCharactersPerLine(List<String> list) {
 		return list.stream().mapToInt(s -> s.length() + 1).sum();
 	}
+
 	protected static int sumOfCharactersPerCharacter(List<String> list) {
 		return list.stream().mapToInt(s -> s.length()).sum();
 	}
+
 	protected static int chunkPositionPerLine(List<String> lines, Chunk a) {
-		int index = a.getPosition(); 
+		int index = a.getPosition();
 		List<String> sublines = lines.subList(0, index);
 		return sumOfCharactersPerLine(sublines);
 	}
+
 	protected static int chunkPositionPerCharacter(List<String> lines, Chunk a) {
-		int index = a.getPosition(); 
+		int index = a.getPosition();
 		List<String> sublines = lines.subList(0, index);
 		return sumOfCharactersPerCharacter(sublines);
 	}
+
 	protected static int chunkLengthPerLine(Chunk a) {
-		return sumOfCharactersPerLine((List<String>)a.getLines());
+		return sumOfCharactersPerLine((List<String>) a.getLines());
 	}
+
 	protected static int chunkLengthPerCharacter(Chunk a) {
-		return sumOfCharactersPerCharacter((List<String>)a.getLines());
+		return sumOfCharactersPerCharacter((List<String>) a.getLines());
 	}
 }

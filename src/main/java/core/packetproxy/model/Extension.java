@@ -15,62 +15,69 @@
  */
 package packetproxy.model;
 
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 
-import com.j256.ormlite.field.DatabaseField;
-import com.j256.ormlite.table.DatabaseTable;
-
 @DatabaseTable(tableName = "extensions")
 public class Extension {
-    @DatabaseField(id = true)
-    private String name;
-    @DatabaseField
-    private boolean enabled;
-    @DatabaseField
-    private String path;
 
-    public Extension() {
-        // ORMLite needs a no-arg constructor
-    }
-    public Extension(String name, String path) throws Exception {
-        setEnabled(false);
-        setName(name);
-        setPath(path);
-    }
+	@DatabaseField(id = true)
+	private String name;
+	@DatabaseField
+	private boolean enabled;
+	@DatabaseField
+	private String path;
 
-    public boolean isEnabled() {
-        return this.enabled;
-    }
-    public void setEnabled(boolean e) {
-        this.enabled = e;
-    }
-    public String getName() {
-        return this.name;
-    }
-    public void setName(String s) {
-        this.name = s;
-    }
-    public String getPath() {
-        return this.path;
-    }
-    public void setPath(String s) {
-        this.path = s;
-    }
+	public Extension() {
+		// ORMLite needs a no-arg constructor
+	}
 
-    public JComponent createPanel() throws Exception {
-        // Please override this
-        return null;
-    }
-    public JMenuItem historyClickHandler() {
-        // Please override this
-        return null;
-    }
-    public Map<String, Class<?>> getEncoders() {
-        // Please override this
-        return new HashMap<>(); 
-    }
+	public Extension(String name, String path) throws Exception {
+		setEnabled(false);
+		setName(name);
+		setPath(path);
+	}
+
+	public boolean isEnabled() {
+		return this.enabled;
+	}
+
+	public void setEnabled(boolean e) {
+		this.enabled = e;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public void setName(String s) {
+		this.name = s;
+	}
+
+	public String getPath() {
+		return this.path;
+	}
+
+	public void setPath(String s) {
+		this.path = s;
+	}
+
+	public JComponent createPanel() throws Exception {
+		// Please override this
+		return null;
+	}
+
+	public JMenuItem historyClickHandler() {
+		// Please override this
+		return null;
+	}
+
+	public Map<String, Class<?>> getEncoders() {
+		// Please override this
+		return new HashMap<>();
+	}
 }

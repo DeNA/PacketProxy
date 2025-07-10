@@ -16,33 +16,33 @@
 
 package packetproxy.http3.service.stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Test;
 import packetproxy.http3.value.Setting;
 import packetproxy.quic.value.QuicMessages;
 import packetproxy.quic.value.StreamId;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 class ControlWriteStreamTest {
 
-    @Test
-    void 最初のreadQuicMessagesでSreamIdが出力されること() throws Exception {
-        ControlWriteStream stream = new ControlWriteStream(StreamId.of(0x2));
-        stream.write(new byte[]{0x04, 0x00});
-        QuicMessages msgs = stream.readAllQuicMessages();
-        assertThat(msgs.get(0).getData()).isEqualTo(Hex.decodeHex("000400".toCharArray()));
-        stream.write(new byte[]{0x04, 0x00});
-        QuicMessages msgs2 = stream.readAllQuicMessages();
-        assertThat(msgs2.get(0).getData()).isEqualTo(Hex.decodeHex("0400".toCharArray()));
-    }
+	@Test
+	void 最初のreadQuicMessagesでSreamIdが出力されること() throws Exception {
+		ControlWriteStream stream = new ControlWriteStream(StreamId.of(0x2));
+		stream.write(new byte[]{0x04, 0x00});
+		QuicMessages msgs = stream.readAllQuicMessages();
+		assertThat(msgs.get(0).getData()).isEqualTo(Hex.decodeHex("000400".toCharArray()));
+		stream.write(new byte[]{0x04, 0x00});
+		QuicMessages msgs2 = stream.readAllQuicMessages();
+		assertThat(msgs2.get(0).getData()).isEqualTo(Hex.decodeHex("0400".toCharArray()));
+	}
 
-    @Test
-    void Settingをwriteできること() throws Exception {
-        ControlWriteStream stream = new ControlWriteStream(StreamId.of(0x2));
-        Setting setting = Setting.builder().qpackMaxTableCapacity(100).build();
-        stream.write(setting);
-        QuicMessages msgs = stream.readAllQuicMessages();
-        assertThat(msgs.get(0).getData()).isEqualTo(Hex.decodeHex("000403014064".toCharArray()));
-    }
+	@Test
+	void Settingをwriteできること() throws Exception {
+		ControlWriteStream stream = new ControlWriteStream(StreamId.of(0x2));
+		Setting setting = Setting.builder().qpackMaxTableCapacity(100).build();
+		stream.write(setting);
+		QuicMessages msgs = stream.readAllQuicMessages();
+		assertThat(msgs.get(0).getData()).isEqualTo(Hex.decodeHex("000403014064".toCharArray()));
+	}
 }

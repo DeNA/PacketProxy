@@ -16,20 +16,20 @@
 
 package packetproxy.quic.value;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
 
 class WriteStreamIdTest {
 
-    @Test
-    public void equalsが正常に動作すること() {
-        StreamId id1 = StreamId.of(1);
-        StreamId id2 = StreamId.of(1);
-        StreamId id3 = StreamId.of(2);
-        assertThat(id1).isEqualTo(id2);
-        assertThat(id1).isNotEqualTo(id3);
-        assertThat(id1.equals(id2)).isTrue();
-    }
+	@Test
+	public void equalsが正常に動作すること() {
+		StreamId id1 = StreamId.of(1);
+		StreamId id2 = StreamId.of(1);
+		StreamId id3 = StreamId.of(2);
+		assertThat(id1).isEqualTo(id2);
+		assertThat(id1).isNotEqualTo(id3);
+		assertThat(id1.equals(id2)).isTrue();
+	}
 
 }

@@ -16,30 +16,31 @@
 
 package packetproxy.http3.service.stream;
 
+import static org.assertj.core.api.Assertions.*;
+
 import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Test;
 import packetproxy.quic.value.QuicMessage;
 import packetproxy.quic.value.StreamId;
 
-import static org.assertj.core.api.Assertions.*;
-
 class QpackReadStreamTest {
 
-    @Test
-    void writeしたものがreadできること() throws Exception {
-        QpackReadStream stream = new QpackReadStream(StreamId.of(0xa), Stream.StreamType.QpackEncoderStreamType);
-        stream.write(QuicMessage.of(StreamId.of(0xa), Hex.decodeHex("02112233".toCharArray())));
-        byte[] bytes = stream.readAllBytes();
-        assertThat(bytes.length).isEqualTo(3);
-        assertThat(bytes).isEqualTo(Hex.decodeHex("112233".toCharArray()));
-    }
+	@Test
+	void writeしたものがreadできること() throws Exception {
+		QpackReadStream stream = new QpackReadStream(StreamId.of(0xa), Stream.StreamType.QpackEncoderStreamType);
+		stream.write(QuicMessage.of(StreamId.of(0xa), Hex.decodeHex("02112233".toCharArray())));
+		byte[] bytes = stream.readAllBytes();
+		assertThat(bytes.length).isEqualTo(3);
+		assertThat(bytes).isEqualTo(Hex.decodeHex("112233".toCharArray()));
+	}
 
-    @Test
-    void streamTypeが異なるものがwriteされたら例外が起きること() throws Exception {
-        QpackReadStream stream = new QpackReadStream(StreamId.of(0xa), Stream.StreamType.QpackEncoderStreamType);
-        assertThatThrownBy(() -> {
-            stream.write(QuicMessage.of(StreamId.of(0xa), Hex.decodeHex("03112233".toCharArray())));
-        }).isInstanceOf(Exception.class);
-    }
+	@Test
+	void streamTypeが異なるものがwriteされたら例外が起きること() throws Exception {
+		QpackReadStream stream = new QpackReadStream(StreamId.of(0xa), Stream.StreamType.QpackEncoderStreamType);
+		assertThatThrownBy(() -> {
+
+			stream.write(QuicMessage.of(StreamId.of(0xa), Hex.decodeHex("03112233".toCharArray())));
+		}).isInstanceOf(Exception.class);
+	}
 
 }

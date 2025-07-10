@@ -20,42 +20,49 @@ import difflib.Delta;
 import difflib.DiffUtils;
 import difflib.Patch;
 import java.util.Arrays;
-import java.util.EventListener;
 import java.util.List;
-import javax.swing.event.EventListenerList;
 
-public class Diff extends DiffBase
-{
-	//static public void main(String[] args) {
-	//	try {
-	//	Diff diff = Diff.getInstance();
-	//	diff.markAsOriginal("hello\nw orld\naaaa\nhoge".getBytes());
-	//	diff.markAsTarget("hello\nworld\nhoge".getBytes());
-	//	diff.diff(new DiffEventAdapter() {
-	//		@Override public void foundDelDelta(int pos, int length) throws Exception { System.out.println(String.format("Orig DEL: %d %d", pos, length)); }
-	//		@Override public void foundInsDelta(int pos, int length) throws Exception { System.out.println(String.format("Orig INS: %d %d", pos, length)); }
-	//		@Override public void foundChgDelta(int pos, int length) throws Exception { System.out.println(String.format("Orig CHG: %d %d", pos, length)); }
-	//	}, new DiffEventAdapter() {
-	//		@Override public void foundDelDelta(int pos, int length) throws Exception { System.out.println(String.format("Targ DEL: %d %d", pos, length)); }
-	//		@Override public void foundInsDelta(int pos, int length) throws Exception { System.out.println(String.format("Targ INS: %d %d", pos, length)); }
-	//		@Override public void foundChgDelta(int pos, int length) throws Exception { System.out.println(String.format("Targ CHG: %d %d", pos, length)); }
-	//	});
-	//	} catch (Exception e) {
-	//		e.printStackTrace();
-	//	}
-	//}
+public class Diff extends DiffBase {
+	// static public void main(String[] args) {
+	// try {
+	// Diff diff = Diff.getInstance();
+	// diff.markAsOriginal("hello\nw orld\naaaa\nhoge".getBytes());
+	// diff.markAsTarget("hello\nworld\nhoge".getBytes());
+	// diff.diff(new DiffEventAdapter() {
+	// @Override public void foundDelDelta(int pos, int length) throws Exception {
+	// System.out.println(String.format("Orig DEL: %d %d", pos, length)); }
+	// @Override public void foundInsDelta(int pos, int length) throws Exception {
+	// System.out.println(String.format("Orig INS: %d %d", pos, length)); }
+	// @Override public void foundChgDelta(int pos, int length) throws Exception {
+	// System.out.println(String.format("Orig CHG: %d %d", pos, length)); }
+	// }, new DiffEventAdapter() {
+	// @Override public void foundDelDelta(int pos, int length) throws Exception {
+	// System.out.println(String.format("Targ DEL: %d %d", pos, length)); }
+	// @Override public void foundInsDelta(int pos, int length) throws Exception {
+	// System.out.println(String.format("Targ INS: %d %d", pos, length)); }
+	// @Override public void foundChgDelta(int pos, int length) throws Exception {
+	// System.out.println(String.format("Targ CHG: %d %d", pos, length)); }
+	// });
+	// } catch (Exception e) {
+	// e.printStackTrace();
+	// }
+	// }
 
-	private Diff() {}
+	private Diff() {
+	}
 	static Diff instance = null;
 	public static Diff getInstance() throws Exception {
 		if (instance == null) {
+
 			instance = new Diff();
 		}
 		return instance;
 	}
 
-	public static void diffPerCharacter(DiffSet set, DiffEventListener original_event, DiffEventListener target_event) throws Exception {
+	public static void diffPerCharacter(DiffSet set, DiffEventListener original_event, DiffEventListener target_event)
+			throws Exception {
 		try {
+
 			List<String> listOrig = Arrays.asList(new String(set.getOriginal()).split(""));
 			List<String> listTarg = Arrays.asList(new String(set.getTarget()).split(""));
 
@@ -63,24 +70,35 @@ public class Diff extends DiffBase
 
 			List<Delta> deltas = diff.getDeltas();
 			for (Delta delta : deltas) {
+
 				Chunk chunkOrig = delta.getOriginal();
 				Chunk chunkTarg = delta.getRevised();
 				if (delta.getType() == Delta.TYPE.CHANGE) {
-					original_event.foundChgDelta(chunkPositionPerCharacter(listOrig, chunkOrig), chunkLengthPerCharacter(chunkOrig));
-					target_event.foundChgDelta(chunkPositionPerCharacter(listTarg, chunkTarg), chunkLengthPerCharacter(chunkTarg));
+
+					original_event.foundChgDelta(chunkPositionPerCharacter(listOrig, chunkOrig),
+							chunkLengthPerCharacter(chunkOrig));
+					target_event.foundChgDelta(chunkPositionPerCharacter(listTarg, chunkTarg),
+							chunkLengthPerCharacter(chunkTarg));
 				} else if (delta.getType() == Delta.TYPE.INSERT) {
-					target_event.foundInsDelta(chunkPositionPerCharacter(listTarg, chunkTarg), chunkLengthPerCharacter(chunkTarg));
+
+					target_event.foundInsDelta(chunkPositionPerCharacter(listTarg, chunkTarg),
+							chunkLengthPerCharacter(chunkTarg));
 				} else if (delta.getType() == Delta.TYPE.DELETE) {
-					original_event.foundDelDelta(chunkPositionPerCharacter(listOrig, chunkOrig), chunkLengthPerCharacter(chunkOrig));
+
+					original_event.foundDelDelta(chunkPositionPerCharacter(listOrig, chunkOrig),
+							chunkLengthPerCharacter(chunkOrig));
 				}
 			}
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}
 
-	public static void diffPerLine(DiffSet set, DiffEventListener original_event, DiffEventListener target_event) throws Exception {
+	public static void diffPerLine(DiffSet set, DiffEventListener original_event, DiffEventListener target_event)
+			throws Exception {
 		try {
+
 			List<String> listOrig = Arrays.asList(new String(set.getOriginal()).split("\n"));
 			List<String> listTarg = Arrays.asList(new String(set.getTarget()).split("\n"));
 
@@ -88,18 +106,27 @@ public class Diff extends DiffBase
 
 			List<Delta> deltas = diff.getDeltas();
 			for (Delta delta : deltas) {
+
 				Chunk chunkOrig = delta.getOriginal();
 				Chunk chunkTarg = delta.getRevised();
 				if (delta.getType() == Delta.TYPE.CHANGE) {
-					original_event.foundChgDelta(chunkPositionPerLine(listOrig, chunkOrig), chunkLengthPerLine(chunkOrig));
-					target_event.foundChgDelta(chunkPositionPerLine(listTarg, chunkTarg), chunkLengthPerLine(chunkTarg));
+
+					original_event.foundChgDelta(chunkPositionPerLine(listOrig, chunkOrig),
+							chunkLengthPerLine(chunkOrig));
+					target_event.foundChgDelta(chunkPositionPerLine(listTarg, chunkTarg),
+							chunkLengthPerLine(chunkTarg));
 				} else if (delta.getType() == Delta.TYPE.INSERT) {
-					target_event.foundInsDelta(chunkPositionPerLine(listTarg, chunkTarg), chunkLengthPerLine(chunkTarg));
+
+					target_event.foundInsDelta(chunkPositionPerLine(listTarg, chunkTarg),
+							chunkLengthPerLine(chunkTarg));
 				} else if (delta.getType() == Delta.TYPE.DELETE) {
-					original_event.foundDelDelta(chunkPositionPerLine(listOrig, chunkOrig), chunkLengthPerLine(chunkOrig));
+
+					original_event.foundDelDelta(chunkPositionPerLine(listOrig, chunkOrig),
+							chunkLengthPerLine(chunkOrig));
 				}
 			}
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}

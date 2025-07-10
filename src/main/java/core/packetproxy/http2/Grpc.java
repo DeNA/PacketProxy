@@ -15,6 +15,11 @@
  */
 package packetproxy.http2;
 
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
@@ -27,14 +32,8 @@ import packetproxy.http2.frames.FrameUtils;
 import packetproxy.http2.frames.HeadersFrame;
 import packetproxy.model.Packet;
 
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+public class Grpc extends FramesBase {
 
-public class Grpc extends FramesBase
-{
 	private StreamManager clientStreamManager = new StreamManager();
 	private StreamManager serverStreamManager = new StreamManager();
 
@@ -48,18 +47,27 @@ public class Grpc extends FramesBase
 	}
 
 	@Override
-	protected byte[] passFramesToDecodeClientRequest(List<Frame> frames) throws Exception { return filterFrames(clientStreamManager, frames); }
+	protected byte[] passFramesToDecodeClientRequest(List<Frame> frames) throws Exception {
+		return filterFrames(clientStreamManager, frames);
+	}
+
 	@Override
-	protected byte[] passFramesToDecodeServerResponse(List<Frame> frames) throws Exception { return filterFrames(serverStreamManager, frames); }
-	
+	protected byte[] passFramesToDecodeServerResponse(List<Frame> frames) throws Exception {
+		return filterFrames(serverStreamManager, frames);
+	}
+
 	private byte[] filterFrames(StreamManager streamManager, List<Frame> frames) throws Exception {
 		for (Frame frame : frames) {
+
 			if (frame instanceof HeadersFrame) {
+
 				streamManager.write(frame);
 			} else if (frame instanceof DataFrame) {
+
 				streamManager.write(frame);
 			}
 			if ((frame.getFlags() & 0x01) > 0) {
+
 				List<Frame> stream = streamManager.read(frame.getStreamId());
 				return FrameUtils.toByteArray(stream);
 			}
@@ -68,9 +76,14 @@ public class Grpc extends FramesBase
 	}
 
 	@Override
-	protected byte[] decodeClientRequestFromFrames(byte[] frames) throws Exception { return decodeFromFrames(frames); }
+	protected byte[] decodeClientRequestFromFrames(byte[] frames) throws Exception {
+		return decodeFromFrames(frames);
+	}
+
 	@Override
-	protected byte[] decodeServerResponseFromFrames(byte[] frames) throws Exception { return decodeFromFrames(frames); }
+	protected byte[] decodeServerResponseFromFrames(byte[] frames) throws Exception {
+		return decodeFromFrames(frames);
+	}
 
 	private byte[] decodeFromFrames(byte[] frames) throws Exception {
 		ByteArrayOutputStream outHeader = new ByteArrayOutputStream();
@@ -78,28 +91,35 @@ public class Grpc extends FramesBase
 		Http httpHeaderSums = null;
 
 		for (Frame frame : FrameUtils.parseFrames(frames)) {
+
 			if (frame instanceof HeadersFrame) {
-				HeadersFrame headersFrame = (HeadersFrame)frame;
+
+				HeadersFrame headersFrame = (HeadersFrame) frame;
 				Http http = Http.create(headersFrame.getHttp());
-				if(null==httpHeaderSums){ // Main Header Frame
+				if (null == httpHeaderSums) { // Main Header Frame
+
 					httpHeaderSums = http;
-				}else{ // Trailer Header Frame
-					for(HeaderField field: http.getHeader().getFields()){
+				} else { // Trailer Header Frame
+
+					for (HeaderField field : http.getHeader().getFields()) {
+
 						httpHeaderSums.updateHeader("x-trailer-" + field.getName(), field.getValue());
 					}
 				}
 			} else if (frame instanceof DataFrame) {
-				DataFrame dataFrame = (DataFrame)frame;
+
+				DataFrame dataFrame = (DataFrame) frame;
 				outData.write(dataFrame.getPayload());
 			}
 		}
 		outHeader.write(httpHeaderSums.toByteArray());
-		//順序をHeader, Dataにする。本当はStreamIDで管理してencode時に元の順番に戻せるようにしたい。
-		//暫定でgRPC over HTTP2のレスポンスの2つめのヘッダは"x-trailer-"から始まるヘッダに従って元の順番に戻す。
+		// 順序をHeader, Dataにする。本当はStreamIDで管理してencode時に元の順番に戻せるようにしたい。
+		// 暫定でgRPC over HTTP2のレスポンスの2つめのヘッダは"x-trailer-"から始まるヘッダに従って元の順番に戻す。
 		outData.writeTo(outHeader);
 		Http http = Http.create(outHeader.toByteArray());
 		int flags = Integer.valueOf(http.getFirstHeader("X-PacketProxy-HTTP2-Flags"));
 		if (http.getBody() == null || http.getBody().length == 0) {
+
 			http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(flags & 0xff | HeadersFrame.FLAG_END_STREAM));
 		}
 		return http.toByteArray();
@@ -123,13 +143,16 @@ public class Grpc extends FramesBase
 
 		List<String> unusedHeaders = new ArrayList<>();
 		for (HeaderField field : http.getHeader().getFields()) {
+
 			if (field.getName().startsWith("x-trailer-")) {
+
 				unusedHeaders.add(field.getName());
 				GRPC2ndHeaderHttpFields.add(field.getName().substring(10), field.getValue());
 			}
 		}
 
 		for (String name : unusedHeaders) {
+
 			http.removeHeader(name);
 		}
 		boolean has_second_frame = (http.getBody() != null && http.getBody().length > 0)
@@ -137,6 +160,7 @@ public class Grpc extends FramesBase
 
 		int first_flags = flags & 0xff | HeadersFrame.FLAG_END_STREAM;
 		if (has_second_frame) {
+
 			first_flags = flags & 0xff & ~HeadersFrame.FLAG_END_STREAM;
 		}
 		http.updateHeader("X-PacketProxy-HTTP2-Flags", String.valueOf(first_flags));
@@ -145,19 +169,23 @@ public class Grpc extends FramesBase
 		out.write(headersFrame.toByteArrayWithoutExtra(encoder));
 
 		if (http.getBody() != null && http.getBody().length > 0) {
+
 			DataFrame dataFrame = new DataFrame(http);
 			if (GRPC2ndHeaderHttpFields.size() > 0) {
+
 				dataFrame.setFlags(dataFrame.getFlags() & 0xff & ~DataFrame.FLAG_END_STREAM);
 			}
 			out.write(dataFrame.toByteArrayWithoutExtra());
 		}
 
 		if (GRPC2ndHeaderHttpFields.size() > 0) {
+
 			Http althttp = http;
 			althttp.setBody(new byte[0]);
 			althttp.removeMatches("^(?!X-PacketProxy-HTTP2).*$");
 
 			for (HttpField headerField : GRPC2ndHeaderHttpFields) {
+
 				althttp.updateHeader(headerField.getName(), headerField.getValue());
 			}
 			althttp.updateHeader("X-PacketProxy-HTTP2-Flags",
@@ -176,10 +204,13 @@ public class Grpc extends FramesBase
 		Http http = Http.create(data);
 		String streamIdStr = http.getFirstHeader("X-PacketProxy-HTTP2-Stream-Id");
 		if (streamIdStr != null && streamIdStr.length() > 0) {
+
 			long streamId = Long.parseLong(streamIdStr);
 			if (groupMap.containsKey(streamId)) {
+
 				packet.setGroup(groupMap.get(streamId));
 			} else {
+
 				long groupId = UniqueID.getInstance().createId();
 				groupMap.put(streamId, groupId);
 				packet.setGroup(groupId);

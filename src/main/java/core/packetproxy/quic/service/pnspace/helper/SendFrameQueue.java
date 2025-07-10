@@ -16,39 +16,39 @@
 
 package packetproxy.quic.service.pnspace.helper;
 
-import lombok.Getter;
-import packetproxy.quic.value.frame.Frame;
-import packetproxy.quic.service.frame.Frames;
-
 import java.util.*;
+import lombok.Getter;
+import packetproxy.quic.service.frame.Frames;
+import packetproxy.quic.value.frame.Frame;
 
 @Getter
 public class SendFrameQueue {
 
-    Deque<Frame> frames;
+	Deque<Frame> frames;
 
-    public SendFrameQueue() {
-        this.frames = new ArrayDeque<>();
-    }
+	public SendFrameQueue() {
+		this.frames = new ArrayDeque<>();
+	}
 
-    public synchronized void add(Frame frame) {
-        this.frames.add(frame);
-    }
+	public synchronized void add(Frame frame) {
+		this.frames.add(frame);
+	}
 
-    public synchronized void add(Frames frames) {
-        this.frames.addAll(frames.getFrames());
-    }
+	public synchronized void add(Frames frames) {
+		this.frames.addAll(frames.getFrames());
+	}
 
-    public synchronized List<Frame> pollAll() {
-        List<Frame> frames = new ArrayList<>();
-        for (Frame frame = this.frames.poll(); frame != null; frame = this.frames.poll()) {
-            frames.add(frame);
-        }
-        return frames;
-    }
+	public synchronized List<Frame> pollAll() {
+		List<Frame> frames = new ArrayList<>();
+		for (Frame frame = this.frames.poll(); frame != null; frame = this.frames.poll()) {
 
-    public synchronized void clear() {
-        this.frames.clear();
-    }
+			frames.add(frame);
+		}
+		return frames;
+	}
+
+	public synchronized void clear() {
+		this.frames.clear();
+	}
 
 }

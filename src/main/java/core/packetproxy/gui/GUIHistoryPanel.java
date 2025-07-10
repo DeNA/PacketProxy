@@ -20,25 +20,31 @@ import javax.swing.JButton;
 import javax.swing.JTextPane;
 import javax.swing.event.EventListenerList;
 
-abstract class GUIHistoryPanel
-{
+abstract class GUIHistoryPanel {
+
 	public abstract JTextPane getTextPane();
 
 	protected EventListenerList listenerList = new EventListenerList();
 	public interface DataChangedListener extends EventListener {
-		public void dataChanged(byte[] data);
+
+		void dataChanged(byte[] data);
 	}
 	public void addDataChangedListener(DataChangedListener listener) {
 		listenerList.add(DataChangedListener.class, listener);
 	}
-	protected void callDataChanged(byte[] data)
-	{
-		for (DataChangedListener listener: listenerList.getListeners(DataChangedListener.class)) {
+
+	protected void callDataChanged(byte[] data) {
+		for (DataChangedListener listener : listenerList.getListeners(DataChangedListener.class)) {
+
 			listener.dataChanged(data);
 		}
 	}
+
 	public abstract void setData(byte[] data) throws Exception;
+
 	public abstract byte[] getData();
+
 	public abstract void setParentTabs(TabSet parentTabs);
+
 	public abstract JButton getParentSend();
 }

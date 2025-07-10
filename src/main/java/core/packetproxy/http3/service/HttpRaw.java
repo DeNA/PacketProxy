@@ -21,7 +21,8 @@ import packetproxy.quic.value.StreamId;
 
 @Value(staticConstructor = "of")
 public class HttpRaw {
-    StreamId streamId;
-    byte[] encodedHeader;
-    byte[] body;
+
+	StreamId streamId;
+	byte[] encodedHeader;
+	byte[] body;
 }

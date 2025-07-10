@@ -17,16 +17,18 @@ package packetproxy.common;
 
 import org.apache.commons.codec.binary.Base64;
 
-public class JWTBase64 extends JWT
-{
+public class JWTBase64 extends JWT {
+
 	public JWTBase64(JWT jwt) {
 		super(jwt);
 	}
+
 	public JWTBase64(String jwtString) {
-		String[] jwtPart = jwtString.split("\\.",3);
+		String[] jwtPart = jwtString.split("\\.", 3);
 		header = new String(Base64.decodeBase64(jwtPart[0]));
 		payload = new String(Base64.decodeBase64(jwtPart[1]));
 	}
+
 	@Override
 	public String toJwtString() throws Exception {
 		StringBuilder sb = new StringBuilder();
@@ -36,19 +38,23 @@ public class JWTBase64 extends JWT
 		String header_payload = sb.toString();
 		String signature = createSignature(header_payload);
 		if (!signature.isEmpty()) {
+
 			sb.append(".");
 			sb.append(signature);
 		}
 		return sb.toString();
 	}
+
 	@Override
 	protected String createSignature(String input) throws Exception {
 		return "NotDefined";
 	}
+
 	@Override
 	protected String createHeader(String input) throws Exception {
 		return Base64.encodeBase64URLSafeString(input.getBytes());
 	}
+
 	@Override
 	protected String createPayload(String input) throws Exception {
 		return Base64.encodeBase64URLSafeString(input.getBytes());

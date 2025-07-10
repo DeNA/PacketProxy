@@ -24,6 +24,7 @@ import packetproxy.model.ListenPort;
 import packetproxy.util.PacketProxyUtility;
 
 public class ProxyForward extends Proxy {
+
 	private ListenPort listen_info;
 	private ServerSocket listen_socket;
 
@@ -35,13 +36,16 @@ public class ProxyForward extends Proxy {
 	@Override
 	public void run() {
 		while (!listen_socket.isClosed()) {
+
 			try {
+
 				Socket client = listen_socket.accept();
 				PacketProxyUtility.getInstance().packetProxyLog("accept");
 
 				Endpoint server_e = EndpointFactory.createFromServer(listen_info.getServer());
 				createConnection(new SocketEndpoint(client), server_e);
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		}

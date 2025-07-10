@@ -15,16 +15,6 @@
  */
 package packetproxy.gui;
 
-import packetproxy.common.FontManager;
-import packetproxy.common.Range;
-import packetproxy.controller.ResendController;
-import packetproxy.controller.ResendController.ResendWorker;
-import packetproxy.model.OneShotPacket;
-import packetproxy.vulchecker.VulCheckPattern;
-import packetproxy.vulchecker.VulChecker;
-import packetproxy.vulchecker.generator.Generator;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -34,9 +24,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import javax.swing.*;
+import packetproxy.common.FontManager;
+import packetproxy.common.Range;
+import packetproxy.controller.ResendController;
+import packetproxy.controller.ResendController.ResendWorker;
+import packetproxy.model.OneShotPacket;
+import packetproxy.vulchecker.VulCheckPattern;
+import packetproxy.vulchecker.VulChecker;
+import packetproxy.vulchecker.generator.Generator;
 
-public class GUIVulCheckTab
-{
+public class GUIVulCheckTab {
+
 	private static JFrame owner;
 
 	public static JFrame getOwner() {
@@ -72,11 +71,9 @@ public class GUIVulCheckTab
 
 		// initialize sendTable
 		for (Generator generator : manager.getGenerators()) {
-			sendTable.add(
-					generator.getName(),
-					manager.findVulCheckPattern(generator.getName()).getPacket(),
-					manager.isEnabled(generator.getName())
-			);
+
+			sendTable.add(generator.getName(), manager.findVulCheckPattern(generator.getName()).getPacket(),
+					manager.isEnabled(generator.getName()));
 		}
 
 		return main;
@@ -94,55 +91,73 @@ public class GUIVulCheckTab
 	private JComponent createSendPanel() throws Exception {
 		sendData = new TabSet(true, false);
 		sendTable = new GUIVulCheckSendTable(generatorName -> { // onSelected
+
 			try {
+
 				if (!selectedGeneratorName.isEmpty() && !selectedGeneratorName.equals(generatorName)) {
+
 					VulCheckPattern vulCheckPattern = manager.findVulCheckPattern(selectedGeneratorName);
 					OneShotPacket packet = vulCheckPattern.getPacket();
 					if (Arrays.compare(packet.getData(), sendData.getData()) != 0) {
+
 						packet.setData(sendData.getData());
-						manager.saveVulCheckPattern(selectedGeneratorName, new VulCheckPattern(vulCheckPattern.getName(), packet, null));
+						manager.saveVulCheckPattern(selectedGeneratorName,
+								new VulCheckPattern(vulCheckPattern.getName(), packet, null));
 					}
 				}
 				selectedGeneratorName = generatorName;
 				VulCheckPattern v = manager.findVulCheckPattern(generatorName);
 				if (v != null) {
+
 					sendData.setData(v.getPacket().getData(), v.getRange());
 				}
 			} catch (Exception e) {
+
 			}
 		}, generatorName -> { // onEnabled
-		    try {
+
+			try {
+
 				manager.setEnabled(generatorName, true);
 				VulCheckPattern v = manager.findVulCheckPattern(generatorName);
 				if (v != null) {
+
 					sendData.setData(v.getPacket().getData(), v.getRange());
 					sendTable.setRow(generatorName, v.getPacket());
 				}
 				return true;
 			} catch (Exception e) {
-		    	return false;
+
+				return false;
 			}
 		}, generatorName -> { // onDisabled
+
 			try {
+
 				manager.setEnabled(generatorName, false);
 				VulCheckPattern v = manager.findVulCheckPattern(generatorName);
 				if (v != null) {
+
 					sendData.setData(v.getPacket().getData(), v.getRange());
 					sendTable.setRow(generatorName, v.getPacket());
 				}
 				return true;
 			} catch (Exception e) {
+
 				return false;
 			}
 		});
 
 		JButton sendButton = new JButton("send");
 		sendButton.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					String generatorName = sendTable.getSelectedGeneratorName();
 					if (!manager.isEnabled(generatorName)) {
+
 						return;
 					}
 					VulCheckPattern pattern = manager.findVulCheckPattern(generatorName);
@@ -150,27 +165,34 @@ public class GUIVulCheckTab
 					byte[] data = sendData.getData();
 					data = manager.extractMacro(generatorName, data);
 					if (data == null || data.length == 0) {
+
 						return;
 					}
 					packet.setData(data);
 					Date sentTime = new Date();
-					ResendController.getInstance().resend(new ResendWorker(packet,1) {
+					ResendController.getInstance().resend(new ResendWorker(packet, 1) {
+
 						@Override
 						protected void process(List<OneShotPacket> oneshots) {
 							Date recvTime = new Date();
 							try {
-								for (OneShotPacket oneshot: oneshots) {
+
+								for (OneShotPacket oneshot : oneshots) {
+
 									recvPackets.put(recvPacketId, oneshot);
-									recvTable.add(recvPacketId, pattern.getName(), oneshot, recvTime.getTime() - sentTime.getTime());
+									recvTable.add(recvPacketId, pattern.getName(), oneshot,
+											recvTime.getTime() - sentTime.getTime());
 									recvPacketId++;
 								}
 							} catch (Exception e) {
+
 								e.printStackTrace();
 							}
 						}
 					});
 
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -178,46 +200,61 @@ public class GUIVulCheckTab
 
 		JButton sendAllButton = new JButton("send all");
 		sendAllButton.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					CompletableFuture<String> future = CompletableFuture.completedFuture("send all packets");
-					for (VulCheckPattern pattern: manager.getAllEnabledVulCheckPattern()) {
+					for (VulCheckPattern pattern : manager.getAllEnabledVulCheckPattern()) {
+
 						future = future.thenApplyAsync(arg -> {
+
 							try {
+
 								Date sentTime = new Date();
-								OneShotPacket packet =  pattern.getPacket();
+								OneShotPacket packet = pattern.getPacket();
 								packet.setData(manager.extractMacro(pattern.getName(), packet.getData()));
 								ResendController.getInstance().resend(new ResendWorker(packet, 1) {
+
 									@Override
 									protected void process(List<OneShotPacket> oneshots) {
 										Date recvTime = new Date();
 										try {
+
 											for (OneShotPacket res : oneshots) {
+
 												recvPackets.put(recvPacketId, res);
-												recvTable.add(recvPacketId, pattern.getName(), res, recvTime.getTime() - sentTime.getTime());
+												recvTable.add(recvPacketId, pattern.getName(), res,
+														recvTime.getTime() - sentTime.getTime());
 												recvPacketId++;
 											}
 										} catch (Exception e) {
+
 											e.printStackTrace();
 										}
 									}
 								});
 							} catch (Exception e1) {
+
 								e1.printStackTrace();
 							}
 							return arg;
 						});
 						future = future.thenApplyAsync(arg -> {
-						    try {
+
+							try {
+
 								Thread.sleep(100); // wait 0.1 sec before sending next packet
 							} catch (Exception e1) {
-						    	e1.printStackTrace();
+
+								e1.printStackTrace();
 							}
-						    return arg;
-                        });
+							return arg;
+						});
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -244,6 +281,7 @@ public class GUIVulCheckTab
 	private JComponent createRecvPanel() throws Exception {
 		recvData = new TabSet(true, false);
 		recvTable = new GUIVulCheckRecvTable(oneshotId -> {
+
 			selectedRecvPacketId = oneshotId;
 			OneShotPacket pkt = recvPackets.get(oneshotId);
 			if (pkt != null)
@@ -257,4 +295,4 @@ public class GUIVulCheckTab
 		return split_panel;
 	}
 
-}	
+}

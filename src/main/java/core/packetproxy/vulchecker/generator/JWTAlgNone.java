@@ -19,12 +19,13 @@ package packetproxy.vulchecker.generator;
 import packetproxy.common.JWTBase64;
 
 public class JWTAlgNone extends JWTBase64 {
-    public JWTAlgNone(String jwtString) {
-        super(jwtString);
-    }
 
-    @Override
-    protected String createSignature(String input) throws Exception {
-        return "";
-    }
+	public JWTAlgNone(String jwtString) {
+		super(jwtString);
+	}
+
+	@Override
+	protected String createSignature(String input) throws Exception {
+		return "";
+	}
 }

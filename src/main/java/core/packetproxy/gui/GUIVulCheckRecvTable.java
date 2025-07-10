@@ -15,23 +15,20 @@
  */
 package packetproxy.gui;
 
-import packetproxy.model.OneShotPacket;
-import packetproxy.model.OptionTableModel;
-
-import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.function.Consumer;
+import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.table.TableCellRenderer;
+import packetproxy.model.OneShotPacket;
+import packetproxy.model.OptionTableModel;
 
-public class GUIVulCheckRecvTable
-{
+public class GUIVulCheckRecvTable {
+
 	private String[] columnNames;
-	private int[] columnWidth = { 30, 200, 40, 40, 50, 50, 50 };
+	private int[] columnWidth = {30, 200, 40, 40, 50, 50, 50};
 	private OptionTableModel tableModel;
 	private JTable table;
 	private Consumer<Integer> onSelected;
@@ -41,24 +38,31 @@ public class GUIVulCheckRecvTable
 	}
 
 	public JComponent createPanel() throws Exception {
-		columnNames = new String[]{ "#", "Name", "Server Response", "Length", "Time[msec]", "Encode", "ALPN" };
+		columnNames = new String[]{"#", "Name", "Server Response", "Length", "Time[msec]", "Encode", "ALPN"};
 		tableModel = new OptionTableModel(columnNames, 0) {
+
 			private static final long serialVersionUID = 1L;
 			@Override
-			public boolean isCellEditable(int row, int column) { return false; }
+			public boolean isCellEditable(int row, int column) {
+				return false;
+			}
 		};
 
 		table = new JTable(tableModel) {
+
 			private static final long serialVersionUID = 1L;
 			@Override
 			public Component prepareRenderer(TableCellRenderer tcr, int row, int column) {
 				Component c = super.prepareRenderer(tcr, row, column);
 				try {
+
 					boolean selected = (table.getSelectedRow() == row);
 					if (selected) {
+
 						c.setForeground(new Color(0xff, 0xff, 0xff));
 						c.setBackground(new Color(0x80, 0x80, 0xff));
 					} else {
+
 						c.setForeground(new Color(0x00, 0x00, 0x00));
 						if (row % 2 == 0)
 							c.setBackground(new Color(0xff, 0xff, 0xff));
@@ -66,6 +70,7 @@ public class GUIVulCheckRecvTable
 							c.setBackground(new Color(0xf0, 0xf0, 0xf0));
 					}
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 				return c;
@@ -75,34 +80,43 @@ public class GUIVulCheckRecvTable
 		table.setAutoCreateRowSorter(true);
 
 		for (int i = 0; i < columnNames.length; i++) {
+
 			table.getColumn(columnNames[i]).setPreferredWidth(columnWidth[i]);
 		}
 
 		table.addKeyListener(new KeyAdapter() {
+
 			public void keyPressed(KeyEvent e) {
 				try {
+
 					if (e.getKeyCode() == KeyEvent.VK_J) {
-						int p = table.getSelectedRow()+1;
-						p = p >= table.getRowCount() ? table.getRowCount()-1 : p;
+
+						int p = table.getSelectedRow() + 1;
+						p = p >= table.getRowCount() ? table.getRowCount() - 1 : p;
 						table.changeSelection(p, 0, false, false);
 					} else if (e.getKeyCode() == KeyEvent.VK_K) {
-						int p = table.getSelectedRow()-1;
+
+						int p = table.getSelectedRow() - 1;
 						p = p < 0 ? 0 : p;
 						table.changeSelection(p, 0, false, false);
 					}
 				} catch (Exception e1) {
+
 					// Nothing to do
 				}
 			}
 		});
 
 		table.getSelectionModel().addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				try {
+
 					int select_id = getSelectedPacketId();
 					onSelected.accept(select_id);
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -114,7 +128,7 @@ public class GUIVulCheckRecvTable
 	public int getSelectedPacketId() {
 		int idx = table.getSelectedRow();
 		if (0 <= idx && idx < table.getRowCount())
-			return (Integer)table.getValueAt(idx, 0);
+			return (Integer) table.getValueAt(idx, 0);
 		else
 			return 0;
 	}
@@ -128,14 +142,7 @@ public class GUIVulCheckRecvTable
 	}
 
 	private Object[] makeRowDataFromPacket(int id, String name, OneShotPacket oneshot, long rtt) throws Exception {
-		return new Object[] {
-				id,
-				name,
-				oneshot.getSummarizedResponse(),
-				oneshot.getData().length,
-				rtt,
-				oneshot.getEncoder(),
-				oneshot.getAlpn()
-		};
+		return new Object[]{id, name, oneshot.getSummarizedResponse(), oneshot.getData().length, rtt,
+				oneshot.getEncoder(), oneshot.getAlpn()};
 	}
 }

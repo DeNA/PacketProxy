@@ -15,6 +15,9 @@
  */
 package packetproxy.gui;
 
+import static packetproxy.model.PropertyChangeEventType.RESENDER_PACKETS;
+import static packetproxy.model.PropertyChangeEventType.SELECTED_INDEX;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -24,32 +27,32 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-
 import packetproxy.controller.ResendController;
 import packetproxy.controller.ResendController.ResendWorker;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.Packet;
 import packetproxy.model.ResenderPacket;
 import packetproxy.model.ResenderPackets;
-import static packetproxy.model.PropertyChangeEventType.RESENDER_PACKETS;
-import static packetproxy.model.PropertyChangeEventType.SELECTED_INDEX;
 
 public class GUIResender implements PropertyChangeListener {
+
 	class ResendsCloseButtonTabbedPane extends CloseButtonTabbedPane {
+
 		@Override
 		public void removeTabAt(int index) {
 			super.removeTabAt(index);
 			try {
+
 				int resends_index = resends_indexes.get(index);
 				resends_indexes.remove(index);
 				ResenderPackets.getInstance().deleteResends(resends_index);
 			} catch (Exception e) {
+
 				e.printStackTrace();
 			}
 		}
@@ -63,6 +66,7 @@ public class GUIResender implements PropertyChangeListener {
 
 	public static GUIResender getInstance() throws Exception {
 		if (instance == null) {
+
 			instance = new GUIResender();
 		}
 		return instance;
@@ -81,6 +85,7 @@ public class GUIResender implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (!RESENDER_PACKETS.matches(evt)) {
+
 			return;
 		}
 
@@ -93,16 +98,19 @@ public class GUIResender implements PropertyChangeListener {
 
 	private void loadResenderPackets() {
 		try {
+
 			List<ResenderPacket> resender_packets = ResenderPackets.getInstance().queryAllOrdered();
 			int before_resends_index = -1;
 			Resends resends = null;
 
 			for (int i = 0; i < resender_packets.size(); i++) {
+
 				ResenderPacket resender_packet = resender_packets.get(i);
 				int resends_index = resender_packet.getResendsIndex();
 				int resend_index = resender_packet.getResendIndex();
 
 				if (resends_index != before_resends_index) {
+
 					resends = new Resends();
 					resends_tabs.addTab(String.valueOf(resends_index), resends.getComponent());
 					resends_indexes.add(resends_index);
@@ -114,13 +122,17 @@ public class GUIResender implements PropertyChangeListener {
 				resends.resend_indexes.add(resend_index);
 
 				if (resend_index == 1) {
+
 					resend.setOneShotPacket(resender_packet.getOneShotPacket(), null);
 				} else {
+
 					ResenderPacket next_resender_packet = resender_packets.get(i + 1);
 					if (resender_packet.getDirection() == Packet.Direction.CLIENT) {
+
 						resend.setOneShotPacket(resender_packet.getOneShotPacket(),
 								next_resender_packet.getOneShotPacket());
 					} else {
+
 						resend.setOneShotPacket(next_resender_packet.getOneShotPacket(),
 								resender_packet.getOneShotPacket());
 					}
@@ -128,6 +140,7 @@ public class GUIResender implements PropertyChangeListener {
 				}
 			}
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}
@@ -138,7 +151,7 @@ public class GUIResender implements PropertyChangeListener {
 
 	public void addResends(OneShotPacket send_packet) throws Exception {
 		Resends resends = new Resends();
-		int resends_index = resends_indexes.size() == 0 ? 1 : resends_indexes.get(resends_indexes.size() - 1) + 1;
+		int resends_index = resends_indexes.isEmpty() ? 1 : resends_indexes.get(resends_indexes.size() - 1) + 1;
 		resends_indexes.add(resends_index);
 		resends_tabs.addTab(String.valueOf(resends_index), resends.getComponent());
 		resends_tabs.setSelectedComponent(resends.getComponent());
@@ -146,16 +159,20 @@ public class GUIResender implements PropertyChangeListener {
 	}
 
 	class Resends {
+
 		class ResendCloseButtonTabbedPane extends CloseButtonTabbedPane {
+
 			@Override
 			public void removeTabAt(int index) {
 				super.removeTabAt(index);
 				try {
+
 					int resend_index = resend_indexes.get(index);
 					resend_indexes.remove(index);
 					int resends_index = resends_indexes.get(resends_tabs.getSelectedIndex());
 					ResenderPackets.getInstance().deleteResend(resends_index, resend_index);
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
@@ -175,7 +192,7 @@ public class GUIResender implements PropertyChangeListener {
 
 		public void addResend(OneShotPacket send_packet, OneShotPacket recv_packet) throws Exception {
 			Resend resend = new Resend(this);
-			int resend_index = resend_indexes.size() == 0 ? 1 : resend_indexes.get(resend_indexes.size() - 1) + 1;
+			int resend_index = resend_indexes.isEmpty() ? 1 : resend_indexes.get(resend_indexes.size() - 1) + 1;
 			resend_indexes.add(resend_index);
 			resend_tabs.addTab(String.valueOf(resend_index), resend.getComponent());
 			resend_tabs.setSelectedComponent(resend.getComponent());
@@ -184,6 +201,7 @@ public class GUIResender implements PropertyChangeListener {
 			int resends_index = resends_indexes.get(resends_tabs.getSelectedIndex());
 			ResenderPackets.getInstance().createResend(send_packet.getResenderPacket(resends_index, resend_index));
 			if (recv_packet != null) {
+
 				ResenderPackets.getInstance().createResend(recv_packet.getResenderPacket(resends_index, resend_index));
 			}
 		}
@@ -194,6 +212,7 @@ public class GUIResender implements PropertyChangeListener {
 	}
 
 	class Resend implements PropertyChangeListener {
+
 		private GUIServerNamePanel server_name_panel;
 		private OneShotPacket send_saved;
 		private OneShotPacket recv_saved;
@@ -218,24 +237,30 @@ public class GUIResender implements PropertyChangeListener {
 			split_panel.setResizeWeight(0.5);
 			resend_button = new JButton("send");
 			resend_button.addActionListener(new ActionListener() {
+
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					try {
+
 						OneShotPacket sendPacket = send_panel.getOneShotPacket();
 						ResendController.getInstance().resend(new ResendWorker(sendPacket, 1) {
+
 							@Override
 							protected void process(List<OneShotPacket> packets) {
 								try {
+
 									OneShotPacket recvPacket = packets.get(0);
 									recv_panel.setOneShotPacket(recvPacket);
 									parent.addResend(sendPacket, recvPacket);
 									rollback();
 								} catch (Exception e) {
+
 									e.printStackTrace();
 								}
 							}
 						});
 					} catch (Exception e1) {
+
 						e1.printStackTrace();
 					}
 				}
@@ -244,14 +269,17 @@ public class GUIResender implements PropertyChangeListener {
 
 			resend_multiple_button = new JButton("send x 20");
 			resend_multiple_button.addActionListener(new ActionListener() {
+
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					try {
+
 						ResendController.getInstance().resend(send_panel.getOneShotPacket(), 20);
 						clearLog();
 						showLog("結果は履歴ウィンドウで確認してください！");
 						rollback();
 					} catch (Exception e1) {
+
 						e1.printStackTrace();
 					}
 				}
@@ -298,14 +326,17 @@ public class GUIResender implements PropertyChangeListener {
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			if (!(evt.getSource() instanceof TabSet) || !SELECTED_INDEX.matches(evt)) {
+
 				return;
 			}
 
 			int selectedIndex = (int) evt.getNewValue();
 			if (selectedIndex == 2) {
+
 				resend_button.setEnabled(false);
 				resend_multiple_button.setEnabled(false);
 			} else {
+
 				resend_button.setEnabled(true);
 				resend_multiple_button.setEnabled(true);
 			}

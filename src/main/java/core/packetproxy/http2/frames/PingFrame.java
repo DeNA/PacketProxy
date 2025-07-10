@@ -15,10 +15,12 @@
  */
 package packetproxy.http2.frames;
 public class PingFrame extends Frame {
-    static protected Type TYPE = Type.PING;
-    public PingFrame(Frame frame) throws Exception {
+
+	protected static Type TYPE = Type.PING;
+	public PingFrame(Frame frame) throws Exception {
 		super(frame);
-    }
+	}
+
 	public PingFrame(byte[] data) throws Exception {
 		super(data);
 	}

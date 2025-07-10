@@ -15,9 +15,9 @@
  */
 package packetproxy.common;
 
-import javax.net.ssl.KeyManager;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
+import javax.net.ssl.KeyManager;
 import packetproxy.model.ClientCertificate;
 import packetproxy.model.ClientCertificates;
 import packetproxy.model.Server;
@@ -26,44 +26,61 @@ import packetproxy.model.Server;
  * KeyManager Class for Client Certificate
  */
 public class ClientKeyManager {
-    private static HashMap<Integer, KeyManager[]> keyManagersHashMap = new HashMap<>();
 
-    /**
-     * Initialize ClientKeyManager at launch
-     * @throws Exception: Failed to Get Instance of ClientCertificates
-     */
-    public static void initialize() throws Exception {
-        List<ClientCertificate> certificateList = ClientCertificates.getInstance().queryEnabled();
-        for (ClientCertificate cert : certificateList) {
-            try {
-                setKeyManagers(cert.getServer(), cert.load());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
+	private static HashMap<Integer, KeyManager[]> keyManagersHashMap = new HashMap<>();
 
-    /**
-     * Set a pair of Applied Server and KeyManagers
-     * @param server: Applied Server
-     * @param keyManagers: KeyManagers
-     */
-    public static void setKeyManagers(Server server, KeyManager[] keyManagers) {
-        if (server != null) keyManagersHashMap.put(server.getId(), keyManagers);
-    }
-    /**
-     * Get KeyManagers from Server You Want to Get
-     * @param server: Server You Want to Get KeyManagers
-     * @return KeyManagers for Applied Server or null
-     */
-    public static KeyManager[] getKeyManagers(Server server) {
-        return server != null? keyManagersHashMap.get(server.getId()): null;
-    }
-    /**
-     * Remove KeyManagers of The Server
-     * @param server: Server You Want to Remove
-     */
-    public static void removeKeyManagers(Server server) {
-        if (server != null) keyManagersHashMap.remove(server.getId());
-    }
+	/**
+	 * Initialize ClientKeyManager at launch
+	 *
+	 * @throws Exception:
+	 *             Failed to Get Instance of ClientCertificates
+	 */
+	public static void initialize() throws Exception {
+		List<ClientCertificate> certificateList = ClientCertificates.getInstance().queryEnabled();
+		for (ClientCertificate cert : certificateList) {
+
+			try {
+
+				setKeyManagers(cert.getServer(), cert.load());
+			} catch (Exception e) {
+
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * Set a pair of Applied Server and KeyManagers
+	 *
+	 * @param server:
+	 *            Applied Server
+	 * @param keyManagers:
+	 *            KeyManagers
+	 */
+	public static void setKeyManagers(Server server, KeyManager[] keyManagers) {
+		if (server != null)
+			keyManagersHashMap.put(server.getId(), keyManagers);
+	}
+
+	/**
+	 * Get KeyManagers from Server You Want to Get
+	 *
+	 * @param server:
+	 *            Server You Want to Get KeyManagers
+	 * @return KeyManagers for Applied Server or null
+	 */
+	public static KeyManager[] getKeyManagers(Server server) {
+		return server != null ? keyManagersHashMap.get(server.getId()) : null;
+	}
+
+	/**
+	 * Remove KeyManagers of The Server
+	 *
+	 * @param server:
+	 *            Server You Want to Remove
+	 */
+	public static void removeKeyManagers(Server server) {
+		if (server != null)
+			keyManagersHashMap.remove(server.getId());
+	}
 }

@@ -16,15 +16,18 @@
 package packetproxy.model;
 
 public class DiffSet {
+
 	protected byte[] original;
 	protected byte[] target;
 	public DiffSet(byte[] original, byte[] target) {
 		this.original = original;
 		this.target = target;
 	}
+
 	public byte[] getOriginal() {
 		return this.original;
 	}
+
 	public byte[] getTarget() {
 		return this.target;
 	}

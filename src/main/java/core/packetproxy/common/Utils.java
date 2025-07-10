@@ -15,17 +15,16 @@
  */
 package packetproxy.common;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.ArrayUtils;
-import packetproxy.util.PacketProxyUtility;
-
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.ArrayUtils;
+import packetproxy.util.PacketProxyUtility;
 
 public class Utils {
 
@@ -33,6 +32,7 @@ public class Utils {
 		List<byte[]> list = new ArrayList<>();
 		int pos = 0;
 		while (pos < array.length) {
+
 			int subArraySize = Math.min(array.length - pos, maxSubArraySize);
 			list.add(ArrayUtils.subarray(array, pos, pos + subArraySize));
 			pos += subArraySize;
@@ -43,14 +43,18 @@ public class Utils {
 	public static int indexOf(byte[] input_data, int start_idx, int end_idx, byte[] word) {
 		assert (end_idx <= input_data.length);
 		for (int i = start_idx + word.length - 1; i < end_idx; i++) {
+
 			int start_input_idx = i - word.length + 1;
 			int word_idx;
 			for (word_idx = 0; word_idx < word.length && start_input_idx + word_idx < input_data.length; word_idx++) {
+
 				if (word[word_idx] != input_data[start_input_idx + word_idx]) {
+
 					break;
 				}
 			}
 			if (word_idx == word.length) {
+
 				return start_input_idx;
 			}
 		}
@@ -67,10 +71,13 @@ public class Utils {
 	public static Platform checkOS() {
 		String osname = System.getProperty("os.name");
 		if (osname.contains("Windows")) {
+
 			return Platform.WINDOWS;
 		} else if (osname.contains("Mac")) {
+
 			return Platform.MAC;
 		} else {
+
 			return Platform.LINUX;
 		}
 	}
@@ -93,9 +100,11 @@ public class Utils {
 		List<String> cmd_array = new ArrayList<String>();
 		Utils.Platform os = Utils.checkOS();
 		if (os == Utils.Platform.MAC || os == Utils.Platform.LINUX) {
+
 			cmd_array.add("mono");
 		}
 		for (String s : args) {
+
 			cmd_array.add(s);
 		}
 		return cmd_array.toArray(new String[0]);
@@ -104,6 +113,7 @@ public class Utils {
 	private static String[] toCmdArray(String... args) {
 		List<String> cmd_array = new ArrayList<String>();
 		for (String s : args) {
+
 			cmd_array.add(s);
 		}
 		return cmd_array.toArray(new String[0]);
@@ -116,14 +126,17 @@ public class Utils {
 		byte[] buffer = new byte[4096];
 		int len = 0;
 		while ((len = in.read(buffer, 0, 4096)) > 0) {
+
 			bout.write(buffer, 0, len);
 		}
 		InputStream err = p.getErrorStream();
 		ByteArrayOutputStream berr = new ByteArrayOutputStream();
 		while ((len = err.read(buffer, 0, 4096)) > 0) {
+
 			berr.write(buffer, 0, len);
 		}
 		if (berr.size() > 0) {
+
 			PacketProxyUtility.getInstance().packetProxyLogErr(berr.toString());
 		}
 		return bout.toByteArray();
@@ -131,7 +144,7 @@ public class Utils {
 
 	/**
 	 * EXEを実行する。MACの場合はmonoで実行する
-	 * 
+	 *
 	 * @return 標準出力に表示されたデータ
 	 */
 	public static byte[] executeExe(String... command) throws Exception {
@@ -141,14 +154,17 @@ public class Utils {
 		byte[] buffer = new byte[4096];
 		int len = 0;
 		while ((len = in.read(buffer, 0, 4096)) > 0) {
+
 			bout.write(buffer, 0, len);
 		}
 		InputStream err = p.getErrorStream();
 		ByteArrayOutputStream berr = new ByteArrayOutputStream();
 		while ((len = err.read(buffer, 0, 4096)) > 0) {
+
 			berr.write(buffer, 0, len);
 		}
 		if (berr.size() > 0) {
+
 			PacketProxyUtility.getInstance().packetProxyLogErr(berr.toString());
 		}
 		return bout.toByteArray();
@@ -158,9 +174,11 @@ public class Utils {
 		List<String> cmd_array = new ArrayList<String>();
 		Utils.Platform os = Utils.checkOS();
 		if (os == Utils.Platform.MAC || os == Utils.Platform.LINUX) {
+
 			cmd_array.add("ruby");
 		}
 		for (String s : args) {
+
 			cmd_array.add(s);
 			// System.out.print(s+ " ");
 		}
@@ -170,7 +188,7 @@ public class Utils {
 
 	/**
 	 * EXEを実行する。MACの場合はmonoで実行する
-	 * 
+	 *
 	 * @return 標準出力に表示されたデータ
 	 */
 	public static byte[] executeRuby(String... command) throws Exception {
@@ -181,6 +199,7 @@ public class Utils {
 		byte[] buffer = new byte[4096];
 		int len = 0;
 		while ((len = in.read(buffer, 0, 4096)) > 0) {
+
 			bout.write(buffer, 0, len);
 		}
 		return Base64.decodeBase64(bout.toByteArray());
@@ -193,6 +212,7 @@ public class Utils {
 		byte[] buffer = new byte[4096];
 		int len = 0;
 		while ((len = bis.read(buffer, 0, 4096)) > 0) {
+
 			bout.write(buffer, 0, len);
 		}
 		fis.close();
@@ -202,6 +222,7 @@ public class Utils {
 	public static void deletefile(String filename) throws Exception {
 		File file = new File(filename);
 		if (file.exists()) {
+
 			file.delete();
 		}
 	}
@@ -228,6 +249,7 @@ public class Utils {
 		GZIPInputStream gzis = new GZIPInputStream(new ByteArrayInputStream(src));
 		byte[] buf = new byte[1024];
 		while (true) {
+
 			int len = gzis.read(buf);
 			if (len < 0)
 				break;
@@ -250,14 +272,16 @@ public class Utils {
 	public static byte[] replaceBinary(byte[] data, byte[] binPattern, byte[] binReplaced) {
 		int idx = 0;
 		while (idx < data.length) {
+
 			if ((idx = Utils.indexOf(data, idx, data.length, binPattern)) < 0) {
+
 				return data;
 			}
 			byte[] front_data = ArrayUtils.subarray(data, 0, idx);
 			byte[] back_data = ArrayUtils.subarray(data, idx + binPattern.length, data.length);
 			data = ArrayUtils.addAll(front_data, binReplaced);
 			data = ArrayUtils.addAll(data, back_data);
-			idx = idx + binReplaced.length;
+			idx += binReplaced.length;
 		}
 		return data;
 	}
@@ -268,6 +292,7 @@ public class Utils {
 
 	public static boolean isPrintable(byte[] data) {
 		for (byte b : data) {
+
 			if (b < 32)
 				return false;
 			if (b > 126)

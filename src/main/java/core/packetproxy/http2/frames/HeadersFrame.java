@@ -17,7 +17,6 @@ package packetproxy.http2.frames;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpFields;
@@ -29,19 +28,19 @@ import org.eclipse.jetty.http.MetaData.Request;
 import org.eclipse.jetty.http.MetaData.Response;
 import org.eclipse.jetty.http2.hpack.HpackDecoder;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
-
 import packetproxy.common.StringUtils;
 import packetproxy.http.HeaderField;
 import packetproxy.http.Http;
 import packetproxy.http.HttpHeader;
 
 public class HeadersFrame extends Frame {
-	static protected Type TYPE = Type.HEADERS;
-	static public byte FLAG_END_STREAM = 0x01;
-	static public byte FLAG_END_HEADERS = 0x04;
-	static public byte FLAG_PADDED = 0x08;
-	static public byte FLAG_PRIORITY = 0x20;
-	static public byte FLAG_EXTRA = 0x40; /* internal use only */
+
+	protected static Type TYPE = Type.HEADERS;
+	public static byte FLAG_END_STREAM = 0x01;
+	public static byte FLAG_END_HEADERS = 0x04;
+	public static byte FLAG_PADDED = 0x08;
+	public static byte FLAG_PRIORITY = 0x20;
+	public static byte FLAG_EXTRA = 0x40; /* internal use only */
 
 	private String method;
 	private String path;
@@ -74,11 +73,15 @@ public class HeadersFrame extends Frame {
 		super();
 		super.type = TYPE;
 		for (HeaderField field : http.getHeader().getFields()) {
+
 			if (field.getName().equals("X-PacketProxy-HTTP2-Stream-Id")) {
+
 				super.streamId = Integer.parseInt(field.getValue());
 			} else if (field.getName().equals("X-PacketProxy-HTTP2-Flags")) {
+
 				super.flags |= (byte) Integer.parseInt(field.getValue());
 			} else if (field.getName().equals("X-PacketProxy-HTTP2-GRPC-2nd-Frame-Header")) {
+
 				this.bTrailer = true;
 			}
 		}
@@ -112,6 +115,7 @@ public class HeadersFrame extends Frame {
 	private void encodeFromHttp(HpackEncoder encoder, boolean originalHttpHeader, boolean withContentLength)
 			throws Exception {
 		if ((super.flags & FLAG_EXTRA) == 0) {
+
 			return;
 		}
 		Http http = Http.create(getExtra());
@@ -122,7 +126,9 @@ public class HeadersFrame extends Frame {
 		HttpHeader headers = (originalHttpHeader == true ? http.getOriginalHeader() : http.getHeader());
 		HttpFields.Mutable mutableFields = HttpFields.build();
 		for (HeaderField field : headers.getFields()) {
+
 			if (field.getName().equals("X-PacketProxy-HTTP2-Host")) {
+
 				scheme = "https";
 				authority = field.getValue();
 				path = http.getPath();
@@ -130,13 +136,17 @@ public class HeadersFrame extends Frame {
 				String queryStr = (query != null && query.length() > 0) ? "?" + query : "";
 				uriString = scheme + "://" + authority + path + queryStr;
 			} else if (field.getName().equals("X-PacketProxy-HTTP2-Dependency")) {
+
 				priority = true;
 				dependency = Integer.parseInt(field.getValue());
 			} else if (field.getName().equals("X-PacketProxy-HTTP2-Weight")) {
+
 				weight = Integer.parseInt(field.getValue());
 			} else if (!withContentLength && field.getName().equals("content-length")) {
+
 				// ignore
 			} else if (!field.getName().startsWith("X-PacketProxy")) {
+
 				mutableFields.add(field.getName(), field.getValue());
 			}
 		}
@@ -144,24 +154,32 @@ public class HeadersFrame extends Frame {
 
 		MetaData meta;
 		if (http.isRequest()) {
+
 			long contentLength = 0;
 			HttpURI uri = HttpURI.build().uri(uriString);
 			if (withContentLength) {
+
 				if (method.equals("GET") || method.equals("HEAD")) {
+
 					contentLength = (http.getBody().length == 0 ? Long.MIN_VALUE : http.getBody().length);
 				} else if (method.equals("POST") || method.equals("PUT")) {
+
 					contentLength = http.getBody().length;
 					mutableFields.add("content-length", String.valueOf(contentLength));
 					fields = mutableFields;
 				}
 				meta = new MetaData.Request(method, uri, version, fields, contentLength);
 			} else {
+
 				meta = new MetaData.Request(method, uri, version, fields);
 			}
 		} else {
+
 			if (this.bTrailer) {
+
 				meta = new MetaData(version, fields);
 			} else {
+
 				this.status = Integer.valueOf(http.getStatusCode());
 				long contentLength = (http.getBody().length == 0 ? Long.MIN_VALUE : http.getBody().length);
 				meta = new MetaData.Response(version, Integer.parseInt(http.getStatusCode()), fields, contentLength);
@@ -176,6 +194,7 @@ public class HeadersFrame extends Frame {
 		buffer.get(headersPayload);
 
 		if (priority) {
+
 			ByteBuffer b = ByteBuffer.allocate(16);
 			b.putInt(dependency | 0x80000000);
 			b.put((byte) (weight & 0xff));
@@ -190,9 +209,11 @@ public class HeadersFrame extends Frame {
 
 	private void decodeToHttp(HpackDecoder decoder) throws Exception {
 		if ((super.flags & FLAG_EXTRA) > 0) {
+
 			return;
 		}
 		if (decoder == null) {
+
 			return;
 		}
 		ByteBuffer in = ByteBuffer.allocate(65535);
@@ -200,6 +221,7 @@ public class HeadersFrame extends Frame {
 		in.flip();
 
 		if ((super.flags & FLAG_PRIORITY) > 0) {
+
 			priority = true;
 			dependency = in.getInt() & 0x7fffffff;
 			weight = in.get();
@@ -210,6 +232,7 @@ public class HeadersFrame extends Frame {
 		isGRPC2ndResponseHeader = false;
 
 		if (meta instanceof Request) {
+
 			// System.out.println("# meta.request: " + meta);
 			bRequest = true;
 			Request req = (Request) meta;
@@ -223,19 +246,24 @@ public class HeadersFrame extends Frame {
 			query = uri.getQuery();
 
 		} else if (meta instanceof Response) {
+
 			// System.out.println("# meta.response: " + meta);
 			bResponse = true;
 			Response res = (Response) meta;
 			status = res.getStatus();
 		} else {
+
 			// gRPC Trailer Frame
 			bTrailer = true;
 		}
 		fields = meta.getFields();
 
 		if (bTrailer) {
+
 			for (HttpField i : fields) {
+
 				if (i.getName().contains("grpc-status")) {
+
 					isGRPC2ndResponseHeader = true;
 					break;
 				}
@@ -244,22 +272,28 @@ public class HeadersFrame extends Frame {
 
 		ByteArrayOutputStream buf = new ByteArrayOutputStream();
 		if (bRequest) {
+
 			String queryStr = (query != null && query.length() > 0) ? "?" + query : "";
 			// String fragmentStr = (fragment != null && fragment.length() > 0) ?
 			// "#"+fragment : "";
 			String statusLine = String.format("%s %s%s HTTP/2\r\n", method, path, queryStr);
 			buf.write(statusLine.getBytes());
 		} else {
+
 			buf.write(String.format("HTTP/2 %d %s\r\n", status, HttpStatus.getMessage(status)).getBytes());
 		}
 		for (HttpField field : fields) {
+
 			buf.write(String.format("%s: %s\r\n", field.getName(), field.getValue()).getBytes());
 		}
 		if (!isGRPC2ndResponseHeader) {
+
 			if (bRequest) {
+
 				buf.write(String.format("X-PacketProxy-HTTP2-Host: %s\r\n", authority).getBytes());
 			}
 			if (priority) {
+
 				buf.write(String.format("X-PacketProxy-HTTP2-Dependency: %d\r\n", dependency).getBytes());
 				buf.write(String.format("X-PacketProxy-HTTP2-Weight: %d\r\n", weight & 0xff).getBytes());
 			}
@@ -268,6 +302,7 @@ public class HeadersFrame extends Frame {
 			buf.write(String.format("X-PacketProxy-HTTP2-Flags: %d\r\n", flags).getBytes());
 			buf.write(String.format("X-PacketProxy-HTTP2-UUID: %s\r\n", StringUtils.randomUUID()).getBytes());
 		} else {
+
 			buf.write(String.format("X-PacketProxy-HTTP2-GRPC-2nd-Frame-Header: 1\r\n").getBytes());
 		}
 		buf.write("\r\n".getBytes());

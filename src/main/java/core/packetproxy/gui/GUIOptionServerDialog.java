@@ -22,7 +22,7 @@ import java.awt.EventQueue;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+import java.util.regex.*;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -31,18 +31,14 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JOptionPane;
-
-import java.util.regex.*;
-
+import javax.swing.JPanel;
 import packetproxy.EncoderManager;
 import packetproxy.common.I18nString;
 import packetproxy.model.Server;
 
+public class GUIOptionServerDialog extends JDialog {
 
-public class GUIOptionServerDialog extends JDialog
-{
 	private static final long serialVersionUID = 1L;
 	private JButton button_cancel = new JButton(I18nString.get("Cancel"));
 	private JButton button_set = new JButton(I18nString.get("Save"));
@@ -52,8 +48,10 @@ public class GUIOptionServerDialog extends JDialog
 	private JCheckBox checkbox_ssl = new JCheckBox(I18nString.get("Need a SSL/TLS to connect"));
 	private JCheckBox checkbox_dns = new JCheckBox(I18nString.get("Spoofing A Record"));
 	private JCheckBox checkbox_dns6 = new JCheckBox(I18nString.get("Spoofing AAAA Record"));
-	private JLabel label_dnsspoof = new JLabel("Private DNS server needs to resolve the server name to local machine IP.");
-	private JCheckBox checkbox_upstream_http_proxy = new JCheckBox(I18nString.get("Need to be defined as an Upstream Http Proxy"));
+	private JLabel label_dnsspoof = new JLabel(
+			"Private DNS server needs to resolve the server name to local machine IP.");
+	private JCheckBox checkbox_upstream_http_proxy = new JCheckBox(
+			I18nString.get("Need to be defined as an Upstream Http Proxy"));
 	JComboBox<String> combo = new JComboBox<String>();
 	private int height = 500;
 	private int width = 700;
@@ -69,6 +67,7 @@ public class GUIOptionServerDialog extends JDialog
 		panel.add(object);
 		return panel;
 	}
+
 	private JComponent buttons() {
 		JPanel panel_button = new JPanel();
 		panel_button.setLayout(new BoxLayout(panel_button, BoxLayout.X_AXIS));
@@ -77,8 +76,8 @@ public class GUIOptionServerDialog extends JDialog
 		panel_button.add(button_set);
 		return panel_button;
 	}
-	public Server showDialog(Server preset)
-	{
+
+	public Server showDialog(Server preset) {
 		text_ip.setText(preset.getIp());
 		text_port.setText(Integer.toString(preset.getPort()));
 		combo.setSelectedItem(preset.getEncoder());
@@ -90,6 +89,7 @@ public class GUIOptionServerDialog extends JDialog
 		setModal(true);
 		setVisible(true);
 		if (server != null) {
+
 			preset.setIp(text_ip.getText());
 			preset.setPort(Integer.parseInt(text_port.getText()));
 			preset.setEncoder(combo.getSelectedItem().toString());
@@ -102,10 +102,12 @@ public class GUIOptionServerDialog extends JDialog
 		}
 		return server;
 	}
-	public Server showDialog()
-	{
+
+	public Server showDialog() {
 		EventQueue.invokeLater(new Runnable() {
-			@Override public void run() {
+
+			@Override
+			public void run() {
 				button_cancel.requestFocusInWindow();
 			}
 		});
@@ -114,14 +116,11 @@ public class GUIOptionServerDialog extends JDialog
 		return server;
 	}
 
-	private JComponent createModuleAlert() throws  Exception {
+	private JComponent createModuleAlert() throws Exception {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-		JLabel label = new JLabel(
-				"<html>名前が重複したEncodeモジュールがあります。<br/>" +
-				"重複したEncodeモジュールの名前は<br/>" +
-				"{モジュール名}-{モジュールのJarファイル名}として扱われます。</html>"
-		);
+		JLabel label = new JLabel("<html>名前が重複したEncodeモジュールがあります。<br/>" + "重複したEncodeモジュールの名前は<br/>"
+				+ "{モジュール名}-{モジュールのJarファイル名}として扱われます。</html>");
 		label.setForeground(Color.red);
 		label.setPreferredSize(new Dimension(150, label.getMaximumSize().height));
 		panel.add(label);
@@ -131,6 +130,7 @@ public class GUIOptionServerDialog extends JDialog
 	private JComponent createModuleSetting() throws Exception {
 		String[] names = EncoderManager.getInstance().getEncoderNameList();
 		for (int i = 0; i < names.length; i++) {
+
 			combo.addItem(names[i]);
 		}
 		combo.setEnabled(true);
@@ -138,40 +138,51 @@ public class GUIOptionServerDialog extends JDialog
 		combo.setSelectedItem("HTTP");
 		return label_and_object(I18nString.get("Encode module:"), combo);
 	}
+
 	private JComponent createIpSetting() {
 		return label_and_object(I18nString.get("Server name:"), text_ip);
 	}
+
 	private JComponent createPortSetting() {
 		return label_and_object(I18nString.get("Server port:"), text_port);
 	}
+
 	private JComponent createUseSSLSetting() {
 		return label_and_object(I18nString.get("Use SSL/TLS:"), checkbox_ssl);
 	}
+
 	private JComponent createHttpProxySetting() {
 		return label_and_object(I18nString.get("Upstream HTTP Proxy:"), checkbox_upstream_http_proxy);
 	}
+
 	private JComponent createDNSSettinglabel() {
 		return label_and_object(I18nString.get("DNS Spoofing:"), label_dnsspoof);
 	}
+
 	private JComponent createDNSSetting() {
 		return label_and_object(I18nString.get(" "), checkbox_dns);
 	}
+
 	private JComponent createDNS6Setting() {
 		return label_and_object(I18nString.get(" "), checkbox_dns6);
 	}
+
 	private JComponent createCommentSetting() {
 		return label_and_object(I18nString.get("Comments:"), text_comment);
 	}
+
 	public GUIOptionServerDialog(JFrame owner) throws Exception {
 		super(owner);
 		setTitle(I18nString.get("Server setting"));
 		Rectangle rect = owner.getBounds();
-		setBounds(rect.x + rect.width/2 - width/2, rect.y + rect.height/2 - height/2, width, height); /* ド真ん中 */
+		setBounds(rect.x + rect.width / 2 - width / 2, rect.y + rect.height / 2 - height / 2, width, height); /* ド真ん中 */
 
 		checkbox_upstream_http_proxy.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (checkbox_upstream_http_proxy.isSelected()) {
+
 					combo.setSelectedItem("HTTP");
 					combo.setEnabled(false);
 					checkbox_ssl.setSelected(false);
@@ -181,6 +192,7 @@ public class GUIOptionServerDialog extends JDialog
 					checkbox_dns6.setSelected(false);
 					checkbox_dns6.setEnabled(false);
 				} else {
+
 					combo.setEnabled(true);
 					checkbox_ssl.setEnabled(true);
 					checkbox_dns.setEnabled(true);
@@ -190,13 +202,14 @@ public class GUIOptionServerDialog extends JDialog
 		});
 
 		Container c = getContentPane();
-		JPanel panel = new JPanel(); 
+		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
 		panel.add(createIpSetting());
 		panel.add(createPortSetting());
 		panel.add(createUseSSLSetting());
-		if(EncoderManager.getInstance().hasDuplicateModules()){
+		if (EncoderManager.getInstance().hasDuplicateModules()) {
+
 			panel.add(createModuleAlert());
 		}
 		panel.add(createModuleSetting());
@@ -211,6 +224,7 @@ public class GUIOptionServerDialog extends JDialog
 		c.add(panel);
 
 		button_cancel.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				server = null;
@@ -219,24 +233,21 @@ public class GUIOptionServerDialog extends JDialog
 		});
 
 		button_set.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String hostname = text_ip.getText();
 				String regex = "[^\\x21-\\x7E]";
 				Pattern p = Pattern.compile(regex);
 				Matcher m = p.matcher(hostname);
-				if(m.find()){
-					JOptionPane.showMessageDialog(null,I18nString.get("The ServerName contains invalid characters."));
+				if (m.find()) {
+
+					JOptionPane.showMessageDialog(null, I18nString.get("The ServerName contains invalid characters."));
 					return;
 				}
-				server = new Server(text_ip.getText(),
-				Integer.parseInt(text_port.getText()),
-				checkbox_ssl.isSelected(),
-				combo.getSelectedItem().toString(),
-				checkbox_dns.isSelected(),
-				checkbox_dns6.isSelected(),
-				checkbox_upstream_http_proxy.isSelected(),
-				text_comment.getText());
+				server = new Server(text_ip.getText(), Integer.parseInt(text_port.getText()), checkbox_ssl.isSelected(),
+						combo.getSelectedItem().toString(), checkbox_dns.isSelected(), checkbox_dns6.isSelected(),
+						checkbox_upstream_http_proxy.isSelected(), text_comment.getText());
 				dispose();
 			}
 		});

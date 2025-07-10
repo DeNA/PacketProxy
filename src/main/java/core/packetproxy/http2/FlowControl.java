@@ -16,10 +16,8 @@
 package packetproxy.http2;
 
 import java.io.ByteArrayOutputStream;
-
 import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
-
 import packetproxy.http2.frames.DataFrame;
 import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameFactory;
@@ -47,6 +45,7 @@ public class FlowControl {
 
 	public void appendWindowSize(int appendWindowSize) {
 		synchronized (queue) {
+
 			windowSize += appendWindowSize;
 		}
 	}
@@ -55,19 +54,24 @@ public class FlowControl {
 	// 2回目のpushは、gRPC通信の2nd HeadersFrameとして扱い、DataFrameの後に送信する
 	public void pushHeadersFrame(Frame headersFrame) {
 		if (this.headersFrame == null) {
+
 			this.headersFrame = headersFrame;
 		} else {
+
 			this.grpcHeaderFrame = headersFrame;
 		}
 	}
 
 	public void enqueue(Frame frame) throws Exception {
 		synchronized (queue) {
+
 			queue.write(frame.getPayload());
 			queue.flush();
 			if ((frame.getFlags() & DataFrame.FLAG_END_STREAM) > 0) {
+
 				end_flag = true;
 				if (queue.size() == 0) {
+
 					empty_data_end_flag = true;
 				}
 			}
@@ -79,6 +83,7 @@ public class FlowControl {
 
 		// 最初にheadersFrameを送信する
 		if (!this.headersFrameSent && this.headersFrame != null) {
+
 			// System.out.printf("[%d] HeadersFrame sent!\n", streamId);
 			stream.write(this.headersFrame);
 			this.headersFrameSent = true;
@@ -88,6 +93,7 @@ public class FlowControl {
 		// データの送信が終わっていたら、grpcヘッダを送信する
 		if (this.headersFrameSent && (this.dataFrameSent || queue.size() == 0) && !this.grpcHeadersFrameSent
 				&& this.grpcHeaderFrame != null) {
+
 			// System.out.printf("[%d] gRPC HeadersFrame sent!\n", streamId);
 			stream.write(this.grpcHeaderFrame);
 			this.grpcHeadersFrameSent = true;
@@ -95,7 +101,9 @@ public class FlowControl {
 		}
 
 		if (queue.size() == 0) {
+
 			if (empty_data_end_flag) {
+
 				empty_data_end_flag = false;
 				int flags = DataFrame.FLAG_END_STREAM;
 				Frame frame = FrameFactory.create(DataFrame.TYPE, flags, streamId, new byte[0]);
@@ -107,18 +115,23 @@ public class FlowControl {
 
 		int capacity = Math.min(windowSize, connectionWindowSize);
 		if (capacity == 0) {
-			System.err.printf("[HTTP/2 FlowControl] try to send %d data, but running out of window (streamId: %d)\n", queue.size(), this.streamId);
+
+			System.err.printf("[HTTP/2 FlowControl] try to send %d data, but running out of window (streamId: %d)\n",
+					queue.size(), this.streamId);
 			System.err.flush();
 			return null;
 		}
 		// 少しだけcapacityに余裕を持たせる
 		if (capacity <= 3000) {
+
 			return null;
 		} else {
+
 			capacity -= 3000;
 		}
 		int dataLen = Math.min(queue.size(), capacity);
 		if (dataLen == 0) {
+
 			System.err.printf("[HTTP/2 FlowControl] sending data is not found (streamId: %d)\n", this.streamId);
 			System.err.flush();
 			return null;
@@ -131,17 +144,20 @@ public class FlowControl {
 		queue.flush();
 
 		while (data.length > 0) {
+
 			int payloadLen = Math.min(data.length, 16384);
 			byte[] payload = ArrayUtils.subarray(data, 0, payloadLen);
 			data = ArrayUtils.subarray(data, payloadLen, data.length);
 
 			int flags = 0x0;
 			if (remaining.length == 0 && end_flag && data.length == 0) {
+
 				flags = DataFrame.FLAG_END_STREAM;
 			}
 			Frame frame = FrameFactory.create(DataFrame.TYPE, flags, streamId, payload);
 
 			if (remaining.length == 0 && data.length == 0) {
+
 				this.dataFrameSent = true;
 			}
 
@@ -150,7 +166,8 @@ public class FlowControl {
 
 		// データの送信が終わっていたら、grpcヘッダを送信する
 		if (this.headersFrameSent && this.dataFrameSent && !this.grpcHeadersFrameSent && this.grpcHeaderFrame != null) {
-			//System.out.printf("[%d] gRPC HeadersFrame sent!\n", streamId);
+
+			// System.out.printf("[%d] gRPC HeadersFrame sent!\n", streamId);
 			stream.write(this.grpcHeaderFrame);
 			this.grpcHeadersFrameSent = true;
 		}
@@ -160,6 +177,7 @@ public class FlowControl {
 
 	public int size() {
 		synchronized (queue) {
+
 			return queue.size();
 		}
 	}

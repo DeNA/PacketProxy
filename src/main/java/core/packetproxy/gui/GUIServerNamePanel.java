@@ -25,6 +25,7 @@ import packetproxy.model.Packet;
 import packetproxy.model.PacketInfo;
 
 public class GUIServerNamePanel extends JPanel {
+
 	private JLabel client_label;
 	private JLabel server_label;
 	public GUIServerNamePanel() {
@@ -48,34 +49,45 @@ public class GUIServerNamePanel extends JPanel {
 		layout.putConstraint(SpringLayout.NORTH, server_label, 4, SpringLayout.NORTH, this);
 		add(server_label);
 	}
+
 	public void updateServerName(OneShotPacket packet) {
 		byte[] data = packet == null ? null : packet.getData();
 		updateServerName(data, packet);
 	}
+
 	public void updateServerName(Packet client_packet, Packet server_packet) {
 		PacketInfo target_packet = server_packet == null ? client_packet : server_packet;
 		byte[] client_decoded_data = client_packet == null ? null : client_packet.getModifiedData();
 		updateServerName(client_decoded_data, target_packet);
 	}
+
 	private void updateServerName(byte[] client_data, PacketInfo packet) {
 		try {
+
 			if (packet != null) {
+
 				String dir_str = packet.getDirection() == Packet.Direction.CLIENT ? " -> " : " <- ";
 				client_label.setText(dir_str);
 				if (client_data != null && Http.isHTTP(client_data)) {
+
 					Http http = Http.create(client_data);
 					String url = http.getURL(packet.getServerPort(), packet.getUseSSL());
 					server_label.setText(String.format("%s (%s)", url, packet.getEncoder()));
 				} else {
-					server_label.setText(String.format("%s:%d (%s)", packet.getServerIP(), packet.getServerPort(), packet.getEncoder()));
+
+					server_label.setText(String.format("%s:%d (%s)", packet.getServerIP(), packet.getServerPort(),
+							packet.getEncoder()));
 				}
 			} else {
+
 				clearText();
 			}
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}
+
 	private void clearText() {
 		client_label.setText(" ");
 		server_label.setText(" ");

@@ -18,11 +18,8 @@ package packetproxy.http3.utils;
 
 public class Constants {
 
-    public enum Http3StreamType {
-        CONTROL,
-        PUSH_STREAM,
-        QPACK_ENCODER,
-        QPACK_DECODER,
-    }
+	public enum Http3StreamType {
+		CONTROL, PUSH_STREAM, QPACK_ENCODER, QPACK_DECODER,
+	}
 
 }

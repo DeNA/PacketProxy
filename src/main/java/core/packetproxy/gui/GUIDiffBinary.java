@@ -18,42 +18,51 @@ import java.awt.*;
 import javax.swing.*;
 import packetproxy.common.Binary;
 import packetproxy.model.DiffBinary;
-import packetproxy.model.DiffSet;
 import packetproxy.model.DiffEventAdapter;
+import packetproxy.model.DiffSet;
 
-public class GUIDiffBinary extends GUIDiffBase
-{
+public class GUIDiffBinary extends GUIDiffBase {
+
 	@Override
 	protected DiffSet sortUniq(DiffSet ds) {
 		String strOrig = "";
 		String strTarg = "";
 		try {
+
 			strOrig = super.sortUniq(new Binary(ds.getOriginal()).toHexString().toString());
 			strTarg = super.sortUniq(new Binary(ds.getTarget()).toHexString().toString());
-		}catch (Exception e){
+		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 		return new DiffSet(strOrig.getBytes(), strTarg.getBytes());
 	}
-	public GUIDiffBinary() throws Exception {}
+
+	public GUIDiffBinary() throws Exception {
+	}
 
 	@Override
 	public void update() throws Exception {
 		DiffSet ds;
 		if (jc.isSelected()) {
+
 			ds = sortUniq(DiffBinary.getInstance().getSet());
 		} else {
+
 			ds = DiffBinary.getInstance().getSet();
 		}
 		byte[] original = ds.getOriginal();
 		byte[] target = ds.getTarget();
 		if (original != null) {
+
 			textOrig.setData(new Binary(ds.getOriginal()).toHexString().toString().getBytes(), false);
 		}
 		if (target != null) {
+
 			textTarg.setData(new Binary(ds.getTarget()).toHexString().toString().getBytes(), false);
 		}
 		if (original == null || target == null) {
+
 			return;
 		}
 
@@ -64,18 +73,22 @@ public class GUIDiffBinary extends GUIDiffBase
 		docTarg.setCharacterAttributes(0, docTarg.getLength(), defaultAttr, false);
 
 		DiffEventAdapter eventFordocOrig = new DiffEventAdapter() {
+
 			public void foundDelDelta(int pos, int length) throws Exception {
 				docOrig.setCharacterAttributes(pos, length, delAttr, false);
 			}
+
 			public void foundChgDelta(int pos, int length) throws Exception {
 				docOrig.setCharacterAttributes(pos, length, chgAttr, false);
 			}
 		};
 
 		DiffEventAdapter eventForTarget = new DiffEventAdapter() {
+
 			public void foundInsDelta(int pos, int length) throws Exception {
 				docTarg.setCharacterAttributes(pos, length, insAttr, false);
 			}
+
 			public void foundChgDelta(int pos, int length) throws Exception {
 				docTarg.setCharacterAttributes(pos, length, chgAttr, false);
 			}

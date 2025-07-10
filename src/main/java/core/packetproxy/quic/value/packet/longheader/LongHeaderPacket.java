@@ -16,17 +16,16 @@
 
 package packetproxy.quic.value.packet.longheader;
 
+import java.nio.ByteBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.NonFinal;
-import packetproxy.quic.value.packet.QuicPacket;
 import packetproxy.quic.value.ConnectionId;
 import packetproxy.quic.value.ConnectionIdPair;
 import packetproxy.quic.value.FixedLengthPrecededBytes;
 import packetproxy.quic.value.SimpleBytes;
-
-import java.nio.ByteBuffer;
+import packetproxy.quic.value.packet.QuicPacket;
 
 /*
 https://www.rfc-editor.org/rfc/rfc9000.html#name-long-header-packets
@@ -50,76 +49,76 @@ Long Header Packet {
 @Value
 public class LongHeaderPacket extends QuicPacket {
 
-    static public boolean is(byte type) {
-        return (type & (byte)0xc0) == (byte)0xc0;
-    }
+	public static boolean is(byte type) {
+		return (type & (byte) 0xc0) == (byte) 0xc0;
+	}
 
-    static public ConnectionId getDestConnId(ByteBuffer buffer) {
-        int savedPosition = buffer.position();
-        buffer.get();
-        buffer.getInt();
-        byte[] destConnId = FixedLengthPrecededBytes.parse(buffer).getBytes();
-        buffer.position(savedPosition);
-        return ConnectionId.of(destConnId);
-    }
+	public static ConnectionId getDestConnId(ByteBuffer buffer) {
+		int savedPosition = buffer.position();
+		buffer.get();
+		buffer.getInt();
+		byte[] destConnId = FixedLengthPrecededBytes.parse(buffer).getBytes();
+		buffer.position(savedPosition);
+		return ConnectionId.of(destConnId);
+	}
 
-    protected int version;
-    protected ConnectionIdPair connectionIdPair;
+	protected int version;
+	protected ConnectionIdPair connectionIdPair;
 
-    protected LongHeaderPacket(byte type, int version, ConnectionIdPair connIdPair) {
-        super(type);
-        this.version = version;
-        this.connectionIdPair = connIdPair;
-    }
+	protected LongHeaderPacket(byte type, int version, ConnectionIdPair connIdPair) {
+		super(type);
+		this.version = version;
+		this.connectionIdPair = connIdPair;
+	}
 
-    protected LongHeaderPacket(ByteBuffer buffer) {
-        super(buffer);
-        this.version = buffer.getInt();
-        ConnectionId destConnId = ConnectionId.of(FixedLengthPrecededBytes.parse(buffer).getBytes());
-        ConnectionId srcConnId = ConnectionId.of(FixedLengthPrecededBytes.parse(buffer).getBytes());
-        this.connectionIdPair = ConnectionIdPair.of(srcConnId, destConnId);
-    }
+	protected LongHeaderPacket(ByteBuffer buffer) {
+		super(buffer);
+		this.version = buffer.getInt();
+		ConnectionId destConnId = ConnectionId.of(FixedLengthPrecededBytes.parse(buffer).getBytes());
+		ConnectionId srcConnId = ConnectionId.of(FixedLengthPrecededBytes.parse(buffer).getBytes());
+		this.connectionIdPair = ConnectionIdPair.of(srcConnId, destConnId);
+	}
 
-    protected int size() {
-        return this.getBytes().length;
-    }
+	protected int size() {
+		return this.getBytes().length;
+	}
 
-    protected byte[] getBytes() {
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
-        buffer.put(super.getType());
-        buffer.putInt(this.version);
-        buffer.put(FixedLengthPrecededBytes.of(this.connectionIdPair.getDestConnId().getBytes()).serialize());
-        buffer.put(FixedLengthPrecededBytes.of(this.connectionIdPair.getSrcConnId().getBytes()).serialize());
-        buffer.flip();
-        return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
-    }
+	protected byte[] getBytes() {
+		ByteBuffer buffer = ByteBuffer.allocate(1500);
+		buffer.put(super.getType());
+		buffer.putInt(this.version);
+		buffer.put(FixedLengthPrecededBytes.of(this.connectionIdPair.getDestConnId().getBytes()).serialize());
+		buffer.put(FixedLengthPrecededBytes.of(this.connectionIdPair.getSrcConnId().getBytes()).serialize());
+		buffer.flip();
+		return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+	}
 
-    protected byte[] getBytes(int newlyPnLength) {
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
-        buffer.put(super.getType(newlyPnLength));
-        buffer.putInt(this.version);
-        buffer.put(FixedLengthPrecededBytes.of(this.connectionIdPair.getDestConnId().getBytes()).serialize());
-        buffer.put(FixedLengthPrecededBytes.of(this.connectionIdPair.getSrcConnId().getBytes()).serialize());
-        buffer.flip();
-        return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
-    }
+	protected byte[] getBytes(int newlyPnLength) {
+		ByteBuffer buffer = ByteBuffer.allocate(1500);
+		buffer.put(super.getType(newlyPnLength));
+		buffer.putInt(this.version);
+		buffer.put(FixedLengthPrecededBytes.of(this.connectionIdPair.getDestConnId().getBytes()).serialize());
+		buffer.put(FixedLengthPrecededBytes.of(this.connectionIdPair.getSrcConnId().getBytes()).serialize());
+		buffer.flip();
+		return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+	}
 
-    protected byte[] getMaskedBytes(int newlyPnLength, byte[] maskKey) {
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
-        buffer.put(super.getMaskedBytes(newlyPnLength, PacketHeaderType.LongHeaderType, maskKey));
-        buffer.putInt(this.version);
-        buffer.put(FixedLengthPrecededBytes.of(this.connectionIdPair.getDestConnId().getBytes()).serialize());
-        buffer.put(FixedLengthPrecededBytes.of(this.connectionIdPair.getSrcConnId().getBytes()).serialize());
-        buffer.flip();
-        return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
-    }
+	protected byte[] getMaskedBytes(int newlyPnLength, byte[] maskKey) {
+		ByteBuffer buffer = ByteBuffer.allocate(1500);
+		buffer.put(super.getMaskedBytes(newlyPnLength, PacketHeaderType.LongHeaderType, maskKey));
+		buffer.putInt(this.version);
+		buffer.put(FixedLengthPrecededBytes.of(this.connectionIdPair.getDestConnId().getBytes()).serialize());
+		buffer.put(FixedLengthPrecededBytes.of(this.connectionIdPair.getSrcConnId().getBytes()).serialize());
+		buffer.flip();
+		return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+	}
 
-    public ConnectionId getSrcConnId() {
-        return this.connectionIdPair.getSrcConnId();
-    }
+	public ConnectionId getSrcConnId() {
+		return this.connectionIdPair.getSrcConnId();
+	}
 
-    public ConnectionId getDestConnId() {
-        return this.connectionIdPair.getDestConnId();
-    }
+	public ConnectionId getDestConnId() {
+		return this.connectionIdPair.getDestConnId();
+	}
 
 }

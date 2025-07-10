@@ -17,55 +17,56 @@
 package packetproxy.quic.value.frame;
 
 import com.google.common.collect.ImmutableList;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
-
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
 public class PingFrame extends Frame {
 
-    static public final byte TYPE = 0x01;
-    long length;
+	public static final byte TYPE = 0x01;
+	long length;
 
-    static public List<Byte> supportedTypes() {
-        return ImmutableList.of(TYPE);
-    }
+	public static List<Byte> supportedTypes() {
+		return ImmutableList.of(TYPE);
+	}
 
-    static public PingFrame parse(byte[] bytes) {
-        return PingFrame.parse(ByteBuffer.wrap(bytes));
-    }
+	public static PingFrame parse(byte[] bytes) {
+		return PingFrame.parse(ByteBuffer.wrap(bytes));
+	}
 
-    static public PingFrame parse(ByteBuffer buffer) {
-        long length = 0;
-        while (buffer.remaining() > 0) {
-            byte type = buffer.get();
-            if (type != TYPE) {
-                buffer.position(buffer.position() - 1);
-                break;
-            }
-            length++;
-        }
-        return new PingFrame(length);
-    }
+	public static PingFrame parse(ByteBuffer buffer) {
+		long length = 0;
+		while (buffer.remaining() > 0) {
 
-    static public PingFrame generate() {
-        return new PingFrame(1);
-    }
+			byte type = buffer.get();
+			if (type != TYPE) {
 
-    @Override
-    public byte[] getBytes() {
-        byte[] bytes = new byte[(int)this.length];
-        Arrays.fill(bytes, TYPE);
-        return bytes;
-    }
+				buffer.position(buffer.position() - 1);
+				break;
+			}
+			length++;
+		}
+		return new PingFrame(length);
+	}
 
-    @Override
-    public boolean isAckEliciting() {
-        return true;
-    }
+	public static PingFrame generate() {
+		return new PingFrame(1);
+	}
+
+	@Override
+	public byte[] getBytes() {
+		byte[] bytes = new byte[(int) this.length];
+		Arrays.fill(bytes, TYPE);
+		return bytes;
+	}
+
+	@Override
+	public boolean isAckEliciting() {
+		return true;
+	}
 
 }

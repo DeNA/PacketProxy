@@ -18,23 +18,21 @@ package packetproxy.common;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-
 import javax.net.ssl.SSLSocket;
-
 import packetproxy.http.Https;
 
-public class SSLSocketEndpoint implements Endpoint
-{
+public class SSLSocketEndpoint implements Endpoint {
+
 	protected SSLSocket socket;
 	protected String server_name;
 	protected String alpn;
-	
+
 	public SSLSocketEndpoint(SSLSocketEndpoint ep) {
 		this.server_name = ep.server_name;
 		this.socket = ep.socket;
 		this.alpn = ep.alpn;
 	}
-	
+
 	public SSLSocketEndpoint(SSLSocket socket, String SNIServerName) {
 		this.server_name = SNIServerName;
 		this.socket = socket;
@@ -66,11 +64,13 @@ public class SSLSocketEndpoint implements Endpoint
 	public int getLocalPort() {
 		return socket.getLocalPort();
 	}
-	
+
 	@Override
 	public String getName() {
 		return server_name;
 	}
 
-	public String getApplicationProtocol() { return this.socket.getApplicationProtocol();}
+	public String getApplicationProtocol() {
+		return this.socket.getApplicationProtocol();
+	}
 }

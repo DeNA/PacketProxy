@@ -17,7 +17,8 @@
 package packetproxy.quic.utils;
 
 public class AwaitingException extends Exception {
-    public AwaitingException(String msg) {
-        super(msg);
-    }
+
+	public AwaitingException(String msg) {
+		super(msg);
+	}
 }

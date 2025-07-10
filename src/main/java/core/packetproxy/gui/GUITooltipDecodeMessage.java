@@ -21,26 +21,31 @@ import java.util.regex.Pattern;
 import org.apache.commons.codec.binary.Base64;
 
 public class GUITooltipDecodeMessage {
+
 	private byte[] raw_data;
-	private String original;	
-	private String decoded;	
-	GUITooltipDecodeMessage(byte[] raw_text){
+	private String original;
+	private String decoded;
+	GUITooltipDecodeMessage(byte[] raw_text) {
 		this.raw_data = raw_text;
 		try {
+
 			this.original = new String(raw_text, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
+
 			e.printStackTrace();
 		}
 		this.decoded = null;
 	}
-	
-	public String decodeMessage(){
-		if(this.isURLEncodedText()){
+
+	public String decodeMessage() {
+		if (this.isURLEncodedText()) {
+
 			this.decodeURLEncoding();
-		}else if(this.isBase64Text()){
+		} else if (this.isBase64Text()) {
+
 			this.decodeBase64();
-		}
-		else{
+		} else {
+
 			return original;
 		}
 		return decoded;
@@ -48,22 +53,26 @@ public class GUITooltipDecodeMessage {
 
 	private void decodeURLEncoding() {
 		try {
+
 			decoded = URLDecoder.decode(original, "UTF-8");
 		} catch (Exception e) {
+
 			decoded = original;
-		}		
+		}
 	}
 
-	private void decodeBase64() {		
+	private void decodeBase64() {
 		try {
-			decoded = new String(Base64.decodeBase64(raw_data),"UTF-8");
+
+			decoded = new String(Base64.decodeBase64(raw_data), "UTF-8");
 		} catch (Exception e) {
+
 			decoded = original;
 		}
 	}
 
 	private boolean isURLEncodedText() {
-		return original.substring(0,1).equals("%");
+		return original.substring(0, 1).equals("%");
 	}
 
 	private boolean isBase64Text() {

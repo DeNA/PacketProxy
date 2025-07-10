@@ -19,23 +19,23 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 
-public class RawEndpoint implements Endpoint
-{
+public class RawEndpoint implements Endpoint {
+
 	private InputStream input;
 	private OutputStream output;
 	private InetSocketAddress addr;
-	
+
 	public RawEndpoint(InetSocketAddress addr, InputStream input, OutputStream output) throws Exception {
 		this.addr = addr;
 		this.input = input;
 		this.output = output;
 	}
-	
+
 	@Override
 	public InetSocketAddress getAddress() {
 		return addr;
 	}
-	
+
 	@Override
 	public InputStream getInputStream() throws Exception {
 		return input;
@@ -50,7 +50,7 @@ public class RawEndpoint implements Endpoint
 	public int getLocalPort() {
 		return 0;
 	}
-	
+
 	@Override
 	public String getName() {
 		return null;

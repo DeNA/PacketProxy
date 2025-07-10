@@ -21,10 +21,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import packetproxy.http2.frames.Frame;
 
 public class StreamManager {
+
 	private Map<Integer, List<Frame>> streamMap = new HashMap<>();
 
 	public StreamManager() {
@@ -33,6 +33,7 @@ public class StreamManager {
 	public void write(Frame frame) {
 		List<Frame> stream = streamMap.get(frame.getStreamId());
 		if (stream == null) {
+
 			stream = new LinkedList<Frame>();
 			streamMap.put(frame.getStreamId(), stream);
 		}
@@ -54,6 +55,7 @@ public class StreamManager {
 	public byte[] mergePayload(int streamId) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		for (Frame frame : read(streamId)) {
+
 			out.write(frame.getPayload());
 		}
 		return out.toByteArray();
@@ -62,6 +64,7 @@ public class StreamManager {
 	public byte[] toByteArray(int streamId) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		for (Frame frame : read(streamId)) {
+
 			out.write(frame.toByteArray());
 		}
 		return out.toByteArray();
@@ -71,6 +74,7 @@ public class StreamManager {
 	// frameが1つもない場合はnullを返す
 	public Frame popOneFrame() {
 		if (streamMap.size() == 0) {
+
 			return null;
 		}
 		Integer streamId = streamMap.keySet().stream().findFirst().get();
@@ -81,6 +85,7 @@ public class StreamManager {
 	public Frame popOneFrame(int streamId) {
 		Frame frame = streamMap.get(streamId).remove(0);
 		if (streamMap.get(streamId).size() == 0) {
+
 			clear(streamId);
 		}
 		return frame;

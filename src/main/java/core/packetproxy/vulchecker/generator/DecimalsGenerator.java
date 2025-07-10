@@ -18,18 +18,19 @@ package packetproxy.vulchecker.generator;
 import packetproxy.common.I18nString;
 
 public class DecimalsGenerator extends Generator {
-    @Override
-    public String getName() {
-        return I18nString.get("Decimals: 0.5");
-    }
 
-    @Override
-    public boolean generateOnStart() {
-        return true;
-    }
+	@Override
+	public String getName() {
+		return I18nString.get("Decimals: 0.5");
+	}
 
-    @Override
-    public String generate(String inputData) {
-        return "0.5";
-    }
+	@Override
+	public boolean generateOnStart() {
+		return true;
+	}
+
+	@Override
+	public String generate(String inputData) {
+		return "0.5";
+	}
 }

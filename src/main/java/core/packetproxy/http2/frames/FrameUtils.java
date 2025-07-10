@@ -19,69 +19,84 @@ import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jetty.http2.hpack.HpackDecoder;
 
 public class FrameUtils {
 
-	static public byte[] PREFACE; /* PRI * HTTP/2.0 .... */
-	static public byte[] SETTINGS;
-	static public byte[] END_SETTINGS;
-	static public byte[] WINDOW_UPDATE;
-	
+	public static byte[] PREFACE; /* PRI * HTTP/2.0 .... */
+	public static byte[] SETTINGS;
+	public static byte[] END_SETTINGS;
+	public static byte[] WINDOW_UPDATE;
+
 	static {
+
 		try {
+
 			PREFACE = Hex.decodeHex("505249202a20485454502f322e300d0a0d0a534d0d0a0d0a".toCharArray());
-			SETTINGS = Hex.decodeHex("0000180400000000000001000010000003000003e800045fffffff000200000000".toCharArray()); // header_table:4096, header_list:unlimited, window_size:unlimited, push: disable
+			SETTINGS = Hex
+					.decodeHex("0000180400000000000001000010000003000003e800045fffffff000200000000".toCharArray()); // header_table:4096,
+																													// header_list:unlimited,
+																													// window_size:unlimited,
+																													// push:
+																													// disable
 			END_SETTINGS = Hex.decodeHex("000000040100000000".toCharArray());
 			WINDOW_UPDATE = Hex.decodeHex("0000040800000000005fffffff".toCharArray()); // connection_window_size:unlimited
-		} catch (Exception e){
+		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}
-	
-	static public boolean isPreface(byte[] frameData) {
-		return (PREFACE.length > frameData.length) ? false : Arrays.equals(frameData, 0, PREFACE.length, PREFACE, 0, PREFACE.length);
+
+	public static boolean isPreface(byte[] frameData) {
+		return (PREFACE.length > frameData.length)
+				? false
+				: Arrays.equals(frameData, 0, PREFACE.length, PREFACE, 0, PREFACE.length);
 	}
 
-	 /* バイト列からHTTP2の1フレームを切り出す */
-	static public int checkDelimiter(byte[] data) throws Exception {
+	/* バイト列からHTTP2の1フレームを切り出す */
+	public static int checkDelimiter(byte[] data) throws Exception {
 		if (data.length < 9) {
+
 			return -1;
 		}
 		if (isPreface(data)) {
+
 			return PREFACE.length;
 		}
 		int headerSize = 9;
 		int payloadSize = ((data[0] & 0xff) << 16 | (data[1] & 0xff) << 8 | (data[2] & 0xff));
 		int expectedSize = headerSize + payloadSize;
 		if (data.length < expectedSize) {
+
 			return -1;
 		}
 		return expectedSize;
 	}
-	
-	static public byte[] toByteArray(List<Frame> frames) throws Exception {
+
+	public static byte[] toByteArray(List<Frame> frames) throws Exception {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		for (Frame frame: frames) {
+		for (Frame frame : frames) {
+
 			out.write(frame.toByteArray());
 		}
 		return out.toByteArray();
 	}
 
-	static public List<Frame> parseFrames(byte[] frames) throws Exception {
+	public static List<Frame> parseFrames(byte[] frames) throws Exception {
 		return parseFrames(frames, null);
 	}
 
-	static public List<Frame> parseFrames(byte[] frames, HpackDecoder hpackDecoder) throws Exception {
+	public static List<Frame> parseFrames(byte[] frames, HpackDecoder hpackDecoder) throws Exception {
 		List<Frame> frameList = new LinkedList<Frame>();
 		while (frames != null && frames.length > 0) {
+
 			int delim = checkDelimiter(frames);
 			byte[] frame = ArrayUtils.subarray(frames, 0, delim);
 			frames = ArrayUtils.subarray(frames, delim, frames.length);
 			if (isPreface(frame) == false) {
+
 				frameList.add(FrameFactory.create(frame, hpackDecoder));
 			}
 		}

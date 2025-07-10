@@ -16,18 +16,23 @@
 
 package packetproxy.quic.value.packet;
 
-import packetproxy.quic.utils.Constants.PnSpaceType;
-import packetproxy.quic.value.frame.AckFrame;
-import packetproxy.quic.service.frame.Frames;
-import packetproxy.quic.value.PacketNumber;
-
 import java.util.Optional;
+import packetproxy.quic.service.frame.Frames;
+import packetproxy.quic.utils.Constants.PnSpaceType;
+import packetproxy.quic.value.PacketNumber;
+import packetproxy.quic.value.frame.AckFrame;
 
 public interface PnSpacePacket {
-    PacketNumber getPacketNumber();
-    boolean isAckEliciting();
-    boolean hasAckFrame();
-    Optional<AckFrame> getAckFrame();
-    PnSpaceType getPnSpaceType();
-    Frames getFrames();
+
+	PacketNumber getPacketNumber();
+
+	boolean isAckEliciting();
+
+	boolean hasAckFrame();
+
+	Optional<AckFrame> getAckFrame();
+
+	PnSpaceType getPnSpaceType();
+
+	Frames getFrames();
 }

@@ -29,7 +29,6 @@ import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -45,8 +44,8 @@ import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 
-abstract public class CA
-{
+public abstract class CA {
+
 	private KeyPair keyPair;
 	private String keyStoreCAPath;
 	private KeyStore keyStoreCA;
@@ -64,20 +63,25 @@ abstract public class CA
 
 	protected CA() {
 	}
+
 	protected void load(String keyStoreCAPath) throws Exception {
 		this.keyPair = genRSAKeyPair();
 		this.keyStoreCAPath = keyStoreCAPath;
 		try (InputStream input = new FileInputStream(this.keyStoreCAPath)) {
+
 			initKeyStoreCA(input);
 		}
 	}
+
 	protected void loadFromResource(String keyStoreCAPath) throws Exception {
 		this.keyPair = genRSAKeyPair();
 		this.keyStoreCAPath = keyStoreCAPath;
 		try (InputStream input = this.getClass().getResourceAsStream(this.keyStoreCAPath)) {
+
 			initKeyStoreCA(input);
 		}
 	}
+
 	protected KeyPair genRSAKeyPair() throws Exception {
 		KeyPairGenerator kpg = null;
 		kpg = KeyPairGenerator.getInstance("RSA");
@@ -85,6 +89,7 @@ abstract public class CA
 		KeyPair kp = kpg.genKeyPair();
 		return kp;
 	}
+
 	private void initKeyStoreCA(InputStream input) throws Exception {
 		this.keyStoreCA = KeyStore.getInstance("JKS");
 		this.keyStoreCA.load(input, password);
@@ -116,16 +121,11 @@ abstract public class CA
 		BigInteger templateSerial = new BigInteger(hash);
 
 		/* Subjectの設定 */
-		X500Name templateSubject =  new X500Name(createSubject(commonName));
+		X500Name templateSubject = new X500Name(createSubject(commonName));
 
 		/* Builderの生成 */
-		X509v3CertificateBuilder serverBuilder = new X509v3CertificateBuilder(
-				templateIssuer,
-				templateSerial,
-				templateFrom,
-				templateTo,
-				templateSubject,
-				templatePubKey);
+		X509v3CertificateBuilder serverBuilder = new X509v3CertificateBuilder(templateIssuer, templateSerial,
+				templateFrom, templateTo, templateSubject, templatePubKey);
 
 		/* SANの設定 */
 		ArrayList<ASN1Encodable> sans = new ArrayList<>();
@@ -134,9 +134,9 @@ abstract public class CA
 		 Fix: SubjectCN = SANに変更
 		 Reason: SANに全てのサーバが入っていると、HTTP2通信のとき、1つのHTTP2コネクション内に複数サーバ宛のストリームが含まれてしまうケースがあるため
 		*/
-		//for (String domainName : domainNames) {
+		// for (String domainName : domainNames) {
 		// sans.add(new GeneralName(GeneralName.dNSName, domainName));
-		//}
+		// }
 		DERSequence subjectAlternativeNames = new DERSequence(sans.toArray(new ASN1Encodable[sans.size()]));
 		serverBuilder.addExtension(Extension.subjectAlternativeName, false, subjectAlternativeNames);
 
@@ -147,20 +147,17 @@ abstract public class CA
 		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
 		KeyStore ks = KeyStore.getInstance("JKS");
 		ks.load(null, password);
-		ks.setKeyEntry(
-				aliasServer,
-				keyPair.getPrivate(),
-				password,
-				new java.security.cert.Certificate[] {
+		ks.setKeyEntry(aliasServer, keyPair.getPrivate(), password,
+				new java.security.cert.Certificate[]{
 						certFactory.generateCertificate(new ByteArrayInputStream(serverHolder.getEncoded())),
-						certFactory.generateCertificate(new ByteArrayInputStream(caRootHolder.getEncoded()))
-				});
+						certFactory.generateCertificate(new ByteArrayInputStream(caRootHolder.getEncoded()))});
 
 		return ks;
 	}
 
 	protected String createSubject(String commonName) {
-		return String.format("C=PacketProxy, ST=PacketProxy, L=PacketProxy, O=PacketProxy, OU=PacketProxy, CN=%s", commonName);
+		return String.format("C=PacketProxy, ST=PacketProxy, L=PacketProxy, O=PacketProxy, OU=PacketProxy, CN=%s",
+				commonName);
 	}
 
 	protected String createCNforSAN(String commonName) {
@@ -170,7 +167,8 @@ abstract public class CA
 	protected ContentSigner createSigner() throws Exception {
 		AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
 		AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
-		return new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(PrivateKeyFactory.createKey(keyStoreCAPrivateKey.getEncoded()));
+		return new BcRSAContentSignerBuilder(sigAlgId, digAlgId)
+				.build(PrivateKeyFactory.createKey(keyStoreCAPrivateKey.getEncoded()));
 	}
 
 	public String getName() {

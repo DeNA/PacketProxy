@@ -25,6 +25,7 @@ public class UniqueID {
 
 	public static UniqueID getInstance() throws Exception {
 		if (instance == null) {
+
 			instance = new UniqueID();
 		}
 		return instance;
@@ -38,11 +39,14 @@ public class UniqueID {
 
 	public synchronized long createId() throws Exception {
 		while (true) {
+
 			long newId = getNow();
 			if (newId == lastId) {
+
 				Thread.sleep(1);
 				continue;
 			} else if (newId < lastId) {
+
 				PacketProxyUtility.getInstance().packetProxyLogErr("Time of your pc seemed to be changed...");
 			}
 			return lastId = newId;

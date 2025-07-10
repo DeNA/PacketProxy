@@ -16,28 +16,27 @@
 
 package packetproxy.quic.value;
 
-import lombok.Value;
-
 import java.nio.ByteBuffer;
+import lombok.Value;
 
 @Value
 public class SimpleBytes {
 
-    static public SimpleBytes parse(ByteBuffer buffer, long sizeOfBytes) {
-        byte[] bytes = new byte[(int)sizeOfBytes];
-        buffer.get(bytes);
-        return new SimpleBytes(bytes);
-    }
+	public static SimpleBytes parse(ByteBuffer buffer, long sizeOfBytes) {
+		byte[] bytes = new byte[(int) sizeOfBytes];
+		buffer.get(bytes);
+		return new SimpleBytes(bytes);
+	}
 
-    static public SimpleBytes parse(ByteBuffer buffer, int sizeOfBytes) {
-        byte[] bytes = new byte[sizeOfBytes];
-        buffer.get(bytes);
-        return new SimpleBytes(bytes);
-    }
+	public static SimpleBytes parse(ByteBuffer buffer, int sizeOfBytes) {
+		byte[] bytes = new byte[sizeOfBytes];
+		buffer.get(bytes);
+		return new SimpleBytes(bytes);
+	}
 
-    byte[] bytes;
+	byte[] bytes;
 
-    public ByteBuffer toByteBuffer() {
-        return ByteBuffer.wrap(bytes);
-    }
+	public ByteBuffer toByteBuffer() {
+		return ByteBuffer.wrap(bytes);
+	}
 }

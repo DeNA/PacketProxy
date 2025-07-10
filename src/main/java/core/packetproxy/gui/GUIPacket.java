@@ -20,11 +20,10 @@ import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
 import packetproxy.model.Packet;
 
-public class GUIPacket
-{
+public class GUIPacket {
+
 	private static GUIPacket instance;
 	private JFrame owner;
 	private GUIDataAll all_panel;
@@ -35,22 +34,22 @@ public class GUIPacket
 	private GUIData sent_panel;
 	private Packet showing_packet;
 
-	//	public static void main(String args[])
-	//	{
-	//		try {
-	//			GUIPacket gui = new GUIPacket();
-	//			String s = "ABgNBHJfb2sAAAJhbANtc2cAB4NoAmEMYQANCg0KeyJlbXB0eSI6N30=";
-	//			byte[] data = Base64.getDecoder().decode(s.getBytes());
-	//			byte[] result = gui.prettyFormatJSONInRawData(data, "hoge");
-	//			System.out.println(new String(result));
-	//		} catch (Exception e) {
-	//			e.printStackTrace();
-	//		}
-	//	}
+	// public static void main(String args[])
+	// {
+	// try {
+	// GUIPacket gui = new GUIPacket();
+	// String s = "ABgNBHJfb2sAAAJhbANtc2cAB4NoAmEMYQANCg0KeyJlbXB0eSI6N30=";
+	// byte[] data = Base64.getDecoder().decode(s.getBytes());
+	// byte[] result = gui.prettyFormatJSONInRawData(data, "hoge");
+	// System.out.println(new String(result));
+	// } catch (Exception e) {
+	// e.printStackTrace();
+	// }
+	// }
 
-	public static GUIPacket getInstance() throws Exception
-	{
+	public static GUIPacket getInstance() throws Exception {
 		if (instance == null) {
+
 			instance = new GUIPacket();
 		}
 		return instance;
@@ -75,11 +74,14 @@ public class GUIPacket
 		packet_pane.addTab("Encoded (Sent Packet)", sent_panel.createPanel());
 		packet_pane.addTab("All", all_panel.createPanel());
 		packet_pane.addChangeListener(new ChangeListener() {
+
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				try {
+
 					update();
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -90,43 +92,52 @@ public class GUIPacket
 
 	public byte[] getData() {
 		switch (packet_pane.getSelectedIndex()) {
-			case 0:
+
+			case 0 :
 				return received_panel.getData();
-			case 1:
+			case 1 :
 				return decoded_panel.getData();
-			case 2:
+			case 2 :
 				return modified_panel.getData();
-			case 3:
+			case 3 :
 				return sent_panel.getData();
-			default:
+			default :
 				return modified_panel.getData();
 		}
 	}
 
 	public void update() {
 		if (showing_packet == null) {
+
 			return;
 		}
 		switch (packet_pane.getSelectedIndex()) {
-			case 0:
-				received_panel.setData(showing_packet.getReceivedData()); break;
-			case 1:
-				decoded_panel.setData(showing_packet.getDecodedData()); 
+
+			case 0 :
+				received_panel.setData(showing_packet.getReceivedData());
 				break;
-			case 2:
-				modified_panel.setData(showing_packet.getModifiedData()); break;
-			case 3:
-				sent_panel.setData(showing_packet.getSentData()); break;
-			case 4:
-				all_panel.setPacket(showing_packet); break;
-			default:
+			case 1 :
+				decoded_panel.setData(showing_packet.getDecodedData());
+				break;
+			case 2 :
+				modified_panel.setData(showing_packet.getModifiedData());
+				break;
+			case 3 :
+				sent_panel.setData(showing_packet.getSentData());
+				break;
+			case 4 :
+				all_panel.setPacket(showing_packet);
+				break;
+			default :
 		}
 	}
 
 	public void setPacket(Packet packet) {
 		if (showing_packet != null && showing_packet.getId() == packet.getId()) {
+
 			return;
 		} else {
+
 			showing_packet = packet;
 		}
 		update();

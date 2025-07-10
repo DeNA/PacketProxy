@@ -21,18 +21,17 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
 
 public class GUIOptionFonts {
+
 	private JFrame owner;
 	private JTextField uiFontInfo;
 	private JTextField fontInfo;
@@ -43,27 +42,30 @@ public class GUIOptionFonts {
 
 	public JPanel createPanel() throws Exception {
 
-		uiFontInfo = new JTextField(String.format("%s (size: %d)",
-				FontManager.getInstance().getUIFont().getName(),
+		uiFontInfo = new JTextField(String.format("%s (size: %d)", FontManager.getInstance().getUIFont().getName(),
 				FontManager.getInstance().getUIFont().getSize()));
 		uiFontInfo.setEditable(false);
 		uiFontInfo.setMaximumSize(new Dimension(Short.MAX_VALUE, uiFontInfo.getMinimumSize().height));
 
 		JButton uiButton = new JButton(I18nString.get("choose..."));
 		uiButton.addMouseListener(new MouseAdapter() {
+
 			@Override
 			public void mousePressed(MouseEvent e) {
 				try {
+
 					JFontChooser jfc = new JFontChooser(FontManager.getInstance().getUIFont());
 					int result = jfc.showDialog(owner);
 					if (result == JFontChooser.OK_OPTION) {
+
 						Font font = jfc.getSelectedFont();
 						FontManager.getInstance().setUIFont(font);
-						uiFontInfo.setText(String.format("%s (size: %d)",
-								FontManager.getInstance().getUIFont().getName(),
-								FontManager.getInstance().getUIFont().getSize()));
+						uiFontInfo
+								.setText(String.format("%s (size: %d)", FontManager.getInstance().getUIFont().getName(),
+										FontManager.getInstance().getUIFont().getSize()));
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -71,14 +73,16 @@ public class GUIOptionFonts {
 
 		JButton uiRestore = new JButton(I18nString.get("restore default"));
 		uiRestore.addMouseListener(new MouseAdapter() {
+
 			@Override
 			public void mousePressed(MouseEvent e) {
 				try {
+
 					FontManager.getInstance().restoreUIFont();
-					uiFontInfo.setText(String.format("%s (size: %d)",
-							FontManager.getInstance().getUIFont().getName(),
+					uiFontInfo.setText(String.format("%s (size: %d)", FontManager.getInstance().getUIFont().getName(),
 							FontManager.getInstance().getUIFont().getSize()));
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -92,27 +96,29 @@ public class GUIOptionFonts {
 		uiPanel.add(uiButton);
 		uiPanel.add(uiRestore);
 
-		fontInfo = new JTextField(String.format("%s (size: %d)",
-				FontManager.getInstance().getFont().getName(),
+		fontInfo = new JTextField(String.format("%s (size: %d)", FontManager.getInstance().getFont().getName(),
 				FontManager.getInstance().getFont().getSize()));
 		fontInfo.setEditable(false);
 		fontInfo.setMaximumSize(new Dimension(Short.MAX_VALUE, fontInfo.getMinimumSize().height));
 
 		JButton button = new JButton(I18nString.get("choose..."));
 		button.addMouseListener(new MouseAdapter() {
+
 			@Override
 			public void mousePressed(MouseEvent e) {
 				try {
+
 					JFontChooser jfc = new JFontChooser(FontManager.getInstance().getFont());
 					int result = jfc.showDialog(owner);
 					if (result == JFontChooser.OK_OPTION) {
+
 						Font font = jfc.getSelectedFont();
 						FontManager.getInstance().setFont(font);
-						fontInfo.setText(String.format("%s (size: %d)",
-								FontManager.getInstance().getFont().getName(),
+						fontInfo.setText(String.format("%s (size: %d)", FontManager.getInstance().getFont().getName(),
 								FontManager.getInstance().getFont().getSize()));
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -120,14 +126,16 @@ public class GUIOptionFonts {
 
 		JButton restore = new JButton(I18nString.get("restore default"));
 		restore.addMouseListener(new MouseAdapter() {
+
 			@Override
 			public void mousePressed(MouseEvent e) {
 				try {
+
 					FontManager.getInstance().restoreFont();
-					fontInfo.setText(String.format("%s (size: %d)",
-							FontManager.getInstance().getFont().getName(),
+					fontInfo.setText(String.format("%s (size: %d)", FontManager.getInstance().getFont().getName(),
 							FontManager.getInstance().getFont().getSize()));
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}

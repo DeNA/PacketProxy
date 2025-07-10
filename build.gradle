@@ -82,7 +82,6 @@ dependencies {
       }
     }
   }
-
 }
 
 downloadLicenses {
@@ -145,14 +144,14 @@ task createVersionFile(dependsOn: "setVersion") {
 
 task setName(dependsOn: "setVersion") {
   project.ext.nameInstaller    = "PacketProxy-${project.ext.version}-Installer.jar"
-  project.ext.nameMacInstallApp = "PacketProxy-${project.ext.version}-Installer-Mac.app" 
-  project.ext.nameMacRelease   = "PacketProxy-${project.ext.version}-Installer-Mac.zip" 
-  project.ext.nameMacSignedReleaseJPackage = "PacketProxy-${project.ext.version}.dmg" 
-  project.ext.nameMacSignedRelease = "PacketProxy-${project.ext.version}-Installer-Mac-Signed.dmg" 
-  project.ext.nameWin32Release = "PacketProxy-${project.ext.version}-Installer-Win32.jar" 
-  project.ext.nameWin64Release = "PacketProxy-${project.ext.version}-Installer-Win64.jar" 
-  project.ext.nameLinuxReleaseDir = "PacketProxy-${project.ext.version}-Linux" 
-  project.ext.nameLinuxRelease = "PacketProxy-${project.ext.version}-Linux.tar.gz" 
+  project.ext.nameMacInstallApp = "PacketProxy-${project.ext.version}-Installer-Mac.app"
+  project.ext.nameMacRelease   = "PacketProxy-${project.ext.version}-Installer-Mac.zip"
+  project.ext.nameMacSignedReleaseJPackage = "PacketProxy-${project.ext.version}.dmg"
+  project.ext.nameMacSignedRelease = "PacketProxy-${project.ext.version}-Installer-Mac-Signed.dmg"
+  project.ext.nameWin32Release = "PacketProxy-${project.ext.version}-Installer-Win32.jar"
+  project.ext.nameWin64Release = "PacketProxy-${project.ext.version}-Installer-Win64.jar"
+  project.ext.nameLinuxReleaseDir = "PacketProxy-${project.ext.version}-Linux"
+  project.ext.nameLinuxRelease = "PacketProxy-${project.ext.version}-Linux.tar.gz"
 }
 
 task setPath(dependsOn: "setName") {
@@ -274,9 +273,9 @@ jar {
   }
   manifest {
     attributes (
-      "Main-Class": project.mainClassName,
-      "Class-Path": configurations.runtimeClasspath.collect { it.getName() }.join(' ')
-    )
+        "Main-Class": project.mainClassName,
+        "Class-Path": configurations.runtimeClasspath.collect { it.getName() }.join(' ')
+        )
   }
   from {
     configurations.runtimeClasspath.collect {
@@ -434,24 +433,30 @@ task preIzpack {
   }
 }
 
-task izpackWin64 (type: CreateInstallerTask, dependsOn: ['createWin64Target', 'preIzpack']) {
+task izpackWin64 (type: CreateInstallerTask, dependsOn: [
+  'createWin64Target',
+  'preIzpack'
+]) {
   baseDir = file(project.ext.pathWin64Target)
   installFile = file("${projectDir}/installer/izpack/installer.xml")
   outputFile = file(project.ext.pathWin64Installer)
   compression = 'deflate'
   compressionLevel = 9
   appProperties = ['app.group': 'PacketProxy', 'app.name': 'PacketProxy', 'app.title': 'PacketProxy',
-                   'app.version': project.ext.version, 'app.subpath': "PacketProxy-${project.ext.version}"]
+    'app.version': project.ext.version, 'app.subpath': "PacketProxy-${project.ext.version}"]
 }
 
-task izpackLinux (type: CreateInstallerTask, dependsOn: ['createLinuxTarget', 'preIzpack']) {
+task izpackLinux (type: CreateInstallerTask, dependsOn: [
+  'createLinuxTarget',
+  'preIzpack'
+]) {
   baseDir = file(project.ext.pathLinuxTarget)
   installFile = file("${projectDir}/installer/izpack/installer.xml")
   outputFile = file(project.ext.pathLinuxInstaller)
   compression = 'deflate'
   compressionLevel = 9
   appProperties = ['app.group': 'PacketProxy', 'app.name': 'PacketProxy', 'app.title': 'PacketProxy',
-                   'app.version': project.ext.version, 'app.subpath': "PacketProxy-${project.ext.version}"]
+    'app.version': project.ext.version, 'app.subpath': "PacketProxy-${project.ext.version}"]
 }
 
 task createMacJPackage(type: Exec, dependsOn: "prepareJPackage") {
@@ -459,14 +464,21 @@ task createMacJPackage(type: Exec, dependsOn: "prepareJPackage") {
   commandLine = [
     "/Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk/Contents/Home/bin/jpackage",
     "--verbose",
-    "-d", "${project.ext.pathMacWorkDir}",
-    "-n", "PacketProxy",
-    "-i", "${buildDir}/libs/",
-    "--app-version", project.ext.version,
-    "--icon", "${project.ext.pathMacWorkDir}/icon.icns",
-    "--main-jar", "PacketProxy.jar",
+    "-d",
+    "${project.ext.pathMacWorkDir}",
+    "-n",
+    "PacketProxy",
+    "-i",
+    "${buildDir}/libs/",
+    "--app-version",
+    project.ext.version,
+    "--icon",
+    "${project.ext.pathMacWorkDir}/icon.icns",
+    "--main-jar",
+    "PacketProxy.jar",
     "--mac-sign",
-    "--mac-signing-key-user-name", "${project.ext.signedKey}"
+    "--mac-signing-key-user-name",
+    "${project.ext.signedKey}"
   ]
   onlyIf { Os.isFamily(Os.FAMILY_MAC) }
 }
@@ -520,7 +532,9 @@ task resignMacJPackage(dependsOn: "createMacJPackage") {
 task createMacInstaller(type: Exec, dependsOn: "resignMacJPackage") {
   workingDir "${projectDir}"
   commandLine = [
-    "mv", project.ext.pathMacSignedReleaseJPackage, project.ext.pathMacSignedRelease
+    "mv",
+    project.ext.pathMacSignedReleaseJPackage,
+    project.ext.pathMacSignedRelease
   ]
   onlyIf { Os.isFamily(Os.FAMILY_MAC) }
 }
@@ -528,10 +542,16 @@ task createMacInstaller(type: Exec, dependsOn: "resignMacJPackage") {
 task notaryMacInstaller(type: Exec) {
   workingDir "${projectDir}"
   commandLine = [
-    "xcrun", "notarytool", "submit", "${project.ext.pathMacSignedRelease}",
-    "--apple-id", "${project.ext.appleId}",
-    "--password", "${project.ext.applePasswd}",
-    "--team-id", "${project.ext.teamId}",
+    "xcrun",
+    "notarytool",
+    "submit",
+    "${project.ext.pathMacSignedRelease}",
+    "--apple-id",
+    "${project.ext.appleId}",
+    "--password",
+    "${project.ext.applePasswd}",
+    "--team-id",
+    "${project.ext.teamId}",
     "--wait"
   ]
   onlyIf { Os.isFamily(Os.FAMILY_MAC) }
@@ -575,5 +595,9 @@ task createLinuxRelease(dependsOn: 'createLinuxInstaller') {
   }
 }
 
-task release(dependsOn: ['createMacRelease', 'createWinRelease', 'createLinuxRelease']) {
+task release(dependsOn: [
+  'createMacRelease',
+  'createWinRelease',
+  'createLinuxRelease'
+]) {
 }

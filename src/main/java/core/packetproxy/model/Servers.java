@@ -15,19 +15,17 @@
  */
 package packetproxy.model;
 
+import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+import static packetproxy.model.PropertyChangeEventType.SERVERS;
+
 import com.j256.ormlite.dao.Dao;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import packetproxy.model.DaoQueryCache;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.List;
 import packetproxy.model.Database.DatabaseMessage;
-import static packetproxy.model.PropertyChangeEventType.SERVERS;
-import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 
 public class Servers implements PropertyChangeListener {
 
@@ -36,6 +34,7 @@ public class Servers implements PropertyChangeListener {
 
 	public static Servers getInstance() throws Exception {
 		if (instance == null) {
+
 			instance = new Servers();
 		}
 		return instance;
@@ -66,7 +65,9 @@ public class Servers implements PropertyChangeListener {
 	public Server queryByString(String str) throws Exception {
 		List<Server> all = this.queryAll();
 		for (Server server : all) {
+
 			if (server.toString().equals(str)) {
+
 				return server;
 			}
 		}
@@ -77,14 +78,17 @@ public class Servers implements PropertyChangeListener {
 		String cache_key = hostname + String.valueOf(port);
 		List<Server> ret = cache.query("queryByHostNameAndPort", cache_key);
 		if (ret != null) {
+
 			return ret.get(0);
 		}
 
 		List<Server> servers = dao.queryBuilder().where().eq("ip", hostname).and().eq("port", port).query();
 		Server server = null;
 		if (servers.isEmpty()) {
+
 			server = queryByHostName(hostname);
 		} else {
+
 			server = servers.get(0);
 		}
 
@@ -95,16 +99,21 @@ public class Servers implements PropertyChangeListener {
 	public Server queryByAddress(InetSocketAddress addr) throws Exception {
 		List<Server> all = this.queryAll();
 		if (addr.getAddress() == null) {
+
 			throw new Exception(String.format("cannot resolv hostname: %s", addr.getHostName()));
 		}
 		if (addr.getPort() == 0) {
+
 			throw new Exception("cannot resolv portnumber: 0");
 		}
 		String target = addr.getAddress().getHostAddress();
 		for (Server server : all) {
+
 			List<InetAddress> ips = server.getIps();
 			for (InetAddress ip : ips) {
+
 				if (ip.getHostAddress().equals(target) && server.getPort() == addr.getPort()) {
+
 					return server;
 				}
 			}
@@ -115,6 +124,7 @@ public class Servers implements PropertyChangeListener {
 	public Server queryByHostName(String hostname) throws Exception {
 		List<Server> ret = cache.query("queryByHostName", hostname);
 		if (ret != null) {
+
 			return ret.get(0);
 		}
 
@@ -127,6 +137,7 @@ public class Servers implements PropertyChangeListener {
 	public Server query(int id) throws Exception {
 		List<Server> ret = cache.query("query", id);
 		if (ret != null) {
+
 			return ret.get(0);
 		}
 
@@ -139,6 +150,7 @@ public class Servers implements PropertyChangeListener {
 	public List<Server> queryAll() throws Exception {
 		List<Server> ret = cache.query("queryAll", 0);
 		if (ret != null) {
+
 			return ret;
 		}
 
@@ -151,6 +163,7 @@ public class Servers implements PropertyChangeListener {
 	public List<Server> queryNonHttpProxies() throws Exception {
 		List<Server> ret = cache.query("queryNonHttpProxies", 0);
 		if (ret != null) {
+
 			return ret;
 		}
 
@@ -163,6 +176,7 @@ public class Servers implements PropertyChangeListener {
 	public List<Server> queryHttpProxies() throws Exception {
 		List<Server> ret = cache.query("queryHttpProxies", 0);
 		if (ret != null) {
+
 			return ret;
 		}
 
@@ -175,6 +189,7 @@ public class Servers implements PropertyChangeListener {
 	public List<Server> queryResolvedByDNS() throws Exception {
 		List<Server> ret = cache.query("queryResolvedByDNS", 0);
 		if (ret != null) {
+
 			return ret;
 		}
 
@@ -187,6 +202,7 @@ public class Servers implements PropertyChangeListener {
 	public List<Server> queryResolvedByDNS6() throws Exception {
 		List<Server> ret = cache.query("queryResolvedByDNS6", 0);
 		if (ret != null) {
+
 			return ret;
 		}
 
@@ -221,35 +237,39 @@ public class Servers implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (!DATABASE_MESSAGE.matches(evt)) {
+
 			return;
 		}
 
 		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
+
 			switch (message) {
-				case PAUSE:
+
+				case PAUSE :
 					// TODO ロックを取る
 					break;
-				case RESUME:
+				case RESUME :
 					// TODO ロックを解除
 					break;
-				case DISCONNECT_NOW:
+				case DISCONNECT_NOW :
 					break;
-				case RECONNECT:
+				case RECONNECT :
 					database = Database.getInstance();
 					dao = database.createTable(Server.class, this);
 					cache.clear();
 					firePropertyChange(message);
 					break;
-				case RECREATE:
+				case RECREATE :
 					database = Database.getInstance();
 					dao = database.createTable(Server.class, this);
 					cache.clear();
 					break;
-				default:
+				default :
 					break;
 			}
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}

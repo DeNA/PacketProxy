@@ -18,13 +18,13 @@ package packetproxy.gui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
+import packetproxy.model.DiffEventAdapter;
 import packetproxy.model.DiffJson;
 import packetproxy.model.DiffSet;
-import packetproxy.model.DiffEventAdapter;
 import packetproxy.util.PacketProxyUtility;
 
-public class GUIDiffJson extends GUIDiffBase
-{
+public class GUIDiffJson extends GUIDiffBase {
+
 	protected JCheckBox jcCh;
 	@Override
 	protected DiffSet sortUniq(DiffSet ds) {
@@ -32,14 +32,18 @@ public class GUIDiffJson extends GUIDiffBase
 		String strTarg = sortUniq(new String(ds.getTarget()));
 		return new DiffSet(strOrig.getBytes(), strTarg.getBytes());
 	}
+
 	public GUIDiffJson() throws Exception {
 		jcCh = new JCheckBox("Character based (default: Line based)");
 		jcCh.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					update();
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -52,8 +56,10 @@ public class GUIDiffJson extends GUIDiffBase
 	public void update() throws Exception {
 		DiffSet ds;
 		if (jc.isSelected()) {
+
 			ds = sortUniq(DiffJson.getInstance().getSet());
 		} else {
+
 			ds = DiffJson.getInstance().getSet();
 		}
 		byte[] origData = PacketProxyUtility.getInstance().prettyFormatJSONInRawData(ds.getOriginal());
@@ -68,25 +74,31 @@ public class GUIDiffJson extends GUIDiffBase
 		docTarg.setCharacterAttributes(0, docTarg.getLength(), defaultAttr, false);
 
 		DiffEventAdapter eventFordocOrig = new DiffEventAdapter() {
+
 			public void foundDelDelta(int pos, int length) throws Exception {
 				docOrig.setCharacterAttributes(pos, length, delAttr, false);
 			}
+
 			public void foundChgDelta(int pos, int length) throws Exception {
 				docOrig.setCharacterAttributes(pos, length, chgAttr, false);
 			}
 		};
 
 		DiffEventAdapter eventForTarget = new DiffEventAdapter() {
+
 			public void foundInsDelta(int pos, int length) throws Exception {
 				docTarg.setCharacterAttributes(pos, length, insAttr, false);
 			}
+
 			public void foundChgDelta(int pos, int length) throws Exception {
 				docTarg.setCharacterAttributes(pos, length, chgAttr, false);
 			}
 		};
 		if (jcCh.isSelected()) { // Character based
+
 			DiffJson.diffPerCharacter(ds, eventFordocOrig, eventForTarget);
 		} else { // Line based
+
 			DiffJson.diffPerLine(ds, eventFordocOrig, eventForTarget);
 		}
 	}

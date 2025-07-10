@@ -20,11 +20,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
 import packetproxy.model.Diff;
-import packetproxy.model.DiffSet;
 import packetproxy.model.DiffEventAdapter;
+import packetproxy.model.DiffSet;
 
-public class GUIDiffRaw extends GUIDiffBase
-{
+public class GUIDiffRaw extends GUIDiffBase {
+
 	protected JCheckBox jcCh;
 	@Override
 	protected DiffSet sortUniq(DiffSet ds) {
@@ -32,14 +32,18 @@ public class GUIDiffRaw extends GUIDiffBase
 		String strTarg = sortUniq(new String(ds.getTarget()));
 		return new DiffSet(strOrig.getBytes(), strTarg.getBytes());
 	}
+
 	public GUIDiffRaw() throws Exception {
 		jcCh = new JCheckBox("Character based (default: Line based)");
 		jcCh.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					update();
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -52,8 +56,10 @@ public class GUIDiffRaw extends GUIDiffBase
 	public void update() throws Exception {
 		DiffSet ds;
 		if (jc.isSelected()) {
+
 			ds = sortUniq(Diff.getInstance().getSet());
 		} else {
+
 			ds = Diff.getInstance().getSet();
 		}
 		textOrig.setData(ds.getOriginal(), false);
@@ -66,25 +72,31 @@ public class GUIDiffRaw extends GUIDiffBase
 		docTarg.setCharacterAttributes(0, docTarg.getLength(), defaultAttr, false);
 
 		DiffEventAdapter eventFordocOrig = new DiffEventAdapter() {
+
 			public void foundDelDelta(int pos, int length) throws Exception {
 				docOrig.setCharacterAttributes(pos, length, delAttr, false);
 			}
+
 			public void foundChgDelta(int pos, int length) throws Exception {
 				docOrig.setCharacterAttributes(pos, length, chgAttr, false);
 			}
 		};
 
 		DiffEventAdapter eventForTarget = new DiffEventAdapter() {
+
 			public void foundInsDelta(int pos, int length) throws Exception {
 				docTarg.setCharacterAttributes(pos, length, insAttr, false);
 			}
+
 			public void foundChgDelta(int pos, int length) throws Exception {
 				docTarg.setCharacterAttributes(pos, length, chgAttr, false);
 			}
 		};
 		if (jcCh.isSelected()) { // Character based
+
 			Diff.diffPerCharacter(ds, eventFordocOrig, eventForTarget);
 		} else { // Line based
+
 			Diff.diffPerLine(ds, eventFordocOrig, eventForTarget);
 		}
 	}

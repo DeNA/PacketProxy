@@ -18,53 +18,53 @@ package packetproxy.model;
 import java.beans.PropertyChangeEvent;
 
 public enum PropertyChangeEventType {
-    INTERCEPT_DATA("interceptData"),
-    INTERCEPT_MODE("interceptMode"),
 
-    SSL_PASS_THROUGHS("sslPassThroughs"),
+	INTERCEPT_DATA("interceptData"), INTERCEPT_MODE("interceptMode"),
 
-    SERVERS("servers"),
+	SSL_PASS_THROUGHS("sslPassThroughs"),
 
-    FILTERS("filters"),
+	SERVERS("servers"),
 
-    LISTEN_PORTS("listenPorts"),
+	FILTERS("filters"),
 
-    CONFIGS("configs"),
+	LISTEN_PORTS("listenPorts"),
 
-    CHARSET_UPDATED("charsetUpdated"),
+	CONFIGS("configs"),
 
-    MODIFICATIONS_UPDATED("modificationsUpdated"),
+	CHARSET_UPDATED("charsetUpdated"),
 
-    RESOLUTIONS_UPDATED("resolutionsUpdated"),
+	MODIFICATIONS_UPDATED("modificationsUpdated"),
 
-    SELECTED_INDEX("selectedIndex"),
+	RESOLUTIONS_UPDATED("resolutionsUpdated"),
 
-    INTERCEPT_OPTIONS("interceptOptions"),
+	SELECTED_INDEX("selectedIndex"),
 
-    DATABASE_MESSAGE("databaseMessage"),
+	INTERCEPT_OPTIONS("interceptOptions"),
 
-    PACKETS("packets"),
+	DATABASE_MESSAGE("databaseMessage"),
 
-    RESENDER_PACKETS("resenderPackets"),
+	PACKETS("packets"),
 
-    CLIENT_CERTIFICATES("clientCertificates"),
+	RESENDER_PACKETS("resenderPackets"),
 
-    EXTENSIONS("extensions"),
+	CLIENT_CERTIFICATES("clientCertificates"),
 
-    FORWARD_PORTS("forwardPorts");
+	EXTENSIONS("extensions"),
 
-    private final String value;
+	FORWARD_PORTS("forwardPorts");
 
-    PropertyChangeEventType(String value) {
-        this.value = value;
-    }
+	private final String value;
 
-    public boolean matches(PropertyChangeEvent event) {
-        return value.equals(event.getPropertyName());
-    }
+	PropertyChangeEventType(String value) {
+		this.value = value;
+	}
 
-    @Override
-    public String toString() {
-        return value;
-    }
+	public boolean matches(PropertyChangeEvent event) {
+		return value.equals(event.getPropertyName());
+	}
+
+	@Override
+	public String toString() {
+		return value;
+	}
 }

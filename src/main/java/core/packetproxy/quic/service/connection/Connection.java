@@ -16,6 +16,19 @@
 
 package packetproxy.quic.service.connection;
 
+import static packetproxy.util.Throwing.rethrow;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
+import java.io.OutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import lombok.Getter;
 import packetproxy.common.Endpoint;
 import packetproxy.common.PipeEndpoint;
@@ -40,212 +53,237 @@ import packetproxy.quic.value.packet.longheader.pnspace.HandshakePacket;
 import packetproxy.quic.value.packet.longheader.pnspace.InitialPacket;
 import packetproxy.quic.value.packet.shortheader.ShortHeaderPacket;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.InterruptedIOException;
-import java.io.OutputStream;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import static packetproxy.util.Throwing.rethrow;
-
 @Getter
 public abstract class Connection implements Endpoint {
-    final ExecutorService executor = Executors.newFixedThreadPool(3);
-    final QuicPacketParser clientPacketParser;
-    final QuicPacketParser serverPacketParser;
-    final AwaitingPackets<QuicPacket> awaitingSendPackets = new AwaitingPackets();
-    final AwaitingPackets<DatagramPacket> awaitingReceivedPackets = new AwaitingPackets();
-    final HandshakeState handshakeState = new HandshakeState();
-    final Keys keys = new Keys();
-    final Constants.Role role;
-    final DatagramSocket socket;
-    final Pto pto;
-    final LossDetection lossDetection;
-    final RttEstimator rttEstimator;
-    final PnSpaces pnSpaces;
-    final PipeEndpoint pipe;
-    final InetSocketAddress peerAddr;
-    ConnectionIdPair connIdPair;
-    ConnectionId initialSecret;
-    boolean serverAntiAmplifiedLimit = false;
 
-    public Connection(Constants.Role role, ConnectionIdPair connIdPair, ConnectionId initialSecret, DatagramSocket socket, InetSocketAddress peerAddr) throws Exception {
-        this.role = role;
-        this.connIdPair = connIdPair;
-        this.socket = socket;
-        this.peerAddr = peerAddr;
-        this.clientPacketParser = new QuicPacketParser(this, keys.getClientKeys());
-        this.serverPacketParser = new QuicPacketParser(this, keys.getServerKeys());
-        this.pto = new Pto(this);
-        this.lossDetection = new LossDetection(this);
-        this.rttEstimator = new RttEstimator(this);
-        this.pnSpaces = new PnSpaces(this);
-        this.pipe = new PipeEndpoint(peerAddr);
-        this.connIdPair = connIdPair;
-        this.initialSecret = initialSecret;
-        this.keys.computeInitialKey(initialSecret);
-    }
+	final ExecutorService executor = Executors.newFixedThreadPool(3);
+	final QuicPacketParser clientPacketParser;
+	final QuicPacketParser serverPacketParser;
+	final AwaitingPackets<QuicPacket> awaitingSendPackets = new AwaitingPackets();
+	final AwaitingPackets<DatagramPacket> awaitingReceivedPackets = new AwaitingPackets();
+	final HandshakeState handshakeState = new HandshakeState();
+	final Keys keys = new Keys();
+	final Constants.Role role;
+	final DatagramSocket socket;
+	final Pto pto;
+	final LossDetection lossDetection;
+	final RttEstimator rttEstimator;
+	final PnSpaces pnSpaces;
+	final PipeEndpoint pipe;
+	final InetSocketAddress peerAddr;
+	ConnectionIdPair connIdPair;
+	ConnectionId initialSecret;
+	boolean serverAntiAmplifiedLimit = false;
 
-    protected void start() throws Exception {
-        /* 送信パケットキュー -> 送信 */
-        this.executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    List<QuicPacket> packets = pnSpaces.pollSendPackets(); // Blocking here
-                    awaitingSendPackets.put(packets);
-                    awaitingSendPackets.forEachAndRemovedIfReturnTrue(packet -> {
-                        try {
-                            //if (role == Constants.Role.SERVER) {
-                            //    PacketProxyUtility.getInstance().packetProxyLog("[QUIC] CLIENT<---       " + packet);
-                            //} else {
-                            //    PacketProxyUtility.getInstance().packetProxyLog("[QUIC]       --->SERVER " + packet);
-                            //}
-                            if (packet instanceof InitialPacket) {
-                                InitialPacket ip = (InitialPacket) packet;
-                                if (keys.discardedInitialKey()) {
-                                    return true; /* Initialキーは破棄済みなのでInitialパケットは送信せずに破棄する */
-                                }
-                                byte[] udpData = (role == Constants.Role.CLIENT) ?
-                                        ip.getBytes(keys.getClientKeys().getInitialKey(), getPnSpace(ip.getPnSpaceType()).getAckFrameGenerator().getSmallestValidPn()):
-                                        ip.getBytes(keys.getServerKeys().getInitialKey(), getPnSpace(ip.getPnSpaceType()).getAckFrameGenerator().getSmallestValidPn());
-                                sendUdpPacket(udpData);
-                                return true;
-                            }
-                            if (packet instanceof HandshakePacket) {
-                                HandshakePacket hp = (HandshakePacket) packet;
-                                if (keys.discardedHandshakeKey()) {
-                                    return true; /* Handshakeキーは破棄済みなのでHandshakeパケットは送信せずに破棄する */
-                                }
-                                byte[] udpData = (role == Constants.Role.CLIENT) ?
-                                        hp.getBytes(keys.getClientKeys().getHandshakeKey(), getPnSpace(hp.getPnSpaceType()).getAckFrameGenerator().getSmallestValidPn()):
-                                        hp.getBytes(keys.getServerKeys().getHandshakeKey(), getPnSpace(hp.getPnSpaceType()).getAckFrameGenerator().getSmallestValidPn());
-                                sendUdpPacket(udpData);
-                                return true;
-                            }
-                            if (packet instanceof ShortHeaderPacket && keys.hasApplicationKey()) {
-                                ShortHeaderPacket sp = (ShortHeaderPacket) packet;
-                                if (role == Constants.Role.CLIENT && getHandshakeState().isNotConfirmed()) {
-                                    return false; /* Handshakeが終わってからShortHeaderPacketを送信しないとサーバー側でエラーになってしまうので、後ほど送信 */
-                                }
-                                byte[] udpData = (role == Constants.Role.CLIENT) ?
-                                        sp.getBytes(keys.getClientKeys().getApplicationKey(), getPnSpace(sp.getPnSpaceType()).getAckFrameGenerator().getSmallestValidPn()):
-                                        sp.getBytes(keys.getServerKeys().getApplicationKey(), getPnSpace(sp.getPnSpaceType()).getAckFrameGenerator().getSmallestValidPn());
-                                sendUdpPacket(udpData);
-                                return true;
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        return false;
-                    });
-                }
-            }
-        });
+	public Connection(Constants.Role role, ConnectionIdPair connIdPair, ConnectionId initialSecret,
+			DatagramSocket socket, InetSocketAddress peerAddr) throws Exception {
+		this.role = role;
+		this.connIdPair = connIdPair;
+		this.socket = socket;
+		this.peerAddr = peerAddr;
+		this.clientPacketParser = new QuicPacketParser(this, keys.getClientKeys());
+		this.serverPacketParser = new QuicPacketParser(this, keys.getServerKeys());
+		this.pto = new Pto(this);
+		this.lossDetection = new LossDetection(this);
+		this.rttEstimator = new RttEstimator(this);
+		this.pnSpaces = new PnSpaces(this);
+		this.pipe = new PipeEndpoint(peerAddr);
+		this.connIdPair = connIdPair;
+		this.initialSecret = initialSecret;
+		this.keys.computeInitialKey(initialSecret);
+	}
 
-        /* エンコーダー -> 送信パケットキュー */
-        this.executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    InputStream in = pipe.getRawEndpoint().getInputStream();
+	protected void start() throws Exception {
+		/* 送信パケットキュー -> 送信 */
+		this.executor.submit(new Runnable() {
 
-                    /*
-                     * ハンドシェイクが完了するまで待ってからエンコーダーからの入力をパケット化する
-                     * ハンドシェイクが完了してApplicationKeyを得ていないとパケット化できないため
-                     */
-                    if (role == Constants.Role.CLIENT) {
-                        while (true) {
-                            if (handshakeState.isConfirmed()) {
-                                break;
-                            }
-                            Thread.sleep(100);
-                        }
-                    }
+			@Override
+			public void run() {
+				while (true) {
 
-                    byte[] readChunk = new byte[4096];
-                    ByteArrayOutputStream readQueue = new ByteArrayOutputStream();
-                    int length;
-                    while ((length = in.read(readChunk)) > 0) {
-                        readQueue.write(readChunk, 0, length);
-                        ByteBuffer buffer = ByteBuffer.wrap(readQueue.toByteArray());
-                        QuicMessages.parse(buffer).forEach(rethrow(msg -> {
-                            getPnSpace(Constants.PnSpaceType.PnSpaceApplicationData).addSendQuicMessage(msg);
-                        }));
-                        readQueue.reset();
-                        if (buffer.hasRemaining()) {
-                            readQueue.write(SimpleBytes.parse(buffer, buffer.remaining()).getBytes());
-                        }
-                    }
-                } catch (InterruptedIOException e) {
-                    /* exception simply ignored */
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
+					List<QuicPacket> packets = pnSpaces.pollSendPackets(); // Blocking here
+					awaitingSendPackets.put(packets);
+					awaitingSendPackets.forEachAndRemovedIfReturnTrue(packet -> {
 
-    private void sendUdpPacket(byte[] data) throws Exception {
-        DatagramPacket udpPacket = new DatagramPacket(data, 0, data.length, this.peerAddr);
-        socket.send(udpPacket);
-    }
+						try {
 
-    public void updateDestConnId(ConnectionId destConnId) {
-        this.connIdPair = ConnectionIdPair.of(this.connIdPair.getSrcConnId(), destConnId);
-    }
+							// if (role == Constants.Role.SERVER) {
+							// PacketProxyUtility.getInstance().packetProxyLog("[QUIC] CLIENT<--- " +
+							// packet);
+							// } else {
+							// PacketProxyUtility.getInstance().packetProxyLog("[QUIC] --->SERVER " +
+							// packet);
+							// }
+							if (packet instanceof InitialPacket) {
 
-    public PnSpace getPnSpace(PnSpaceType pnSpaceType) {
-        return this.pnSpaces.getPnSpace(pnSpaceType);
-    }
+								InitialPacket ip = (InitialPacket) packet;
+								if (keys.discardedInitialKey()) {
 
-    public void close() {
-        try {
-            this.pipe.getRawEndpoint().getInputStream().close();
-            this.pipe.getRawEndpoint().getOutputStream().close();
-            this.executor.shutdownNow();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+									return true; /* Initialキーは破棄済みなのでInitialパケットは送信せずに破棄する */
+								}
+								byte[] udpData = (role == Constants.Role.CLIENT)
+										? ip.getBytes(keys.getClientKeys().getInitialKey(),
+												getPnSpace(ip.getPnSpaceType()).getAckFrameGenerator()
+														.getSmallestValidPn())
+										: ip.getBytes(keys.getServerKeys().getInitialKey(),
+												getPnSpace(ip.getPnSpaceType()).getAckFrameGenerator()
+														.getSmallestValidPn());
+								sendUdpPacket(udpData);
+								return true;
+							}
+							if (packet instanceof HandshakePacket) {
 
-    @Override
-    public InputStream getInputStream() throws Exception {
-        return this.pipe.getProxyRawEndpoint().getInputStream();
-    }
+								HandshakePacket hp = (HandshakePacket) packet;
+								if (keys.discardedHandshakeKey()) {
 
-    @Override
-    public OutputStream getOutputStream() throws Exception {
-        return this.pipe.getProxyRawEndpoint().getOutputStream();
-    }
+									return true; /* Handshakeキーは破棄済みなのでHandshakeパケットは送信せずに破棄する */
+								}
+								byte[] udpData = (role == Constants.Role.CLIENT)
+										? hp.getBytes(keys.getClientKeys().getHandshakeKey(),
+												getPnSpace(hp.getPnSpaceType()).getAckFrameGenerator()
+														.getSmallestValidPn())
+										: hp.getBytes(keys.getServerKeys().getHandshakeKey(),
+												getPnSpace(hp.getPnSpaceType()).getAckFrameGenerator()
+														.getSmallestValidPn());
+								sendUdpPacket(udpData);
+								return true;
+							}
+							if (packet instanceof ShortHeaderPacket && keys.hasApplicationKey()) {
 
-    @Override
-    public InetSocketAddress getAddress() {
-        return this.peerAddr;
-    }
+								ShortHeaderPacket sp = (ShortHeaderPacket) packet;
+								if (role == Constants.Role.CLIENT && getHandshakeState().isNotConfirmed()) {
 
-    @Override
-    public int getLocalPort() {
-        return 0;
-    }
+									return false; /* Handshakeが終わってからShortHeaderPacketを送信しないとサーバー側でエラーになってしまうので、後ほど送信 */
+								}
+								byte[] udpData = (role == Constants.Role.CLIENT)
+										? sp.getBytes(keys.getClientKeys().getApplicationKey(),
+												getPnSpace(sp.getPnSpaceType()).getAckFrameGenerator()
+														.getSmallestValidPn())
+										: sp.getBytes(keys.getServerKeys().getApplicationKey(),
+												getPnSpace(sp.getPnSpaceType()).getAckFrameGenerator()
+														.getSmallestValidPn());
+								sendUdpPacket(udpData);
+								return true;
+							}
+						} catch (Exception e) {
 
-    @Override
-    public String getName() {
-        return "QUIC Endpoint";
-    }
+							e.printStackTrace();
+						}
+						return false;
+					});
+				}
+			}
+		});
 
-    public boolean peerAwaitingAddressValidation() {
-        return !this.peerCompletedAddressValidation();
-    }
+		/* エンコーダー -> 送信パケットキュー */
+		this.executor.submit(new Runnable() {
 
-    public abstract boolean peerCompletedAddressValidation();
+			@Override
+			public void run() {
+				try {
 
-    public abstract Handshake getHandshake();
+					InputStream in = pipe.getRawEndpoint().getInputStream();
+
+					/*
+					 * ハンドシェイクが完了するまで待ってからエンコーダーからの入力をパケット化する
+					 * ハンドシェイクが完了してApplicationKeyを得ていないとパケット化できないため
+					 */
+					if (role == Constants.Role.CLIENT) {
+
+						while (true) {
+
+							if (handshakeState.isConfirmed()) {
+
+								break;
+							}
+							Thread.sleep(100);
+						}
+					}
+
+					byte[] readChunk = new byte[4096];
+					ByteArrayOutputStream readQueue = new ByteArrayOutputStream();
+					int length;
+					while ((length = in.read(readChunk)) > 0) {
+
+						readQueue.write(readChunk, 0, length);
+						ByteBuffer buffer = ByteBuffer.wrap(readQueue.toByteArray());
+						QuicMessages.parse(buffer).forEach(rethrow(msg -> {
+
+							getPnSpace(Constants.PnSpaceType.PnSpaceApplicationData).addSendQuicMessage(msg);
+						}));
+						readQueue.reset();
+						if (buffer.hasRemaining()) {
+
+							readQueue.write(SimpleBytes.parse(buffer, buffer.remaining()).getBytes());
+						}
+					}
+				} catch (InterruptedIOException e) {
+
+					/* exception simply ignored */
+				} catch (Exception e) {
+
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	private void sendUdpPacket(byte[] data) throws Exception {
+		DatagramPacket udpPacket = new DatagramPacket(data, 0, data.length, this.peerAddr);
+		socket.send(udpPacket);
+	}
+
+	public void updateDestConnId(ConnectionId destConnId) {
+		this.connIdPair = ConnectionIdPair.of(this.connIdPair.getSrcConnId(), destConnId);
+	}
+
+	public PnSpace getPnSpace(PnSpaceType pnSpaceType) {
+		return this.pnSpaces.getPnSpace(pnSpaceType);
+	}
+
+	public void close() {
+		try {
+
+			this.pipe.getRawEndpoint().getInputStream().close();
+			this.pipe.getRawEndpoint().getOutputStream().close();
+			this.executor.shutdownNow();
+		} catch (Exception e) {
+
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public InputStream getInputStream() throws Exception {
+		return this.pipe.getProxyRawEndpoint().getInputStream();
+	}
+
+	@Override
+	public OutputStream getOutputStream() throws Exception {
+		return this.pipe.getProxyRawEndpoint().getOutputStream();
+	}
+
+	@Override
+	public InetSocketAddress getAddress() {
+		return this.peerAddr;
+	}
+
+	@Override
+	public int getLocalPort() {
+		return 0;
+	}
+
+	@Override
+	public String getName() {
+		return "QUIC Endpoint";
+	}
+
+	public boolean peerAwaitingAddressValidation() {
+		return !this.peerCompletedAddressValidation();
+	}
+
+	public abstract boolean peerCompletedAddressValidation();
+
+	public abstract Handshake getHandshake();
 
 }

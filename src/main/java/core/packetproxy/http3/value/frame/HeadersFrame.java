@@ -17,62 +17,63 @@
 package packetproxy.http3.value.frame;
 
 import com.google.common.collect.ImmutableList;
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.util.List;
 import lombok.Value;
 import org.apache.commons.codec.binary.Hex;
 import packetproxy.quic.value.SimpleBytes;
 import packetproxy.quic.value.VariableLengthInteger;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
-import java.util.List;
-
 @Value
 public class HeadersFrame implements Frame {
 
-    static public final long TYPE = 0x01;
+	public static final long TYPE = 0x01;
 
-    static public List<Long> supportedTypes() {
-        return ImmutableList.of(TYPE);
-    }
+	public static List<Long> supportedTypes() {
+		return ImmutableList.of(TYPE);
+	}
 
-    static public HeadersFrame parse(ByteBuffer buffer) {
-        long frameType = VariableLengthInteger.parse(buffer).getValue();
-        long frameLength = VariableLengthInteger.parse(buffer).getValue();
-        byte[] frameData = SimpleBytes.parse(buffer, frameLength).getBytes();
-        return new HeadersFrame(frameData);
-    }
+	public static HeadersFrame parse(ByteBuffer buffer) {
+		long frameType = VariableLengthInteger.parse(buffer).getValue();
+		long frameLength = VariableLengthInteger.parse(buffer).getValue();
+		byte[] frameData = SimpleBytes.parse(buffer, frameLength).getBytes();
+		return new HeadersFrame(frameData);
+	}
 
-    static public HeadersFrame of(byte[] frameData) {
-        return new HeadersFrame(frameData);
-    }
+	public static HeadersFrame of(byte[] frameData) {
+		return new HeadersFrame(frameData);
+	}
 
-    long type;
-    byte[] data;
+	long type;
+	byte[] data;
 
-    private HeadersFrame(byte[] frameData) {
-        this.type = TYPE;
-        this.data = frameData;
-    }
+	private HeadersFrame(byte[] frameData) {
+		this.type = TYPE;
+		this.data = frameData;
+	}
 
-    public byte[] getData() {
-        return this.data;
-    }
+	public byte[] getData() {
+		return this.data;
+	}
 
-    @Override
-    public byte[] getBytes() {
-        ByteArrayOutputStream headersFrameStream = new ByteArrayOutputStream();
-        try {
-            headersFrameStream.write(VariableLengthInteger.of(this.type).getBytes());
-            headersFrameStream.write(VariableLengthInteger.of(this.data.length).getBytes());
-            headersFrameStream.write(this.data);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return headersFrameStream.toByteArray();
-    }
+	@Override
+	public byte[] getBytes() {
+		ByteArrayOutputStream headersFrameStream = new ByteArrayOutputStream();
+		try {
 
-    @Override
-    public String toString() {
-        return String.format("HeadersFrame(data=[%s])", Hex.encodeHexString(this.data));
-    }
+			headersFrameStream.write(VariableLengthInteger.of(this.type).getBytes());
+			headersFrameStream.write(VariableLengthInteger.of(this.data.length).getBytes());
+			headersFrameStream.write(this.data);
+		} catch (Exception e) {
+
+			e.printStackTrace();
+		}
+		return headersFrameStream.toByteArray();
+	}
+
+	@Override
+	public String toString() {
+		return String.format("HeadersFrame(data=[%s])", Hex.encodeHexString(this.data));
+	}
 }

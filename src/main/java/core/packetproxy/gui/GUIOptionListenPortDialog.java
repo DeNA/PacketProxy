@@ -24,7 +24,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -35,7 +34,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
 import packetproxy.common.I18nString;
 import packetproxy.model.CAFactory;
 import packetproxy.model.ListenPort;
@@ -44,6 +42,7 @@ import packetproxy.model.Servers;
 import packetproxy.util.PacketProxyUtility;
 
 public class GUIOptionListenPortDialog extends JDialog {
+
 	private static final long serialVersionUID = 1L;
 	private JPanel main_panel = new JPanel();
 	private JButton button_cancel = new JButton(I18nString.get("Cancel"));
@@ -98,20 +97,23 @@ public class GUIOptionListenPortDialog extends JDialog {
 		combo.setEnabled(true);
 		updateNextHopList("HTTP_PROXY");
 		combo.addItemListener(new ItemListener() {
+
 			@Override
 			public void itemStateChanged(ItemEvent event) {
 				try {
-					if (event.getStateChange() != ItemEvent.SELECTED ||
-							type_combo.getSelectedItem() == null ||
-							type_combo.getSelectedItem().toString().equals("HTTP_PROXY") ||
-							type_combo.getSelectedItem().toString().equals("SSL_TRANSPARENT_PROXY") ||
-							type_combo.getSelectedItem().toString().equals("HTTP_TRANSPARENT_PROXY"))
+
+					if (event.getStateChange() != ItemEvent.SELECTED || type_combo.getSelectedItem() == null
+							|| type_combo.getSelectedItem().toString().equals("HTTP_PROXY")
+							|| type_combo.getSelectedItem().toString().equals("SSL_TRANSPARENT_PROXY")
+							|| type_combo.getSelectedItem().toString().equals("HTTP_TRANSPARENT_PROXY"))
 						return;
 					Object server_str = combo.getSelectedItem();
 					if (server_str != null) {
+
 						last_server_str = server_str.toString();
 					}
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
@@ -124,60 +126,77 @@ public class GUIOptionListenPortDialog extends JDialog {
 		combo.removeAllItems();
 		List<Server> servers = null;
 		if (item.equals("HTTP_PROXY")) {
+
 			servers = Servers.getInstance().queryHttpProxies();
 			combo.addItem(I18nString.get("Forward to server directly without upstream proxy"));
 		} else if (item.equals("SSL_TRANSPARENT_PROXY")) {
+
 			servers = Servers.getInstance().queryHttpProxies();
 			combo.addItem(I18nString.get("Forward to server specified in SNI header"));
 		} else if (item.equals("HTTP_TRANSPARENT_PROXY")) {
+
 			servers = Servers.getInstance().queryHttpProxies();
 			combo.addItem(I18nString.get("Forward to server specified in Hosts header"));
 		} else if (item.equals("UDP_FORWARDER")) {
+
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
+
 				JOptionPane.showMessageDialog(this,
 						I18nString.get("Set server you wish to connect into 'Servers setting' first."));
 				dispose();
 			}
 		} else if (item.equals("SSL_FORWARDER")) {
+
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
+
 				JOptionPane.showMessageDialog(this,
 						I18nString.get("Set server you wish to connect into 'Servers setting' first."));
 				dispose();
 			}
 		} else if (item.equals("FORWARDER")) {
+
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
+
 				JOptionPane.showMessageDialog(this,
 						I18nString.get("Set server you wish to connect into 'Servers setting' first."));
 				dispose();
 			}
 		} else if (item.equals("QUIC_FORWARDER")) {
+
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
+
 				JOptionPane.showMessageDialog(this,
 						I18nString.get("Set server you wish to connect into 'Servers setting' first."));
 				dispose();
 			}
 		} else if (item.equals("QUIC_TRANSPARENT_PROXY")) {
+
 			servers = new ArrayList<Server>();
 			combo.addItem(I18nString.get("Forward to server specified in SNI header"));
 		} else if (item.equals("XMPP_SSL_FORWARDER")) {
+
 			servers = Servers.getInstance().queryNonHttpProxies();
 			if (servers.isEmpty()) {
+
 				JOptionPane.showMessageDialog(this,
 						I18nString.get("Set server you wish to connect into 'Servers setting' first."));
 				dispose();
 			}
 		} else {
+
 			servers = Servers.getInstance().queryNonHttpProxies();
 		}
 		for (Server server : servers) {
+
 			combo.addItem(server.toString());
 		}
 		if (server_str != null) {
-			combo.setSelectedItem(server_str.toString());
+
+			combo.setSelectedItem(server_str);
 		}
 		combo.setMaximumRowCount(combo.getItemCount());
 	}
@@ -195,13 +214,16 @@ public class GUIOptionListenPortDialog extends JDialog {
 		type_combo.setEnabled(true);
 		type_combo.setMaximumRowCount(9);
 		type_combo.addItemListener(new ItemListener() {
+
 			@Override
 			public void itemStateChanged(ItemEvent event) {
 				try {
+
 					if (event.getStateChange() != ItemEvent.SELECTED)
 						return;
 					updateNextHopList((String) event.getItem());
 				} catch (Exception e) {
+
 					e.printStackTrace();
 				}
 			}
@@ -240,6 +262,7 @@ public class GUIOptionListenPortDialog extends JDialog {
 		c.add(main_panel);
 
 		button_cancel.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				listenPort = null;
@@ -248,39 +271,50 @@ public class GUIOptionListenPortDialog extends JDialog {
 		});
 
 		button_set.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
+
 					ListenPort.TYPE type = null;
 					if (type_combo.getSelectedItem().toString().equals("HTTP_PROXY")) {
+
 						type = ListenPort.TYPE.HTTP_PROXY;
 					} else if (type_combo.getSelectedItem().toString().equals("FORWARDER")) {
+
 						type = ListenPort.TYPE.FORWARDER;
 					} else if (type_combo.getSelectedItem().toString().equals("UDP_FORWARDER")) {
+
 						type = ListenPort.TYPE.UDP_FORWARDER;
 					} else if (type_combo.getSelectedItem().toString().equals("SSL_TRANSPARENT_PROXY")) {
+
 						PacketProxyUtility.getInstance().packetProxyLog("SSL_TRANSPARENT_PROXY created");
 						type = ListenPort.TYPE.SSL_TRANSPARENT_PROXY;
 					} else if (type_combo.getSelectedItem().toString().equals("HTTP_TRANSPARENT_PROXY")) {
+
 						PacketProxyUtility.getInstance().packetProxyLog("HTTP_TRANSPARENT_PROXY created");
 						type = ListenPort.TYPE.HTTP_TRANSPARENT_PROXY;
 					} else if (type_combo.getSelectedItem().toString().equals("XMPP_SSL_FORWARDER")) {
+
 						type = ListenPort.TYPE.XMPP_SSL_FORWARDER;
 					} else if (type_combo.getSelectedItem().toString().equals("QUIC_FORWARDER")) {
+
 						type = ListenPort.TYPE.QUIC_FORWARDER;
 					} else if (type_combo.getSelectedItem().toString().equals("QUIC_TRANSPARENT_PROXY")) {
+
 						type = ListenPort.TYPE.QUIC_TRANSPARENT_PROXY;
 					} else {
+
 						type = ListenPort.TYPE.SSL_FORWARDER;
 					}
 					String server_str = (String) combo.getSelectedItem();
-					listenPort = new ListenPort(Integer.parseInt(text_port.getText()),
-							type,
+					listenPort = new ListenPort(Integer.parseInt(text_port.getText()), type,
 							Servers.getInstance().queryByString(server_str),
 							CAFactory.findByUTF8Name(ca_combo.getSelectedItem().toString()).map(ca -> ca.getName())
 									.orElse("Error"));
 					dispose();
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}

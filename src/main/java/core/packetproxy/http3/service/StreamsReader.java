@@ -16,6 +16,12 @@
 
 package packetproxy.http3.service;
 
+import static packetproxy.util.Throwing.rethrow;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import packetproxy.http3.service.stream.ControlReadStream;
 import packetproxy.http3.service.stream.HttpReadStream;
 import packetproxy.http3.service.stream.QpackReadStream;
@@ -26,107 +32,114 @@ import packetproxy.quic.value.QuicMessage;
 import packetproxy.quic.value.QuicMessages;
 import packetproxy.quic.value.StreamId;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static packetproxy.util.Throwing.rethrow;
-
 public class StreamsReader {
 
-    private final Map<StreamId, HttpReadStream> httpStreams = new HashMap<>();
-    private final ControlReadStream controlReadStream;
+	private final Map<StreamId, HttpReadStream> httpStreams = new HashMap<>();
+	private final ControlReadStream controlReadStream;
 
-    private QpackReadStream qpackEncodeStreamReader = null;
-    private QpackReadStream qpackDecodeStreamReader = null;
+	private QpackReadStream qpackEncodeStreamReader = null;
+	private QpackReadStream qpackDecodeStreamReader = null;
 
-    public StreamsReader(Constants.Role role) {
-        if (role == Constants.Role.CLIENT) {
-            this.controlReadStream = new ControlReadStream(StreamId.of(0x2));
-        } else {
-            this.controlReadStream = new ControlReadStream(StreamId.of(0x3));
-        }
-    }
+	public StreamsReader(Constants.Role role) {
+		if (role == Constants.Role.CLIENT) {
 
-    private void writeQpackMsg(QuicMessage msg) throws Exception {
-        if (this.qpackEncodeStreamReader != null) {
-            if (this.qpackEncodeStreamReader.processable(msg)) {
-                this.qpackEncodeStreamReader.write(msg);
-                return;
-            }
-        }
-        if (this.qpackDecodeStreamReader != null) {
-            if (this.qpackDecodeStreamReader.processable(msg)) {
-                this.qpackDecodeStreamReader.write(msg);
-                return;
-            }
-        }
-        if (msg.getData().length == 0) {
-            return;
-        }
-        Stream.StreamType streamType = Stream.StreamType.of(msg.getData()[0]);
-        if (streamType == Stream.StreamType.QpackEncoderStreamType) {
-            this.qpackEncodeStreamReader = new QpackReadStream(msg.getStreamId(), Stream.StreamType.QpackEncoderStreamType);
-            this.qpackEncodeStreamReader.write(msg);
-            return;
-        } else if (streamType == Stream.StreamType.QpackDecoderStreamType) {
-            this.qpackDecodeStreamReader = new QpackReadStream(msg.getStreamId(), Stream.StreamType.QpackDecoderStreamType);
-            this.qpackDecodeStreamReader.write(msg);
-        } else {
-            throw new Exception("QPackStreamType is neither QpackEncoder(0x2) nor QpackDecoder(0x3)");
-        }
-    }
+			this.controlReadStream = new ControlReadStream(StreamId.of(0x2));
+		} else {
 
-    public synchronized void write(QuicMessage msg) throws Exception {
-        if (this.controlReadStream.processable(msg)) {
-            this.controlReadStream.write(msg);
-            return;
-        }
+			this.controlReadStream = new ControlReadStream(StreamId.of(0x3));
+		}
+	}
 
-        if (msg.getStreamId().isUniDirectional()) {
-            writeQpackMsg(msg);
-            return;
-        }
+	private void writeQpackMsg(QuicMessage msg) throws Exception {
+		if (this.qpackEncodeStreamReader != null) {
 
-        if (!this.httpStreams.containsKey(msg.getStreamId())) {
-            this.httpStreams.put(msg.getStreamId(), new HttpReadStream(msg.getStreamId()));
-        }
-        this.httpStreams.get(msg.getStreamId()).write(msg);
-    }
+			if (this.qpackEncodeStreamReader.processable(msg)) {
 
-    public synchronized void write(QuicMessages msgs) {
-        msgs.forEach(rethrow(this::write));
-    }
+				this.qpackEncodeStreamReader.write(msg);
+				return;
+			}
+		}
+		if (this.qpackDecodeStreamReader != null) {
 
-    public synchronized Optional<Setting> getSetting() {
-        return this.controlReadStream.getSetting();
-    }
+			if (this.qpackDecodeStreamReader.processable(msg)) {
 
-    public synchronized byte[] readQpackEncodeData() {
-        if (this.qpackEncodeStreamReader == null)
-            return new byte[]{};
-        return this.qpackEncodeStreamReader.readAllBytes();
-    }
+				this.qpackDecodeStreamReader.write(msg);
+				return;
+			}
+		}
+		if (msg.getData().length == 0) {
 
-    public synchronized byte[] readQpackDecodeData() {
-        if (this.qpackDecodeStreamReader == null)
-            return new byte[]{};
-        return this.qpackDecodeStreamReader.readAllBytes();
-    }
+			return;
+		}
+		Stream.StreamType streamType = Stream.StreamType.of(msg.getData()[0]);
+		if (streamType == Stream.StreamType.QpackEncoderStreamType) {
 
-    public Optional<HttpRaw> readHttpRaw() {
-        AtomicReference<Optional<HttpRaw>> httpRaw = new AtomicReference<>(Optional.empty());
-        this.httpStreams.entrySet().stream()
-                .filter(ent -> ent.getKey().isBidirectional())
-                .filter(ent -> !ent.getValue().isEmpty())
-                .map(Map.Entry::getKey)
-                .findFirst().ifPresent(rethrow(streamId -> {
-                    HttpReadStream httpStreamReader = this.httpStreams.get(streamId);
-                    httpRaw.set(Optional.of(httpStreamReader.readHttpRaw()));
-                    httpStreams.remove(streamId);
-                }));
-        return httpRaw.get();
-    }
+			this.qpackEncodeStreamReader = new QpackReadStream(msg.getStreamId(),
+					Stream.StreamType.QpackEncoderStreamType);
+			this.qpackEncodeStreamReader.write(msg);
+			return;
+		} else if (streamType == Stream.StreamType.QpackDecoderStreamType) {
+
+			this.qpackDecodeStreamReader = new QpackReadStream(msg.getStreamId(),
+					Stream.StreamType.QpackDecoderStreamType);
+			this.qpackDecodeStreamReader.write(msg);
+		} else {
+
+			throw new Exception("QPackStreamType is neither QpackEncoder(0x2) nor QpackDecoder(0x3)");
+		}
+	}
+
+	public synchronized void write(QuicMessage msg) throws Exception {
+		if (this.controlReadStream.processable(msg)) {
+
+			this.controlReadStream.write(msg);
+			return;
+		}
+
+		if (msg.getStreamId().isUniDirectional()) {
+
+			writeQpackMsg(msg);
+			return;
+		}
+
+		if (!this.httpStreams.containsKey(msg.getStreamId())) {
+
+			this.httpStreams.put(msg.getStreamId(), new HttpReadStream(msg.getStreamId()));
+		}
+		this.httpStreams.get(msg.getStreamId()).write(msg);
+	}
+
+	public synchronized void write(QuicMessages msgs) {
+		msgs.forEach(rethrow(this::write));
+	}
+
+	public synchronized Optional<Setting> getSetting() {
+		return this.controlReadStream.getSetting();
+	}
+
+	public synchronized byte[] readQpackEncodeData() {
+		if (this.qpackEncodeStreamReader == null)
+			return new byte[]{};
+		return this.qpackEncodeStreamReader.readAllBytes();
+	}
+
+	public synchronized byte[] readQpackDecodeData() {
+		if (this.qpackDecodeStreamReader == null)
+			return new byte[]{};
+		return this.qpackDecodeStreamReader.readAllBytes();
+	}
+
+	public Optional<HttpRaw> readHttpRaw() {
+		AtomicReference<Optional<HttpRaw>> httpRaw = new AtomicReference<>(Optional.empty());
+		this.httpStreams.entrySet().stream().filter(ent -> ent.getKey().isBidirectional())
+				.filter(ent -> !ent.getValue().isEmpty()).map(Map.Entry::getKey).findFirst()
+				.ifPresent(rethrow(streamId -> {
+
+					HttpReadStream httpStreamReader = this.httpStreams.get(streamId);
+					httpRaw.set(Optional.of(httpStreamReader.readHttpRaw()));
+					httpStreams.remove(streamId);
+				}));
+		return httpRaw.get();
+	}
 
 }

@@ -34,8 +34,8 @@ import javax.swing.text.View;
 import javax.swing.text.ViewFactory;
 import org.apache.commons.lang3.ArrayUtils;
 
-public class WrapEditorKit extends StyledEditorKit
-{
+public class WrapEditorKit extends StyledEditorKit {
+
 	private static final long serialVersionUID = 1L;
 	private char[] savedBuf;
 	private byte[] savedData;
@@ -55,21 +55,23 @@ public class WrapEditorKit extends StyledEditorKit
 	}
 
 	@Override
-	public void read(Reader in, Document doc, int pos) throws IOException,BadLocationException {
+	public void read(Reader in, Document doc, int pos) throws IOException, BadLocationException {
 		char[] buff = new char[4096];
 		int nch;
 		AttributeSet attr = getInputAttributes();
 		savedBuf = new char[]{};
 		while ((nch = in.read(buff, 0, buff.length)) != -1) {
+
 			doc.insertString(pos, new String(buff, 0, nch), attr);
 			savedBuf = ArrayUtils.addAll(savedBuf, ArrayUtils.subarray(buff, 0, nch));
-			pos+=nch;
+			pos += nch;
 		}
 	}
 
 	@Override
 	public void write(Writer out, Document doc, int pos, int len) throws IOException, BadLocationException {
 		if ((pos < 0) || ((pos + len) > doc.getLength())) {
+
 			throw new BadLocationException("DefaultEditorKit.write", pos);
 		}
 
@@ -78,6 +80,7 @@ public class WrapEditorKit extends StyledEditorKit
 		int offs = pos;
 
 		while (nleft > 0) {
+
 			int n = Math.min(nleft, 4096);
 			doc.getText(offs, n, data);
 			out.write(data.array, data.offset, data.count);
@@ -87,18 +90,25 @@ public class WrapEditorKit extends StyledEditorKit
 	}
 
 	class WrapColumnFactory implements ViewFactory {
+
 		public View create(Element elem) {
 			String kind = elem.getName();
 			if (kind != null) {
+
 				if (kind.equals(AbstractDocument.ContentElementName)) {
+
 					return new WrapLabelView(elem);
 				} else if (kind.equals(AbstractDocument.ParagraphElementName)) {
+
 					return new CustomParagraphView(elem);
 				} else if (kind.equals(AbstractDocument.SectionElementName)) {
+
 					return new BoxView(elem, View.Y_AXIS);
 				} else if (kind.equals(StyleConstants.ComponentElementName)) {
+
 					return new ComponentView(elem);
 				} else if (kind.equals(StyleConstants.IconElementName)) {
+
 					return new IconView(elem);
 				}
 			}
@@ -107,17 +117,19 @@ public class WrapEditorKit extends StyledEditorKit
 	}
 
 	class WrapLabelView extends LabelView {
+
 		public WrapLabelView(Element elem) {
 			super(elem);
 		}
 
 		public float getMinimumSpan(int axis) {
 			switch (axis) {
-				case View.X_AXIS:
+
+				case View.X_AXIS :
 					return 0;
-				case View.Y_AXIS:
+				case View.Y_AXIS :
 					return super.getMinimumSpan(axis);
-				default:
+				default :
 					throw new IllegalArgumentException("Invalid axis: " + axis);
 			}
 		}

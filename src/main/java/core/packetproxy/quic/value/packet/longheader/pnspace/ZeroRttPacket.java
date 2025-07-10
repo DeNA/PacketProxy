@@ -1,17 +1,16 @@
 package packetproxy.quic.value.packet.longheader.pnspace;
 
+import static packetproxy.quic.utils.Constants.PnSpaceType.PnSpaceApplicationData;
+
+import java.nio.ByteBuffer;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 import packetproxy.quic.utils.Constants.PnSpaceType;
-import packetproxy.quic.value.key.Key;
-import packetproxy.quic.value.packet.longheader.LongHeaderPnSpacePacket;
 import packetproxy.quic.value.ConnectionIdPair;
 import packetproxy.quic.value.PacketNumber;
-
-import java.nio.ByteBuffer;
-
-import static packetproxy.quic.utils.Constants.PnSpaceType.PnSpaceApplicationData;
+import packetproxy.quic.value.key.Key;
+import packetproxy.quic.value.packet.longheader.LongHeaderPnSpacePacket;
 
 /* Ref: RFC 9000 (0RTT Packet)
 0-RTT Packet {
@@ -35,26 +34,28 @@ import static packetproxy.quic.utils.Constants.PnSpaceType.PnSpaceApplicationDat
 @Value
 public class ZeroRttPacket extends LongHeaderPnSpacePacket {
 
-    static public final byte TYPE = (byte)0xd0;
+	public static final byte TYPE = (byte) 0xd0;
 
-    static public boolean is(byte type) {
-        return (type & (byte)0xf0) == TYPE;
-    }
+	public static boolean is(byte type) {
+		return (type & (byte) 0xf0) == TYPE;
+	}
 
-    static public ZeroRttPacket of(int version, ConnectionIdPair connIdPair, PacketNumber packetNumber, byte[] payload) {
-        return new ZeroRttPacket(TYPE, version, connIdPair, packetNumber, payload);
-    }
+	public static ZeroRttPacket of(int version, ConnectionIdPair connIdPair, PacketNumber packetNumber,
+			byte[] payload) {
+		return new ZeroRttPacket(TYPE, version, connIdPair, packetNumber, payload);
+	}
 
-    public ZeroRttPacket(byte type, int version, ConnectionIdPair connIdPair, PacketNumber packetNumber, byte[] payload) {
-        super(type, version, connIdPair, packetNumber, payload);
-    }
+	public ZeroRttPacket(byte type, int version, ConnectionIdPair connIdPair, PacketNumber packetNumber,
+			byte[] payload) {
+		super(type, version, connIdPair, packetNumber, payload);
+	}
 
-    public ZeroRttPacket(ByteBuffer buffer, Key key, PacketNumber largestAckedPn) throws Exception {
-        super(buffer, key, largestAckedPn);
-    }
+	public ZeroRttPacket(ByteBuffer buffer, Key key, PacketNumber largestAckedPn) throws Exception {
+		super(buffer, key, largestAckedPn);
+	}
 
-    @Override
-    public PnSpaceType getPnSpaceType() {
-        return PnSpaceApplicationData;
-    }
+	@Override
+	public PnSpaceType getPnSpaceType() {
+		return PnSpaceApplicationData;
+	}
 }

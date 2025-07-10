@@ -19,10 +19,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import javax.swing.JMenuItem;
-
 import packetproxy.util.PacketProxyUtility;
 
 public abstract class PPContextMenu {
+
 	protected JMenuItem menuItem;
 	protected HashMap<String, Object> dependentData;
 
@@ -33,10 +33,13 @@ public abstract class PPContextMenu {
 	public void registerItem() {
 		menuItem = new JMenuItem(getLabelName());
 		menuItem.addActionListener(new ActionListener() {
+
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
+
 					action();
 				} catch (Exception e) {
+
 					PacketProxyUtility.getInstance()
 							.packetProxyLog("Error: " + getLabelName() + " module something happened.");
 					e.printStackTrace();

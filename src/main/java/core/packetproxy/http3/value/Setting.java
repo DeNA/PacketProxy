@@ -23,24 +23,25 @@ import lombok.Value;
 @Builder
 public class Setting {
 
-    public static Setting generateWithDefaultValue() {
-        return Setting.builder().build();
-    }
-    public static class SettingBuilder {
-        long qpackMaxTableCapacity = SettingParam.QpackMaxTableCapacity.defaultValue;
-        long maxFieldSectionSize = SettingParam.MaxFieldSectionSize.defaultValue;
-        long qpackBlockedStreams = SettingParam.QpackBlockedStreams.defaultValue;
-        long enableConnectProtocol = SettingParam.EnableConnectProtocol.defaultValue;
-        long h3Datagram = SettingParam.H3Datagram.defaultValue;
-        long h3DatagramOld = SettingParam.H3DatagramOld.defaultValue;
-        long enableMetaData = SettingParam.EnableMetaData.defaultValue;
-    }
+	public static Setting generateWithDefaultValue() {
+		return Setting.builder().build();
+	}
+	public static class SettingBuilder {
 
-    long qpackMaxTableCapacity;
-    long maxFieldSectionSize;
-    long qpackBlockedStreams;
-    long enableConnectProtocol;
-    long h3Datagram;
-    long h3DatagramOld;
-    long enableMetaData;
+		long qpackMaxTableCapacity = SettingParam.QpackMaxTableCapacity.defaultValue;
+		long maxFieldSectionSize = SettingParam.MaxFieldSectionSize.defaultValue;
+		long qpackBlockedStreams = SettingParam.QpackBlockedStreams.defaultValue;
+		long enableConnectProtocol = SettingParam.EnableConnectProtocol.defaultValue;
+		long h3Datagram = SettingParam.H3Datagram.defaultValue;
+		long h3DatagramOld = SettingParam.H3DatagramOld.defaultValue;
+		long enableMetaData = SettingParam.EnableMetaData.defaultValue;
+	}
+
+	long qpackMaxTableCapacity;
+	long maxFieldSectionSize;
+	long qpackBlockedStreams;
+	long enableConnectProtocol;
+	long h3Datagram;
+	long h3DatagramOld;
+	long enableMetaData;
 }

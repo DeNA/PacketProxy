@@ -15,26 +15,21 @@
  */
 package packetproxy;
 
+import static packetproxy.model.PropertyChangeEventType.LISTEN_PORTS;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.net.BindException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.net.ServerSocket;
-import java.net.Socket;
-
-import javax.swing.JOptionPane;
-
-import packetproxy.common.Utils;
 import packetproxy.model.ListenPort;
 import packetproxy.model.ListenPorts;
 import packetproxy.util.PacketProxyUtility;
-import static packetproxy.model.PropertyChangeEventType.LISTEN_PORTS;
 
 public class ListenPortManager implements PropertyChangeListener {
+
 	private ListenPorts listenPorts;
 	private Map<String, Listen> listen_map;
 
@@ -42,6 +37,7 @@ public class ListenPortManager implements PropertyChangeListener {
 
 	public static ListenPortManager getInstance() throws Exception {
 		if (instance == null) {
+
 			instance = new ListenPortManager();
 		}
 		return instance;
@@ -57,6 +53,7 @@ public class ListenPortManager implements PropertyChangeListener {
 	public void rebootIfHTTPProxyRunning() throws Exception {
 		List<ListenPort> list = listenPorts.queryEnabledHttpProxis();
 		for (ListenPort lp : list) {
+
 			Listen listen = listen_map.get(lp.getProtoPort());
 			if (listen == null)
 				continue;
@@ -69,15 +66,19 @@ public class ListenPortManager implements PropertyChangeListener {
 	private void stopIfRunning() throws Exception {
 		List<ListenPort> list = listenPorts.queryEnabled();
 		for (Iterator<String> port = listen_map.keySet().iterator(); port.hasNext();) {
+
 			boolean found = false;
 			String p = port.next();
 			for (ListenPort l : list) {
+
 				if (l.getProtoPort().equals(p)) {
+
 					found = true;
 					break;
 				}
 			}
 			if (found == false) {
+
 				// System.out.println("## close:"+p);
 				listen_map.get(p).close();
 				port.remove();
@@ -87,20 +88,25 @@ public class ListenPortManager implements PropertyChangeListener {
 
 	private void startListen(ListenPort listen_port) throws Exception {
 		try {
+
 			Listen listen = listen_map.get(listen_port.getProtoPort());
 			if (listen != null) {
+
 				if (!listen.getListenInfo().equals(listen_port)) {
+
 					listen.close();
 					Listen new_listen = new Listen(listen_port);
 					listen_map.put(listen_port.getProtoPort(), new_listen);
 					PacketProxyUtility.getInstance().packetProxyLog("## restart:" + listen_port.getProtoPort());
 				}
 			} else {
+
 				PacketProxyUtility.getInstance().packetProxyLog("## start:" + listen_port.getProtoPort());
 				Listen new_listen = new Listen(listen_port);
 				listen_map.put(listen_port.getProtoPort(), new_listen);
 			}
 		} catch (BindException e) {
+
 			PacketProxyUtility.getInstance()
 					.packetProxyLogErr("cannot listen port. (permission issue or already listened)");
 			listen_port.setDisabled();
@@ -111,6 +117,7 @@ public class ListenPortManager implements PropertyChangeListener {
 	private void startIfStateChanged() throws Exception {
 		List<ListenPort> list = listenPorts.queryEnabled();
 		for (ListenPort listen_port : list) {
+
 			startListen(listen_port);
 		}
 	}
@@ -118,15 +125,19 @@ public class ListenPortManager implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (!LISTEN_PORTS.matches(evt)) {
+
 			return;
 		}
 
 		try {
+
 			synchronized (listen_map) {
+
 				stopIfRunning();
 				startIfStateChanged();
 			}
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}

@@ -18,67 +18,69 @@ package packetproxy.encode;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.CBORFactory;
+import java.util.Map;
 import packetproxy.http.Http;
 
-import java.util.Map;
+public class EncodeCBOR extends EncodeHTTPBase {
 
-public class EncodeCBOR extends EncodeHTTPBase
-{
-    private ObjectMapper cborMapper;
-    private ObjectMapper jsonMapper;
-    
+	private ObjectMapper cborMapper;
+	private ObjectMapper jsonMapper;
+
 	public EncodeCBOR(String ALPN) throws Exception {
 		super(ALPN);
-        CBORFactory f = new CBORFactory();
-        cborMapper = new ObjectMapper(f);
-        jsonMapper = new ObjectMapper();
+		CBORFactory f = new CBORFactory();
+		cborMapper = new ObjectMapper(f);
+		jsonMapper = new ObjectMapper();
 	}
 
-    private byte[] ObjToAltObj(byte[] src, ObjectMapper srcObjMapper, ObjectMapper dstObjMapper){
-        try{
-            Map<String, Object> objMap = srcObjMapper.readValue(src, new TypeReference<Map<String,Object>>(){});
-            return dstObjMapper.writeValueAsBytes(objMap);
+	private byte[] ObjToAltObj(byte[] src, ObjectMapper srcObjMapper, ObjectMapper dstObjMapper) {
+		try {
 
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return new byte[0];
-    }
+			Map<String, Object> objMap = srcObjMapper.readValue(src, new TypeReference<Map<String, Object>>() {
+			});
+			return dstObjMapper.writeValueAsBytes(objMap);
 
-    private byte[] cborToJson(byte[] src){
-        return ObjToAltObj(src, cborMapper, jsonMapper);
-    }
+		} catch (Exception e) {
 
-    private byte[] jsonToCbor(byte[] src){
-        return ObjToAltObj(src, jsonMapper, cborMapper);
-    }
+			e.printStackTrace();
+		}
+		return new byte[0];
+	}
 
-    @Override
-    public String getName() {
-        return "CBOR over HTTP";
-    }
+	private byte[] cborToJson(byte[] src) {
+		return ObjToAltObj(src, cborMapper, jsonMapper);
+	}
 
-    @Override
-    protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
-        inputHttp.setBody(cborToJson(inputHttp.getBody()));
-        return inputHttp;
-    }
+	private byte[] jsonToCbor(byte[] src) {
+		return ObjToAltObj(src, jsonMapper, cborMapper);
+	}
 
-    @Override
-    protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
-        inputHttp.setBody(jsonToCbor(inputHttp.getBody()));
-        return inputHttp;
-    }
+	@Override
+	public String getName() {
+		return "CBOR over HTTP";
+	}
 
-    @Override
-    protected Http decodeServerResponseHttp(Http inputHttp) throws Exception {
-        inputHttp.setBody(cborToJson(inputHttp.getBody()));
-        return inputHttp;
-    }
+	@Override
+	protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
+		inputHttp.setBody(cborToJson(inputHttp.getBody()));
+		return inputHttp;
+	}
 
-    @Override
-    protected Http encodeServerResponseHttp(Http inputHttp) throws Exception {
-        inputHttp.setBody(jsonToCbor(inputHttp.getBody()));
-        return inputHttp;
-    }
+	@Override
+	protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
+		inputHttp.setBody(jsonToCbor(inputHttp.getBody()));
+		return inputHttp;
+	}
+
+	@Override
+	protected Http decodeServerResponseHttp(Http inputHttp) throws Exception {
+		inputHttp.setBody(cborToJson(inputHttp.getBody()));
+		return inputHttp;
+	}
+
+	@Override
+	protected Http encodeServerResponseHttp(Http inputHttp) throws Exception {
+		inputHttp.setBody(jsonToCbor(inputHttp.getBody()));
+		return inputHttp;
+	}
 }

@@ -16,22 +16,24 @@
 package packetproxy.util;
 
 import java.io.UnsupportedEncodingException;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
-import java.util.Arrays;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import packetproxy.gui.GUILog;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import packetproxy.gui.GUILog;
 
 public class PacketProxyUtility {
+
 	private static String OS = System.getProperty("os.name").toLowerCase();
 	private static PacketProxyUtility instance = null;
 	private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 
 	public static PacketProxyUtility getInstance() {
 		if (instance == null) {
+
 			instance = new PacketProxyUtility();
 		}
 		return instance;
@@ -75,19 +77,20 @@ public class PacketProxyUtility {
 		packetProxyLogErr(e.getMessage());
 		StackTraceElement[] stackTrace = e.getStackTrace();
 		for (int i = 0; i < stackTrace.length; i++) {
+
 			packetProxyLogErr(stackTrace[i].toString());
 		}
 	}
 
 	public byte[] prettyFormatJSONInRawData(byte[] data) {
 		try {
+
 			String str = new String(data, "UTF-8");
 			Stream<String> stream = Arrays.asList(str.split("\r\n\r\n")).stream();
-			return stream.map(this::prettyFormatJSON)
-					.filter(j -> !j.isEmpty())
-					.collect(Collectors.joining("\n"))
+			return stream.map(this::prettyFormatJSON).filter(j -> !j.isEmpty()).collect(Collectors.joining("\n"))
 					.getBytes();
 		} catch (UnsupportedEncodingException e) {
+
 			e.printStackTrace();
 			return "convert failed".getBytes();
 		}
@@ -95,27 +98,31 @@ public class PacketProxyUtility {
 
 	public String prettyFormatJSON(String data) {
 		try {
+
 			JSONObject tmp_obj;
 			boolean begin_with_left_square_bracket = false; // This variable is true, if json string begin with [
 			int begin = data.length();
 			int end = data.length();
 			if (data.contains("{"))
-				begin = Math.min(begin, data.indexOf("{"));
+				begin = Math.min(begin, data.indexOf('{'));
 			if (data.contains("["))
-				begin = Math.min(begin, data.indexOf("["));
+				begin = Math.min(begin, data.indexOf('['));
 			data = data.substring(begin, end);
-			if (data.length() == 0)
+			if (data.isEmpty())
 				return "";
 			if (0 == data.indexOf('[')) {
+
 				data = String.format("{data:%s}", data);
 				begin_with_left_square_bracket = true;
 			}
 			tmp_obj = new JSONObject(data);
 			if (begin_with_left_square_bracket) {
+
 				return ((JSONArray) tmp_obj.get("data")).toString(2);
 			}
 			return tmp_obj.toString(2);
 		} catch (Exception e) {
+
 			return "";
 		}
 	}
@@ -135,10 +142,13 @@ public class PacketProxyUtility {
 	public boolean isBinaryData(byte[] data, int defaultSize) {
 		int cnt = 0;
 		for (int i = 0; i < Math.min(data.length, defaultSize); i++) {
+
 			if (data[i] == 0x09 || data[i] == 0x0a || data[i] == 0x0d) {
+
 				continue;
 			}
 			if ((0x00 <= data[i] && data[i] < 0x20) || data[i] == 0x7f) {
+
 				cnt++;
 			}
 		}

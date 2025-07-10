@@ -17,6 +17,8 @@
 package packetproxy.http3.value.frame;
 
 public interface Frame {
-    long getType();
-    byte[] getBytes() throws Exception;
+
+	long getType();
+
+	byte[] getBytes() throws Exception;
 }

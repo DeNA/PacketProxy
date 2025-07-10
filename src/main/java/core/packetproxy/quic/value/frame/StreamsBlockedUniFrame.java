@@ -17,44 +17,43 @@
 package packetproxy.quic.value.frame;
 
 import com.google.common.collect.ImmutableList;
+import java.nio.ByteBuffer;
+import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import packetproxy.quic.value.VariableLengthInteger;
-
-import java.nio.ByteBuffer;
-import java.util.List;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
 public class StreamsBlockedUniFrame extends Frame {
 
-    static public final byte TYPE = 0x17;
+	public static final byte TYPE = 0x17;
 
-    static public List<Byte> supportedTypes() {
-        return ImmutableList.of(TYPE);
-    }
+	public static List<Byte> supportedTypes() {
+		return ImmutableList.of(TYPE);
+	}
 
-    long maxStreams;
+	long maxStreams;
 
-    static public StreamsBlockedUniFrame parse(byte[] bytes) {
-        return StreamsBlockedUniFrame.parse(ByteBuffer.wrap(bytes));
-    }
+	public static StreamsBlockedUniFrame parse(byte[] bytes) {
+		return StreamsBlockedUniFrame.parse(ByteBuffer.wrap(bytes));
+	}
 
-    static public StreamsBlockedUniFrame parse(ByteBuffer buffer) {
-        byte type = buffer.get();
-        assert(type == TYPE);
-        long maxStreams = VariableLengthInteger.parse(buffer).getValue();
-        return new StreamsBlockedUniFrame(maxStreams);
-    }
+	public static StreamsBlockedUniFrame parse(ByteBuffer buffer) {
+		byte type = buffer.get();
+		assert (type == TYPE);
+		long maxStreams = VariableLengthInteger.parse(buffer).getValue();
+		return new StreamsBlockedUniFrame(maxStreams);
+	}
 
-    @Override
-    public byte[] getBytes() {
-        return new byte[]{ TYPE };
-    }
+	@Override
+	public byte[] getBytes() {
+		return new byte[]{TYPE};
+	}
 
-    @Override
-    public boolean isAckEliciting() {
-        return true;
-    }
+	@Override
+	public boolean isAckEliciting() {
+		return true;
+	}
 
 }

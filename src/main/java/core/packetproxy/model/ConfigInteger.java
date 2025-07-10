@@ -15,8 +15,8 @@
  */
 package packetproxy.model;
 
-public class ConfigInteger
-{
+public class ConfigInteger {
+
 	private String key;
 	private Configs configs;
 	private Config config;
@@ -26,6 +26,7 @@ public class ConfigInteger
 		configs = Configs.getInstance();
 		config = configs.query(key);
 		if (config == null) {
+
 			configs.create(new Config(key, "0"));
 		}
 	}

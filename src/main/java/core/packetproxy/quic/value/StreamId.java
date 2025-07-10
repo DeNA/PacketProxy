@@ -16,42 +16,41 @@
 
 package packetproxy.quic.value;
 
-import lombok.Value;
-
 import java.nio.ByteBuffer;
+import lombok.Value;
 
 @Value(staticConstructor = "of")
 public class StreamId {
 
-    static public StreamId parse(ByteBuffer buffer) {
-        return StreamId.of(buffer.getLong());
-    }
+	public static StreamId parse(ByteBuffer buffer) {
+		return StreamId.of(buffer.getLong());
+	}
 
-    long id;
+	long id;
 
-    public boolean isClientInitiated() {
-        return (this.id & 0x01) == 0;
-    }
+	public boolean isClientInitiated() {
+		return (this.id & 0x01) == 0;
+	}
 
-    public boolean isServerInitiated() {
-        return (this.id & 0x01) > 0;
-    }
+	public boolean isServerInitiated() {
+		return (this.id & 0x01) > 0;
+	}
 
-    public boolean isUniDirectional()  {
-        return (this.id & 0x02) > 0;
-    }
+	public boolean isUniDirectional() {
+		return (this.id & 0x02) > 0;
+	}
 
-    public boolean isBidirectional() {
-        return (this.id & 0x02) == 0;
-    }
+	public boolean isBidirectional() {
+		return (this.id & 0x02) == 0;
+	}
 
-    public byte[] getBytes() {
-        return ByteBuffer.allocate(8).putLong(this.id).array();
-    }
+	public byte[] getBytes() {
+		return ByteBuffer.allocate(8).putLong(this.id).array();
+	}
 
-    @Override
-    public String toString() {
-        return String.format("StreamId(%x)", id);
-    }
+	@Override
+	public String toString() {
+		return String.format("StreamId(%x)", id);
+	}
 
 }

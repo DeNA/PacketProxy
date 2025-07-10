@@ -15,16 +15,8 @@
  */
 package packetproxy.gui;
 
-import packetproxy.common.FontManager;
-import packetproxy.common.I18nString;
-import packetproxy.model.InterceptModel;
-import packetproxy.util.PacketProxyUtility;
+import static javax.swing.JOptionPane.YES_NO_OPTION;
 
-import javax.swing.*;
-import javax.swing.UIManager.LookAndFeelInfo;
-import javax.swing.text.DefaultEditorKit;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.Keymap;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -32,10 +24,18 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-
-import static javax.swing.JOptionPane.YES_NO_OPTION;
+import javax.swing.*;
+import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.Keymap;
+import packetproxy.common.FontManager;
+import packetproxy.common.I18nString;
+import packetproxy.model.InterceptModel;
+import packetproxy.util.PacketProxyUtility;
 
 public class GUIMain extends JFrame implements PropertyChangeListener {
+
 	private static final long serialVersionUID = 1L;
 	private static GUIMain instance;
 	private GUIMenu menu_bar;
@@ -56,6 +56,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 
 	public static GUIMain getInstance(String title) throws Exception {
 		if (instance == null) {
+
 			instance = new GUIMain(title);
 		}
 		return instance;
@@ -63,6 +64,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 
 	public static GUIMain getInstance() throws Exception {
 		if (instance == null) {
+
 			throw new Exception("GUIMain instance not found.");
 		}
 		return instance;
@@ -74,21 +76,22 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 
 	private String getPaneString(Panes num) {
 		switch (num) {
-			case HISTORY:
+
+			case HISTORY :
 				return "History";
-			case INTERCEPT:
+			case INTERCEPT :
 				return "Interceptor";
-			case RESENDER:
+			case RESENDER :
 				return "Resender";
-			case VULCHECKHELPER:
+			case VULCHECKHELPER :
 				return "VulCheck Helper";
-			case BULKSENDER:
+			case BULKSENDER :
 				return "Bulk Sender";
-			case EXTENSIONS:
+			case EXTENSIONS :
 				return "Extensions";
-			case OPTIONS:
+			case OPTIONS :
 				return "Options";
-			case LOG:
+			case LOG :
 				return "Log";
 		}
 		return null;
@@ -96,6 +99,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 
 	private GUIMain(String title) {
 		try {
+
 			setLookandFeel();
 			setTitle(title);
 			setBounds(10, 10, 1100, 850);
@@ -131,6 +135,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 
 			//// 終了時の処理
 			addWindowListener(new WindowAdapter() {
+
 				@Override
 				public void windowClosing(WindowEvent event) {
 					System.exit(0);
@@ -138,6 +143,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 			});
 			gui_history.updateAllAsync();
 		} catch (Exception e) {
+
 			PacketProxyUtility.getInstance().packetProxyLogErrWithStackTrace(e);
 			e.printStackTrace();
 		}
@@ -147,9 +153,12 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		// 環境変数RESTORE_HISTORYで指定されている場合promptせずに起動
 		String restoreHistoryEnv = System.getenv("RESTORE_HISTORY");
 		if (restoreHistoryEnv != null) {
+
 			if (restoreHistoryEnv.matches("(?i)(true|yes|y|restore)")) {
+
 				return GUIHistory.restoreLastInstance(this);
 			} else if (restoreHistoryEnv.matches("(?i)(false|no|n|drop)")) {
+
 				return GUIHistory.getInstance(this);
 			}
 		}
@@ -157,23 +166,27 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		// 環境変数RESTORE_HISTORYで指定されていなかった場合Historyをrestoreするか聞く
 		int restoreHistory = JOptionPane.showConfirmDialog(this,
 				I18nString.get("Do you want to load the previous packet data?"),
-				I18nString.get("Loading previous packet data"),
-				YES_NO_OPTION);
+				I18nString.get("Loading previous packet data"), YES_NO_OPTION);
 		if (restoreHistory == YES_NO_OPTION) {
+
 			return GUIHistory.restoreLastInstance(this);
 		} else {
+
 			return GUIHistory.getInstance(this);
 		}
 	}
 
 	private void setLookandFeel() throws Exception {
 		if (PacketProxyUtility.getInstance().isUnix()) {
+
 			System.setProperty("awt.useSystemAAFontSettings", "on");
 			System.setProperty("swing.aatext", "true");
 		}
 
 		for (LookAndFeelInfo clInfo : UIManager.getInstalledLookAndFeels()) {
+
 			if ("Nimbus".equals(clInfo.getName())) {
+
 				UIManager.setLookAndFeel(clInfo.getClassName());
 				break;
 			}
@@ -195,6 +208,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 	 */
 	private void setIconForWindows() throws Exception {
 		if (!PacketProxyUtility.getInstance().isWindows()) {
+
 			return;
 		}
 		ImageIcon icon = new ImageIcon(getClass().getResource("/gui/icon.png"));
@@ -206,6 +220,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 	 */
 	private void addDockIconForMac() throws Exception {
 		if (!PacketProxyUtility.getInstance().isMac()) {
+
 			return;
 		}
 		ImageIcon icon = new ImageIcon(getClass().getResource("/gui/icon.png"));
@@ -217,6 +232,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 	 */
 	private void addShortcutForMac() {
 		if (!PacketProxyUtility.getInstance().isMac()) {
+
 			return;
 		}
 		JPanel p = (JPanel) getContentPane();
@@ -242,8 +258,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 						DefaultEditorKit.cutAction),
 				new JTextComponent.KeyBinding(
 						KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
-						DefaultEditorKit.selectAllAction),
-		};
+						DefaultEditorKit.selectAllAction),};
 
 		JTextPane component_tp = new JTextPane();
 		Keymap keymap_tp = component_tp.getKeymap();
@@ -260,6 +275,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 
 	private void addShortcutForWindows() {
 		if (PacketProxyUtility.getInstance().isMac()) {
+
 			return;
 		}
 		JPanel p = (JPanel) getContentPane();
@@ -278,6 +294,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		KeyStroke ks = KeyStroke.getKeyStroke(k, m);
 		im.put(ks, ks.toString());
 		am.put(ks.toString(), new AbstractAction() {
+
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				tabbedpane.setSelectedIndex(index);
@@ -290,6 +307,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 	 */
 	private void enableFullScreenForMac(Window window) throws Exception {
 		if (!PacketProxyUtility.getInstance().isMac()) {
+
 			return;
 		}
 		getRootPane().putClientProperty("apple.awt.fullscreenable", true);
@@ -316,8 +334,10 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (interceptModel.getData() == null) {
+
 			setInterceptDownLight();
 		} else {
+
 			setInterceptHighLight();
 		}
 	}

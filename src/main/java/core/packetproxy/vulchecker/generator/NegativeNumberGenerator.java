@@ -18,18 +18,19 @@ package packetproxy.vulchecker.generator;
 import packetproxy.common.I18nString;
 
 public class NegativeNumberGenerator extends Generator {
-    @Override
-    public String getName() {
-        return I18nString.get("Negative Number: -1");
-    }
 
-    @Override
-    public boolean generateOnStart() {
-        return true;
-    }
+	@Override
+	public String getName() {
+		return I18nString.get("Negative Number: -1");
+	}
 
-    @Override
-    public String generate(String inputData) {
-        return "-1";
-    }
+	@Override
+	public boolean generateOnStart() {
+		return true;
+	}
+
+	@Override
+	public String generate(String inputData) {
+		return "-1";
+	}
 }

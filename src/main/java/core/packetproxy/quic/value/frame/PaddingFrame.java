@@ -17,48 +17,49 @@
 package packetproxy.quic.value.frame;
 
 import com.google.common.collect.ImmutableList;
-import lombok.EqualsAndHashCode;
-import lombok.Value;
-
 import java.nio.ByteBuffer;
 import java.util.List;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
 public class PaddingFrame extends Frame {
 
-    static public final byte TYPE = 0x00;
+	public static final byte TYPE = 0x00;
 
-    static public List<Byte> supportedTypes() {
-        return ImmutableList.of(TYPE);
-    }
-    long length;
+	public static List<Byte> supportedTypes() {
+		return ImmutableList.of(TYPE);
+	}
+	long length;
 
-    static public PaddingFrame parse(byte[] bytes) {
-        return PaddingFrame.parse(ByteBuffer.wrap(bytes));
-    }
+	public static PaddingFrame parse(byte[] bytes) {
+		return PaddingFrame.parse(ByteBuffer.wrap(bytes));
+	}
 
-    static public PaddingFrame parse(ByteBuffer buffer) {
-        long length = 0;
-        while (buffer.remaining() > 0) {
-            byte type = buffer.get();
-            if (type != TYPE) {
-                buffer.position(buffer.position()-1);
-                break;
-            }
-            length++;
-        }
-        return new PaddingFrame(length);
-    }
+	public static PaddingFrame parse(ByteBuffer buffer) {
+		long length = 0;
+		while (buffer.remaining() > 0) {
 
-    @Override
-    public byte[] getBytes() {
-        return new byte[(int)this.length];
-    }
+			byte type = buffer.get();
+			if (type != TYPE) {
 
-    @Override
-    public boolean isAckEliciting() {
-        return false;
-    }
+				buffer.position(buffer.position() - 1);
+				break;
+			}
+			length++;
+		}
+		return new PaddingFrame(length);
+	}
+
+	@Override
+	public byte[] getBytes() {
+		return new byte[(int) this.length];
+	}
+
+	@Override
+	public boolean isAckEliciting() {
+		return false;
+	}
 
 }

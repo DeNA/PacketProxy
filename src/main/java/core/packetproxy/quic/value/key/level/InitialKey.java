@@ -19,26 +19,26 @@ package packetproxy.quic.value.key.level;
 import at.favre.lib.crypto.HKDF;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import packetproxy.quic.value.ConnectionId;
 import packetproxy.quic.utils.Constants;
+import packetproxy.quic.value.ConnectionId;
 import packetproxy.quic.value.key.Key;
 
 @EqualsAndHashCode(callSuper = true)
 @Value
 public class InitialKey extends Key {
 
-    static public InitialKey of(Constants.Role role, ConnectionId destConnId) {
-        HKDF hkdf = HKDF.fromHmacSha256();
-        byte[] initialSecret = hkdf.extract(STATIC_SALT_V1, destConnId.getBytes());
-        byte[] secret = (role == Constants.Role.CLIENT) ?
-                hkdfExpandLabel(initialSecret, "client in", "", (short) 32) :
-                hkdfExpandLabel(initialSecret, "server in", "", (short) 32);
-        Key key = Key.of(secret);
-        return new InitialKey(key.getSecret(), key.getKey(), key.getIv(), key.getHp());
-    }
+	public static InitialKey of(Constants.Role role, ConnectionId destConnId) {
+		HKDF hkdf = HKDF.fromHmacSha256();
+		byte[] initialSecret = hkdf.extract(STATIC_SALT_V1, destConnId.getBytes());
+		byte[] secret = (role == Constants.Role.CLIENT)
+				? hkdfExpandLabel(initialSecret, "client in", "", (short) 32)
+				: hkdfExpandLabel(initialSecret, "server in", "", (short) 32);
+		Key key = Key.of(secret);
+		return new InitialKey(key.getSecret(), key.getKey(), key.getIv(), key.getHp());
+	}
 
-    public InitialKey(byte[] secret, byte[] key, byte[] iv, byte[] hp) {
-        super(secret, key, iv, hp);
-    }
+	public InitialKey(byte[] secret, byte[] key, byte[] iv, byte[] hp) {
+		super(secret, key, iv, hp);
+	}
 
 }

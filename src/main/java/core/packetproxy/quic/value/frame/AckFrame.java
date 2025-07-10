@@ -17,17 +17,15 @@
 package packetproxy.quic.value.frame;
 
 import com.google.common.collect.ImmutableList;
-import lombok.*;
-import lombok.experimental.NonFinal;
-import packetproxy.quic.value.frame.helper.AckRanges;
-import packetproxy.quic.value.PacketNumber;
-import packetproxy.quic.utils.PacketNumbers;
-import packetproxy.quic.value.SimpleBytes;
-import packetproxy.quic.value.VariableLengthInteger;
-
 import java.nio.ByteBuffer;
 import java.util.List;
-
+import lombok.*;
+import lombok.experimental.NonFinal;
+import packetproxy.quic.utils.PacketNumbers;
+import packetproxy.quic.value.PacketNumber;
+import packetproxy.quic.value.SimpleBytes;
+import packetproxy.quic.value.VariableLengthInteger;
+import packetproxy.quic.value.frame.helper.AckRanges;
 
 /* RFC9000 19.3
 ACK Frame {
@@ -57,62 +55,63 @@ ECN Counts {
 @EqualsAndHashCode(callSuper = true)
 public class AckFrame extends Frame {
 
-    static public final byte TYPE = 0x02;
+	public static final byte TYPE = 0x02;
 
-    static public List<Byte> supportedTypes() {
-        return ImmutableList.of(TYPE);
-    }
+	public static List<Byte> supportedTypes() {
+		return ImmutableList.of(TYPE);
+	}
 
-    long largestAcknowledged;
-    long ackDelay;
-    long ackRangeCount;
-    long firstAckRange;
-    AckRanges ackRanges;
+	long largestAcknowledged;
+	long ackDelay;
+	long ackRangeCount;
+	long firstAckRange;
+	AckRanges ackRanges;
 
-    static public AckFrame parse(byte[] bytes) {
-        return AckFrame.parse(ByteBuffer.wrap(bytes));
-    }
+	public static AckFrame parse(byte[] bytes) {
+		return AckFrame.parse(ByteBuffer.wrap(bytes));
+	}
 
-    static public AckFrame parse(ByteBuffer buffer) {
-        byte type = buffer.get();
-        long largestAcknowledged = VariableLengthInteger.parse(buffer).getValue();
-        long ackDelay = VariableLengthInteger.parse(buffer).getValue();
-        long ackRangeCount = VariableLengthInteger.parse(buffer).getValue();
-        long firstAckRange = VariableLengthInteger.parse(buffer).getValue();
-        AckRanges ackRanges = new AckRanges(buffer, ackRangeCount);
-        return new AckFrame(largestAcknowledged, ackDelay, ackRangeCount, firstAckRange, ackRanges);
-    }
+	public static AckFrame parse(ByteBuffer buffer) {
+		byte type = buffer.get();
+		long largestAcknowledged = VariableLengthInteger.parse(buffer).getValue();
+		long ackDelay = VariableLengthInteger.parse(buffer).getValue();
+		long ackRangeCount = VariableLengthInteger.parse(buffer).getValue();
+		long firstAckRange = VariableLengthInteger.parse(buffer).getValue();
+		AckRanges ackRanges = new AckRanges(buffer, ackRangeCount);
+		return new AckFrame(largestAcknowledged, ackDelay, ackRangeCount, firstAckRange, ackRanges);
+	}
 
-    @SneakyThrows
-    public PacketNumber getLargestAckedPn() {
-        return PacketNumber.of(this.largestAcknowledged);
-    }
+	@SneakyThrows
+	public PacketNumber getLargestAckedPn() {
+		return PacketNumber.of(this.largestAcknowledged);
+	}
 
-    public PacketNumbers getAckedPacketNumbers() {
-        PacketNumbers pns = new PacketNumbers();
-        for (long pn = this.largestAcknowledged; pn >= this.largestAcknowledged - this.firstAckRange; pn--) {
-            pns.add(PacketNumber.of(pn));
-        }
-        pns.addAll(ackRanges.getAckPacketNumbers(this.largestAcknowledged - this.firstAckRange - 1));
-        return pns;
-    }
+	public PacketNumbers getAckedPacketNumbers() {
+		PacketNumbers pns = new PacketNumbers();
+		for (long pn = this.largestAcknowledged; pn >= this.largestAcknowledged - this.firstAckRange; pn--) {
 
-    @Override
-    public byte[] getBytes() {
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
-        buffer.put(TYPE);
-        buffer.put(VariableLengthInteger.of(this.largestAcknowledged).getBytes());
-        buffer.put(VariableLengthInteger.of(this.ackDelay).getBytes());
-        buffer.put(VariableLengthInteger.of(this.ackRanges.size()).getBytes());
-        buffer.put(VariableLengthInteger.of(this.firstAckRange).getBytes());
-        buffer.put(ackRanges.serialize());
-        buffer.flip();
-        return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
-    }
+			pns.add(PacketNumber.of(pn));
+		}
+		pns.addAll(ackRanges.getAckPacketNumbers(this.largestAcknowledged - this.firstAckRange - 1));
+		return pns;
+	}
 
-    @Override
-    public boolean isAckEliciting() {
-        return false;
-    }
+	@Override
+	public byte[] getBytes() {
+		ByteBuffer buffer = ByteBuffer.allocate(1500);
+		buffer.put(TYPE);
+		buffer.put(VariableLengthInteger.of(this.largestAcknowledged).getBytes());
+		buffer.put(VariableLengthInteger.of(this.ackDelay).getBytes());
+		buffer.put(VariableLengthInteger.of(this.ackRanges.size()).getBytes());
+		buffer.put(VariableLengthInteger.of(this.firstAckRange).getBytes());
+		buffer.put(ackRanges.serialize());
+		buffer.flip();
+		return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
+	}
+
+	@Override
+	public boolean isAckEliciting() {
+		return false;
+	}
 
 }

@@ -15,12 +15,9 @@
  */
 package packetproxy.encode;
 
-import org.w3c.dom.Document;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -28,12 +25,14 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
+import org.w3c.dom.Document;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
-public class EncodeXMPP extends Encoder
-{
+public class EncodeXMPP extends Encoder {
+
 	public EncodeXMPP(String ALPN) {
 		super(ALPN);
 	}
@@ -73,16 +72,25 @@ public class EncodeXMPP extends Encoder
 	}
 
 	private class IgnoreErrorMsgHandler implements ErrorHandler {
+
 		@Override
-		public void warning(SAXParseException ex) throws SAXException { }
+		public void warning(SAXParseException ex) throws SAXException {
+		}
+
 		@Override
-		public void error(SAXParseException ex) throws SAXException { throw ex; }
+		public void error(SAXParseException ex) throws SAXException {
+			throw ex;
+		}
+
 		@Override
-		public void fatalError(SAXParseException ex) throws SAXException { throw ex; }
+		public void fatalError(SAXParseException ex) throws SAXException {
+			throw ex;
+		}
 	}
 
 	private byte[] xmlLint(byte[] data) {
 		try {
+
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			dbf.setValidating(false);
 			DocumentBuilder db = dbf.newDocumentBuilder();
@@ -98,6 +106,7 @@ public class EncodeXMPP extends Encoder
 			transformer.transform(source, result);
 			return result.getWriter().toString().getBytes(StandardCharsets.UTF_8);
 		} catch (Exception e) {
+
 			return data;
 		}
 	}

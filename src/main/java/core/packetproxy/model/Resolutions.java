@@ -15,6 +15,8 @@
  */
 package packetproxy.model;
 
+import static packetproxy.model.PropertyChangeEventType.RESOLUTIONS_UPDATED;
+
 import com.j256.ormlite.dao.Dao;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -22,10 +24,8 @@ import java.beans.PropertyChangeSupport;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import packetproxy.model.DaoQueryCache;
 import packetproxy.model.Database.DatabaseMessage;
 import packetproxy.util.PacketProxyUtility;
-import static packetproxy.model.PropertyChangeEventType.RESOLUTIONS_UPDATED;
 
 public class Resolutions implements PropertyChangeListener {
 
@@ -34,6 +34,7 @@ public class Resolutions implements PropertyChangeListener {
 
 	public static Resolutions getInstance() throws Exception {
 		if (instance == null) {
+
 			instance = new Resolutions();
 		}
 		return instance;
@@ -48,6 +49,7 @@ public class Resolutions implements PropertyChangeListener {
 		dao = database.createTable(Resolution.class, this);
 		cache = new DaoQueryCache();
 		if (dao.countOf() == 0) {
+
 			setResolutionsBySystem();
 		}
 	}
@@ -63,20 +65,27 @@ public class Resolutions implements PropertyChangeListener {
 	public void setResolutionsBySystem() throws Exception {
 		List<String> fileLines;
 		if (PacketProxyUtility.getInstance().isWindows()) {
+
 			fileLines = Files.readAllLines(Paths.get("C:\\Windows\\System32\\drivers\\etc\\hosts"));
 		} else {
+
 			fileLines = Files.readAllLines(Paths.get("/etc/hosts"));
 		}
 		fileLines.stream().forEach(line -> {
+
 			if (!(line.startsWith("#"))) {
+
 				try {
+
 					String[] parts = line.split("[\\s]+");
 					if (parts.length >= 2) {
+
 						String ip = parts[0];
 						String hostname = parts[1];
 						create(new Resolution(ip, hostname));
 					}
 				} catch (Exception e1) {
+
 					e1.printStackTrace();
 				}
 			}
@@ -98,7 +107,9 @@ public class Resolutions implements PropertyChangeListener {
 	public Resolution queryByString(String str) throws Exception {
 		List<Resolution> all = this.queryAll();
 		for (Resolution resolution : all) {
+
 			if (resolution.toString().equals(str)) {
+
 				return resolution;
 			}
 		}
@@ -108,6 +119,7 @@ public class Resolutions implements PropertyChangeListener {
 	public Resolution queryByHostName(String hostname) throws Exception {
 		List<Resolution> ret = cache.query("queryByHostName", hostname);
 		if (ret != null) {
+
 			return ret.get(0);
 		}
 
@@ -120,6 +132,7 @@ public class Resolutions implements PropertyChangeListener {
 	public Resolution query(int id) throws Exception {
 		List<Resolution> ret = cache.query("query", id);
 		if (ret != null) {
+
 			return ret.get(0);
 		}
 
@@ -132,6 +145,7 @@ public class Resolutions implements PropertyChangeListener {
 	public List<Resolution> queryAll() throws Exception {
 		List<Resolution> ret = cache.query("queryAll", 0);
 		if (ret != null) {
+
 			return ret;
 		}
 
@@ -144,6 +158,7 @@ public class Resolutions implements PropertyChangeListener {
 	public List<Resolution> queryEnabled() throws Exception {
 		List<Resolution> ret = cache.query("queryEnabled", 0);
 		if (ret != null) {
+
 			return ret;
 		}
 
@@ -166,35 +181,39 @@ public class Resolutions implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (!(evt.getSource() instanceof Database)) {
+
 			return;
 		}
 
 		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
+
 			switch (message) {
-				case PAUSE:
+
+				case PAUSE :
 					// TODO ロックを取る
 					break;
-				case RESUME:
+				case RESUME :
 					// TODO ロックを解除
 					break;
-				case DISCONNECT_NOW:
+				case DISCONNECT_NOW :
 					break;
-				case RECONNECT:
+				case RECONNECT :
 					database = Database.getInstance();
 					dao = database.createTable(Resolution.class, this);
 					cache.clear();
 					firePropertyChange();
 					break;
-				case RECREATE:
+				case RECREATE :
 					database = Database.getInstance();
 					dao = database.createTable(Resolution.class, this);
 					cache.clear();
 					break;
-				default:
+				default :
 					break;
 			}
 		} catch (Exception e) {
+
 			e.printStackTrace();
 		}
 	}

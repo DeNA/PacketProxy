@@ -26,8 +26,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
-public class CloseButtonTabbedPane extends JTabbedPane
-{
+public class CloseButtonTabbedPane extends JTabbedPane {
+
 	private static final long serialVersionUID = 1L;
 	private final ImageIcon icon;
 	private final ImageIcon icon_mouseovered;
@@ -45,18 +45,21 @@ public class CloseButtonTabbedPane extends JTabbedPane
 		main_panel.setOpaque(false);
 		JLabel label = new JLabel(title);
 		JButton button = new JButton(icon);
-		button.setPreferredSize(new Dimension(icon.getIconWidth()+1, icon.getIconHeight()+1));
-		button.setMinimumSize(new Dimension(icon.getIconWidth()+1, icon.getIconHeight()+1));
-		button.setMaximumSize(new Dimension(icon.getIconWidth()+1, icon.getIconHeight()+1));
+		button.setPreferredSize(new Dimension(icon.getIconWidth() + 1, icon.getIconHeight() + 1));
+		button.setMinimumSize(new Dimension(icon.getIconWidth() + 1, icon.getIconHeight() + 1));
+		button.setMaximumSize(new Dimension(icon.getIconWidth() + 1, icon.getIconHeight() + 1));
 		button.addMouseListener(new MouseAdapter() {
+
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				removeTabAt(indexOfComponent(content));
 			}
+
 			@Override
 			public void mouseEntered(MouseEvent e) {
 				button.setIcon(icon_mouseovered);
 			}
+
 			@Override
 			public void mouseExited(MouseEvent e) {
 				button.setIcon(icon);

@@ -21,10 +21,10 @@ import lombok.Value;
 @Value(staticConstructor = "of")
 public class ConnectionIdPair {
 
-    static public ConnectionIdPair generateRandom() {
-        return ConnectionIdPair.of(ConnectionId.generateRandom(), ConnectionId.generateRandom());
-    }
+	public static ConnectionIdPair generateRandom() {
+		return ConnectionIdPair.of(ConnectionId.generateRandom(), ConnectionId.generateRandom());
+	}
 
-    ConnectionId srcConnId;
-    ConnectionId destConnId;
+	ConnectionId srcConnId;
+	ConnectionId destConnId;
 }
