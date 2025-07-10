@@ -112,7 +112,7 @@ spotless {
     trimTrailingWhitespace()
     endWithNewline()
 
-    eclipse()
+    eclipse().configFile('eclipse-format-settings.xml')
 
     formatAnnotations()
   }
