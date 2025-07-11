@@ -15,6 +15,8 @@
  */
 package packetproxy;
 
+import static packetproxy.util.Logging.log;
+
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -28,7 +30,6 @@ import packetproxy.encode.Encoder;
 import packetproxy.model.ListenPort;
 import packetproxy.model.SSLPassThroughs;
 import packetproxy.model.Server;
-import packetproxy.util.PacketProxyUtility;
 
 public class ProxySSLForward extends Proxy {
 
@@ -49,7 +50,7 @@ public class ProxySSLForward extends Proxy {
 
 				Socket client = listen_socket.accept();
 				clients.add(client);
-				PacketProxyUtility.getInstance().packetProxyLog("[SSLForward] accept");
+				log("[SSLForward] accept");
 				checkSSLForward(client);
 			} catch (Exception e) {
 

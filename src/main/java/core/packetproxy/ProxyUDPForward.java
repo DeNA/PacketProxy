@@ -15,12 +15,13 @@
  */
 package packetproxy;
 
+import static packetproxy.util.Logging.log;
+
 import java.net.InetSocketAddress;
 import packetproxy.common.Endpoint;
 import packetproxy.common.UDPServerSocket;
 import packetproxy.common.UDPSocketEndpoint;
 import packetproxy.model.ListenPort;
-import packetproxy.util.PacketProxyUtility;
 
 public class ProxyUDPForward extends Proxy {
 
@@ -39,7 +40,7 @@ public class ProxyUDPForward extends Proxy {
 			while (true) {
 
 				Endpoint client_endpoint = listen_socket.accept();
-				PacketProxyUtility.getInstance().packetProxyLog("accept");
+				log("accept");
 
 				InetSocketAddress serverAddr = listen_info.getServer().getAddress();
 				UDPSocketEndpoint server_endpoint = new UDPSocketEndpoint(serverAddr);

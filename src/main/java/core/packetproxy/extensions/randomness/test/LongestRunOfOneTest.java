@@ -3,8 +3,9 @@ package packetproxy.extensions.randomness.test;
 
 // https://www.nist.gov/disclaimer
 
+import static packetproxy.util.Logging.log;
+
 import org.apache.commons.math3.distribution.GammaDistribution;
-import packetproxy.util.PacketProxyUtility;
 
 public class LongestRunOfOneTest extends RandomnessTest {
 
@@ -12,8 +13,7 @@ public class LongestRunOfOneTest extends RandomnessTest {
 		int n = e.length;
 		if (n < 128) {
 
-			PacketProxyUtility.getInstance().packetProxyLog(
-					"[Warn] bit length is not suitable for LongestRunOfOne test. Please collect more tokens.");
+			log("[Warn] bit length is not suitable for LongestRunOfOne test. Please collect more tokens.");
 			return new double[e.length > 0 ? e[0].length : 0];
 		}
 		int K = 0, M = 0;

@@ -15,13 +15,13 @@
  */
 package packetproxy.gui;
 
+import static packetproxy.util.Logging.err;
+
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-import packetproxy.util.PacketProxyUtility;
 
-@SuppressWarnings("serial")
 public class GUIHistoryAutoScroll extends JLabel {
 
 	private static ImageIcon disabledIcon = new ImageIcon(
@@ -60,7 +60,7 @@ public class GUIHistoryAutoScroll extends JLabel {
 
 			setIcon(enabledIcon);
 			isEnabled = true;
-			PacketProxyUtility.getInstance().packetProxyLogErr("Auto scrolling was turned ON!");
+			err("Auto scrolling was turned ON!");
 		}
 	}
 
@@ -69,7 +69,7 @@ public class GUIHistoryAutoScroll extends JLabel {
 
 			setIcon(disabledIcon);
 			isEnabled = false;
-			PacketProxyUtility.getInstance().packetProxyLogErr("Auto scrolling was turned OFF");
+			err("Auto scrolling was turned OFF");
 		}
 	}
 

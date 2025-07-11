@@ -15,6 +15,9 @@
  */
 package packetproxy;
 
+import static packetproxy.util.Logging.errWithStackTrace;
+import static packetproxy.util.Logging.log;
+
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -29,7 +32,6 @@ import java.util.concurrent.TimeoutException;
 import javax.net.ssl.SSLException;
 import javax.swing.event.EventListenerList;
 import org.apache.commons.lang3.ArrayUtils;
-import packetproxy.util.PacketProxyUtility;
 
 class Simplex extends Thread {
 
@@ -191,7 +193,6 @@ class Simplex extends Thread {
 
 	@Override
 	public void run() {
-		PacketProxyUtility util = PacketProxyUtility.getInstance();
 		if (in == null) {
 
 			return;
@@ -266,17 +267,17 @@ class Simplex extends Thread {
 		} catch (TimeoutException e) {
 
 			e.printStackTrace();
-			util.packetProxyLogErrWithStackTrace(e);
-			util.packetProxyLog("-----");
-			util.packetProxyLog(new String(bout.toByteArray()));
-			util.packetProxyLog("-----");
+			errWithStackTrace(e);
+			log("-----");
+			log(new String(bout.toByteArray()));
+			log("-----");
 			try {
 
 				in.close();
 			} catch (Exception e1) {
 
 				e1.printStackTrace();
-				util.packetProxyLogErrWithStackTrace(e);
+				errWithStackTrace(e);
 			}
 		} catch (SSLException e) {
 
@@ -287,7 +288,7 @@ class Simplex extends Thread {
 		} catch (Exception e) {
 
 			e.printStackTrace();
-			util.packetProxyLogErrWithStackTrace(e);
+			errWithStackTrace(e);
 		} finally {
 
 			executor.shutdownNow();
@@ -302,7 +303,7 @@ class Simplex extends Thread {
 				} catch (Exception e1) {
 
 					e1.printStackTrace();
-					util.packetProxyLogErrWithStackTrace(e1);
+					errWithStackTrace(e1);
 				}
 				try {
 
@@ -311,7 +312,7 @@ class Simplex extends Thread {
 				} catch (Exception e1) {
 
 					e1.printStackTrace();
-					util.packetProxyLogErrWithStackTrace(e1);
+					errWithStackTrace(e1);
 				}
 			}
 		}

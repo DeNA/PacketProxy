@@ -17,6 +17,7 @@ package packetproxy;
 
 import static packetproxy.http.Https.createSSLContext;
 import static packetproxy.http.Https.createSSLSocketFactory;
+import static packetproxy.util.Logging.log;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,7 +28,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.common.Endpoint;
 import packetproxy.common.SocketEndpoint;
 import packetproxy.model.ListenPort;
-import packetproxy.util.PacketProxyUtility;
 
 public class ProxyXmppSSLForward extends Proxy {
 
@@ -47,7 +47,7 @@ public class ProxyXmppSSLForward extends Proxy {
 			try {
 
 				Socket client = listen_socket.accept();
-				PacketProxyUtility.getInstance().packetProxyLog("accept");
+				log("accept");
 
 				Socket server = new Socket();
 				server.connect(listen_info.getServer().getAddress());

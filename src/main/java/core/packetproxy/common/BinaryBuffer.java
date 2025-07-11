@@ -15,8 +15,9 @@
  */
 package packetproxy.common;
 
+import static packetproxy.util.Logging.log;
+
 import org.apache.commons.lang3.ArrayUtils;
-import packetproxy.util.PacketProxyUtility;
 
 public class BinaryBuffer {
 	/*
@@ -109,8 +110,7 @@ public class BinaryBuffer {
 		// }
 		if (data_size < index + length) {
 
-			PacketProxyUtility.getInstance().packetProxyLog("[Error] Something wrong (%d < %d + %d)", data_size, index,
-					length);
+			log("[Error] Something wrong (%d < %d + %d)", data_size, index, length);
 			return;
 		}
 		data_size_in_utf8 -= new String(buffer, index, length).length();

@@ -17,6 +17,7 @@ package packetproxy.model;
 
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import static packetproxy.model.PropertyChangeEventType.PACKETS;
+import static packetproxy.util.Logging.log;
 
 import com.j256.ormlite.dao.Dao;
 import java.beans.PropertyChangeEvent;
@@ -28,7 +29,6 @@ import java.util.concurrent.Executors;
 import javax.swing.JOptionPane;
 import packetproxy.common.Logger;
 import packetproxy.model.Database.DatabaseMessage;
-import packetproxy.util.PacketProxyUtility;
 
 public class Packets implements PropertyChangeListener {
 
@@ -60,18 +60,16 @@ public class Packets implements PropertyChangeListener {
 		changes.removePropertyChangeListener(listener);
 	}
 
-	private PacketProxyUtility util;
 	private Database database;
 	private Dao<Packet, Integer> dao;
 	private ExecutorService executor;
 
 	private Packets(boolean restore) throws Exception {
-		util = PacketProxyUtility.getInstance();
 		database = Database.getInstance();
 		database.addPropertyChangeListener(this);
 		if (!restore) {
 
-			util.packetProxyLog("drop history...");
+			log("drop history...");
 			database.dropPacketTableFaster();
 		}
 		dao = database.createTable(Packet.class);
@@ -81,8 +79,8 @@ public class Packets implements PropertyChangeListener {
 
 				RecreateTable();
 			}
-			util.packetProxyLog("load history...");
-			util.packetProxyLog("load" + dao.countOf() + " records.");
+			log("load history...");
+			log("load %d records.", dao.countOf());
 		}
 		executor = Executors.newSingleThreadExecutor();
 	}

@@ -20,6 +20,7 @@ import static packetproxy.quic.service.handshake.HandshakeState.State.Confirmed;
 import static packetproxy.quic.utils.Constants.*;
 import static packetproxy.quic.utils.Constants.PnSpaceType.PnSpaceHandshake;
 import static packetproxy.quic.utils.Constants.PnSpaceType.PnSpaceInitial;
+import static packetproxy.util.Logging.err;
 import static packetproxy.util.Throwing.rethrow;
 
 import java.io.OutputStream;
@@ -44,7 +45,6 @@ import packetproxy.quic.value.SentPacket;
 import packetproxy.quic.value.frame.*;
 import packetproxy.quic.value.packet.PnSpacePacket;
 import packetproxy.quic.value.packet.QuicPacket;
-import packetproxy.util.PacketProxyUtility;
 
 @Getter
 public abstract class PnSpace {
@@ -186,8 +186,7 @@ public abstract class PnSpace {
 			} else if (frame instanceof ConnectionCloseFrame) {
 
 				ConnectionCloseFrame connCloseFrame = (ConnectionCloseFrame) frame;
-				PacketProxyUtility.getInstance().packetProxyLogErr("HTTP3 connection closed (%s)",
-						connCloseFrame.getReasonPhraseString());
+				err("HTTP3 connection closed (%s)", connCloseFrame.getReasonPhraseString());
 				this.conn.close();
 			} else if (frame instanceof NewConnectionIdFrame) {
 

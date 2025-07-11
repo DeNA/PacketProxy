@@ -16,6 +16,8 @@
 
 package packetproxy;
 
+import static packetproxy.util.Logging.log;
+
 import packetproxy.model.ListenPort;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
@@ -23,7 +25,6 @@ import packetproxy.quic.service.connection.ClientConnection;
 import packetproxy.quic.service.connection.ClientConnections;
 import packetproxy.quic.service.connection.ServerConnection;
 import packetproxy.quic.value.ConnectionIdPair;
-import packetproxy.util.PacketProxyUtility;
 
 public class ProxyQuicTransparent extends Proxy {
 
@@ -42,10 +43,10 @@ public class ProxyQuicTransparent extends Proxy {
 			while (true) {
 
 				ClientConnection clientConnection = this.clientConnections.accept();
-				PacketProxyUtility.getInstance().packetProxyLog("accept");
+				log("accept");
 
 				String sniServerName = clientConnection.getSNI();
-				PacketProxyUtility.getInstance().packetProxyLog("[QUIC-forward! using SNI] %s", sniServerName);
+				log("[QUIC-forward! using SNI] %s", sniServerName);
 
 				ServerConnection serverConnection = new ServerConnection(ConnectionIdPair.generateRandom(),
 						sniServerName, this.listen_info.getPort());

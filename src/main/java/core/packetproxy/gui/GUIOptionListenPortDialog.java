@@ -15,6 +15,8 @@
  */
 package packetproxy.gui;
 
+import static packetproxy.util.Logging.log;
+
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Rectangle;
@@ -39,7 +41,6 @@ import packetproxy.model.CAFactory;
 import packetproxy.model.ListenPort;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
-import packetproxy.util.PacketProxyUtility;
 
 public class GUIOptionListenPortDialog extends JDialog {
 
@@ -288,11 +289,11 @@ public class GUIOptionListenPortDialog extends JDialog {
 						type = ListenPort.TYPE.UDP_FORWARDER;
 					} else if (type_combo.getSelectedItem().toString().equals("SSL_TRANSPARENT_PROXY")) {
 
-						PacketProxyUtility.getInstance().packetProxyLog("SSL_TRANSPARENT_PROXY created");
+						log("SSL_TRANSPARENT_PROXY created");
 						type = ListenPort.TYPE.SSL_TRANSPARENT_PROXY;
 					} else if (type_combo.getSelectedItem().toString().equals("HTTP_TRANSPARENT_PROXY")) {
 
-						PacketProxyUtility.getInstance().packetProxyLog("HTTP_TRANSPARENT_PROXY created");
+						log("HTTP_TRANSPARENT_PROXY created");
 						type = ListenPort.TYPE.HTTP_TRANSPARENT_PROXY;
 					} else if (type_combo.getSelectedItem().toString().equals("XMPP_SSL_FORWARDER")) {
 

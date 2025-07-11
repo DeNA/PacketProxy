@@ -15,6 +15,9 @@
  */
 package packetproxy;
 
+import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.log;
+
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
 import java.io.ByteArrayInputStream;
@@ -30,7 +33,6 @@ import packetproxy.http.Http;
 import packetproxy.model.ListenPort;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
-import packetproxy.util.PacketProxyUtility;
 
 public class ProxyHttpTransparent extends Proxy {
 
@@ -53,7 +55,7 @@ public class ProxyHttpTransparent extends Proxy {
 			try {
 
 				Socket client = listen_socket.accept();
-				PacketProxyUtility.getInstance().packetProxyLog("[ProxyHttpTransparent]: accept");
+				log("[ProxyHttpTransparent]: accept");
 				createHttpTransparentProxy(client);
 			} catch (Exception e) {
 
@@ -123,14 +125,14 @@ public class ProxyHttpTransparent extends Proxy {
 		}
 		if (hostPort == null) {
 
-			PacketProxyUtility.getInstance().packetProxyLogErr(new String(input_data));
-			PacketProxyUtility.getInstance().packetProxyLogErr("bout length == " + bout.size());
+			err(new String(input_data));
+			err("bout length == %d", bout.size());
 			if (bout.size() == 0) {
 
-				PacketProxyUtility.getInstance().packetProxyLogErr("empty request!!");
+				err("empty request!!");
 				return;
 			}
-			PacketProxyUtility.getInstance().packetProxyLogErr("HTTP Host field is not found.");
+			err("HTTP Host field is not found.");
 			return;
 		}
 
@@ -154,8 +156,7 @@ public class ProxyHttpTransparent extends Proxy {
 		} catch (ConnectException e) {
 
 			InetSocketAddress addr = hostPort.getInetSocketAddress();
-			PacketProxyUtility.getInstance()
-					.packetProxyLog("Connection Refused: " + addr.getHostName() + ":" + addr.getPort());
+			log("Connection Refused: %s:%d", addr.getHostName(), addr.getPort());
 			e.printStackTrace();
 		}
 	}

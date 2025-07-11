@@ -15,6 +15,8 @@
  */
 package packetproxy.gui;
 
+import static packetproxy.util.Logging.log;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -40,7 +42,6 @@ import packetproxy.model.DiffJson;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 import packetproxy.util.CharSetUtility;
-import packetproxy.util.PacketProxyUtility;
 
 public class GUIData {
 
@@ -324,7 +325,7 @@ public class GUIData {
 					}
 					origIndex = GUIHistory.getInstance().getSelectedIndex();
 					GUIHistory.getInstance().addCustomColoringToCursorPos(new Color(0xb0, 0xb0, 0xb0)); // Gray
-					PacketProxyUtility.getInstance().packetProxyLog("Diff: original text was saved!");
+					log("Diff: original text was saved!");
 				} catch (Exception e1) {
 
 					e1.printStackTrace();

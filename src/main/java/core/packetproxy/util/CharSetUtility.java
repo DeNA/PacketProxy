@@ -15,6 +15,8 @@
  */
 package packetproxy.util;
 
+import static packetproxy.util.Logging.log;
+
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -227,7 +229,7 @@ public class CharSetUtility {
 					return;
 				}
 			}
-			PacketProxyUtility.getInstance().packetProxyLog("%s is not supported charset", charSet);
+			log("%s is not supported charset", charSet);
 		}
 		if (getAvailableCharSetList().contains(charSet)) {
 
@@ -235,7 +237,7 @@ public class CharSetUtility {
 		} else {
 
 			// TODO: Throw Exception
-			PacketProxyUtility.getInstance().packetProxyLog("%s is not supported charset", charSet);
+			log("%s is not supported charset", charSet);
 		}
 	}
 

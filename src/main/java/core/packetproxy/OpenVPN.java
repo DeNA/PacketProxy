@@ -15,6 +15,9 @@
  */
 package packetproxy;
 
+import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.log;
+
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.ExecCreateCmdResponse;
@@ -46,7 +49,6 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import packetproxy.model.OpenVPNForwardPort;
 import packetproxy.model.OpenVPNForwardPorts;
-import packetproxy.util.PacketProxyUtility;
 
 public class OpenVPN {
 
@@ -98,10 +100,10 @@ public class OpenVPN {
 
 			if (pulling) {
 
-				PacketProxyUtility.getInstance().packetProxyLog("already pulling image...");
+				log("already pulling image...");
 				return false;
 			}
-			PacketProxyUtility.getInstance().packetProxyLog("docker image not found. start pulling...");
+			log("docker image not found. start pulling...");
 			pulling = true;
 			client.pullImageCmd(imageName).exec(new PullImageResultCallback());
 			return false;
@@ -142,7 +144,7 @@ public class OpenVPN {
 		if (inspect.getState().getRunning()) {
 
 			// running
-			PacketProxyUtility.getInstance().packetProxyLog("OpenVPN Server is already running");
+			log("OpenVPN Server is already running");
 			return;
 		}
 
@@ -152,10 +154,10 @@ public class OpenVPN {
 			client.startContainerCmd(containerName).exec();
 		} catch (NotFoundException e) {
 
-			PacketProxyUtility.getInstance().packetProxyLogErr(e.toString());
+			err(e.toString());
 		} catch (NotModifiedException e) {
 
-			PacketProxyUtility.getInstance().packetProxyLog(e.toString());
+			log(e.toString());
 		} catch (Exception e) {
 
 			e.printStackTrace();
@@ -169,7 +171,7 @@ public class OpenVPN {
 			remove.exec();
 		} catch (NotFoundException e) {
 
-			PacketProxyUtility.getInstance().packetProxyLog(e.toString());
+			log(e.toString());
 		}
 	}
 
@@ -228,7 +230,7 @@ public class OpenVPN {
 			 * start(now doing)
 			 * - after patching, the server should be restarted to reflect the config
 			 */
-			PacketProxyUtility.getInstance().packetProxyLog("OpenVPN Server is restarting...");
+			log("OpenVPN Server is restarting...");
 			// kill the process and restart openvpn
 			commands = new String[]{"/bin/sh", "-c", "kill $(pgrep openvpn)"};
 			execCommand(client, commands);

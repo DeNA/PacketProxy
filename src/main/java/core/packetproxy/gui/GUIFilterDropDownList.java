@@ -15,6 +15,8 @@
  */
 package packetproxy.gui;
 
+import static packetproxy.util.Logging.err;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -35,7 +37,6 @@ import javax.swing.table.TableCellRenderer;
 import packetproxy.common.I18nString;
 import packetproxy.model.Filter;
 import packetproxy.model.Filters;
-import packetproxy.util.PacketProxyUtility;
 
 public class GUIFilterDropDownList extends JDialog {
 
@@ -128,7 +129,7 @@ public class GUIFilterDropDownList extends JDialog {
 						consumer.accept(new Filter(name, filter));
 					} else {
 
-						PacketProxyUtility.getInstance().packetProxyLogErr(Integer.toString(idx));
+						err(Integer.toString(idx));
 					}
 				} catch (Exception e1) {
 

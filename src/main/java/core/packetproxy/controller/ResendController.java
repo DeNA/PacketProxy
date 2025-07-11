@@ -15,6 +15,8 @@
  */
 package packetproxy.controller;
 
+import static packetproxy.util.Logging.err;
+
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
@@ -31,7 +33,6 @@ import packetproxy.encode.Encoder;
 import packetproxy.http.Http;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.Packet;
-import packetproxy.util.PacketProxyUtility;
 
 public class ResendController {
 
@@ -94,7 +95,6 @@ public class ResendController {
 
 	public static class ResendWorker extends SwingWorker<Object, OneShotPacket> {
 
-		private PacketProxyUtility util;
 		int count;
 		OneShotPacket oneshot;
 		OneShotPacket[] oneshots;
@@ -140,7 +140,7 @@ public class ResendController {
 					}
 				} else {
 
-					util.packetProxyLogErr("Resend packet is wrong!");
+					err("Resend packet is wrong!");
 					return null;
 				}
 
@@ -167,8 +167,8 @@ public class ResendController {
 
 			} catch (SocketTimeoutException e) {
 
-				PacketProxyUtility.getInstance().packetProxyLogErr("Resend Connection is timeout!");
-				PacketProxyUtility.getInstance().packetProxyLogErr("All resend packets are dropped.");
+				err("Resend Connection is timeout!");
+				err("All resend packets are dropped.");
 				e.printStackTrace();
 				return null;
 			} catch (Exception e) {
@@ -208,8 +208,7 @@ public class ResendController {
 					Duplex original_duplex = DuplexManager.getInstance().getDuplex(oneshot.getConn());
 					if (original_duplex == null) {
 
-						PacketProxyUtility.getInstance().packetProxyLogErr(I18nString
-								.get("[Error] tried to resend packets, but the connection was already closed."));
+						err(I18nString.get("[Error] tried to resend packets, but the connection was already closed."));
 						return;
 					}
 					this.duplex = DuplexFactory.createDuplexFromOriginalDuplex(original_duplex, this.oneshot);

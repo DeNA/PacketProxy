@@ -15,6 +15,8 @@
  */
 package packetproxy.common;
 
+import static packetproxy.util.Logging.err;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +26,6 @@ import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ArrayUtils;
-import packetproxy.util.PacketProxyUtility;
 
 public class Utils {
 
@@ -137,7 +138,7 @@ public class Utils {
 		}
 		if (berr.size() > 0) {
 
-			PacketProxyUtility.getInstance().packetProxyLogErr(berr.toString());
+			err(berr.toString());
 		}
 		return bout.toByteArray();
 	}
@@ -165,7 +166,7 @@ public class Utils {
 		}
 		if (berr.size() > 0) {
 
-			PacketProxyUtility.getInstance().packetProxyLogErr(berr.toString());
+			err(berr.toString());
 		}
 		return bout.toByteArray();
 	}

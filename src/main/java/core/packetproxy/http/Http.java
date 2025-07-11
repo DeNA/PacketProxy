@@ -15,6 +15,8 @@
  */
 package packetproxy.http;
 
+import static packetproxy.util.Logging.log;
+
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
 import java.io.ByteArrayInputStream;
@@ -36,7 +38,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.PrivateDNSClient;
 import packetproxy.common.Parameter;
 import packetproxy.common.Utils;
-import packetproxy.util.PacketProxyUtility;
 
 public class Http {
 
@@ -472,8 +473,7 @@ public class Http {
 
 					// 多分httpsだけど、httpだと原因を探すのが大変になるので一応エラー出力しておく
 					flag_proxy_ssl = true;
-					PacketProxyUtility.getInstance()
-							.packetProxyLog(status_line + " can't distinguish HTTP or HTTPS, but use HTTPS");
+					log("%s can't distinguish HTTP or HTTPS, but use HTTPS", status_line);
 				}
 			} else {
 

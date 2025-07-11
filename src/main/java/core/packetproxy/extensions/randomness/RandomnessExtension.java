@@ -15,6 +15,8 @@
  */
 package packetproxy.extensions.randomness;
 
+import static packetproxy.util.Logging.log;
+
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
 import java.awt.BasicStroke;
@@ -65,7 +67,6 @@ import packetproxy.gui.GUIPacket;
 import packetproxy.model.Extension;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.Packet;
-import packetproxy.util.PacketProxyUtility;
 
 public class RandomnessExtension extends Extension {
 
@@ -195,7 +196,7 @@ public class RandomnessExtension extends Extension {
 										requestProgressBar.setValue(requestProgressBar.getValue() + oneshots.size());
 										if (recvPackets.size() == count) {
 
-											PacketProxyUtility.getInstance().packetProxyLog("all packet received");
+											log("all packet received");
 											for (Map.Entry<Integer, OneShotPacket> entry : recvPackets.entrySet()) {
 
 												OneShotPacket packet = entry.getValue();
@@ -212,7 +213,8 @@ public class RandomnessExtension extends Extension {
 													tokens.add(token);
 												}
 											}
-											JOptionPane.showMessageDialog(owner, "get " + tokens.size() + " tokens",
+											JOptionPane.showMessageDialog(owner,
+													String.format("get %d tokens", tokens.size()),
 													"Packet collection finished", JOptionPane.PLAIN_MESSAGE);
 										}
 									}

@@ -15,11 +15,12 @@
  */
 package packetproxy.ppcontextmenu;
 
+import static packetproxy.util.Logging.log;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import javax.swing.JMenuItem;
-import packetproxy.util.PacketProxyUtility;
 
 public abstract class PPContextMenu {
 
@@ -40,8 +41,7 @@ public abstract class PPContextMenu {
 					action();
 				} catch (Exception e) {
 
-					PacketProxyUtility.getInstance()
-							.packetProxyLog("Error: " + getLabelName() + " module something happened.");
+					log("Error: %s module something happened.", getLabelName());
 					e.printStackTrace();
 				}
 			}

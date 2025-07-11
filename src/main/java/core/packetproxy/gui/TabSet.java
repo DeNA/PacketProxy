@@ -16,6 +16,7 @@
 package packetproxy.gui;
 
 import static packetproxy.model.PropertyChangeEventType.SELECTED_INDEX;
+import static packetproxy.util.Logging.err;
 
 import java.awt.BorderLayout;
 import java.beans.PropertyChangeListener;
@@ -129,8 +130,7 @@ public class TabSet {
 			case 2 :
 				return json_panel.getData();
 			default :
-				PacketProxyUtility.getInstance()
-						.packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
+				err("Not effective index, though this returns raw_panel data in such case.");
 				return raw_panel.getData();
 		}
 	}
@@ -182,8 +182,7 @@ public class TabSet {
 					json_panel.setData(PacketProxyUtility.getInstance().prettyFormatJSONInRawData(data));
 					break;
 				default :
-					PacketProxyUtility.getInstance()
-							.packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
+					err("Not effective index, though this returns raw_panel data in such case.");
 					break;
 			}
 			if (searchBox == null) {
@@ -205,8 +204,7 @@ public class TabSet {
 					searchBox.setBaseText(json_panel.getTextPane(), emphasis);
 					break;
 				default :
-					PacketProxyUtility.getInstance()
-							.packetProxyLogErr("Not effective index, though this returns raw_panel data in such case.");
+					err("Not effective index, though this returns raw_panel data in such case.");
 					break;
 			}
 			searchBox.textChanged();
