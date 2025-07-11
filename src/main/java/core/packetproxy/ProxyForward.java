@@ -15,13 +15,14 @@
  */
 package packetproxy;
 
+import static packetproxy.util.Logging.log;
+
 import java.net.ServerSocket;
 import java.net.Socket;
 import packetproxy.common.Endpoint;
 import packetproxy.common.EndpointFactory;
 import packetproxy.common.SocketEndpoint;
 import packetproxy.model.ListenPort;
-import packetproxy.util.PacketProxyUtility;
 
 public class ProxyForward extends Proxy {
 
@@ -40,7 +41,7 @@ public class ProxyForward extends Proxy {
 			try {
 
 				Socket client = listen_socket.accept();
-				PacketProxyUtility.getInstance().packetProxyLog("accept");
+				log("accept");
 
 				Endpoint server_e = EndpointFactory.createFromServer(listen_info.getServer());
 				createConnection(new SocketEndpoint(client), server_e);

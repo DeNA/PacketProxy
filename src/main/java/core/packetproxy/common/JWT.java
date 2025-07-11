@@ -15,11 +15,12 @@
  */
 package packetproxy.common;
 
+import static packetproxy.util.Logging.log;
+
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
 import net.arnx.jsonic.JSON;
-import packetproxy.util.PacketProxyUtility;
 
 public class JWT {
 
@@ -75,8 +76,8 @@ public class JWT {
 	}
 
 	public void debug() {
-		PacketProxyUtility.getInstance().packetProxyLog(header);
-		PacketProxyUtility.getInstance().packetProxyLog(payload);
+		log(header);
+		log(payload);
 	}
 
 	public String toJwtString() throws Exception {

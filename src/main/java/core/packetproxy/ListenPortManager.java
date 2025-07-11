@@ -16,6 +16,8 @@
 package packetproxy;
 
 import static packetproxy.model.PropertyChangeEventType.LISTEN_PORTS;
+import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.log;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -26,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import packetproxy.model.ListenPort;
 import packetproxy.model.ListenPorts;
-import packetproxy.util.PacketProxyUtility;
 
 public class ListenPortManager implements PropertyChangeListener {
 
@@ -97,18 +98,17 @@ public class ListenPortManager implements PropertyChangeListener {
 					listen.close();
 					Listen new_listen = new Listen(listen_port);
 					listen_map.put(listen_port.getProtoPort(), new_listen);
-					PacketProxyUtility.getInstance().packetProxyLog("## restart:" + listen_port.getProtoPort());
+					log("## restart: %s", listen_port.getProtoPort());
 				}
 			} else {
 
-				PacketProxyUtility.getInstance().packetProxyLog("## start:" + listen_port.getProtoPort());
+				log("## start: %s", listen_port.getProtoPort());
 				Listen new_listen = new Listen(listen_port);
 				listen_map.put(listen_port.getProtoPort(), new_listen);
 			}
 		} catch (BindException e) {
 
-			PacketProxyUtility.getInstance()
-					.packetProxyLogErr("cannot listen port. (permission issue or already listened)");
+			err("cannot listen port. (permission issue or already listened)");
 			listen_port.setDisabled();
 			listenPorts.update(listen_port);
 		}

@@ -16,6 +16,7 @@
 package packetproxy.gui;
 
 import static javax.swing.JOptionPane.YES_NO_OPTION;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -144,7 +145,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 			gui_history.updateAllAsync();
 		} catch (Exception e) {
 
-			PacketProxyUtility.getInstance().packetProxyLogErrWithStackTrace(e);
+			errWithStackTrace(e);
 			e.printStackTrace();
 		}
 	}

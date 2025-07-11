@@ -15,6 +15,8 @@
  */
 package packetproxy.gui;
 
+import static packetproxy.util.Logging.log;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -39,7 +41,6 @@ import packetproxy.common.Utils;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.OptionTableModel;
 import packetproxy.model.RegexParam;
-import packetproxy.util.PacketProxyUtility;
 
 public class GUIBulkSenderTable {
 
@@ -160,7 +161,7 @@ public class GUIBulkSenderTable {
 				public void actionPerformed(ActionEvent actionEvent) {
 					try {
 
-						PacketProxyUtility.getInstance().packetProxyLog("TODO");
+						log("TODO");
 						JFrame owner = GUIMain.getInstance();
 						int packetId = getSelectedPacketId();
 						GUIRegexParamsTableDialog dlg = new GUIRegexParamsTableDialog(owner, regexParams, packetId);

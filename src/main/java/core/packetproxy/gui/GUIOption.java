@@ -15,6 +15,9 @@
  */
 package packetproxy.gui;
 
+import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.log;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -35,7 +38,6 @@ import packetproxy.model.CAFactory;
 import packetproxy.model.CAs.CA;
 import packetproxy.model.CAs.PacketProxyCAPerUser;
 import packetproxy.model.InterceptOptions;
-import packetproxy.util.PacketProxyUtility;
 
 public class GUIOption {
 
@@ -212,7 +214,6 @@ public class GUIOption {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				PacketProxyUtility util = PacketProxyUtility.getInstance();
 				try {
 
 					String name = ca_combo.getSelectedItem().toString();
@@ -223,12 +224,12 @@ public class GUIOption {
 							JOptionPane.WARNING_MESSAGE);
 					if (option == JOptionPane.YES_OPTION) {
 
-						util.packetProxyLog("regenerate " + name);
+						log("regenerate %s", name);
 						ca.regenerateCA();
 					}
 				} catch (Exception exp) {
 
-					util.packetProxyLogErr("RegenerateCertButton Action Error: " + exp.getMessage());
+					err("RegenerateCertButton Action Error: %s", exp.getMessage());
 				}
 			}
 		});

@@ -15,6 +15,9 @@
  */
 package packetproxy;
 
+import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.log;
+
 import java.io.IOException;
 import java.net.BindException;
 import java.net.DatagramPacket;
@@ -34,7 +37,6 @@ import org.xbill.DNS.Record;
 import packetproxy.model.ConfigBoolean;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
-import packetproxy.util.PacketProxyUtility;
 
 public class PrivateDNS {
 
@@ -46,7 +48,6 @@ public class PrivateDNS {
 	private PrivateDNSImp dns;
 	private Servers servers;
 	private Object lock;
-	private PacketProxyUtility util;
 	private SpoofAddrFactory spoofAddrFactry = new SpoofAddrFactory();
 
 	class SpoofAddrFactory {
@@ -138,7 +139,6 @@ public class PrivateDNS {
 	private PrivateDNS() throws Exception {
 		lock = new Object();
 		state = new ConfigBoolean("PrivateDNS");
-		util = PacketProxyUtility.getInstance();
 		servers = Servers.getInstance();
 		dns = null;
 	}
@@ -188,7 +188,6 @@ public class PrivateDNS {
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private class PrivateDNSImp extends Thread {
 
 		private DNSSpoofingIPGetter spoofingIp;
@@ -213,7 +212,7 @@ public class PrivateDNS {
 				sendPacket = null;
 			} catch (BindException e) {
 
-				util.packetProxyLogErr("cannot boot private DNS server (permission issue or already listened)");
+				err("cannot boot private DNS server (permission issue or already listened)");
 				return;
 			}
 
@@ -238,7 +237,7 @@ public class PrivateDNS {
 		}
 
 		public void run() {
-			util.packetProxyLog("Private DNS Server started.");
+			log("Private DNS Server started.");
 			while (true) {
 
 				try {
@@ -299,7 +298,7 @@ public class PrivateDNS {
 							}
 						} else if (queryRecType == Type.HTTPS) {
 
-							util.packetProxyLog("[DNS Query] '%s' [HTTPS]", queryHostName);
+							log("[DNS Query] '%s' [HTTPS]", queryHostName);
 							jnamed jn;
 							if (isTargetHost(queryHostName)) {
 
@@ -310,7 +309,7 @@ public class PrivateDNS {
 								List<HTTPSRecord.ParameterBase> params = List.of(alpn);
 								HTTPSRecord record = new HTTPSRecord(label, DClass.IN, 300, 1, svcDomain, params);
 								jn = new jnamed(record);
-								util.packetProxyLog("Force to access '%s' with HTTP3", queryHostName);
+								log("Force to access '%s' with HTTP3", queryHostName);
 							} else {
 
 								Record[] records = PrivateDNSClient.getHTTPSRecord(queryHostName);
@@ -322,15 +321,14 @@ public class PrivateDNS {
 							continue;
 						} else {
 
-							util.packetProxyLog("[DNS Query] Unsupported Query Type: '%s' [%s]", queryHostName,
-									queryRecTypeName);
+							log("[DNS Query] Unsupported Query Type: '%s' [%s]", queryHostName, queryRecTypeName);
 							throw new UnsupportedOperationException();
 						}
 
 						String ip = addr.getHostAddress();
 
-						util.packetProxyLog("[DNS Query] '%s' [%s]", queryHostName, queryRecTypeName);
-						// util.packetProxyLog(String.format("[DNS Response Address] '%s'", ip));
+						log("[DNS Query] '%s' [%s]", queryHostName, queryRecTypeName);
+						// log(String.format("[DNS Response Address] '%s'", ip));
 
 						if (isTargetHost(queryHostName)) {
 
@@ -338,7 +336,7 @@ public class PrivateDNS {
 
 								// ToDo GUIにIPv4有効チェックを追加し、無効のときはスキップするようにする。
 								ip = spoofingIpStr;
-								util.packetProxyLog("Replaced to " + ip);
+								log("Replaced to %s", ip);
 							}
 						}
 						if (isTargetHost6(queryHostName)) {
@@ -347,7 +345,7 @@ public class PrivateDNS {
 
 								// ToDo GUIにIPv6有効チェックを追加し、無効のときはスキップするようにする。
 								ip = spoofingIp6Str;
-								util.packetProxyLog("Replaced to " + ip);
+								log("Replaced to %s", ip);
 							}
 						}
 						jnamed jn = new jnamed(ip);
@@ -355,7 +353,7 @@ public class PrivateDNS {
 
 					} catch (UnknownHostException e) {
 
-						util.packetProxyLogErr("[DNS Query] Unknown Host: '%s' [%s]", queryHostName, queryRecTypeName);
+						err("[DNS Query] Unknown Host: '%s' [%s]", queryHostName, queryRecTypeName);
 						jnamed jn = new jnamed();
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 
@@ -367,7 +365,7 @@ public class PrivateDNS {
 
 					} catch (Exception e) {
 
-						util.packetProxyLogErr("[DNS Query] Unknown Error: '%s' [%s]", queryHostName, queryRecTypeName);
+						err("[DNS Query] Unknown Error: '%s' [%s]", queryHostName, queryRecTypeName);
 						jnamed jn = new jnamed();
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 

@@ -15,6 +15,8 @@
  */
 package packetproxy;
 
+import static packetproxy.util.Logging.log;
+
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
 import java.io.ByteArrayInputStream;
@@ -40,7 +42,6 @@ import packetproxy.model.ListenPort;
 import packetproxy.model.SSLPassThroughs;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
-import packetproxy.util.PacketProxyUtility;
 
 public class ProxySSLTransparent extends Proxy {
 
@@ -65,7 +66,7 @@ public class ProxySSLTransparent extends Proxy {
 
 				Socket client = listen_socket.accept();
 				clients.add(client);
-				PacketProxyUtility.getInstance().packetProxyLog("[ProxySSLTransparent]: accept");
+				log("[ProxySSLTransparent]: accept");
 				checkTransparentSSLProxy(client, listen_socket.getLocalPort());
 			} catch (Exception e) {
 
@@ -148,7 +149,7 @@ public class ProxySSLTransparent extends Proxy {
 			if (matcher.find()) {
 
 				serverName = matcher.group(1);
-				PacketProxyUtility.getInstance().packetProxyLog("[SSL-forward!] %s", serverName);
+				log("[SSL-forward!] %s", serverName);
 			} else {
 
 				throw new Exception(I18nString.get("[Error] SNI header was not found in SSL packets."));
@@ -167,11 +168,10 @@ public class ProxySSLTransparent extends Proxy {
 				String serverName = new String(serverE.getEncoded()); // 接続先サーバを取得
 				if (listen_info.getServer() != null) { // upstream proxy
 
-					PacketProxyUtility.getInstance()
-							.packetProxyLog("[SSL-forward through upstream proxy! using SNI] %s", serverName);
+					log("[SSL-forward through upstream proxy! using SNI] %s", serverName);
 				} else {
 
-					PacketProxyUtility.getInstance().packetProxyLog("[SSL-forward! using SNI] %s", serverName);
+					log("[SSL-forward! using SNI] %s", serverName);
 				}
 				ByteArrayInputStream bais = new ByteArrayInputStream(buffer, 0, position);
 
@@ -193,7 +193,7 @@ public class ProxySSLTransparent extends Proxy {
 
 					/* listenポート番号と同じポート番号へアクセスできないので443番にフォールバックする */
 					serverAddr = new InetSocketAddress(PrivateDNSClient.getByName(serverName), 443);
-					PacketProxyUtility.getInstance().packetProxyLog("[Fallback port] " + proxyPort + " -> 443");
+					log("[Fallback port] %d -> 443", proxyPort);
 				}
 
 				if (SSLPassThroughs.getInstance().includes(serverName, listen_info.getPort())) {

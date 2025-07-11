@@ -15,10 +15,11 @@
  */
 package packetproxy;
 
+import static packetproxy.util.Logging.log;
+
 import java.net.ServerSocket;
 import packetproxy.common.I18nString;
 import packetproxy.model.ListenPort;
-import packetproxy.util.PacketProxyUtility;
 
 public class ProxyFactory {
 
@@ -31,19 +32,19 @@ public class ProxyFactory {
 
 		} else if (listen_info.getType() == ListenPort.TYPE.SSL_FORWARDER) {
 
-			PacketProxyUtility.getInstance().packetProxyLog("type is SSL_FORWARDER");
+			log("type is SSL_FORWARDER");
 			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
 			proxy = new ProxySSLForward(listen_socket, listen_info);
 
 		} else if (listen_info.getType() == ListenPort.TYPE.HTTP_TRANSPARENT_PROXY) {
 
-			PacketProxyUtility.getInstance().packetProxyLog("type is HTTP_TRANSPARENT_PROXY");
+			log("type is HTTP_TRANSPARENT_PROXY");
 			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
 			proxy = new ProxyHttpTransparent(listen_socket, listen_info);
 
 		} else if (listen_info.getType() == ListenPort.TYPE.SSL_TRANSPARENT_PROXY) {
 
-			PacketProxyUtility.getInstance().packetProxyLog("type is SSL_TRANSPARENT_PROXY");
+			log("type is SSL_TRANSPARENT_PROXY");
 			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
 			proxy = new ProxySSLTransparent(listen_socket, listen_info);
 
@@ -61,7 +62,7 @@ public class ProxyFactory {
 
 		} else if (listen_info.getType() == ListenPort.TYPE.XMPP_SSL_FORWARDER) {
 
-			PacketProxyUtility.getInstance().packetProxyLog("type is XMPP_SSL_FORWARDER");
+			log("type is XMPP_SSL_FORWARDER");
 			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
 			listen_socket.setReuseAddress(true);
 			proxy = new ProxyXmppSSLForward(listen_socket, listen_info);
@@ -72,8 +73,7 @@ public class ProxyFactory {
 			listen_socket.setReuseAddress(true);
 			proxy = new ProxyForward(listen_socket, listen_info);
 		}
-		PacketProxyUtility.getInstance()
-				.packetProxyLog(I18nString.get("Start listening port %d.", listen_info.getPort()));
+		log(I18nString.get("Start listening port %d.", listen_info.getPort()));
 		return proxy;
 	}
 }

@@ -16,8 +16,9 @@
 
 package packetproxy.quic.service.framegenerator.helper;
 
+import static packetproxy.util.Logging.err;
+
 import java.util.TreeSet;
-import packetproxy.util.PacketProxyUtility;
 
 public class ReceivedPacketNumbers {
 
@@ -43,8 +44,7 @@ public class ReceivedPacketNumbers {
 		assert (smallestValid <= largestOfRange);
 		if (unreceivedPacketNumbers.contains(largestOfRange)) {
 
-			PacketProxyUtility.getInstance().packetProxyLogErr("[QUIC] Error: AckRange: %d isn't in ack_range",
-					largestOfRange);
+			err("[QUIC] Error: AckRange: %d isn't in ack_range", largestOfRange);
 			return 0;
 		}
 		return getSmallestReceived(largestOfRange, smallestValid);
@@ -54,7 +54,7 @@ public class ReceivedPacketNumbers {
 		assert (smallestValid <= largestOfGap);
 		if (!unreceivedPacketNumbers.contains(largestOfGap)) {
 
-			PacketProxyUtility.getInstance().packetProxyLogErr("[QUIC] Error: AckRange: %d isn't in gap", largestOfGap);
+			err("[QUIC] Error: AckRange: %d isn't in gap", largestOfGap);
 			return 0;
 		}
 		return getSmallestUnreceived(largestOfGap, smallestValid);

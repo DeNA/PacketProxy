@@ -15,7 +15,7 @@
  */
 package packetproxy.http;
 
-import packetproxy.util.PacketProxyUtility;
+import static packetproxy.util.Logging.err;
 
 public class HeaderField {
 
@@ -29,7 +29,7 @@ public class HeaderField {
 			value = fields[1].trim();
 		} else {
 
-			PacketProxyUtility.getInstance().packetProxyLogErr("invalid header field");
+			err("invalid header field");
 			new Throwable().printStackTrace();
 		}
 	}

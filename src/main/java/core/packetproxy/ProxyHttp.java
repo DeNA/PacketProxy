@@ -15,6 +15,8 @@
  */
 package packetproxy;
 
+import static packetproxy.util.Logging.log;
+
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -30,7 +32,6 @@ import packetproxy.model.ListenPort;
 import packetproxy.model.SSLPassThroughs;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
-import packetproxy.util.PacketProxyUtility;
 
 public class ProxyHttp extends Proxy {
 
@@ -49,10 +50,9 @@ public class ProxyHttp extends Proxy {
 
 			try {
 
-				PacketProxyUtility util = PacketProxyUtility.getInstance();
 				final Socket client = listen_socket.accept();
 				clients.add(client);
-				util.packetProxyLog("accept");
+				log("accept");
 
 				final Simplex client_loopback = new Simplex(client.getInputStream(), client.getOutputStream());
 
@@ -83,7 +83,7 @@ public class ProxyHttp extends Proxy {
 								if (serverName.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}")) {
 
 									serverName = Https.getCommonName(http.getServerAddr());
-									util.packetProxyLog("Overwrite CN: %s --> %s", http.getServerName(), serverName);
+									log("Overwrite CN: %s --> %s", http.getServerName(), serverName);
 								}
 
 								if (SSLPassThroughs.getInstance().includes(serverName, listen_info.getPort())) {

@@ -3,10 +3,11 @@ package packetproxy.extensions.randomness.test;
 
 // https://www.nist.gov/disclaimer
 
+import static packetproxy.util.Logging.log;
+
 import org.apache.commons.math3.distribution.GammaDistribution;
 import org.ejml.simple.SimpleMatrix;
 import org.ejml.simple.SimpleSVD;
-import packetproxy.util.PacketProxyUtility;
 
 public class RankTest extends RandomnessTest {
 
@@ -14,8 +15,7 @@ public class RankTest extends RandomnessTest {
 		int N = e.length / (32 * 32);
 		if (N == 0) {
 
-			PacketProxyUtility.getInstance()
-					.packetProxyLog("[Warn] bit length is not suitable for Rank test. Please collect more tokens.");
+			log("[Warn] bit length is not suitable for Rank test. Please collect more tokens.");
 			return new double[e.length > 0 ? e[0].length : 0];
 		}
 

@@ -15,6 +15,8 @@
  */
 package packetproxy.gui;
 
+import static packetproxy.util.Logging.log;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -24,7 +26,6 @@ import java.util.List;
 import javax.swing.JFrame;
 import packetproxy.model.Modification;
 import packetproxy.model.Modifications;
-import packetproxy.util.PacketProxyUtility;
 
 public class GUIOptionModifications extends GUIOptionComponentBase<Modification> {
 
@@ -80,7 +81,7 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 						mod.setEnabled();
 						modifications.create(mod);
 					}
-					PacketProxyUtility.getInstance().packetProxyLog("Modification button is pressed.");
+					log("Modification button is pressed.");
 				} catch (Exception e1) {
 
 					e1.printStackTrace();

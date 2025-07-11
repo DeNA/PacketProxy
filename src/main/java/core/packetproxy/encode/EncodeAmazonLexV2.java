@@ -15,11 +15,12 @@
  */
 package packetproxy.encode;
 
+import static packetproxy.util.Logging.log;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import packetproxy.common.AmazonLexV2;
 import packetproxy.http.Http;
-import packetproxy.util.PacketProxyUtility;
 
 public class EncodeAmazonLexV2 extends EncodeHTTPBase {
 
@@ -44,13 +45,11 @@ public class EncodeAmazonLexV2 extends EncodeHTTPBase {
 
 	@Override
 	protected Http decodeServerResponseHttp(Http inputHttp) throws Exception {
-		PacketProxyUtility util = PacketProxyUtility.getInstance();
 		var contentType = inputHttp.getFirstHeader("Content-Type");
 		if (!contentType.startsWith("application/vnd.amazon.eventstream")) {
 
-			util.packetProxyLog(
-					"[EncodeAmazonLexV2] decodeServerResponseHttp: Content-type is not specified or other content-type detected: "
-							+ contentType);
+			log("[EncodeAmazonLexV2] decodeServerResponseHttp: Content-type is not specified or other content-type detected: %s",
+					contentType);
 			return inputHttp;
 		}
 		byte[] body = inputHttp.getBody();
@@ -67,20 +66,18 @@ public class EncodeAmazonLexV2 extends EncodeHTTPBase {
 
 	@Override
 	protected Http encodeServerResponseHttp(Http inputHttp) throws Exception {
-		PacketProxyUtility util = PacketProxyUtility.getInstance();
 		var contentType = inputHttp.getFirstHeader("Content-Type");
 		if (!contentType.startsWith("application/vnd.amazon.eventstream")) {
 
-			util.packetProxyLog(
-					"[EncodeAmazonLexV2] encodeServerResponseHttp: Content-type is not specified or other content-type detected: "
-							+ contentType);
+			log("[EncodeAmazonLexV2] encodeServerResponseHttp: Content-type is not specified or other content-type detected: %s",
+					contentType);
 			return inputHttp;
 		}
 
 		byte[] body = inputHttp.getBody();
 		if (body.length == 0) {
 
-			util.packetProxyLog("[EncodeAmazonLexV2] Warning: Empty body detected, skipping encoding.");
+			log("[EncodeAmazonLexV2] Warning: Empty body detected, skipping encoding.");
 			return inputHttp;
 		}
 
@@ -90,8 +87,7 @@ public class EncodeAmazonLexV2 extends EncodeHTTPBase {
 
 		if (lex == null) {
 
-			util.packetProxyLog(
-					"[EncodeAmazonLexV2] Warning: Invalid Amazon Lex V2 Event Stream detected, skipping encoding.");
+			log("[EncodeAmazonLexV2] Warning: Invalid Amazon Lex V2 Event Stream detected, skipping encoding.");
 			return inputHttp;
 		}
 

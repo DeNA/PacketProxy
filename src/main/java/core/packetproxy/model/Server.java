@@ -15,6 +15,8 @@
  */
 package packetproxy.model;
 
+import static packetproxy.util.Logging.err;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import java.net.InetAddress;
@@ -24,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import packetproxy.PrivateDNSClient;
-import packetproxy.util.PacketProxyUtility;
 
 @DatabaseTable(tableName = "servers")
 public class Server {
@@ -199,8 +200,7 @@ public class Server {
 			}
 		} catch (UnknownHostException e) {
 
-			PacketProxyUtility.getInstance()
-					.packetProxyLogErr("Nonexistent server '%s' is specified in config [DNS resolv error]", ip);
+			err("Nonexistent server '%s' is specified in config [DNS resolv error]", ip);
 			return new ArrayList<InetAddress>();
 		} catch (Exception e) {
 

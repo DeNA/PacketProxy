@@ -15,12 +15,13 @@
  */
 package packetproxy;
 
+import static packetproxy.util.Logging.log;
+
 import packetproxy.model.ListenPort;
 import packetproxy.quic.service.connection.ClientConnection;
 import packetproxy.quic.service.connection.ClientConnections;
 import packetproxy.quic.service.connection.ServerConnection;
 import packetproxy.quic.value.ConnectionIdPair;
-import packetproxy.util.PacketProxyUtility;
 
 public class ProxyQuicForward extends Proxy {
 
@@ -39,10 +40,10 @@ public class ProxyQuicForward extends Proxy {
 			while (true) {
 
 				ClientConnection clientConnection = this.clientConnections.accept();
-				PacketProxyUtility.getInstance().packetProxyLog("accept");
+				log("accept");
 
 				String serverName = this.listen_info.getServer().getIp();
-				PacketProxyUtility.getInstance().packetProxyLog("[QUIC-forward!] %s", serverName);
+				log("[QUIC-forward!] %s", serverName);
 
 				ServerConnection serverConnection = new ServerConnection(ConnectionIdPair.generateRandom(), serverName,
 						this.listen_info.getPort());

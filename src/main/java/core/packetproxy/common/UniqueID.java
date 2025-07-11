@@ -15,7 +15,7 @@
  */
 package packetproxy.common;
 
-import packetproxy.util.PacketProxyUtility;
+import static packetproxy.util.Logging.err;
 
 // ローカルPC の現在時刻（ミリ秒単位）を利用したユニークな自動採番クラス
 // かならず昇順の番号を採番するため、ソートするのに便利
@@ -47,7 +47,7 @@ public class UniqueID {
 				continue;
 			} else if (newId < lastId) {
 
-				PacketProxyUtility.getInstance().packetProxyLogErr("Time of your pc seemed to be changed...");
+				err("Time of your pc seemed to be changed...");
 			}
 			return lastId = newId;
 		}

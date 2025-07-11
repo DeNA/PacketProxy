@@ -16,6 +16,8 @@
 
 package packetproxy;
 
+import static packetproxy.util.Logging.log;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
@@ -110,7 +112,7 @@ public class PrivateDNSClient {
 			if (serverName.equals(resolution.getHostName())) {
 
 				String ip = resolution.getIp();
-				util.packetProxyLog("[Hostname Resolution]: " + serverName + " -> " + ip);
+				log("[Hostname Resolution]: %s -> %s", serverName, ip);
 				return InetAddress.getByName(ip);
 			}
 		}
@@ -143,7 +145,7 @@ public class PrivateDNSClient {
 			hostIP = ((AAAARecord) records[0]).getAddress();
 		} catch (TextParseException ex) {
 
-			util.packetProxyLog("'%s'", ex.getMessage());
+			log("'%s'", ex.getMessage());
 			throw new IllegalStateException(ex);
 		}
 		return hostIP;

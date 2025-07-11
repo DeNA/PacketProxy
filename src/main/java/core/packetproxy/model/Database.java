@@ -16,6 +16,8 @@
 package packetproxy.model;
 
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.log;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
@@ -32,7 +34,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import packetproxy.util.PacketProxyUtility;
 
 public class Database {
 
@@ -57,19 +58,18 @@ public class Database {
 	}
 
 	private void createDB() throws Exception {
-		PacketProxyUtility util = PacketProxyUtility.getInstance();
 		if (!Files.exists(databaseDir)) {
 
-			util.packetProxyLog(databaseDir.toAbsolutePath() + " directory is not found...");
-			util.packetProxyLog("creating the directory...");
+			log("%s directory is not found...", databaseDir.toAbsolutePath());
+			log("creating the directory...");
 			Files.createDirectories(databaseDir);
 			System.out.println("success!");
 		} else {
 
 			if (!Files.isDirectory(databaseDir)) {
 
-				util.packetProxyLogErr(databaseDir.toAbsolutePath() + " file is not directory...");
-				util.packetProxyLogErr("Must be a directory");
+				err("%s file is not directory...", databaseDir.toAbsolutePath());
+				err("Must be a directory");
 				System.exit(1);
 			}
 		}
@@ -180,9 +180,8 @@ public class Database {
 					conn.executeStatement(query, DatabaseConnection.DEFAULT_RESULT_FLAGS);
 				} catch (Exception e) {
 
-					PacketProxyUtility.getInstance().packetProxyLog(
-							"Database format may have been changed. Simply ignore this type of errors.");
-					PacketProxyUtility.getInstance().packetProxyLog("[Error] %s", query);
+					log("Database format may have been changed. Simply ignore this type of errors.");
+					log("[Error] %s", query);
 				}
 			}
 			conn.close();
