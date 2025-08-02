@@ -2,6 +2,7 @@ package packetproxy.extensions.mcp;
 
 import static packetproxy.util.Logging.log;
 
+import com.google.gson.JsonObject;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.BoxLayout;
@@ -20,6 +21,7 @@ public class MCPServerExtension extends Extension {
 	private JTextArea logArea;
 	private JButton startButton;
 	private JButton stopButton;
+	private JButton testButton;
 	private boolean isRunning = false;
 
 	public MCPServerExtension() {
@@ -44,7 +46,9 @@ public class MCPServerExtension extends Extension {
 
 		startButton = new JButton("Start Server");
 		stopButton = new JButton("Stop Server");
+		testButton = new JButton("Test Tools");
 		stopButton.setEnabled(false);
+		testButton.setEnabled(false);
 
 		startButton.addActionListener(new ActionListener() {
 			@Override
@@ -60,8 +64,16 @@ public class MCPServerExtension extends Extension {
 			}
 		});
 
+		testButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				testTools();
+			}
+		});
+
 		statusPanel.add(startButton);
 		statusPanel.add(stopButton);
+		statusPanel.add(testButton);
 
 		// Log area
 		logArea = new JTextArea(20, 80);
@@ -101,6 +113,7 @@ public class MCPServerExtension extends Extension {
 			isRunning = true;
 			startButton.setEnabled(false);
 			stopButton.setEnabled(true);
+			testButton.setEnabled(true);
 			addLog("MCP Server started");
 			log("MCP Server started");
 
@@ -121,6 +134,7 @@ public class MCPServerExtension extends Extension {
 			isRunning = false;
 			startButton.setEnabled(true);
 			stopButton.setEnabled(false);
+			testButton.setEnabled(false);
 			addLog("MCP Server stopped");
 			log("MCP Server stopped");
 
@@ -128,6 +142,70 @@ public class MCPServerExtension extends Extension {
 			addLog("Failed to stop server: " + e.getMessage());
 			e.printStackTrace();
 		}
+	}
+
+	private void testTools() {
+		if (!isRunning || server == null) {
+			addLog("Server is not running. Please start the server first.");
+			return;
+		}
+
+		addLog("Starting MCP tools test...");
+
+		Thread testThread = new Thread(() -> {
+			try {
+				// Test 1: Tools list
+				addLog("Test 1: Getting tools list...");
+				JsonObject toolsRequest = new JsonObject();
+				toolsRequest.addProperty("jsonrpc", "2.0");
+				toolsRequest.addProperty("method", "tools/list");
+				toolsRequest.addProperty("id", 1);
+
+				JsonObject toolsResult = server.processTestRequest(toolsRequest);
+				addLog("Tools list result: " + toolsResult.toString());
+
+				// Test 2: Get configs
+				addLog("Test 2: Getting configurations...");
+				JsonObject configRequest = new JsonObject();
+				configRequest.addProperty("jsonrpc", "2.0");
+				configRequest.addProperty("method", "tools/call");
+
+				JsonObject configParams = new JsonObject();
+				configParams.addProperty("name", "get_configs");
+				configParams.add("arguments", new JsonObject());
+				configRequest.add("params", configParams);
+				configRequest.addProperty("id", 2);
+
+				JsonObject configResult = server.processTestRequest(configRequest);
+				addLog("Config result: " + configResult.toString());
+
+				// Test 3: Get history (limited)
+				addLog("Test 3: Getting packet history...");
+				JsonObject historyRequest = new JsonObject();
+				historyRequest.addProperty("jsonrpc", "2.0");
+				historyRequest.addProperty("method", "tools/call");
+
+				JsonObject historyParams = new JsonObject();
+				historyParams.addProperty("name", "get_history");
+				JsonObject historyArgs = new JsonObject();
+				historyArgs.addProperty("limit", 3);
+				historyParams.add("arguments", historyArgs);
+				historyRequest.add("params", historyParams);
+				historyRequest.addProperty("id", 3);
+
+				JsonObject historyResult = server.processTestRequest(historyRequest);
+				addLog("History result: " + historyResult.toString());
+
+				addLog("All tests completed successfully!");
+
+			} catch (Exception e) {
+				addLog("Test failed: " + e.getMessage());
+				e.printStackTrace();
+			}
+		});
+
+		testThread.setDaemon(true);
+		testThread.start();
 	}
 
 	private void addLog(String message) {

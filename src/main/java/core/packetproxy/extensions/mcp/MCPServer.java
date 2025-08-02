@@ -72,6 +72,31 @@ public class MCPServer {
 		}
 	}
 
+	public JsonObject processTestRequest(JsonObject request) throws Exception {
+		String method = request.get("method").getAsString();
+		JsonElement id = request.get("id");
+		JsonObject params = request.has("params") ? request.getAsJsonObject("params") : new JsonObject();
+
+		JsonObject response = new JsonObject();
+		response.addProperty("jsonrpc", "2.0");
+		if (id != null) {
+			response.add("id", id);
+		}
+
+		try {
+			JsonObject result = handleMethod(method, params);
+			response.add("result", result);
+		} catch (Exception e) {
+			JsonObject error = new JsonObject();
+			error.addProperty("code", -32603);
+			error.addProperty("message", "Internal error: " + e.getMessage());
+			response.add("error", error);
+			throw e;
+		}
+
+		return response;
+	}
+
 	private void processRequest(String requestLine) {
 		try {
 			JsonObject request = JsonParser.parseString(requestLine).getAsJsonObject();
