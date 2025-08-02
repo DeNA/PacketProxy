@@ -1,0 +1,765 @@
+# PacketProxy MCP サーバー仕様書
+
+## 概要
+
+PacketProxy MCP サーバーは、Model Context Protocol (MCP) を使用してPacketProxyの機能を外部から操作するためのインターフェースを提供します。AIエージェントやその他のクライアントがPacketProxyのパケット履歴取得、設定変更、パケット再送などの操作を実行できます。
+
+## 基本仕様
+
+- **プロトコル**: MCP (Model Context Protocol) - JSON-RPC over stdin/stdout
+- **補完API**: HTTP REST API (localhost:32350)
+- **認証**: アクセストークン方式
+- **実装**: PacketProxy Extension として実装
+
+## アーキテクチャ
+
+```
+┌─────────────────┐    JSON-RPC     ┌─────────────────┐
+│   MCP Client    │ ←─────────────→ │  MCP Extension  │
+│  (Claude, etc)  │   stdin/stdout  │                 │
+└─────────────────┘                 └─────────────────┘
+                                             │
+                                             ▼
+                                    ┌─────────────────┐
+                                    │  PacketProxy    │
+                                    │   Core APIs     │
+                                    └─────────────────┘
+```
+
+## MCPツール一覧
+
+### 1. `get_history` - パケット履歴取得
+
+PacketProxyのパケット履歴を検索・取得します。
+
+**リクエスト:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "get_history",
+    "arguments": {
+      "limit": 100,
+      "offset": 0,
+      "filter": "method == GET && url =~ /api/",
+      "columns": ["id", "method", "url", "status", "length", "time"],
+      "sort_by": "time",
+      "sort_order": "desc"
+    }
+  },
+  "id": 1
+}
+```
+
+**パラメータ:**
+- `limit` (number, optional): 取得件数 (デフォルト: 100)
+- `offset` (number, optional): オフセット (デフォルト: 0)
+- `filter` (string, optional): PacketProxy Filter構文による絞り込み
+- `columns` (array, optional): 取得するカラム
+- `sort_by` (string, optional): ソート対象カラム (デフォルト: time)
+- `sort_order` (string, optional): "asc" | "desc" (デフォルト: desc)
+
+**レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "packets": [
+      {
+        "id": 123,
+        "method": "GET",
+        "url": "/api/users",
+        "status": 200,
+        "length": 1024,
+        "time": "2025-01-15T10:30:00Z",
+        "server_name": "api.example.com",
+        "client_ip": "192.168.1.100"
+      }
+    ],
+    "total_count": 1500,
+    "has_more": true
+  },
+  "id": 1
+}
+```
+
+### 2. `get_packet_detail` - パケット詳細取得
+
+特定のパケットの詳細情報を取得します。
+
+**リクエスト:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "get_packet_detail",
+    "arguments": {
+      "packet_id": 123,
+      "include_body": true
+    }
+  },
+  "id": 2
+}
+```
+
+**パラメータ:**
+- `packet_id` (number, required): パケットID
+- `include_body` (boolean, optional): リクエスト/レスポンスボディを含める (デフォルト: false)
+
+**レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "id": 123,
+    "method": "GET",
+    "url": "/api/users",
+    "status": 200,
+    "headers": {
+      "request": [
+        {"name": "Host", "value": "api.example.com"},
+        {"name": "User-Agent", "value": "Mozilla/5.0..."}
+      ],
+      "response": [
+        {"name": "Content-Type", "value": "application/json"},
+        {"name": "Content-Length", "value": "1024"}
+      ]
+    },
+    "body": {
+      "request": "",
+      "response": "{\"users\": [...]}"
+    },
+    "timing": {
+      "timestamp": "2025-01-15T10:30:00Z",
+      "duration_ms": 245
+    }
+  },
+  "id": 2
+}
+```
+
+### 3. `get_configs` - 設定情報取得
+
+PacketProxyの設定情報を取得します。
+
+**リクエスト:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "get_configs",
+    "arguments": {
+      "categories": ["listenPorts", "servers"]
+    }
+  },
+  "id": 3
+}
+```
+
+**パラメータ:**
+- `categories` (array, optional): 取得するカテゴリ (空の場合は全て)
+- `listenPorts`: リッスンポート設定
+- `servers`: サーバー設定
+- `modifications`: 改変設定
+- `sslPassThroughs`: SSL パススルー設定
+
+**レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "listenPorts": [
+      {
+        "id": 1,
+        "port": 8080,
+        "protocol": "HTTP",
+        "serverId": 1,
+        "enabled": true
+      }
+    ],
+    "servers": [
+      {
+        "id": 1,
+        "host": "target.com",
+        "port": 443,
+        "protocol": "HTTPS",
+        "enabled": true
+      }
+    ],
+    "modifications": [],
+    "sslPassThroughs": []
+  },
+  "id": 3
+}
+```
+
+### 4. `update_config` - 設定変更
+
+PacketProxyの設定を変更します。PacketProxyHub互換の形式を使用します。
+
+**リクエスト:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "update_config",
+    "arguments": {
+      "config_json": {
+        "listenPorts": [
+          {"id": 1, "port": 8080, "protocol": "HTTP", "serverId": 1}
+        ],
+        "servers": [
+          {"id": 1, "host": "target.com", "port": 443, "protocol": "HTTPS"}
+        ],
+        "modifications": [
+          {"id": 1, "name": "Add Header", "pattern": ".*", "replacement": "X-Test: 1"}
+        ],
+        "sslPassThroughs": [
+          {"id": 1, "host": "secure.com", "port": 443}
+        ]
+      },
+      "backup": true
+    }
+  },
+  "id": 4
+}
+```
+
+**パラメータ:**
+- `config_json` (object, required): PacketProxyHub互換の設定JSON
+- `backup` (boolean, optional): 既存設定をバックアップ (デフォルト: true)
+
+**レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "success": true,
+    "backup_created": true,
+    "backup_info": {
+      "backup_id": "backup_20250115_103000",
+      "backup_path": "/path/to/backups/config_backup_20250115_103000.json",
+      "timestamp": "2025-01-15T10:30:00Z"
+    },
+    "config_updated": true
+  },
+  "id": 4
+}
+```
+
+### 5. `resend_packet` - パケット再送
+
+パケットを再送します。パケット改変や連続送信に対応しています。
+
+**リクエスト:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "resend_packet",
+    "arguments": {
+      "packet_id": 123,
+      "count": 20,
+      "interval_ms": 100,
+      "modifications": [
+        {
+          "target": "request",
+          "type": "regex_replace",
+          "pattern": "sessionId=\\w+",
+          "replacement": "sessionId=modified_{{index}}"
+        },
+        {
+          "type": "header_add",
+          "name": "X-Test-Counter",
+          "value": "{{timestamp}}"
+        }
+      ],
+      "async": false
+    }
+  },
+  "id": 5
+}
+```
+
+**パラメータ:**
+- `packet_id` (number, required): 再送するパケットID
+- `count` (number, optional): 送信回数 (デフォルト: 1)
+- `interval_ms` (number, optional): 送信間隔(ms) (デフォルト: 0)
+- `modifications` (array, optional): パケット改変設定
+- `async` (boolean, optional): 非同期実行 (デフォルト: false)
+
+**改変設定:**
+- `target`: "request" | "response" | "both"
+- `type`: "regex_replace" | "header_add" | "header_modify"
+- `pattern`: 正規表現パターン (regex_replaceの場合)
+- `replacement` / `value`: 置換文字列
+- `name`: ヘッダー名 (header_add/header_modifyの場合)
+
+**置換変数:**
+- `{{index}}`: 送信順序 (1, 2, 3...)
+- `{{timestamp}}`: Unix timestamp
+- `{{random}}`: ランダム文字列(8文字)
+- `{{uuid}}`: UUID v4
+- `{{datetime}}`: ISO 8601形式日時
+
+**レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "success": true,
+    "sent_count": 20,
+    "failed_count": 0,
+    "packet_ids": [124, 125, 126],
+    "execution_time_ms": 2100
+  },
+  "id": 5
+}
+```
+
+### 6. `get_logs` - ログ取得
+
+PacketProxyのログを取得します。
+
+**リクエスト:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "get_logs",
+    "arguments": {
+      "level": "info",
+      "limit": 100,
+      "since": "2025-01-15T00:00:00Z",
+      "filter": "error|exception"
+    }
+  },
+  "id": 6
+}
+```
+
+**パラメータ:**
+- `level` (string, optional): ログレベル "debug" | "info" | "warn" | "error"
+- `limit` (number, optional): 取得件数 (デフォルト: 100)
+- `since` (string, optional): 開始時刻 (ISO 8601形式)
+- `filter` (string, optional): 正規表現フィルタ
+
+**レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "logs": [
+      {
+        "timestamp": "2025-01-15T10:30:00Z",
+        "level": "info",
+        "message": "PacketProxy started successfully",
+        "thread": "main",
+        "class": "packetproxy.PacketProxy"
+      }
+    ],
+    "total_count": 1500,
+    "has_more": true
+  },
+  "id": 6
+}
+```
+
+### 7. `get_filters` - フィルタ定義取得
+
+保存済みフィルタと利用可能なカラム情報を取得します。
+
+**リクエスト:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "get_filters",
+    "arguments": {
+      "include_examples": true
+    }
+  },
+  "id": 7
+}
+```
+
+**パラメータ:**
+- `include_examples` (boolean, optional): サンプルフィルタも含める (デフォルト: false)
+
+**レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "saved_filters": [
+      {
+        "id": 1,
+        "name": "API Requests",
+        "filter": "url =~ /api/ && method == GET"
+      }
+    ],
+    "available_columns": [
+      {
+        "name": "id",
+        "type": "integer",
+        "description": "パケットID"
+      },
+      {
+        "name": "request",
+        "type": "string",
+        "description": "リクエスト内容"
+      }
+    ],
+    "operators": [
+      {
+        "operator": "==",
+        "description": "等しい",
+        "example": "method == GET"
+      }
+    ],
+    "example_filters": [
+      {
+        "name": "HTTP Errors",
+        "filter": "status >= 400 && status <= 599"
+      }
+    ]
+  },
+  "id": 7
+}
+```
+
+### 8. `validate_filter` - フィルタ構文検証
+
+フィルタ構文の妥当性を検証します。
+
+**リクエスト:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "validate_filter",
+    "arguments": {
+      "filter": "method == GET && url =~ /api/",
+      "explain": true
+    }
+  },
+  "id": 8
+}
+```
+
+**パラメータ:**
+- `filter` (string, required): 検証するフィルタ構文
+- `explain` (boolean, optional): 詳細説明を含める (デフォルト: false)
+
+**成功レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "valid": true,
+    "explanation": {
+      "description": "HTTPメソッドがGETかつURLに'/api/'が含まれるパケットをフィルタ",
+      "parsed_conditions": [
+        {
+          "column": "method",
+          "operator": "==",
+          "value": "GET",
+          "description": "HTTPメソッドがGETと等しい"
+        }
+      ],
+      "logical_operator": "AND"
+    },
+    "estimated_performance": "fast",
+    "recommendations": [
+      "正規表現パフォーマンスが良好です"
+    ]
+  },
+  "id": 8
+}
+```
+
+**エラーレスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "valid": false,
+    "errors": [
+      {
+        "type": "syntax_error",
+        "message": "Invalid operator '===' at position 15",
+        "position": 15,
+        "context": "method === GET"
+      }
+    ],
+    "suggestions": [
+      "Use single '=' instead of '==='"
+    ]
+  },
+  "id": 8
+}
+```
+
+### 9. `get_config_backups` - 設定バックアップ一覧取得
+
+作成された設定バックアップの一覧を取得します。
+
+**リクエスト:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "get_config_backups",
+    "arguments": {
+      "limit": 10
+    }
+  },
+  "id": 9
+}
+```
+
+**レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "backups": [
+      {
+        "backup_id": "backup_20250115_103000",
+        "timestamp": "2025-01-15T10:30:00Z",
+        "size_bytes": 2048,
+        "description": "Backup before MCP config update"
+      }
+    ],
+    "total_count": 5
+  },
+  "id": 9
+}
+```
+
+### 10. `restore_config_backup` - 設定バックアップ復元
+
+指定したバックアップから設定を復元します。
+
+**リクエスト:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "restore_config_backup",
+    "arguments": {
+      "backup_id": "backup_20250115_103000"
+    }
+  },
+  "id": 10
+}
+```
+
+**レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "success": true,
+    "restored_from": "backup_20250115_103000",
+    "backup_created": "backup_20250115_104500"
+  },
+  "id": 10
+}
+```
+
+## フィルタ構文仕様
+
+PacketProxyのFilterTextParserに準拠した構文を使用します。
+
+### 利用可能カラム
+
+|     カラム名      |    型     |       説明        |
+|---------------|----------|-----------------|
+| `id`          | integer  | パケットID          |
+| `request`     | string   | リクエスト内容         |
+| `response`    | string   | レスポンス内容         |
+| `length`      | integer  | パケットサイズ         |
+| `client_ip`   | string   | クライアントIP        |
+| `client_port` | integer  | クライアントポート       |
+| `server_ip`   | string   | サーバーIP          |
+| `server_port` | integer  | サーバーポート         |
+| `time`        | datetime | タイムスタンプ         |
+| `resend`      | boolean  | 再送フラグ           |
+| `modified`    | boolean  | 改変フラグ           |
+| `type`        | string   | プロトコルタイプ        |
+| `encode`      | string   | エンコーダ種別         |
+| `alpn`        | string   | ALPN情報          |
+| `group`       | string   | グループ名           |
+| `full_text`   | string   | 全文検索 (大文字小文字区別) |
+| `full_text_i` | string   | 全文検索 (大文字小文字無視) |
+
+### 演算子
+
+|  演算子   |    説明    |                  例                  |
+|--------|----------|-------------------------------------|
+| `==`   | 等しい      | `method == GET`                     |
+| `!=`   | 等しくない    | `status != 200`                     |
+| `>=`   | 以上       | `length >= 1000`                    |
+| `<=`   | 以下       | `status <= 299`                     |
+| `=~`   | 正規表現マッチ  | `url =~ /api/v[0-9]+/`              |
+| `!~`   | 正規表現非マッチ | `url !~ /static/`                   |
+| `&&`   | AND演算    | `method == POST && status >= 400`   |
+| `\|\|` | OR演算     | `method == GET \|\| method == POST` |
+
+### フィルタ例
+
+```
+# HTTP エラー
+status >= 400 && status <= 599
+
+# 大きなリクエスト
+length > 10000
+
+# API コール
+url =~ /api/ && (method == GET || method == POST)
+
+# 認証関連
+full_text_i =~ authorization
+
+# WebSocket トラフィック
+type == WebSocket
+
+# 複合条件
+method == POST && url =~ /login && status == 401
+```
+
+## HTTP REST API (補完)
+
+MCP以外の方法でもアクセス可能なHTTP REST APIを提供します。
+
+### エンドポイント
+
+```
+GET  /mcp/tools                          # ツール一覧
+GET  /mcp/history?filter=...&limit=100   # パケット履歴
+GET  /mcp/packet/{id}                    # パケット詳細
+GET  /mcp/configs                        # 設定一覧
+PUT  /mcp/configs                        # 設定更新
+POST /mcp/resend/{packet_id}             # パケット再送
+GET  /mcp/logs?level=info                # ログ取得
+GET  /mcp/filters                        # フィルタ一覧
+POST /mcp/filters/validate               # フィルタ検証
+GET  /mcp/backups                        # バックアップ一覧
+POST /mcp/backups/{backup_id}/restore    # バックアップ復元
+```
+
+### 認証
+
+HTTP APIはアクセストークンによる認証を使用します。
+
+```http
+Authorization: Bearer <access_token>
+```
+
+## エラーハンドリング
+
+### MCP標準エラー
+
+```json
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "code": -32602,
+    "message": "Invalid params",
+    "data": {
+      "details": "packet_id is required"
+    }
+  },
+  "id": 1
+}
+```
+
+### カスタムエラーコード
+
+|  コード   |              説明              |
+|--------|------------------------------|
+| -32001 | PacketProxy connection error |
+| -32002 | Invalid filter syntax        |
+| -32003 | Packet not found             |
+| -32004 | Configuration error          |
+| -32005 | Permission denied            |
+
+## セキュリティ考慮事項
+
+1. **アクセス制御**: 設定変更操作は適切な権限を要求
+2. **入力検証**: すべての入力パラメータを検証
+3. **ログ記録**: 重要な操作はログに記録
+4. **レート制限**: パケット再送などの高負荷操作に制限
+5. **設定バックアップ**: 重要な設定変更前に自動バックアップ
+
+## パフォーマンス考慮事項
+
+1. **フィルタ最適化**: 複雑なフィルタは性能警告を表示
+2. **ページング**: 大量データは適切にページング
+3. **キャッシュ**: 頻繁にアクセスされるデータはキャッシュ
+4. **非同期処理**: 時間のかかる操作は非同期実行をサポート
+
+## 実装詳細
+
+### ディレクトリ構成
+
+```
+src/main/java/core/packetproxy/extensions/mcp/
+├── MCPServerExtension.java       # Extension基底クラス継承
+├── MCPServer.java               # MCP JSONRPCサーバー実装
+├── tools/
+│   ├── HistoryTool.java        # History情報取得
+│   ├── SettingTool.java        # 設定情報取得・変更
+│   ├── LogTool.java            # ログ情報取得
+│   ├── ResendTool.java         # パケット再送
+│   └── FilterTool.java         # フィルタ関連操作
+├── MCPToolRegistry.java        # ツール登録・管理
+└── backup/
+    └── ConfigBackupManager.java # 設定バックアップ管理
+```
+
+### 統合ポイント
+
+- **Extension管理**: GUIOptionExtensionsで有効/無効切り替え
+- **データアクセス**: 既存のPackets, Configs, Filters等のAPIを活用
+- **パケット操作**: ResendControllerを使用した再送機能
+- **設定管理**: ConfigIOを使用したPacketProxyHub互換性
+
+## バージョン履歴
+
+| バージョン |     日付     | 変更内容 |
+|-------|------------|------|
+| 1.0.0 | 2025-01-15 | 初版作成 |
+
