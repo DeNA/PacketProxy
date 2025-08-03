@@ -15,10 +15,11 @@ public class ToolRegistry {
 	}
 
 	private void registerDefaultTools() {
-		// 基本的な3つのツールを登録
+		// 基本的な4つのツールを登録
 		registerTool(new HistoryTool());
 		registerTool(new PacketDetailTool());
 		registerTool(new ConfigTool());
+		registerTool(new LogTool());
 	}
 
 	public void registerTool(MCPTool tool) {
