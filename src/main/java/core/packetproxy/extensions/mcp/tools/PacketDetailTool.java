@@ -2,6 +2,7 @@ package packetproxy.extensions.mcp.tools;
 
 import static packetproxy.util.Logging.log;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.nio.charset.StandardCharsets;
@@ -12,6 +13,7 @@ import packetproxy.model.Packets;
 public class PacketDetailTool implements MCPTool {
 
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+	private final Gson gson = new Gson();
 
 	@Override
 	public String getName() {
@@ -60,7 +62,17 @@ public class PacketDetailTool implements MCPTool {
 				throw new Exception("Packet not found: " + packetId);
 			}
 
-			JsonObject result = buildPacketDetail(packet, includeBody);
+			JsonObject data = buildPacketDetail(packet, includeBody);
+
+			JsonObject content = new JsonObject();
+			content.addProperty("type", "text");
+			content.addProperty("text", gson.toJson(data));
+
+			JsonArray contentArray = new JsonArray();
+			contentArray.add(content);
+
+			JsonObject result = new JsonObject();
+			result.add("content", contentArray);
 
 			log("PacketDetailTool returning packet " + packetId);
 			return result;

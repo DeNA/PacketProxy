@@ -2,6 +2,7 @@ package packetproxy.extensions.mcp.tools;
 
 import static packetproxy.util.Logging.log;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.util.List;
@@ -15,6 +16,8 @@ import packetproxy.model.Server;
 import packetproxy.model.Servers;
 
 public class ConfigTool implements MCPTool {
+
+	private final Gson gson = new Gson();
 
 	@Override
 	public String getName() {
@@ -77,8 +80,18 @@ public class ConfigTool implements MCPTool {
 				result.add("sslPassThroughs", getSSLPassThroughs());
 			}
 
+			JsonObject content = new JsonObject();
+			content.addProperty("type", "text");
+			content.addProperty("text", gson.toJson(result));
+
+			JsonArray contentArray = new JsonArray();
+			contentArray.add(content);
+
+			JsonObject mcpResult = new JsonObject();
+			mcpResult.add("content", contentArray);
+
 			log("ConfigTool returning configuration");
-			return result;
+			return mcpResult;
 
 		} catch (Exception e) {
 			log("ConfigTool error: " + e.getMessage());

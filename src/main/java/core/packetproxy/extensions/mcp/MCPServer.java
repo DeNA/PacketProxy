@@ -130,7 +130,18 @@ public class MCPServer {
 			// Invalid JSON request
 			JsonObject errorResponse = new JsonObject();
 			errorResponse.addProperty("jsonrpc", "2.0");
-			errorResponse.add("id", null);
+			
+			// Try to extract ID from the malformed request if possible
+			JsonElement requestId = null;
+			try {
+				JsonObject partialRequest = JsonParser.parseString(requestLine).getAsJsonObject();
+				if (partialRequest.has("id")) {
+					requestId = partialRequest.get("id");
+				}
+			} catch (Exception parseError) {
+				// If we can't parse at all, use null ID
+			}
+			errorResponse.add("id", requestId);
 
 			JsonObject error = new JsonObject();
 			error.addProperty("code", -32700);
@@ -150,6 +161,10 @@ public class MCPServer {
 				return handleToolsList();
 			case "tools/call" :
 				return handleToolsCall(params);
+			case "resources/list" :
+				return handleResourcesList();
+			case "prompts/list" :
+				return handlePromptsList();
 			default :
 				throw new Exception("Unknown method: " + method);
 		}
@@ -163,8 +178,13 @@ public class MCPServer {
 		tools.addProperty("listChanged", true);
 		capabilities.add("tools", tools);
 
+		JsonObject serverInfo = new JsonObject();
+		serverInfo.addProperty("name", "PacketProxy MCP Server");
+		serverInfo.addProperty("version", "1.0.0");
+
 		result.add("capabilities", capabilities);
-		result.addProperty("serverInfo", "PacketProxy MCP Server v1.0");
+		result.addProperty("protocolVersion", "2024-11-05");
+		result.add("serverInfo", serverInfo);
 
 		logger.accept("Client initialized");
 		return result;
@@ -185,5 +205,19 @@ public class MCPServer {
 		JsonObject arguments = params.has("arguments") ? params.getAsJsonObject("arguments") : new JsonObject();
 
 		return toolRegistry.callTool(toolName, arguments);
+	}
+
+	private JsonObject handleResourcesList() {
+		JsonObject result = new JsonObject();
+		JsonObject[] resources = {};
+		result.add("resources", gson.toJsonTree(resources));
+		return result;
+	}
+
+	private JsonObject handlePromptsList() {
+		JsonObject result = new JsonObject();
+		JsonObject[] prompts = {};
+		result.add("prompts", gson.toJsonTree(prompts));
+		return result;
 	}
 }

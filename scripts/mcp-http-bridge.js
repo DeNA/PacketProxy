@@ -44,19 +44,15 @@ class MCPHttpBridge {
 
     async handleInitialize(request) {
         this.initialized = true;
-        console.error('[DEBUG] Initialize request processed');
+        console.error('[DEBUG] Initialize request - forwarding to PacketProxy');
         
-        return {
-            jsonrpc: "2.0",
-            id: request.id,
-            result: {
-                protocolVersion: "2024-11-05",
-                capabilities: {
-                    tools: {}
-                },
-                serverInfo: this.serverInfo
-            }
-        };
+        try {
+            const response = await this.forwardToPacketProxy(request);
+            return response;
+        } catch (error) {
+            console.error(`[ERROR] Failed to forward initialize request: ${error.message}`);
+            return this.createErrorResponse(request.id, -32603, `Internal error: ${error.message}`);
+        }
     }
 
     async handleNotificationInitialized(request) {
@@ -208,9 +204,18 @@ async function main() {
                 }
             } catch (error) {
                 console.error(`[ERROR] Failed to process request: ${error.message}`);
+                // Try to extract ID from the malformed request
+                let requestId = null;
+                try {
+                    const partialRequest = JSON.parse(trimmedLine);
+                    requestId = partialRequest.id || null;
+                } catch (e) {
+                    // If we can't parse at all, use null ID
+                }
+                
                 const errorResponse = {
                     jsonrpc: "2.0",
-                    id: null,
+                    id: requestId,
                     error: {
                         code: -32700,
                         message: "Parse error"

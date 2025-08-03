@@ -2,6 +2,7 @@ package packetproxy.extensions.mcp.tools;
 
 import static packetproxy.util.Logging.log;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.text.SimpleDateFormat;
@@ -12,6 +13,7 @@ import packetproxy.model.Packets;
 public class HistoryTool implements MCPTool {
 
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+	private final Gson gson = new Gson();
 
 	@Override
 	public String getName() {
@@ -61,7 +63,6 @@ public class HistoryTool implements MCPTool {
 			Packets packets = Packets.getInstance();
 			List<Packet> allPackets = packets.queryAll();
 
-			JsonObject result = new JsonObject();
 			JsonArray packetsArray = new JsonArray();
 
 			int totalCount = allPackets.size();
@@ -74,9 +75,20 @@ public class HistoryTool implements MCPTool {
 				packetsArray.add(packetJson);
 			}
 
-			result.add("packets", packetsArray);
-			result.addProperty("total_count", totalCount);
-			result.addProperty("has_more", endIndex < totalCount);
+			JsonObject data = new JsonObject();
+			data.add("packets", packetsArray);
+			data.addProperty("total_count", totalCount);
+			data.addProperty("has_more", endIndex < totalCount);
+
+			JsonObject content = new JsonObject();
+			content.addProperty("type", "text");
+			content.addProperty("text", gson.toJson(data));
+
+			JsonArray contentArray = new JsonArray();
+			contentArray.add(content);
+
+			JsonObject result = new JsonObject();
+			result.add("content", contentArray);
 
 			log("HistoryTool returning " + packetsArray.size() + " packets");
 			return result;
