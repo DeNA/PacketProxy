@@ -229,14 +229,6 @@ PacketProxyの現在の設定を確認してください
 パケットID 123の詳細情報を取得してください
 ```
 
-## 今後の拡張予定
-
-- 完全なGUI連携機能
-- パケット再送機能 (`resend_packet`)
-- 設定変更機能 (`update_config`)
-- フィルタ機能 (`get_filters`, `validate_filter`)
-- HTTP REST API対応
-
 ## サポート
 
 問題が発生した場合は、以下を確認してください：

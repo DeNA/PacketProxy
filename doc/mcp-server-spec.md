@@ -438,189 +438,7 @@ PacketProxyのログを取得します。
 }
 ```
 
-### 7. `get_filters` - フィルタ定義取得
-
-保存済みフィルタと利用可能なカラム情報を取得します。
-
-**リクエスト:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "get_filters",
-    "arguments": {
-      "include_examples": true
-    }
-  },
-  "id": 7
-}
-```
-
-**パラメータ:**
-- `include_examples` (boolean, optional): サンプルフィルタも含める (デフォルト: false)
-
-**レスポンス:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "result": {
-    "saved_filters": [
-      {
-        "id": 1,
-        "name": "API Requests",
-        "filter": "url =~ /api/ && method == GET"
-      }
-    ],
-    "available_columns": [
-      {
-        "name": "id",
-        "type": "integer",
-        "description": "パケットID"
-      },
-      {
-        "name": "request",
-        "type": "string",
-        "description": "リクエスト内容"
-      }
-    ],
-    "operators": [
-      {
-        "operator": "==",
-        "description": "等しい",
-        "example": "method == GET"
-      }
-    ],
-    "example_filters": [
-      {
-        "name": "HTTP Errors",
-        "filter": "status >= 400 && status <= 599"
-      }
-    ]
-  },
-  "id": 7
-}
-```
-
-### 8. `validate_filter` - フィルタ構文検証
-
-フィルタ構文の妥当性を検証します。
-
-**リクエスト:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "validate_filter",
-    "arguments": {
-      "filter": "method == GET && url =~ /api/",
-      "explain": true
-    }
-  },
-  "id": 8
-}
-```
-
-**パラメータ:**
-- `filter` (string, required): 検証するフィルタ構文
-- `explain` (boolean, optional): 詳細説明を含める (デフォルト: false)
-
-**成功レスポンス:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "result": {
-    "valid": true,
-    "explanation": {
-      "description": "HTTPメソッドがGETかつURLに'/api/'が含まれるパケットをフィルタ",
-      "parsed_conditions": [
-        {
-          "column": "method",
-          "operator": "==",
-          "value": "GET",
-          "description": "HTTPメソッドがGETと等しい"
-        }
-      ],
-      "logical_operator": "AND"
-    },
-    "estimated_performance": "fast",
-    "recommendations": [
-      "正規表現パフォーマンスが良好です"
-    ]
-  },
-  "id": 8
-}
-```
-
-**エラーレスポンス:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "result": {
-    "valid": false,
-    "errors": [
-      {
-        "type": "syntax_error",
-        "message": "Invalid operator '===' at position 15",
-        "position": 15,
-        "context": "method === GET"
-      }
-    ],
-    "suggestions": [
-      "Use single '=' instead of '==='"
-    ]
-  },
-  "id": 8
-}
-```
-
-### 9. `get_config_backups` - 設定バックアップ一覧取得
-
-作成された設定バックアップの一覧を取得します。
-
-**リクエスト:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "get_config_backups",
-    "arguments": {
-      "limit": 10
-    }
-  },
-  "id": 9
-}
-```
-
-**レスポンス:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "result": {
-    "backups": [
-      {
-        "backup_id": "backup_20250115_103000",
-        "timestamp": "2025-01-15T10:30:00Z",
-        "size_bytes": 2048,
-        "description": "Backup before MCP config update"
-      }
-    ],
-    "total_count": 5
-  },
-  "id": 9
-}
-```
-
-### 10. `restore_config` - 設定バックアップ復元
+### 7. `restore_config` - 設定バックアップ復元
 
 指定したバックアップから設定を復元します。
 
@@ -637,7 +455,7 @@ PacketProxyのログを取得します。
       "backup_id": "backup_20250115_103000"
     }
   },
-  "id": 10
+  "id": 7
 }
 ```
 
@@ -658,7 +476,7 @@ PacketProxyのログを取得します。
       }
     ]
   },
-  "id": 10
+  "id": 7
 }
 ```
 
@@ -743,9 +561,6 @@ GET  /mcp/configs                        # 設定一覧
 PUT  /mcp/configs                        # 設定更新
 POST /mcp/resend/{packet_id}             # パケット再送
 GET  /mcp/logs?level=info                # ログ取得
-GET  /mcp/filters                        # フィルタ一覧
-POST /mcp/filters/validate               # フィルタ検証
-GET  /mcp/backups                        # バックアップ一覧
 POST /mcp/restore/{backup_id}             # バックアップ復元
 ```
 
