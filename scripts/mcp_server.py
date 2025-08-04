@@ -73,33 +73,6 @@ def get_history(limit: Optional[int] = 100, offset: Optional[int] = 0) -> Dict[s
     }
 
 @mcp.tool()
-def get_configs(categories: Optional[List[str]] = None) -> Dict[str, Any]:
-    """
-    Get PacketProxy configuration settings
-    
-    Args:
-        categories: List of configuration categories to retrieve
-    
-    Returns:
-        Dictionary containing configuration data
-    """
-    log_debug(f"get_configs called with categories={categories}")
-    
-    return {
-        "status": "connected",
-        "message": "PacketProxy MCP server is working. To get real configuration data, ensure PacketProxy GUI is running with MCP Server extension enabled.",
-        "categories": categories or ["all"],
-        "configs": {
-            "listenPorts": [
-                {"port": 8080, "protocol": "HTTP"}
-            ],
-            "servers": [
-                {"name": "test-server", "host": "localhost", "port": 3000}
-            ]
-        }
-    }
-
-@mcp.tool()
 def get_packet_detail(packet_id: int, include_body: Optional[bool] = False) -> Dict[str, Any]:
     """
     Get detailed information for a specific packet
@@ -128,6 +101,87 @@ def get_packet_detail(packet_id: int, include_body: Optional[bool] = False) -> D
             },
             "body": "Example response body" if include_body else None
         }
+    }
+
+@mcp.tool()
+def get_logs() -> Dict[str, Any]:
+    """
+    Get logs from PacketProxy
+    
+    Returns:
+        Dictionary containing log data
+    """
+    log_debug("get_logs called")
+    
+    return {
+        "status": "connected",
+        "message": "PacketProxy MCP server is working. To get real logs, ensure PacketProxy GUI is running with MCP Server extension enabled.",
+        "logs": [
+            {
+                "timestamp": "2025-08-02T06:30:00Z",
+                "level": "INFO",
+                "message": "PacketProxy started successfully"
+            }
+        ]
+    }
+
+@mcp.tool()
+def get_configs(categories: Optional[List[str]] = None) -> Dict[str, Any]:
+    """
+    Get PacketProxy configuration settings
+    
+    Args:
+        categories: List of configuration categories to retrieve
+    
+    Returns:
+        Dictionary containing configuration data
+    """
+    log_debug(f"get_configs called with categories={categories}")
+    
+    return {
+        "status": "connected",
+        "message": "PacketProxy MCP server is working. To get real configuration data, ensure PacketProxy GUI is running with MCP Server extension enabled.",
+        "categories": categories or ["all"],
+        "configs": {
+            "listenPorts": [
+                {"port": 8080, "protocol": "HTTP"}
+            ],
+            "servers": [
+                {"name": "test-server", "host": "localhost", "port": 3000}
+            ]
+        }
+    }
+
+@mcp.tool()
+def update_config() -> Dict[str, Any]:
+    """
+    Update PacketProxy configuration settings
+    
+    Returns:
+        Dictionary containing update results
+    """
+    log_debug("update_config called")
+    
+    return {
+        "status": "connected",
+        "message": "PacketProxy MCP server is working. To update configuration, ensure PacketProxy GUI is running with MCP Server extension enabled.",
+        "success": True
+    }
+
+@mcp.tool()
+def restore_config() -> Dict[str, Any]:
+    """
+    Restore PacketProxy configuration from backup
+    
+    Returns:
+        Dictionary containing restore results
+    """
+    log_debug("restore_config called")
+    
+    return {
+        "status": "connected",
+        "message": "PacketProxy MCP server is working. To restore configuration, ensure PacketProxy GUI is running with MCP Server extension enabled.",
+        "success": True
     }
 
 @mcp.tool()

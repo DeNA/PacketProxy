@@ -18,10 +18,10 @@ public class ToolRegistry {
 		// 基本的なツールを登録
 		registerTool(new HistoryTool());
 		registerTool(new PacketDetailTool());
+		registerTool(new LogTool());
 		registerTool(new ConfigTool());
 		registerTool(new UpdateConfigTool());
 		registerTool(new RestoreConfigTool());
-		registerTool(new LogTool());
 		registerTool(new ResendPacketTool());
 	}
 

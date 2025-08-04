@@ -178,7 +178,60 @@ PacketProxyのパケット履歴を検索・取得します。フィルタリン
 }
 ```
 
-### 3. `get_config` - 設定情報取得
+### 3. `get_logs` - ログ取得
+
+PacketProxyのログを取得します。
+
+**リクエスト:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "get_logs",
+    "arguments": {
+      "access_token": "your_access_token_here",
+      "level": "info",
+      "limit": 100,
+      "since": "2025-01-15T00:00:00Z",
+      "filter": "error|exception"
+    }
+  },
+  "id": 3
+}
+```
+
+**パラメータ:**
+- `access_token` (string, required): PacketProxy設定のアクセストークン
+- `level` (string, optional): ログレベル "debug" | "info" | "warn" | "error"
+- `limit` (number, optional): 取得件数 (デフォルト: 100)
+- `since` (string, optional): 開始時刻 (ISO 8601形式)
+- `filter` (string, optional): 正規表現フィルタ
+
+**レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "logs": [
+      {
+        "timestamp": "2025-01-15T10:30:00Z",
+        "level": "info",
+        "message": "PacketProxy started successfully",
+        "thread": "main",
+        "class": "packetproxy.PacketProxy"
+      }
+    ],
+    "total_count": 1500,
+    "has_more": true
+  },
+  "id": 3
+}
+```
+
+### 4. `get_config` - 設定情報取得
 
 PacketProxyの設定情報をHTTP API (`http://localhost:32349/config`) 経由で取得します。PacketProxyHub互換の完全な設定形式で返されます。
 
@@ -195,7 +248,7 @@ PacketProxyの設定情報をHTTP API (`http://localhost:32349/config`) 経由�
       "access_token": "your_access_token_here"
     }
   },
-  "id": 3
+  "id": 4
 }
 ```
 
@@ -220,11 +273,11 @@ PacketProxyの設定情報をHTTP API (`http://localhost:32349/config`) 経由�
       }
     ]
   },
-  "id": 3
+  "id": 4
 }
 ```
 
-### 4. `update_config` - 設定変更
+### 5. `update_config` - 設定変更
 
 PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変更します。PacketProxyHub互換の形式を使用し、指定されたIDが含まれない項目は自動的に削除されます。
 
@@ -286,7 +339,7 @@ PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変�
       "access_token": "your_access_token_here"
     }
   },
-  "id": 4
+  "id": 5
 }
 ```
 
@@ -313,11 +366,53 @@ PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変�
       }
     ]
   },
-  "id": 4
+  "id": 5
 }
 ```
 
-### 5. `resend_packet` - パケット再送
+### 6. `restore_config` - 設定バックアップ復元
+
+指定したバックアップから設定を復元します。
+
+**リクエスト:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "restore_config",
+    "arguments": {
+      "access_token": "your_access_token_here",
+      "backup_id": "backup_20250115_103000"
+    }
+  },
+  "id": 6
+}
+```
+
+**パラメータ:**
+- `access_token` (string, required): PacketProxy設定のアクセストークン
+- `backup_id` (string, required): 復元するバックアップID
+
+**レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"success\": true, \"backup_id_restored\": \"backup_20250115_103000\", \"config_restored\": true}"
+      }
+    ]
+  },
+  "id": 6
+}
+```
+
+### 7. `resend_packet` - パケット再送
 
 パケットを再送します。パケット改変や連続送信に対応しています。
 
@@ -350,7 +445,7 @@ PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変�
       "allow_duplicate_headers": false
     }
   },
-  "id": 5
+  "id": 7
 }
 ```
 
@@ -391,101 +486,6 @@ PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変�
     "failed_count": 0,
     "packet_ids": [124, 125, 126],
     "execution_time_ms": 2100
-  },
-  "id": 5
-}
-```
-
-### 6. `get_logs` - ログ取得
-
-PacketProxyのログを取得します。
-
-**リクエスト:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "get_logs",
-    "arguments": {
-      "access_token": "your_access_token_here",
-      "level": "info",
-      "limit": 100,
-      "since": "2025-01-15T00:00:00Z",
-      "filter": "error|exception"
-    }
-  },
-  "id": 6
-}
-```
-
-**パラメータ:**
-- `access_token` (string, required): PacketProxy設定のアクセストークン
-- `level` (string, optional): ログレベル "debug" | "info" | "warn" | "error"
-- `limit` (number, optional): 取得件数 (デフォルト: 100)
-- `since` (string, optional): 開始時刻 (ISO 8601形式)
-- `filter` (string, optional): 正規表現フィルタ
-
-**レスポンス:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "result": {
-    "logs": [
-      {
-        "timestamp": "2025-01-15T10:30:00Z",
-        "level": "info",
-        "message": "PacketProxy started successfully",
-        "thread": "main",
-        "class": "packetproxy.PacketProxy"
-      }
-    ],
-    "total_count": 1500,
-    "has_more": true
-  },
-  "id": 6
-}
-```
-
-### 7. `restore_config` - 設定バックアップ復元
-
-指定したバックアップから設定を復元します。
-
-**リクエスト:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "method": "tools/call",
-  "params": {
-    "name": "restore_config",
-    "arguments": {
-      "access_token": "your_access_token_here",
-      "backup_id": "backup_20250115_103000"
-    }
-  },
-  "id": 7
-}
-```
-
-**パラメータ:**
-- `access_token` (string, required): PacketProxy設定のアクセストークン
-- `backup_id` (string, required): 復元するバックアップID
-
-**レスポンス:**
-
-```json
-{
-  "jsonrpc": "2.0",
-  "result": {
-    "content": [
-      {
-        "type": "text",
-        "text": "{\"success\": true, \"backup_id_restored\": \"backup_20250115_103000\", \"config_restored\": true}"
-      }
-    ]
   },
   "id": 7
 }
