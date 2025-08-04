@@ -179,11 +179,11 @@ public class ResendPacketTool extends AuthenticatedMCPTool {
 		try {
 			ResendController resendController = ResendController.getInstance();
 
-			if (count == 1 && modifications.size() == 0) {
-				// 単純な1回再送、改変なし
-				log("ResendPacketTool: Simple single resend without modifications");
-				resendController.resend(originalOneShot);
-				sentCount = 1;
+			if (modifications.size() == 0) {
+				// 改変なしの場合は単純再送
+				log("ResendPacketTool: Simple resend without modifications, count=" + count);
+				resendController.resend(originalOneShot, count);
+				sentCount = count;
 			} else {
 				// 複数回送信または改変ありの場合
 				log("ResendPacketTool: Complex resend with count=" + count + " and modifications="
