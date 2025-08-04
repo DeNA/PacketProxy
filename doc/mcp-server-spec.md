@@ -633,6 +633,7 @@ Authorization: Bearer <access_token>
 MCP HTTP Bridgeは以下の環境変数をサポートします：
 
 #### `PACKET_PROXY_ACCESS_TOKEN`
+
 - **説明**: PacketProxyのアクセストークン
 - **必須**: 推奨 (手動指定の代替)
 - **形式**: 文字列
@@ -640,12 +641,13 @@ MCP HTTP Bridgeは以下の環境変数をサポートします：
 - **動作**: 設定時、すべてのMCPツール呼び出しに自動的にアクセストークンが追加されます
 
 #### `MCP_DEBUG`
+
 - **説明**: デバッグログ出力制御
 - **必須**: オプション
 - **形式**: `"true"` または `"false"`
 - **デフォルト**: `"false"`
 - **例**: `export MCP_DEBUG="true"`
-- **動作**: 
+- **動作**:
   - `"true"`: デバッグメッセージをstderrに出力
   - `"false"`: デバッグメッセージを出力しない (JSON-RPC通信を汚染しない)
 
