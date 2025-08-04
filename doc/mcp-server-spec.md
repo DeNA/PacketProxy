@@ -43,7 +43,7 @@ PacketProxy MCP サーバーは、Model Context Protocol (MCP) を使用してPa
 MCP HTTP Bridgeを使用する場合、環境変数にアクセストークンを設定することで、自動的に認証情報が追加されます：
 
 ```bash
-export PACKET_PROXY_ACCESS_TOKEN="your_access_token_here"
+export PACKETPROXY_ACCESS_TOKEN="your_access_token_here"
 ```
 
 この設定により、各ツール呼び出し時に手動で`access_token`パラメータを指定する必要がなくなります。
@@ -53,7 +53,7 @@ export PACKET_PROXY_ACCESS_TOKEN="your_access_token_here"
 - アクセストークンが未設定: PacketProxyでconfig sharingを有効にしてください
 - アクセストークンが無効: Settings画面で正しいトークンを確認してください
 - アクセストークンが空: 必須パラメータのため、必ず指定してください
-- 環境変数が設定されていない場合: `PACKET_PROXY_ACCESS_TOKEN`環境変数を確認してください
+- 環境変数が設定されていない場合: `PACKETPROXY_ACCESS_TOKEN`環境変数を確認してください
 
 ## MCPツール一覧
 
@@ -632,12 +632,12 @@ Authorization: Bearer <access_token>
 
 MCP HTTP Bridgeは以下の環境変数をサポートします：
 
-#### `PACKET_PROXY_ACCESS_TOKEN`
+#### `PACKETPROXY_ACCESS_TOKEN`
 
 - **説明**: PacketProxyのアクセストークン
 - **必須**: 推奨 (手動指定の代替)
 - **形式**: 文字列
-- **例**: `export PACKET_PROXY_ACCESS_TOKEN="abc123def456"`
+- **例**: `export PACKETPROXY_ACCESS_TOKEN="abc123def456"`
 - **動作**: 設定時、すべてのMCPツール呼び出しに自動的にアクセストークンが追加されます
 
 #### `MCP_DEBUG`
@@ -655,11 +655,11 @@ MCP HTTP Bridgeは以下の環境変数をサポートします：
 
 ```bash
 # 基本設定
-export PACKET_PROXY_ACCESS_TOKEN="your_access_token_here"
+export PACKETPROXY_ACCESS_TOKEN="your_access_token_here"
 
 # デバッグ有効化
 export MCP_DEBUG="true"
-export PACKET_PROXY_ACCESS_TOKEN="your_access_token_here"
+export PACKETPROXY_ACCESS_TOKEN="your_access_token_here"
 
 # MCP HTTP Bridge起動
 node /path/to/mcp-http-bridge.js

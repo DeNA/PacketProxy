@@ -196,8 +196,8 @@ class MCPHttpBridge {
     async forwardToPacketProxy(request) {
         return new Promise((resolve, reject) => {
             // 環境変数からアクセストークンを取得
-            const accessToken = process.env.PACKET_PROXY_ACCESS_TOKEN;
-            debugLog(`[DEBUG] Environment variable PACKET_PROXY_ACCESS_TOKEN: ${accessToken ? '[SET]' : '[NOT SET]'}`);
+            const accessToken = process.env.PACKETPROXY_ACCESS_TOKEN;
+            debugLog(`[DEBUG] Environment variable PACKETPROXY_ACCESS_TOKEN: ${accessToken ? '[SET]' : '[NOT SET]'}`);
             debugLog(`[DEBUG] Request method: ${request.method}`);
             debugLog(`[DEBUG] Request params: ${JSON.stringify(request.params)}`);
             
@@ -218,7 +218,7 @@ class MCPHttpBridge {
                     debugLog(`[DEBUG] Added access token to request params`);
                 }
             } else if (!accessToken) {
-                debugLog(`[WARNING] PACKET_PROXY_ACCESS_TOKEN environment variable not set`);
+                debugLog(`[WARNING] PACKETPROXY_ACCESS_TOKEN environment variable not set`);
             }
             
             const postData = JSON.stringify(request);

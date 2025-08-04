@@ -65,7 +65,7 @@ open ~/Library/Application\ Support/Claude/claude_desktop_config.json
                 "/Users/kakira/PacketProxy/scripts/mcp-http-bridge.js"
             ],
             "env": {
-                "PACKET_PROXY_ACCESS_TOKEN": "your_access_token_here"
+                "PACKETPROXY_ACCESS_TOKEN": "your_access_token_here"
             }
         }
     }
@@ -87,7 +87,7 @@ open ~/Library/Application\ Support/Claude/claude_desktop_config.json
                 "/Users/kakira/PacketProxy/scripts/mcp-http-bridge.js"
             ],
             "env": {
-                "PACKET_PROXY_ACCESS_TOKEN": "your_access_token_here"
+                "PACKETPROXY_ACCESS_TOKEN": "your_access_token_here"
             }
         }
     }
