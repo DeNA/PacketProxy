@@ -172,6 +172,8 @@ public class MCPServer {
 				return handleToolsCall(params);
 			case "resources/list" :
 				return handleResourcesList();
+			case "resources/templates/list" :
+				return handleResourcesTemplatesList();
 			case "prompts/list" :
 				return handlePromptsList();
 			default :
@@ -220,6 +222,13 @@ public class MCPServer {
 		JsonObject result = new JsonObject();
 		JsonObject[] resources = {};
 		result.add("resources", gson.toJsonTree(resources));
+		return result;
+	}
+
+	private JsonObject handleResourcesTemplatesList() {
+		JsonObject result = new JsonObject();
+		JsonObject[] resourceTemplates = {};
+		result.add("resourceTemplates", gson.toJsonTree(resourceTemplates));
 		return result;
 	}
 

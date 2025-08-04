@@ -64,13 +64,21 @@ public class ResendPacketTool extends AuthenticatedMCPTool {
 
 		JsonObject targetProp = new JsonObject();
 		targetProp.addProperty("type", "string");
-		targetProp.addProperty("enum", "[\"request\", \"response\", \"both\"]");
+		JsonArray targetEnum = new JsonArray();
+		targetEnum.add("request");
+		targetEnum.add("response");
+		targetEnum.add("both");
+		targetProp.add("enum", targetEnum);
 		targetProp.addProperty("description", "Target to modify: request, response, or both");
 		modificationProps.add("target", targetProp);
 
 		JsonObject typeProp = new JsonObject();
 		typeProp.addProperty("type", "string");
-		typeProp.addProperty("enum", "[\"regex_replace\", \"header_add\", \"header_modify\"]");
+		JsonArray typeEnum = new JsonArray();
+		typeEnum.add("regex_replace");
+		typeEnum.add("header_add");
+		typeEnum.add("header_modify");
+		typeProp.add("enum", typeEnum);
 		typeProp.addProperty("description", "Type of modification");
 		modificationProps.add("type", typeProp);
 
