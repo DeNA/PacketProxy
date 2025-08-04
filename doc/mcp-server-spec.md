@@ -491,6 +491,140 @@ PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変�
 }
 ```
 
+### 8. `bulk_send` - 複数パケット一括送信
+
+複数のパケットを一括で送信します。並列・順次送信モード、動的パラメータ、改変機能をサポートします。
+
+**リクエスト:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "bulk_send",
+    "arguments": {
+      "access_token": "your_access_token_here",
+      "packet_ids": [123, 124, 125],
+      "mode": "sequential",
+      "count": 2,
+      "interval_ms": 500,
+      "modifications": [
+        {
+          "type": "header_add",
+          "name": "X-Test-Run",
+          "value": "{{timestamp}}"
+        }
+      ],
+      "regex_params": [
+        {
+          "pattern": "token=([a-zA-Z0-9]+)",
+          "value_template": "token={{random}}-{{packet_index}}",
+          "target": "request"
+        }
+      ],
+      "allow_duplicate_headers": false,
+      "async": false,
+      "timeout_ms": 30000
+    }
+  },
+  "id": 8
+}
+```
+
+**パラメータ:**
+- `access_token` (string, required): PacketProxy設定のアクセストークン
+- `packet_ids` (array, required): 送信するパケットIDの配列 (1-100個)
+- `mode` (string, optional): 送信モード "parallel" | "sequential" (デフォルト: "parallel")
+- `count` (number, optional): 各パケットの送信回数 (デフォルト: 1, 最大: 1000)
+- `interval_ms` (number, optional): 送信間隔(ms) (順次モードのみ, デフォルト: 0, 最大: 60000)
+- `modifications` (array, optional): 全パケットに適用する改変設定 (resend_packetと同じ形式)
+- `regex_params` (array, optional): 動的値置換パラメータ
+- `allow_duplicate_headers` (boolean, optional): ヘッダー重複許可 (デフォルト: false)
+- `async` (boolean, optional): 非同期実行 (デフォルト: false)
+- `timeout_ms` (number, optional): 全体タイムアウト(ms) (デフォルト: 30000, 最大: 300000)
+
+**regex_params設定:**
+- `packet_index` (number, optional): 対象パケットインデックス (0ベース、省略時は全パケット)
+- `pattern` (string, required): マッチする正規表現パターン
+- `value_template` (string, required): 置換テンプレート (変数: {{packet_index}}, {{timestamp}}, {{random}}, {{uuid}})
+- `target` (string, optional): 対象 "request" | "response" | "both" (デフォルト: "request")
+
+**送信モード:**
+- `parallel`: 全パケットを並列送信 (高速、interval_msは無視)
+- `sequential`: パケットを順次送信 (制御された実行、regex_paramsによる値の引き継ぎ)
+
+**レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "success": true,
+    "mode": "sequential",
+    "total_packets": 3,
+    "total_count": 6,
+    "sent_count": 5,
+    "failed_count": 1,
+    "execution_time_ms": 1250,
+    "results": [
+      {
+        "original_packet_id": 123,
+        "packet_index": 0,
+        "success": true,
+        "sent_count": 2,
+        "failed_count": 0,
+        "new_packet_ids": [145, 146],
+        "error": null,
+        "execution_time_ms": 245
+      },
+      {
+        "original_packet_id": 124,
+        "packet_index": 1,
+        "success": false,
+        "sent_count": 0,
+        "failed_count": 2,
+        "new_packet_ids": [],
+        "error": "Connection timeout",
+        "execution_time_ms": 5000
+      }
+    ],
+    "regex_params_applied": [
+      {
+        "packet_index": 0,
+        "pattern": "token=([a-zA-Z0-9]+)",
+        "extracted_value": "abc123def",
+        "applied_count": 1
+      }
+    ],
+    "performance": {
+      "packets_per_second": 4.0,
+      "average_response_time_ms": 312,
+      "concurrent_connections": 3
+    },
+    "job_id": null
+  },
+  "id": 8
+}
+```
+
+**非同期実行レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "async": true,
+    "job_id": "bulk_send_20250804_120030_abc123",
+    "status": "started",
+    "total_packets": 50,
+    "estimated_duration_ms": 30000,
+    "monitor_url": "/mcp/bulk_send/status/bulk_send_20250804_120030_abc123"
+  },
+  "id": 8
+}
+```
+
 ## フィルタ構文仕様
 
 PacketProxyのFilterTextParserに準拠した構文を使用します。
@@ -571,6 +705,7 @@ GET  /mcp/packet/{id}                    # パケット詳細
 GET  /mcp/configs                        # 設定一覧
 PUT  /mcp/configs                        # 設定更新
 POST /mcp/resend/{packet_id}             # パケット再送
+POST /mcp/bulk_send                      # 複数パケット一括送信
 GET  /mcp/logs?level=info                # ログ取得
 POST /mcp/restore/{backup_id}             # バックアップ復元
 ```
