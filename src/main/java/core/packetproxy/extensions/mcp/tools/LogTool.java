@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import packetproxy.gui.GUILog;
 
-public class LogTool implements MCPTool {
+public class LogTool extends AuthenticatedMCPTool {
 
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 	private final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
@@ -57,11 +57,11 @@ public class LogTool implements MCPTool {
 		filterProp.addProperty("description", "Regular expression filter for log messages");
 		schema.add("filter", filterProp);
 
-		return schema;
+		return addAccessTokenToSchema(schema);
 	}
 
 	@Override
-	public JsonObject call(JsonObject arguments) throws Exception {
+	protected JsonObject executeAuthenticated(JsonObject arguments) throws Exception {
 		log("LogTool called with arguments: " + arguments.toString());
 
 		String level = arguments.has("level") ? arguments.get("level").getAsString() : "info";

@@ -197,7 +197,7 @@ public class MCPServerExtension extends Extension {
 				configRequest.addProperty("method", "tools/call");
 
 				JsonObject configParams = new JsonObject();
-				configParams.addProperty("name", "get_configs");
+				configParams.addProperty("name", "get_config");
 				configParams.add("arguments", new JsonObject());
 				configRequest.add("params", configParams);
 				configRequest.addProperty("id", 2);

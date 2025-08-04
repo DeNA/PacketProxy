@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 
-public class PacketDetailTool implements MCPTool {
+public class PacketDetailTool extends AuthenticatedMCPTool {
 
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 	private final Gson gson = new Gson();
@@ -40,11 +40,11 @@ public class PacketDetailTool implements MCPTool {
 		includeBodyProp.addProperty("default", false);
 		schema.add("include_body", includeBodyProp);
 
-		return schema;
+		return addAccessTokenToSchema(schema);
 	}
 
 	@Override
-	public JsonObject call(JsonObject arguments) throws Exception {
+	protected JsonObject executeAuthenticated(JsonObject arguments) throws Exception {
 		log("PacketDetailTool called with arguments: " + arguments.toString());
 
 		if (!arguments.has("packet_id")) {

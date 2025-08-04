@@ -26,6 +26,24 @@ PacketProxy MCP サーバーは、Model Context Protocol (MCP) を使用してPa
                                     └─────────────────┘
 ```
 
+## 認証
+
+**すべてのMCPツール**は認証が必要です。各ツールの呼び出し時に`access_token`パラメータを指定する必要があります。
+
+### アクセストークンの取得方法
+
+1. PacketProxyの**Settings**タブを開く
+2. **Import/Export configs (Experimental)**セクションを見つける
+3. **Enabled**チェックボックスを有効にする
+4. 自動生成された**AccessToken**をコピーする
+5. MCPツール呼び出し時に`access_token`パラメータとして使用する
+
+### 認証エラーの場合
+
+- アクセストークンが未設定: PacketProxyでconfig sharingを有効にしてください
+- アクセストークンが無効: Settings画面で正しいトークンを確認してください  
+- アクセストークンが空: 必須パラメータのため、必ず指定してください
+
 ## MCPツール一覧
 
 ### 1. `get_history` - パケット履歴取得
@@ -41,12 +59,10 @@ PacketProxyのパケット履歴を検索・取得します。
   "params": {
     "name": "get_history",
     "arguments": {
+      "access_token": "your_access_token_here",
       "limit": 100,
       "offset": 0,
-      "filter": "method == GET && url =~ /api/",
-      "columns": ["id", "method", "url", "status", "length", "time"],
-      "sort_by": "time",
-      "sort_order": "desc"
+      "filter": "method == GET && url =~ /api/"
     }
   },
   "id": 1
@@ -54,12 +70,10 @@ PacketProxyのパケット履歴を検索・取得します。
 ```
 
 **パラメータ:**
+- `access_token` (string, required): PacketProxy設定のアクセストークン
 - `limit` (number, optional): 取得件数 (デフォルト: 100)
 - `offset` (number, optional): オフセット (デフォルト: 0)
 - `filter` (string, optional): PacketProxy Filter構文による絞り込み
-- `columns` (array, optional): 取得するカラム
-- `sort_by` (string, optional): ソート対象カラム (デフォルト: time)
-- `sort_order` (string, optional): "asc" | "desc" (デフォルト: desc)
 
 **レスポンス:**
 
@@ -99,6 +113,7 @@ PacketProxyのパケット履歴を検索・取得します。
   "params": {
     "name": "get_packet_detail",
     "arguments": {
+      "access_token": "your_access_token_here",
       "packet_id": 123,
       "include_body": true
     }
@@ -108,6 +123,7 @@ PacketProxyのパケット履歴を検索・取得します。
 ```
 
 **パラメータ:**
+- `access_token` (string, required): PacketProxy設定のアクセストークン
 - `packet_id` (number, required): パケットID
 - `include_body` (boolean, optional): リクエスト/レスポンスボディを含める (デフォルト: false)
 
@@ -144,9 +160,9 @@ PacketProxyのパケット履歴を検索・取得します。
 }
 ```
 
-### 3. `get_configs` - 設定情報取得
+### 3. `get_config` - 設定情報取得
 
-PacketProxyの設定情報を取得します。
+PacketProxyの設定情報をHTTP API (`http://localhost:32349/config`) 経由で取得します。PacketProxyHub互換の完全な設定形式で返されます。
 
 **リクエスト:**
 
@@ -155,9 +171,10 @@ PacketProxyの設定情報を取得します。
   "jsonrpc": "2.0",
   "method": "tools/call",
   "params": {
-    "name": "get_configs",
+    "name": "get_config",
     "arguments": {
-      "categories": ["listenPorts", "servers"]
+      "categories": ["listenPorts", "servers"],
+      "access_token": "your_access_token_here"
     }
   },
   "id": 3
@@ -165,11 +182,12 @@ PacketProxyの設定情報を取得します。
 ```
 
 **パラメータ:**
+- `access_token` (string, required): PacketProxy設定のアクセストークン
 - `categories` (array, optional): 取得するカテゴリ (空の場合は全て)
-- `listenPorts`: リッスンポート設定
-- `servers`: サーバー設定
-- `modifications`: 改変設定
-- `sslPassThroughs`: SSL パススルー設定
+  - `listenPorts`: リッスンポート設定
+  - `servers`: サーバー設定  
+  - `modifications`: 改変設定
+  - `sslPassThroughs`: SSL パススルー設定
 
 **レスポンス:**
 
@@ -177,26 +195,12 @@ PacketProxyの設定情報を取得します。
 {
   "jsonrpc": "2.0",
   "result": {
-    "listenPorts": [
+    "content": [
       {
-        "id": 1,
-        "port": 8080,
-        "protocol": "HTTP",
-        "serverId": 1,
-        "enabled": true
+        "type": "text",
+        "text": "{\"listenPorts\":[{\"id\":1,\"enabled\":true,\"ca_name\":\"PacketProxy per-user CA\",\"port\":8080,\"type\":\"HTTP_PROXY\",\"server_id\":1}],\"servers\":[{\"id\":1,\"ip\":\"target.com\",\"port\":443,\"encoder\":\"HTTPS\",\"use_ssl\":true,\"resolved_by_dns\":false,\"resolved_by_dns6\":false,\"http_proxy\":false,\"comment\":\"\",\"specifiedByHostName\":false}]}"
       }
-    ],
-    "servers": [
-      {
-        "id": 1,
-        "host": "target.com",
-        "port": 443,
-        "protocol": "HTTPS",
-        "enabled": true
-      }
-    ],
-    "modifications": [],
-    "sslPassThroughs": []
+    ]
   },
   "id": 3
 }
@@ -204,7 +208,7 @@ PacketProxyの設定情報を取得します。
 
 ### 4. `update_config` - 設定変更
 
-PacketProxyの設定を変更します。PacketProxyHub互換の形式を使用します。
+PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変更します。PacketProxyHub互換の形式を使用し、指定されたIDが含まれない項目は自動的に削除されます。
 
 **リクエスト:**
 
@@ -217,19 +221,51 @@ PacketProxyの設定を変更します。PacketProxyHub互換の形式を使用�
     "arguments": {
       "config_json": {
         "listenPorts": [
-          {"id": 1, "port": 8080, "protocol": "HTTP", "serverId": 1}
+          {
+            "id": 1,
+            "enabled": true,
+            "ca_name": "PacketProxy per-user CA",
+            "port": 8080,
+            "type": "HTTP_PROXY",
+            "server_id": 1
+          }
         ],
         "servers": [
-          {"id": 1, "host": "target.com", "port": 443, "protocol": "HTTPS"}
+          {
+            "id": 1,
+            "ip": "target.com",
+            "port": 443,
+            "encoder": "HTTPS",
+            "use_ssl": true,
+            "resolved_by_dns": false,
+            "resolved_by_dns6": false,
+            "http_proxy": false,
+            "comment": "",
+            "specifiedByHostName": false
+          }
         ],
         "modifications": [
-          {"id": 1, "name": "Add Header", "pattern": ".*", "replacement": "X-Test: 1"}
+          {
+            "id": 1,
+            "enabled": true,
+            "server_id": 1,
+            "direction": "CLIENT_REQUEST",
+            "pattern": ".*",
+            "method": "SIMPLE",
+            "replaced": "X-Test: 1"
+          }
         ],
         "sslPassThroughs": [
-          {"id": 1, "host": "secure.com", "port": 443}
+          {
+            "id": 1,
+            "enabled": true,
+            "server_name": "secure.com",
+            "listen_port": 443
+          }
         ]
       },
-      "backup": true
+      "backup": true,
+      "access_token": "your_access_token_here"
     }
   },
   "id": 4
@@ -237,8 +273,14 @@ PacketProxyの設定を変更します。PacketProxyHub互換の形式を使用�
 ```
 
 **パラメータ:**
-- `config_json` (object, required): PacketProxyHub互換の設定JSON
+- `access_token` (string, required): PacketProxy設定のアクセストークン
+- `config_json` (object, required): PacketProxyHub互換の設定JSON（完全な形式）
 - `backup` (boolean, optional): 既存設定をバックアップ (デフォルト: true)
+
+**設定削除について:**
+- `config_json`に含まれないIDの項目は自動的に削除されます
+- 例: serversに`id:1`のみ含まれている場合、`id:2,3...`のサーバーは削除されます
+- HTTP APIは既存設定を完全に置き換える方式で動作します
 
 **レスポンス:**
 
@@ -246,14 +288,12 @@ PacketProxyの設定を変更します。PacketProxyHub互換の形式を使用�
 {
   "jsonrpc": "2.0",
   "result": {
-    "success": true,
-    "backup_created": true,
-    "backup_info": {
-      "backup_id": "backup_20250115_103000",
-      "backup_path": "/path/to/backups/config_backup_20250115_103000.json",
-      "timestamp": "2025-01-15T10:30:00Z"
-    },
-    "config_updated": true
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"success\": true, \"backup_created\": true, \"backup_info\": {\"backup_id\": \"backup_20250804_120000\", \"backup_path\": \"backup/backup_20250804_120000.json\", \"timestamp\": \"2025-08-04T12:00:00Z\"}, \"config_updated\": true}"
+      }
+    ]
   },
   "id": 4
 }
@@ -345,6 +385,7 @@ PacketProxyのログを取得します。
   "params": {
     "name": "get_logs",
     "arguments": {
+      "access_token": "your_access_token_here",
       "level": "info",
       "limit": 100,
       "since": "2025-01-15T00:00:00Z",
@@ -356,6 +397,7 @@ PacketProxyのログを取得します。
 ```
 
 **パラメータ:**
+- `access_token` (string, required): PacketProxy設定のアクセストークン
 - `level` (string, optional): ログレベル "debug" | "info" | "warn" | "error"
 - `limit` (number, optional): 取得件数 (デフォルト: 100)
 - `since` (string, optional): 開始時刻 (ISO 8601形式)
@@ -565,7 +607,7 @@ PacketProxyのログを取得します。
 }
 ```
 
-### 10. `restore_config_backup` - 設定バックアップ復元
+### 10. `restore_config` - 設定バックアップ復元
 
 指定したバックアップから設定を復元します。
 
@@ -576,8 +618,9 @@ PacketProxyのログを取得します。
   "jsonrpc": "2.0",
   "method": "tools/call",
   "params": {
-    "name": "restore_config_backup",
+    "name": "restore_config",
     "arguments": {
+      "access_token": "your_access_token_here",
       "backup_id": "backup_20250115_103000"
     }
   },
@@ -585,15 +628,22 @@ PacketProxyのログを取得します。
 }
 ```
 
+**パラメータ:**
+- `access_token` (string, required): PacketProxy設定のアクセストークン
+- `backup_id` (string, required): 復元するバックアップID
+
 **レスポンス:**
 
 ```json
 {
   "jsonrpc": "2.0",
   "result": {
-    "success": true,
-    "restored_from": "backup_20250115_103000",
-    "backup_created": "backup_20250115_104500"
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"success\": true, \"backup_id_restored\": \"backup_20250115_103000\", \"config_restored\": true}"
+      }
+    ]
   },
   "id": 10
 }
@@ -677,7 +727,7 @@ GET  /mcp/logs?level=info                # ログ取得
 GET  /mcp/filters                        # フィルタ一覧
 POST /mcp/filters/validate               # フィルタ検証
 GET  /mcp/backups                        # バックアップ一覧
-POST /mcp/backups/{backup_id}/restore    # バックアップ復元
+POST /mcp/restore/{backup_id}             # バックアップ復元
 ```
 
 ### 認証

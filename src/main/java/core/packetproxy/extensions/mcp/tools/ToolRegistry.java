@@ -15,10 +15,12 @@ public class ToolRegistry {
 	}
 
 	private void registerDefaultTools() {
-		// 基本的な4つのツールを登録
+		// 基本的なツールを登録
 		registerTool(new HistoryTool());
 		registerTool(new PacketDetailTool());
 		registerTool(new ConfigTool());
+		registerTool(new UpdateConfigTool());
+		registerTool(new RestoreConfigTool());
 		registerTool(new LogTool());
 	}
 

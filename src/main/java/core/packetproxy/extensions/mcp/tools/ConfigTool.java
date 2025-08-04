@@ -6,22 +6,42 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.util.List;
+import packetproxy.model.CharSet;
+import packetproxy.model.CharSets;
+import packetproxy.model.ClientCertificate;
+import packetproxy.model.ClientCertificates;
+import packetproxy.model.Config;
+import packetproxy.model.Configs;
+import packetproxy.model.Extension;
+import packetproxy.model.Extensions;
+import packetproxy.model.Filter;
+import packetproxy.model.Filters;
+import packetproxy.model.InterceptOption;
+import packetproxy.model.InterceptOptions;
 import packetproxy.model.ListenPort;
 import packetproxy.model.ListenPorts;
 import packetproxy.model.Modification;
 import packetproxy.model.Modifications;
+import packetproxy.model.OpenVPNForwardPort;
+import packetproxy.model.OpenVPNForwardPorts;
+import packetproxy.model.Resolution;
+import packetproxy.model.Resolutions;
 import packetproxy.model.SSLPassThrough;
 import packetproxy.model.SSLPassThroughs;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
-public class ConfigTool implements MCPTool {
+public class ConfigTool extends AuthenticatedMCPTool {
 
 	private final Gson gson = new Gson();
 
 	@Override
 	public String getName() {
-		return "get_configs";
+		return "get_config";
 	}
 
 	@Override
@@ -44,45 +64,37 @@ public class ConfigTool implements MCPTool {
 		enumValues.add("servers");
 		enumValues.add("modifications");
 		enumValues.add("sslPassThroughs");
+		enumValues.add("resolutions");
+		enumValues.add("interceptOptions");
+		enumValues.add("clientCertificates");
+		enumValues.add("generalConfigs");
+		enumValues.add("extensions");
+		enumValues.add("filters");
+		enumValues.add("openVPNForwardPorts");
+		enumValues.add("charSets");
 		itemsProp.add("enum", enumValues);
 		categoriesProp.add("items", itemsProp);
 
 		schema.add("categories", categoriesProp);
 
-		return schema;
+		return addAccessTokenToSchema(schema);
 	}
 
 	@Override
-	public JsonObject call(JsonObject arguments) throws Exception {
+	protected JsonObject executeAuthenticated(JsonObject arguments) throws Exception {
 		log("ConfigTool called with arguments: " + arguments.toString());
 
-		JsonArray categories = null;
-		if (arguments.has("categories")) {
-			categories = arguments.getAsJsonArray("categories");
-		}
-
-		JsonObject result = new JsonObject();
-
 		try {
-			if (shouldIncludeCategory(categories, "listenPorts")) {
-				result.add("listenPorts", getListenPorts());
-			}
-
-			if (shouldIncludeCategory(categories, "servers")) {
-				result.add("servers", getServers());
-			}
-
-			if (shouldIncludeCategory(categories, "modifications")) {
-				result.add("modifications", getModifications());
-			}
-
-			if (shouldIncludeCategory(categories, "sslPassThroughs")) {
-				result.add("sslPassThroughs", getSSLPassThroughs());
-			}
+			// HTTP APIで設定を取得
+			String configJson = getConfigFromHttpApi();
+			
+			// categoriesでフィルタリングが指定されている場合はフィルタリングを適用
+			JsonObject allConfig = gson.fromJson(configJson, JsonObject.class);
+			JsonObject filteredConfig = filterByCategories(allConfig, arguments);
 
 			JsonObject content = new JsonObject();
 			content.addProperty("type", "text");
-			content.addProperty("text", gson.toJson(result));
+			content.addProperty("text", gson.toJson(filteredConfig));
 
 			JsonArray contentArray = new JsonArray();
 			contentArray.add(content);
@@ -90,7 +102,7 @@ public class ConfigTool implements MCPTool {
 			JsonObject mcpResult = new JsonObject();
 			mcpResult.add("content", contentArray);
 
-			log("ConfigTool returning configuration");
+			log("ConfigTool returning configuration from HTTP API");
 			return mcpResult;
 
 		} catch (Exception e) {
@@ -98,86 +110,56 @@ public class ConfigTool implements MCPTool {
 			throw new Exception("Failed to get configuration: " + e.getMessage());
 		}
 	}
-
-	private boolean shouldIncludeCategory(JsonArray categories, String category) {
-		if (categories == null || categories.size() == 0) {
-			return true; // Include all if not specified
+	
+	private String getConfigFromHttpApi() throws Exception {
+		// 設定済みAccessTokenを取得（HTTPリクエスト用）
+		String accessToken = getConfiguredAccessToken();
+		
+		// HTTP GETリクエスト
+		URL url = new URL("http://localhost:32349/config");
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setRequestMethod("GET");
+		conn.setRequestProperty("Authorization", accessToken);
+		conn.setConnectTimeout(5000);
+		conn.setReadTimeout(10000);
+		
+		int responseCode = conn.getResponseCode();
+		if (responseCode != 200) {
+			throw new Exception("HTTP API returned status: " + responseCode + ". Check if config sharing is enabled.");
 		}
-
+		
+		// レスポンスを読み取り
+		BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+		StringBuilder response = new StringBuilder();
+		String line;
+		while ((line = reader.readLine()) != null) {
+			response.append(line);
+		}
+		reader.close();
+		conn.disconnect();
+		
+		return response.toString();
+	}
+	
+	private JsonObject filterByCategories(JsonObject config, JsonObject arguments) {
+		if (!arguments.has("categories")) {
+			return config; // カテゴリ指定がない場合は全て返す
+		}
+		
+		JsonArray categories = arguments.getAsJsonArray("categories");
+		if (categories.size() == 0) {
+			return config; // 空の場合は全て返す
+		}
+		
+		JsonObject filtered = new JsonObject();
 		for (int i = 0; i < categories.size(); i++) {
-			if (categories.get(i).getAsString().equals(category)) {
-				return true;
+			String category = categories.get(i).getAsString();
+			if (config.has(category)) {
+				filtered.add(category, config.get(category));
 			}
 		}
-		return false;
+		
+		return filtered;
 	}
 
-	private JsonArray getListenPorts() throws Exception {
-		JsonArray portsArray = new JsonArray();
-		List<ListenPort> ports = ListenPorts.getInstance().queryAll();
-
-		for (ListenPort port : ports) {
-			JsonObject portJson = new JsonObject();
-			portJson.addProperty("id", port.getId());
-			portJson.addProperty("port", port.getPort());
-			portJson.addProperty("protocol", port.getProtocol().toString());
-			portJson.addProperty("type", port.getType().toString());
-			portJson.addProperty("serverId", port.getServerId());
-			portJson.addProperty("enabled", port.isEnabled());
-			portsArray.add(portJson);
-		}
-
-		return portsArray;
-	}
-
-	private JsonArray getServers() throws Exception {
-		JsonArray serversArray = new JsonArray();
-		List<Server> servers = Servers.getInstance().queryAll();
-
-		for (Server server : servers) {
-			JsonObject serverJson = new JsonObject();
-			serverJson.addProperty("id", server.getId());
-			serverJson.addProperty("ip", server.getIp());
-			serverJson.addProperty("port", server.getPort());
-			serverJson.addProperty("encoder", server.getEncoder());
-			serverJson.addProperty("use_ssl", server.getUseSSL());
-			serverJson.addProperty("comment", server.getComment());
-			serversArray.add(serverJson);
-		}
-
-		return serversArray;
-	}
-
-	private JsonArray getModifications() throws Exception {
-		JsonArray modificationsArray = new JsonArray();
-		List<Modification> modifications = Modifications.getInstance().queryAll();
-
-		for (Modification mod : modifications) {
-			JsonObject modJson = new JsonObject();
-			modJson.addProperty("id", mod.getId());
-			modJson.addProperty("direction", mod.getDirection().toString());
-			modJson.addProperty("method", mod.getMethod().toString());
-			modJson.addProperty("pattern", mod.getPattern());
-			modJson.addProperty("replaced", mod.getReplaced());
-			modJson.addProperty("serverId", mod.getServerId());
-			modificationsArray.add(modJson);
-		}
-
-		return modificationsArray;
-	}
-
-	private JsonArray getSSLPassThroughs() throws Exception {
-		JsonArray passThroughsArray = new JsonArray();
-		List<SSLPassThrough> passThroughs = SSLPassThroughs.getInstance().queryAll();
-
-		for (SSLPassThrough passThrough : passThroughs) {
-			JsonObject passThroughJson = new JsonObject();
-			passThroughJson.addProperty("id", passThrough.getId());
-			passThroughJson.addProperty("server_name", passThrough.getServerName());
-			passThroughJson.addProperty("listen_port", passThrough.getListenPort());
-			passThroughsArray.add(passThroughJson);
-		}
-
-		return passThroughsArray;
-	}
 }

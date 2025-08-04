@@ -79,8 +79,12 @@ public class MCPServer {
 
 		JsonObject response = new JsonObject();
 		response.addProperty("jsonrpc", "2.0");
-		if (id != null) {
+		// Always ensure ID is present - use original request ID or default
+		if (id != null && !id.isJsonNull()) {
 			response.add("id", id);
+		} else {
+			// If no valid ID in request, use default ID
+			response.addProperty("id", 0);
 		}
 
 		try {
@@ -91,7 +95,8 @@ public class MCPServer {
 			error.addProperty("code", -32603);
 			error.addProperty("message", "Internal error: " + e.getMessage());
 			response.add("error", error);
-			throw e;
+			// Don't throw exception - return error response instead
+			logger.accept("Method error: " + e.getMessage());
 		}
 
 		return response;
@@ -107,8 +112,12 @@ public class MCPServer {
 
 			JsonObject response = new JsonObject();
 			response.addProperty("jsonrpc", "2.0");
-			if (id != null) {
+			// Always ensure ID is present - use original request ID or default
+			if (id != null && !id.isJsonNull()) {
 				response.add("id", id);
+			} else {
+				// If no valid ID in request, use default ID
+				response.addProperty("id", 0);
 			}
 
 			try {

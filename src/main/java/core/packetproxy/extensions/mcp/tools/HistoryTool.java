@@ -13,7 +13,7 @@ import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 import packetproxy.common.FilterTextParser;
 
-public class HistoryTool implements MCPTool {
+public class HistoryTool extends AuthenticatedMCPTool {
 
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 	private final Gson gson = new Gson();
@@ -54,11 +54,11 @@ public class HistoryTool implements MCPTool {
 		);
 		schema.add("filter", filterProp);
 
-		return schema;
+		return addAccessTokenToSchema(schema);
 	}
 
 	@Override
-	public JsonObject call(JsonObject arguments) throws Exception {
+	protected JsonObject executeAuthenticated(JsonObject arguments) throws Exception {
 		log("HistoryTool called with arguments: " + arguments.toString());
 
 		int limit = arguments.has("limit") ? arguments.get("limit").getAsInt() : 100;
