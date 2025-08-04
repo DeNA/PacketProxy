@@ -14,6 +14,14 @@ const os = require('os');
 // Configuration
 const PACKETPROXY_HTTP_URL = 'http://localhost:8765/mcp';
 const LOCK_FILE = path.join(os.tmpdir(), 'mcp-http-bridge.lock');
+const DEBUG_MODE = process.env.MCP_DEBUG === 'true';
+
+// Debug logging function
+function debugLog(message) {
+    if (DEBUG_MODE) {
+        console.error(message);
+    }
+}
 
 // Single instance enforcement
 function ensureSingleInstance() {
@@ -79,7 +87,7 @@ class MCPHttpBridge {
     }
 
     async handleRequest(request) {
-        console.log(`[DEBUG] Processing request: ${request.method}`);
+        debugLog(`[DEBUG] Processing request: ${request.method}`);
 
         switch (request.method) {
             case 'initialize':
@@ -103,7 +111,7 @@ class MCPHttpBridge {
 
     async handleInitialize(request) {
         this.initialized = true;
-        console.log('[DEBUG] Initialize request - forwarding to PacketProxy');
+        debugLog('[DEBUG] Initialize request - forwarding to PacketProxy');
         
         try {
             const response = await this.forwardToPacketProxy(request);
@@ -115,13 +123,13 @@ class MCPHttpBridge {
     }
 
     async handleNotificationInitialized(request) {
-        console.log('[DEBUG] Notification initialized received (no response needed)');
+        debugLog('[DEBUG] Notification initialized received (no response needed)');
         // Notifications don't require a response, return null
         return null;
     }
 
     async handleResourcesList(request) {
-        console.log('[DEBUG] Resources list request - forwarding to PacketProxy');
+        debugLog('[DEBUG] Resources list request - forwarding to PacketProxy');
         try {
             const response = await this.forwardToPacketProxy(request);
             return response;
@@ -132,7 +140,7 @@ class MCPHttpBridge {
     }
 
     async handleResourcesTemplatesList(request) {
-        console.log('[DEBUG] Resources templates list request - forwarding to PacketProxy');
+        debugLog('[DEBUG] Resources templates list request - forwarding to PacketProxy');
         try {
             const response = await this.forwardToPacketProxy(request);
             return response;
@@ -143,7 +151,7 @@ class MCPHttpBridge {
     }
 
     async handlePromptsList(request) {
-        console.log('[DEBUG] Prompts list request - forwarding to PacketProxy');
+        debugLog('[DEBUG] Prompts list request - forwarding to PacketProxy');
         try {
             const response = await this.forwardToPacketProxy(request);
             return response;
@@ -158,7 +166,7 @@ class MCPHttpBridge {
             return this.createErrorResponse(request.id, -32002, "Server not initialized");
         }
 
-        console.log('[DEBUG] Tools list request - forwarding to PacketProxy');
+        debugLog('[DEBUG] Tools list request - forwarding to PacketProxy');
         
         try {
             const response = await this.forwardToPacketProxy(request);
@@ -174,7 +182,7 @@ class MCPHttpBridge {
             return this.createErrorResponse(request.id, -32002, "Server not initialized");
         }
 
-        console.log(`[DEBUG] Tools call request: ${request.params?.name}`);
+        debugLog(`[DEBUG] Tools call request: ${request.params?.name}`);
         
         try {
             const response = await this.forwardToPacketProxy(request);
@@ -187,10 +195,36 @@ class MCPHttpBridge {
 
     async forwardToPacketProxy(request) {
         return new Promise((resolve, reject) => {
+            // 環境変数からアクセストークンを取得
+            const accessToken = process.env.PACKET_PROXY_ACCESS_TOKEN;
+            debugLog(`[DEBUG] Environment variable PACKET_PROXY_ACCESS_TOKEN: ${accessToken ? '[SET]' : '[NOT SET]'}`);
+            debugLog(`[DEBUG] Request method: ${request.method}`);
+            debugLog(`[DEBUG] Request params: ${JSON.stringify(request.params)}`);
+            
+            // tools/callリクエストの場合、arguments内にアクセストークンを追加
+            if (accessToken && request.method === 'tools/call' && request.params) {
+                if (!request.params.arguments) {
+                    request.params.arguments = {};
+                }
+                if (!request.params.arguments.access_token) {
+                    request.params.arguments.access_token = accessToken;
+                    debugLog(`[DEBUG] Added access token to tools/call arguments`);
+                }
+            }
+            // その他のリクエストでparamsが存在する場合
+            else if (accessToken && request.params && typeof request.params === 'object') {
+                if (!request.params.access_token) {
+                    request.params.access_token = accessToken;
+                    debugLog(`[DEBUG] Added access token to request params`);
+                }
+            } else if (!accessToken) {
+                debugLog(`[WARNING] PACKET_PROXY_ACCESS_TOKEN environment variable not set`);
+            }
+            
             const postData = JSON.stringify(request);
             
-            console.log(`[DEBUG] Forwarding to PacketProxy: ${postData}`);
-            console.log(`[DEBUG] Target URL: ${PACKETPROXY_HTTP_URL}`);
+            debugLog(`[DEBUG] Forwarding to PacketProxy: ${postData}`);
+            debugLog(`[DEBUG] Target URL: ${PACKETPROXY_HTTP_URL}`);
             
             const options = {
                 method: 'POST',
@@ -209,7 +243,7 @@ class MCPHttpBridge {
                 });
                 
                 res.on('end', () => {
-                    console.log(`[DEBUG] Raw response from PacketProxy (status: ${res.statusCode}): ${data}`);
+                    debugLog(`[DEBUG] Raw response from PacketProxy (status: ${res.statusCode}): ${data}`);
                     
                     if (res.statusCode !== 200) {
                         console.error(`[ERROR] HTTP error from PacketProxy: ${res.statusCode} ${res.statusMessage}`);
@@ -219,7 +253,7 @@ class MCPHttpBridge {
                     
                     try {
                         const response = JSON.parse(data);
-                        console.log(`[DEBUG] PacketProxy response parsed successfully`);
+                        debugLog(`[DEBUG] PacketProxy response parsed successfully`);
                         resolve(response);
                     } catch (error) {
                         console.error(`[ERROR] Failed to parse PacketProxy response: ${error.message}`);
@@ -263,7 +297,7 @@ async function main() {
     // Ensure only one instance can run
     ensureSingleInstance();
     
-    console.log('[DEBUG] PacketProxy MCP HTTP Bridge starting...');
+    debugLog('[DEBUG] PacketProxy MCP HTTP Bridge starting...');
     
     const bridge = new MCPHttpBridge();
     
@@ -283,7 +317,7 @@ async function main() {
             if (!trimmedLine) continue;
             
             try {
-                console.log(`[DEBUG] Received: ${trimmedLine}`);
+                debugLog(`[DEBUG] Received: ${trimmedLine}`);
                 const request = JSON.parse(trimmedLine);
                 const response = await bridge.handleRequest(request);
                 
@@ -291,9 +325,9 @@ async function main() {
                 if (response !== null) {
                     const responseStr = JSON.stringify(response);
                     process.stdout.write(responseStr + '\n');
-                    console.log(`[DEBUG] Sent: ${responseStr.length} characters`);
+                    debugLog(`[DEBUG] Sent: ${responseStr.length} characters`);
                 } else {
-                    console.log(`[DEBUG] No response needed (notification)`);
+                    debugLog(`[DEBUG] No response needed (notification)`);
                 }
             } catch (error) {
                 console.error(`[ERROR] Failed to process request: ${error.message}`);
@@ -320,13 +354,13 @@ async function main() {
     });
     
     process.stdin.on('end', () => {
-        console.log('[DEBUG] Bridge shutting down');
+        debugLog('[DEBUG] Bridge shutting down');
         process.exit(0);
     });
     
     // Handle process termination
     process.on('SIGINT', () => {
-        console.log('[DEBUG] Received SIGINT, shutting down');
+        debugLog('[DEBUG] Received SIGINT, shutting down');
         process.exit(0);
     });
 }

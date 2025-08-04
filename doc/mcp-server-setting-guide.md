@@ -37,7 +37,15 @@ MCP Server started
 HTTP endpoint available at http://localhost:8765/mcp
 ```
 
-### 2. Claude Desktop設定ファイルの編集
+### 2. アクセストークンの取得
+
+PacketProxy GUIでアクセストークンを有効化し、トークンを取得します：
+
+1. **Options** → **Setting** を選択
+2. **Import/Export configs** セクションで **Enable** にチェックを入れる
+3. 表示されたアクセストークンをコピーしておく
+
+### 3. Claude Desktop設定ファイルの編集
 
 Claude Desktopの設定ファイルを編集します：
 
@@ -46,7 +54,7 @@ Claude Desktopの設定ファイルを編集します：
 open ~/Library/Application\ Support/Claude/claude_desktop_config.json
 ```
 
-以下の内容を追加してください：
+以下の内容を追加してください（`your_access_token_here`の部分を手順2で取得したアクセストークンに置き換えてください）：
 
 ```json
 {
@@ -55,7 +63,10 @@ open ~/Library/Application\ Support/Claude/claude_desktop_config.json
             "command": "node",
             "args": [
                 "/Users/kakira/PacketProxy/scripts/mcp-http-bridge.js"
-            ]
+            ],
+            "env": {
+                "PACKET_PROXY_ACCESS_TOKEN": "your_access_token_here"
+            }
         }
     }
 }
@@ -74,7 +85,10 @@ open ~/Library/Application\ Support/Claude/claude_desktop_config.json
             "command": "node",
             "args": [
                 "/Users/kakira/PacketProxy/scripts/mcp-http-bridge.js"
-            ]
+            ],
+            "env": {
+                "PACKET_PROXY_ACCESS_TOKEN": "your_access_token_here"
+            }
         }
     }
 }
