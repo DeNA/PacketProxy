@@ -37,7 +37,13 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 
 	@Override
 	public String getDescription() {
-		return "Send multiple packets in bulk with optional modifications and multiple count support";
+		return "Send multiple packets in bulk with optional modifications. " +
+			   "Use packet_ids array to specify which packets to send (can repeat same ID for multiple variations). " +
+			   "Use regex_params to apply different modifications to each packet based on packet_index (0-based). " +
+			   "For full header replacement, use patterns like 'User-Agent: [^\\r\\n]*'. " +
+			   "For partial replacement, use capture groups like 'Content-Length: ([0-9]+)'. " +
+			   "The value_template supports variables like {{timestamp}}, {{random}}, {{uuid}}, {{packet_index}}. " +
+			   "Note: avoid using both packet_ids array with duplicates AND count parameter simultaneously to prevent unexpected multiplication of packets.";
 	}
 
 	@Override
@@ -590,14 +596,36 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 
 				if (matcher.find()) {
 					// マッチした値を抽出（後続パケットで使用可能）
-					String extractedValue = matcher.group(1);
-					if (extractedValue != null) {
-						String key = "packet_" + packetIndex + "_" + pattern;
-						extractedValues.put(key, extractedValue);
+					String extractedValue = null;
+					try {
+						// キャプチャグループがあるかチェック
+						if (matcher.groupCount() > 0) {
+							extractedValue = matcher.group(1);
+						} else {
+							// キャプチャグループがない場合は全体をマッチ
+							extractedValue = matcher.group(0);
+						}
+						
+						if (extractedValue != null) {
+							String key = "packet_" + packetIndex + "_" + pattern;
+							extractedValues.put(key, extractedValue);
+						}
+					} catch (Exception ex) {
+						log("BulkSendTool: Failed to extract value: " + ex.getMessage());
 					}
 
 					// 置換実行
+					String beforeReplace = dataStr;
 					dataStr = matcher.replaceAll(processedValue);
+					
+					// デバッグログ: 置換前後の比較
+					if (!beforeReplace.equals(dataStr)) {
+						log("BulkSendTool: Replacement successful - pattern: " + pattern);
+						log("BulkSendTool: Before: " + beforeReplace.substring(Math.max(0, matcher.start() - 20), Math.min(beforeReplace.length(), matcher.end() + 20)));
+						log("BulkSendTool: After: " + dataStr.substring(Math.max(0, dataStr.indexOf(processedValue) - 20), Math.min(dataStr.length(), dataStr.indexOf(processedValue) + processedValue.length() + 20)));
+					} else {
+						log("BulkSendTool: Warning: No replacement occurred for pattern: " + pattern);
+					}
 
 					// 適用結果を記録
 					RegexParamApplied applied = new RegexParamApplied();
@@ -608,10 +636,16 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 					appliedList.add(applied);
 
 					log("BulkSendTool: Regex param applied - pattern: " + pattern + ", value: " + processedValue);
+				} else {
+					log("BulkSendTool: Pattern not found in data - pattern: " + pattern);
+					// デバッグ用: データの一部を表示
+					String debugData = dataStr.length() > 200 ? dataStr.substring(0, 200) + "..." : dataStr;
+					log("BulkSendTool: Data sample: " + debugData.replace("\r\n", "\\r\\n"));
 				}
 
 			} catch (Exception e) {
 				log("BulkSendTool: Regex param failed: " + e.getMessage());
+				e.printStackTrace();
 			}
 		}
 
