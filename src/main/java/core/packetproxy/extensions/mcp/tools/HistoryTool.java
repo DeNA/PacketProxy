@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Comparator;
 import javax.swing.RowFilter;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
@@ -25,7 +26,7 @@ public class HistoryTool extends AuthenticatedMCPTool {
 
 	@Override
 	public String getDescription() {
-		return "Get packet history from PacketProxy";
+		return "Get packet history from PacketProxy with filtering and ordering capabilities";
 	}
 
 	@Override
@@ -54,6 +55,16 @@ public class HistoryTool extends AuthenticatedMCPTool {
 		);
 		schema.add("filter", filterProp);
 
+		JsonObject orderProp = new JsonObject();
+		orderProp.addProperty("type", "string");
+		orderProp.addProperty("description", 
+			"Order by column and direction. Format: 'column asc' or 'column desc'. " +
+			"Available columns: id, length, client_ip, client_port, server_ip, server_port, time, resend, modified, type, encode, group, method, url, status. " +
+			"Examples: 'time desc', 'id asc', 'length desc', 'status asc'"
+		);
+		orderProp.addProperty("default", "id desc");
+		schema.add("order", orderProp);
+
 		return addAccessTokenToSchema(schema);
 	}
 
@@ -64,6 +75,7 @@ public class HistoryTool extends AuthenticatedMCPTool {
 		int limit = arguments.has("limit") ? arguments.get("limit").getAsInt() : 100;
 		int offset = arguments.has("offset") ? arguments.get("offset").getAsInt() : 0;
 		String filter = arguments.has("filter") ? arguments.get("filter").getAsString() : null;
+		String order = arguments.has("order") ? arguments.get("order").getAsString() : "id desc";
 
 		// Validate parameters
 		if (limit < 1 || limit > 1000) {
@@ -82,6 +94,9 @@ public class HistoryTool extends AuthenticatedMCPTool {
 			if (filter != null && !filter.trim().isEmpty()) {
 				filteredPackets = applyFilter(allPackets, filter);
 			}
+
+			// Apply ordering
+			filteredPackets = applyOrdering(filteredPackets, order);
 
 			JsonArray packetsArray = new JsonArray();
 
@@ -102,6 +117,7 @@ public class HistoryTool extends AuthenticatedMCPTool {
 			if (filter != null && !filter.trim().isEmpty()) {
 				data.addProperty("filter_applied", filter);
 			}
+			data.addProperty("order_applied", order);
 
 			JsonObject content = new JsonObject();
 			content.addProperty("type", "text");
@@ -144,6 +160,124 @@ public class HistoryTool extends AuthenticatedMCPTool {
 		}
 		
 		return filtered;
+	}
+
+	private List<Packet> applyOrdering(List<Packet> packets, String orderString) throws Exception {
+		if (orderString == null || orderString.trim().isEmpty()) {
+			return packets;
+		}
+
+		String[] parts = orderString.trim().split("\\s+");
+		if (parts.length != 2) {
+			throw new Exception("Invalid order format. Expected 'column asc|desc', got: " + orderString);
+		}
+
+		String column = parts[0].toLowerCase();
+		String direction = parts[1].toLowerCase();
+
+		if (!direction.equals("asc") && !direction.equals("desc")) {
+			throw new Exception("Invalid order direction. Expected 'asc' or 'desc', got: " + direction);
+		}
+
+		boolean ascending = direction.equals("asc");
+		List<Packet> sortedPackets = new ArrayList<>(packets);
+
+		Comparator<Packet> comparator = getComparatorForColumn(column);
+		if (comparator == null) {
+			throw new Exception("Invalid order column: " + column);
+		}
+
+		if (!ascending) {
+			comparator = comparator.reversed();
+		}
+
+		sortedPackets.sort(comparator);
+		return sortedPackets;
+	}
+
+	private Comparator<Packet> getComparatorForColumn(String column) {
+		switch (column) {
+			case "id":
+				return Comparator.comparing(Packet::getId);
+			case "length":
+				return Comparator.comparing(p -> p.getDecodedData().length);
+			case "client_ip":
+				return Comparator.comparing(Packet::getClientIP, Comparator.nullsLast(String::compareTo));
+			case "client_port":
+				return Comparator.comparing(Packet::getClientPort);
+			case "server_ip":
+				return Comparator.comparing(Packet::getServerIP, Comparator.nullsLast(String::compareTo));
+			case "server_port":
+				return Comparator.comparing(Packet::getServerPort);
+			case "time":
+				return Comparator.comparing(Packet::getDate, Comparator.nullsLast(Comparator.naturalOrder()));
+			case "resend":
+				return Comparator.comparing(Packet::getResend);
+			case "modified":
+				return Comparator.comparing(Packet::getModified);
+			case "type":
+				return Comparator.comparing(Packet::getContentType, Comparator.nullsLast(String::compareTo));
+			case "encode":
+				return Comparator.comparing(Packet::getEncoder, Comparator.nullsLast(String::compareTo));
+			case "group":
+				return Comparator.comparing(Packet::getGroup);
+			case "method":
+				return Comparator.comparing(this::extractMethod, Comparator.nullsLast(String::compareTo));
+			case "url":
+				return Comparator.comparing(this::extractUrl, Comparator.nullsLast(String::compareTo));
+			case "status":
+				return Comparator.comparing(this::extractStatus, Comparator.nullsLast(Integer::compareTo));
+			default:
+				return null;
+		}
+	}
+
+	private String extractMethod(Packet packet) {
+		try {
+			String request = new String(packet.getDecodedData(), "UTF-8");
+			String[] lines = request.split("\n");
+			if (lines.length > 0) {
+				String[] requestLine = lines[0].split(" ");
+				if (requestLine.length >= 1) {
+					return requestLine[0];
+				}
+			}
+		} catch (Exception e) {
+			// Ignore
+		}
+		return null;
+	}
+
+	private String extractUrl(Packet packet) {
+		try {
+			String request = new String(packet.getDecodedData(), "UTF-8");
+			String[] lines = request.split("\n");
+			if (lines.length > 0) {
+				String[] requestLine = lines[0].split(" ");
+				if (requestLine.length >= 2) {
+					return requestLine[1];
+				}
+			}
+		} catch (Exception e) {
+			// Ignore
+		}
+		return null;
+	}
+
+	private Integer extractStatus(Packet packet) {
+		try {
+			String request = new String(packet.getDecodedData(), "UTF-8");
+			String[] lines = request.split("\n");
+			if (lines.length > 0) {
+				String[] requestLine = lines[0].split(" ");
+				if (requestLine.length >= 3 && requestLine[0].startsWith("HTTP/")) {
+					return Integer.parseInt(requestLine[1]);
+				}
+			}
+		} catch (Exception e) {
+			// Ignore
+		}
+		return null;
 	}
 
 	private Object[] createRowDataFromPacket(Packet packet) {

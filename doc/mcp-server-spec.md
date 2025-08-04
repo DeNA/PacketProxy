@@ -48,7 +48,7 @@ PacketProxy MCP サーバーは、Model Context Protocol (MCP) を使用してPa
 
 ### 1. `get_history` - パケット履歴取得
 
-PacketProxyのパケット履歴を検索・取得します。
+PacketProxyのパケット履歴を検索・取得します。フィルタリング、並び順指定、ページング機能を提供します。
 
 **リクエスト:**
 
@@ -62,7 +62,8 @@ PacketProxyのパケット履歴を検索・取得します。
       "access_token": "your_access_token_here",
       "limit": 100,
       "offset": 0,
-      "filter": "method == GET && url =~ /api/"
+      "filter": "method == GET && url =~ /api/",
+      "order": "time desc"
     }
   },
   "id": 1
@@ -74,6 +75,10 @@ PacketProxyのパケット履歴を検索・取得します。
 - `limit` (number, optional): 取得件数 (デフォルト: 100)
 - `offset` (number, optional): オフセット (デフォルト: 0)
 - `filter` (string, optional): PacketProxy Filter構文による絞り込み
+- `order` (string, optional): 並び順指定 (デフォルト: "id desc")
+  - 形式: `"カラム名 方向"` (例: `"time desc"`, `"length asc"`)
+  - 対応カラム: id, length, client_ip, client_port, server_ip, server_port, time, resend, modified, type, encode, group, method, url, status
+  - 方向: `asc` (昇順) または `desc` (降順)
 
 **レスポンス:**
 
@@ -94,7 +99,9 @@ PacketProxyのパケット履歴を検索・取得します。
       }
     ],
     "total_count": 1500,
-    "has_more": true
+    "has_more": true,
+    "filter_applied": "method == GET && url =~ /api/",
+    "order_applied": "time desc"
   },
   "id": 1
 }
@@ -671,7 +678,7 @@ PacketProxyのFilterTextParserに準拠した構文を使用します。
 | `type`        | string   | プロトコルタイプ        |
 | `encode`      | string   | エンコーダ種別         |
 | `alpn`        | string   | ALPN情報          |
-| `group`       | string   | グループ名           |
+| `group`       | integer  | グループID          |
 | `full_text`   | string   | 全文検索 (大文字小文字区別) |
 | `full_text_i` | string   | 全文検索 (大文字小文字無視) |
 
@@ -708,6 +715,12 @@ type == WebSocket
 
 # 複合条件
 method == POST && url =~ /login && status == 401
+
+# 並び順の例
+# 最新順: order: "time desc"
+# サイズ順: order: "length asc" 
+# エラー優先: order: "status desc"
+# ID逆順: order: "id desc"
 ```
 
 ## HTTP REST API (補完)
@@ -718,7 +731,7 @@ MCP以外の方法でもアクセス可能なHTTP REST APIを提供します。
 
 ```
 GET  /mcp/tools                          # ツール一覧
-GET  /mcp/history?filter=...&limit=100   # パケット履歴
+GET  /mcp/history?filter=...&limit=100&order=time+desc   # パケット履歴
 GET  /mcp/packet/{id}                    # パケット詳細
 GET  /mcp/configs                        # 設定一覧
 PUT  /mcp/configs                        # 設定更新
