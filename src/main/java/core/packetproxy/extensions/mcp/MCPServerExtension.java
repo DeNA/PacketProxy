@@ -157,7 +157,6 @@ public class MCPServerExtension extends Extension {
 		}
 	}
 
-
 	private void addLog(String message) {
 		if (logArea != null) {
 			javax.swing.SwingUtilities.invokeLater(() -> {

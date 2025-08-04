@@ -41,7 +41,7 @@ PacketProxy MCP サーバーは、Model Context Protocol (MCP) を使用してPa
 ### 認証エラーの場合
 
 - アクセストークンが未設定: PacketProxyでconfig sharingを有効にしてください
-- アクセストークンが無効: Settings画面で正しいトークンを確認してください  
+- アクセストークンが無効: Settings画面で正しいトークンを確認してください
 - アクセストークンが空: 必須パラメータのため、必ず指定してください
 
 ## MCPツール一覧
@@ -76,9 +76,9 @@ PacketProxyのパケット履歴を検索・取得します。フィルタリン
 - `offset` (number, optional): オフセット (デフォルト: 0)
 - `filter` (string, optional): PacketProxy Filter構文による絞り込み
 - `order` (string, optional): 並び順指定 (デフォルト: "id desc")
-  - 形式: `"カラム名 方向"` (例: `"time desc"`, `"length asc"`)
-  - 対応カラム: id, length, client_ip, client_port, server_ip, server_port, time, resend, modified, type, encode, group, method, url, status
-  - 方向: `asc` (昇順) または `desc` (降順)
+- 形式: `"カラム名 方向"` (例: `"time desc"`, `"length asc"`)
+- 対応カラム: id, length, client_ip, client_port, server_ip, server_port, time, resend, modified, type, encode, group, method, url, status
+- 方向: `asc` (昇順) または `desc` (降順)
 
 **レスポンス:**
 
@@ -191,10 +191,10 @@ PacketProxyの設定情報をHTTP API (`http://localhost:32349/config`) 経由�
 **パラメータ:**
 - `access_token` (string, required): PacketProxy設定のアクセストークン
 - `categories` (array, optional): 取得するカテゴリ (空の場合は全て)
-  - `listenPorts`: リッスンポート設定
-  - `servers`: サーバー設定  
-  - `modifications`: 改変設定
-  - `sslPassThroughs`: SSL パススルー設定
+- `listenPorts`: リッスンポート設定
+- `servers`: サーバー設定  
+- `modifications`: 改変設定
+- `sslPassThroughs`: SSL パススルー設定
 
 **レスポンス:**
 
@@ -335,7 +335,8 @@ PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変�
           "value": "{{timestamp}}"
         }
       ],
-      "async": false
+      "async": false,
+      "allow_duplicate_headers": false
     }
   },
   "id": 5
@@ -348,6 +349,7 @@ PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変�
 - `interval_ms` (number, optional): 送信間隔(ms) (デフォルト: 0)
 - `modifications` (array, optional): パケット改変設定
 - `async` (boolean, optional): 非同期実行 (デフォルト: false)
+- `allow_duplicate_headers` (boolean, optional): ヘッダー追加/変更時に重複を許可 (デフォルト: false)
 
 **改変設定:**
 - `target`: "request" | "response" | "both"
@@ -355,6 +357,10 @@ PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変�
 - `pattern`: 正規表現パターン (regex_replaceの場合)
 - `replacement` / `value`: 置換文字列
 - `name`: ヘッダー名 (header_add/header_modifyの場合)
+
+**ヘッダー重複制御:**
+- `allow_duplicate_headers=false` (デフォルト): 同名ヘッダーが存在する場合は既存を置換
+- `allow_duplicate_headers=true`: 同名ヘッダーが存在していても新しいヘッダーを追加
 
 **置換変数:**
 - `{{index}}`: 送信順序 (1, 2, 3...)

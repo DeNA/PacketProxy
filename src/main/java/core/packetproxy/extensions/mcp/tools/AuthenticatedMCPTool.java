@@ -16,29 +16,33 @@ public abstract class AuthenticatedMCPTool implements MCPTool {
 	protected void validateAccessToken(JsonObject arguments) throws Exception {
 		// MCP clientから渡されたAccessTokenを取得
 		if (!arguments.has("access_token")) {
-			throw new Exception("access_token parameter is required. Please provide your PacketProxy access token from Settings.");
+			throw new Exception(
+					"access_token parameter is required. Please provide your PacketProxy access token from Settings.");
 		}
-		
+
 		String providedToken = arguments.get("access_token").getAsString();
 		if (providedToken == null || providedToken.trim().isEmpty()) {
-			throw new Exception("access_token cannot be empty. Please provide your PacketProxy access token from Settings > Import/Export configs section.");
+			throw new Exception(
+					"access_token cannot be empty. Please provide your PacketProxy access token from Settings > Import/Export configs section.");
 		}
-		
+
 		// PacketProxy設定からAccessTokenを取得
 		String configuredToken = new ConfigString("SharingConfigsAccessToken").getString();
 		if (configuredToken.isEmpty()) {
-			throw new Exception("Access token not configured in PacketProxy. Please enable 'Import/Export configs' in PacketProxy Settings and copy the generated access token.");
+			throw new Exception(
+					"Access token not configured in PacketProxy. Please enable 'Import/Export configs' in PacketProxy Settings and copy the generated access token.");
 		}
-		
+
 		// トークンの照合
 		if (!configuredToken.equals(providedToken)) {
 			log("Access token validation failed. Provided: " + providedToken + ", Expected: " + configuredToken);
-			throw new Exception("Invalid access token. Please check your access token from PacketProxy Settings > Import/Export configs section.");
+			throw new Exception(
+					"Invalid access token. Please check your access token from PacketProxy Settings > Import/Export configs section.");
 		}
-		
+
 		log("Access token validation successful");
 	}
-	
+
 	/**
 	 * 設定済みAccessTokenを取得（HTTPリクエスト用）
 	 */
@@ -60,12 +64,12 @@ public abstract class AuthenticatedMCPTool implements MCPTool {
 		schema.add("access_token", accessTokenProp);
 		return schema;
 	}
-	
+
 	/**
 	 * サブクラスで実装する認証後の実際の処理
 	 */
 	protected abstract JsonObject executeAuthenticated(JsonObject arguments) throws Exception;
-	
+
 	/**
 	 * 認証チェック付きでツールを実行
 	 */

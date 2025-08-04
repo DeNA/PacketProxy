@@ -6,13 +6,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.text.SimpleDateFormat;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import javax.swing.RowFilter;
+import packetproxy.common.FilterTextParser;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
-import packetproxy.common.FilterTextParser;
 
 public class HistoryTool extends AuthenticatedMCPTool {
 
@@ -47,21 +47,17 @@ public class HistoryTool extends AuthenticatedMCPTool {
 
 		JsonObject filterProp = new JsonObject();
 		filterProp.addProperty("type", "string");
-		filterProp.addProperty("description", 
-			"PacketProxy Filter syntax for filtering packets. " +
-			"Available columns: id, request, response, length, client_ip, client_port, server_ip, server_port, time, resend, modified, type, encode, alpn, group, full_text, full_text_i, method, url, status. " +
-			"Operators: == (equals), != (not equals), >= (greater or equal), <= (less or equal), =~ (regex match), !~ (regex not match), && (AND), || (OR). " +
-			"Examples: 'method == GET', 'status >= 400', 'url =~ /api/', 'method == POST && status >= 400', 'length > 1000', 'full_text_i =~ authorization'"
-		);
+		filterProp.addProperty("description", "PacketProxy Filter syntax for filtering packets. "
+				+ "Available columns: id, request, response, length, client_ip, client_port, server_ip, server_port, time, resend, modified, type, encode, alpn, group, full_text, full_text_i, method, url, status. "
+				+ "Operators: == (equals), != (not equals), >= (greater or equal), <= (less or equal), =~ (regex match), !~ (regex not match), && (AND), || (OR). "
+				+ "Examples: 'method == GET', 'status >= 400', 'url =~ /api/', 'method == POST && status >= 400', 'length > 1000', 'full_text_i =~ authorization'");
 		schema.add("filter", filterProp);
 
 		JsonObject orderProp = new JsonObject();
 		orderProp.addProperty("type", "string");
-		orderProp.addProperty("description", 
-			"Order by column and direction. Format: 'column asc' or 'column desc'. " +
-			"Available columns: id, length, client_ip, client_port, server_ip, server_port, time, resend, modified, type, encode, group, method, url, status. " +
-			"Examples: 'time desc', 'id asc', 'length desc', 'status asc'"
-		);
+		orderProp.addProperty("description", "Order by column and direction. Format: 'column asc' or 'column desc'. "
+				+ "Available columns: id, length, client_ip, client_port, server_ip, server_port, time, resend, modified, type, encode, group, method, url, status. "
+				+ "Examples: 'time desc', 'id asc', 'length desc', 'status asc'");
 		orderProp.addProperty("default", "id desc");
 		schema.add("order", orderProp);
 
@@ -129,7 +125,8 @@ public class HistoryTool extends AuthenticatedMCPTool {
 			JsonObject result = new JsonObject();
 			result.add("content", contentArray);
 
-			log("HistoryTool returning " + packetsArray.size() + " packets (filtered from " + allPackets.size() + " total)");
+			log("HistoryTool returning " + packetsArray.size() + " packets (filtered from " + allPackets.size()
+					+ " total)");
 			return result;
 
 		} catch (Exception e) {
@@ -140,16 +137,16 @@ public class HistoryTool extends AuthenticatedMCPTool {
 
 	private List<Packet> applyFilter(List<Packet> packets, String filterText) throws Exception {
 		List<Packet> filtered = new ArrayList<>();
-		
+
 		try {
 			// Parse the filter using FilterTextParser
 			RowFilter<Object, Object> rowFilter = FilterTextParser.parse(filterText);
-			
+
 			for (Packet packet : packets) {
 				// Create a mock table entry to test the filter
 				Object[] rowData = createRowDataFromPacket(packet);
 				MockTableEntry entry = new MockTableEntry(rowData);
-				
+
 				if (rowFilter.include(entry)) {
 					filtered.add(packet);
 				}
@@ -158,7 +155,7 @@ public class HistoryTool extends AuthenticatedMCPTool {
 			log("Filter parsing error: " + e.getMessage());
 			throw new Exception("Invalid filter syntax: " + e.getMessage());
 		}
-		
+
 		return filtered;
 	}
 
@@ -197,37 +194,37 @@ public class HistoryTool extends AuthenticatedMCPTool {
 
 	private Comparator<Packet> getComparatorForColumn(String column) {
 		switch (column) {
-			case "id":
+			case "id" :
 				return Comparator.comparing(Packet::getId);
-			case "length":
+			case "length" :
 				return Comparator.comparing(p -> p.getDecodedData().length);
-			case "client_ip":
+			case "client_ip" :
 				return Comparator.comparing(Packet::getClientIP, Comparator.nullsLast(String::compareTo));
-			case "client_port":
+			case "client_port" :
 				return Comparator.comparing(Packet::getClientPort);
-			case "server_ip":
+			case "server_ip" :
 				return Comparator.comparing(Packet::getServerIP, Comparator.nullsLast(String::compareTo));
-			case "server_port":
+			case "server_port" :
 				return Comparator.comparing(Packet::getServerPort);
-			case "time":
+			case "time" :
 				return Comparator.comparing(Packet::getDate, Comparator.nullsLast(Comparator.naturalOrder()));
-			case "resend":
+			case "resend" :
 				return Comparator.comparing(Packet::getResend);
-			case "modified":
+			case "modified" :
 				return Comparator.comparing(Packet::getModified);
-			case "type":
+			case "type" :
 				return Comparator.comparing(Packet::getContentType, Comparator.nullsLast(String::compareTo));
-			case "encode":
+			case "encode" :
 				return Comparator.comparing(Packet::getEncoder, Comparator.nullsLast(String::compareTo));
-			case "group":
+			case "group" :
 				return Comparator.comparing(Packet::getGroup);
-			case "method":
+			case "method" :
 				return Comparator.comparing(this::extractMethod, Comparator.nullsLast(String::compareTo));
-			case "url":
+			case "url" :
 				return Comparator.comparing(this::extractUrl, Comparator.nullsLast(String::compareTo));
-			case "status":
+			case "status" :
 				return Comparator.comparing(this::extractStatus, Comparator.nullsLast(Integer::compareTo));
-			default:
+			default :
 				return null;
 		}
 	}
@@ -282,9 +279,9 @@ public class HistoryTool extends AuthenticatedMCPTool {
 
 	private Object[] createRowDataFromPacket(Packet packet) {
 		Object[] rowData = new Object[17]; // Based on columnMapper size
-		
+
 		rowData[0] = packet.getId(); // id
-		
+
 		// Extract request and response data
 		try {
 			String request = new String(packet.getDecodedData(), "UTF-8");
@@ -294,7 +291,7 @@ public class HistoryTool extends AuthenticatedMCPTool {
 			rowData[1] = "";
 			rowData[2] = "";
 		}
-		
+
 		rowData[3] = packet.getDecodedData().length; // length
 		rowData[4] = packet.getClientIP(); // client_ip
 		rowData[5] = packet.getClientPort(); // client_port
@@ -309,39 +306,39 @@ public class HistoryTool extends AuthenticatedMCPTool {
 		rowData[14] = packet.getGroup(); // group
 		rowData[15] = (String) rowData[1]; // full_text (same as request)
 		rowData[16] = ((String) rowData[1]).toLowerCase(); // full_text_i (lowercase)
-		
+
 		return rowData;
 	}
 
 	// Mock table entry class for filter testing
 	private static class MockTableEntry extends RowFilter.Entry<Object, Object> {
 		private final Object[] data;
-		
+
 		public MockTableEntry(Object[] data) {
 			this.data = data;
 		}
-		
+
 		@Override
 		public Object getModel() {
 			return null;
 		}
-		
+
 		@Override
 		public int getValueCount() {
 			return data.length;
 		}
-		
+
 		@Override
 		public Object getValue(int index) {
 			return index < data.length ? data[index] : null;
 		}
-		
+
 		@Override
 		public String getStringValue(int index) {
 			Object value = getValue(index);
 			return value != null ? value.toString() : "";
 		}
-		
+
 		@Override
 		public Object getIdentifier() {
 			return null;
@@ -374,7 +371,7 @@ public class HistoryTool extends AuthenticatedMCPTool {
 					packetJson.addProperty("method", requestLine[0]);
 					packetJson.addProperty("url", requestLine[1]);
 				}
-				
+
 				// レスポンスの場合、ステータスコードを抽出
 				if (requestLine.length >= 3 && requestLine[0].startsWith("HTTP/")) {
 					try {

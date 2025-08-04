@@ -5,31 +5,6 @@ import static packetproxy.util.Logging.log;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.util.List;
-import packetproxy.model.CharSet;
-import packetproxy.model.CharSets;
-import packetproxy.model.ClientCertificate;
-import packetproxy.model.ClientCertificates;
-import packetproxy.model.Config;
-import packetproxy.model.Configs;
-import packetproxy.model.Extension;
-import packetproxy.model.Extensions;
-import packetproxy.model.Filter;
-import packetproxy.model.Filters;
-import packetproxy.model.InterceptOption;
-import packetproxy.model.InterceptOptions;
-import packetproxy.model.ListenPort;
-import packetproxy.model.ListenPorts;
-import packetproxy.model.Modification;
-import packetproxy.model.Modifications;
-import packetproxy.model.OpenVPNForwardPort;
-import packetproxy.model.OpenVPNForwardPorts;
-import packetproxy.model.Resolution;
-import packetproxy.model.Resolutions;
-import packetproxy.model.SSLPassThrough;
-import packetproxy.model.SSLPassThroughs;
-import packetproxy.model.Server;
-import packetproxy.model.Servers;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -87,7 +62,7 @@ public class ConfigTool extends AuthenticatedMCPTool {
 		try {
 			// HTTP APIで設定を取得
 			String configJson = getConfigFromHttpApi();
-			
+
 			// categoriesでフィルタリングが指定されている場合はフィルタリングを適用
 			JsonObject allConfig = gson.fromJson(configJson, JsonObject.class);
 			JsonObject filteredConfig = filterByCategories(allConfig, arguments);
@@ -110,11 +85,11 @@ public class ConfigTool extends AuthenticatedMCPTool {
 			throw new Exception("Failed to get configuration: " + e.getMessage());
 		}
 	}
-	
+
 	private String getConfigFromHttpApi() throws Exception {
 		// 設定済みAccessTokenを取得（HTTPリクエスト用）
 		String accessToken = getConfiguredAccessToken();
-		
+
 		// HTTP GETリクエスト
 		URL url = new URL("http://localhost:32349/config");
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -122,12 +97,12 @@ public class ConfigTool extends AuthenticatedMCPTool {
 		conn.setRequestProperty("Authorization", accessToken);
 		conn.setConnectTimeout(5000);
 		conn.setReadTimeout(10000);
-		
+
 		int responseCode = conn.getResponseCode();
 		if (responseCode != 200) {
 			throw new Exception("HTTP API returned status: " + responseCode + ". Check if config sharing is enabled.");
 		}
-		
+
 		// レスポンスを読み取り
 		BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 		StringBuilder response = new StringBuilder();
@@ -137,20 +112,20 @@ public class ConfigTool extends AuthenticatedMCPTool {
 		}
 		reader.close();
 		conn.disconnect();
-		
+
 		return response.toString();
 	}
-	
+
 	private JsonObject filterByCategories(JsonObject config, JsonObject arguments) {
 		if (!arguments.has("categories")) {
 			return config; // カテゴリ指定がない場合は全て返す
 		}
-		
+
 		JsonArray categories = arguments.getAsJsonArray("categories");
 		if (categories.size() == 0) {
 			return config; // 空の場合は全て返す
 		}
-		
+
 		JsonObject filtered = new JsonObject();
 		for (int i = 0; i < categories.size(); i++) {
 			String category = categories.get(i).getAsString();
@@ -158,7 +133,7 @@ public class ConfigTool extends AuthenticatedMCPTool {
 				filtered.add(category, config.get(category));
 			}
 		}
-		
+
 		return filtered;
 	}
 

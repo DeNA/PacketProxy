@@ -81,8 +81,8 @@ public class LogTool extends AuthenticatedMCPTool {
 		LocalDateTime sinceDateTime = null;
 		if (since != null) {
 			try {
-				sinceDateTime = LocalDateTime.parse(since.replace("Z", ""), 
-					DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+				sinceDateTime = LocalDateTime.parse(since.replace("Z", ""),
+						DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
 			} catch (DateTimeParseException e) {
 				throw new Exception("Invalid date format. Use ISO 8601 format (e.g., 2025-01-15T00:00:00Z)");
 			}
@@ -144,34 +144,34 @@ public class LogTool extends AuthenticatedMCPTool {
 
 	private List<LogEntry> getLogEntriesFromGUILog(String level, LocalDateTime since, Pattern filter, int limit) {
 		List<LogEntry> entries = new ArrayList<>();
-		
+
 		try {
 			GUILog guiLog = GUILog.getInstance();
 			String logText = guiLog.getLogText();
-			
+
 			if (logText != null && !logText.trim().isEmpty()) {
 				// ログテキストを行ごとに分析
 				String[] lines = logText.split("\n");
-				
+
 				for (String line : lines) {
 					if (line.trim().isEmpty()) {
 						continue;
 					}
-					
+
 					LogEntry entry = parseLogLine(line.trim());
 					if (entry != null) {
 						entries.add(entry);
 					}
 				}
 			}
-			
+
 			// 最新のログが上に来るようにリバース
 			java.util.Collections.reverse(entries);
 
 		} catch (Exception e) {
 			log("Error getting log entries: " + e.getMessage());
 		}
-		
+
 		// フィルタリング適用
 		List<LogEntry> filteredEntries = new ArrayList<>();
 		for (LogEntry entry : entries) {
@@ -179,29 +179,29 @@ public class LogTool extends AuthenticatedMCPTool {
 			if (!matchesLogLevel(entry.getLevel(), level)) {
 				continue;
 			}
-			
+
 			// 時間フィルタ
 			if (since != null) {
-				LocalDateTime entryTime = LocalDateTime.ofInstant(
-					entry.getTimestamp().toInstant(), ZoneId.systemDefault());
+				LocalDateTime entryTime = LocalDateTime.ofInstant(entry.getTimestamp().toInstant(),
+						ZoneId.systemDefault());
 				if (entryTime.isBefore(since)) {
 					continue;
 				}
 			}
-			
+
 			// 正規表現フィルタ
 			if (filter != null && !filter.matcher(entry.getMessage()).find()) {
 				continue;
 			}
-			
+
 			filteredEntries.add(entry);
-			
+
 			// 制限チェック
 			if (filteredEntries.size() >= limit) {
 				break;
 			}
 		}
-		
+
 		return filteredEntries;
 	}
 
@@ -214,25 +214,30 @@ public class LogTool extends AuthenticatedMCPTool {
 
 	private int getLogLevelPriority(String level) {
 		switch (level.toLowerCase()) {
-			case "debug": return 0;
-			case "info": return 1; 
-			case "warn": return 2;
-			case "error": return 3;
-			default: return 1; // デフォルトはinfo
+			case "debug" :
+				return 0;
+			case "info" :
+				return 1;
+			case "warn" :
+				return 2;
+			case "error" :
+				return 3;
+			default :
+				return 1; // デフォルトはinfo
 		}
 	}
 
 	private LogEntry parseLogLine(String line) {
 		try {
-			// PacketProxyのログ形式: "yyyy/MM/dd HH:mm:ss       message"
+			// PacketProxyのログ形式: "yyyy/MM/dd HH:mm:ss message"
 			// util.Loggingの形式に基づく
 			if (line.length() < 19) {
 				return null; // 最小の日時フォーマット長より短い
 			}
-			
+
 			String dateTimePart = line.substring(0, 19);
 			String messagePart = line.length() > 26 ? line.substring(26) : "";
-			
+
 			// 日時をパース
 			java.util.Date timestamp;
 			try {
@@ -242,23 +247,23 @@ public class LogTool extends AuthenticatedMCPTool {
 				// 日時パースに失敗した場合は現在時刻を使用
 				timestamp = new java.util.Date();
 			}
-			
+
 			// ログレベルを推定（メッセージ内容から）
 			String level = "info"; // デフォルト
 			String lowerMessage = messagePart.toLowerCase();
-			if (lowerMessage.contains("error") || lowerMessage.contains("exception") || 
-				lowerMessage.contains("failed") || lowerMessage.contains("fail")) {
+			if (lowerMessage.contains("error") || lowerMessage.contains("exception") || lowerMessage.contains("failed")
+					|| lowerMessage.contains("fail")) {
 				level = "error";
 			} else if (lowerMessage.contains("warn") || lowerMessage.contains("warning")) {
 				level = "warn";
 			} else if (lowerMessage.contains("debug")) {
 				level = "debug";
 			}
-			
+
 			// スレッド名とクラス名を推定
 			String thread = "main"; // デフォルト
 			String className = "packetproxy"; // デフォルト
-			
+
 			// メッセージからクラス名を抽出を試行
 			if (messagePart.contains("MCP")) {
 				className = "packetproxy.extensions.mcp";
@@ -267,9 +272,9 @@ public class LogTool extends AuthenticatedMCPTool {
 			} else if (messagePart.contains("Tool")) {
 				className = "packetproxy.extensions.mcp.tools";
 			}
-			
+
 			return new LogEntry(timestamp, level, messagePart, thread, className);
-			
+
 		} catch (Exception e) {
 			// パースに失敗した場合はnullを返す
 			return null;
@@ -292,10 +297,24 @@ public class LogTool extends AuthenticatedMCPTool {
 			this.className = className;
 		}
 
-		public java.util.Date getTimestamp() { return timestamp; }
-		public String getLevel() { return level; }
-		public String getMessage() { return message; }
-		public String getThread() { return thread; }
-		public String getClassName() { return className; }
+		public java.util.Date getTimestamp() {
+			return timestamp;
+		}
+
+		public String getLevel() {
+			return level;
+		}
+
+		public String getMessage() {
+			return message;
+		}
+
+		public String getThread() {
+			return thread;
+		}
+
+		public String getClassName() {
+			return className;
+		}
 	}
 }

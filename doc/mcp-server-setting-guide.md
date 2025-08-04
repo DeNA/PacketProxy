@@ -31,6 +31,7 @@ GUI起動後：
 4. **Start Server** ボタンをクリック
 
 ログに以下が表示されることを確認：
+
 ```
 MCP Server started
 HTTP endpoint available at http://localhost:8765/mcp

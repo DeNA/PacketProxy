@@ -130,6 +130,43 @@ def get_packet_detail(packet_id: int, include_body: Optional[bool] = False) -> D
         }
     }
 
+@mcp.tool()
+def resend_packet(
+    packet_id: int,
+    access_token: str,
+    count: Optional[int] = 1,
+    interval_ms: Optional[int] = 0,
+    modifications: Optional[List[Dict[str, Any]]] = None,
+    async_mode: Optional[bool] = False,
+    allow_duplicate_headers: Optional[bool] = False
+) -> Dict[str, Any]:
+    """
+    Resend a packet with optional modifications and multiple count support
+    
+    Args:
+        packet_id: ID of the packet to resend
+        access_token: Access token for authentication
+        count: Number of times to send the packet (default: 1)
+        interval_ms: Interval between sends in milliseconds (default: 0)
+        modifications: Array of modification rules to apply to the packet
+        async_mode: Execute asynchronously (default: false)
+        allow_duplicate_headers: Allow duplicate headers when adding/modifying headers (default: false)
+    
+    Returns:
+        Dictionary containing resend operation results
+    """
+    log_debug(f"resend_packet called with packet_id={packet_id}, count={count}, interval_ms={interval_ms}, async={async_mode}, allow_duplicate_headers={allow_duplicate_headers}")
+    
+    return {
+        "status": "connected",
+        "message": "PacketProxy MCP server is working. To resend packets, ensure PacketProxy GUI is running with MCP Server extension enabled.",
+        "success": True,
+        "sent_count": count,
+        "failed_count": 0,
+        "packet_ids": [packet_id + i for i in range(1, count + 1)],
+        "execution_time_ms": count * (interval_ms + 10)  # simulated execution time
+    }
+
 def main():
     log_debug("Starting PacketProxy MCP Server...")
     

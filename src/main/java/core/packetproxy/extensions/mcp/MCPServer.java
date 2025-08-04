@@ -139,7 +139,7 @@ public class MCPServer {
 			// Invalid JSON request
 			JsonObject errorResponse = new JsonObject();
 			errorResponse.addProperty("jsonrpc", "2.0");
-			
+
 			// Try to extract ID from the malformed request if possible
 			JsonElement requestId = null;
 			try {

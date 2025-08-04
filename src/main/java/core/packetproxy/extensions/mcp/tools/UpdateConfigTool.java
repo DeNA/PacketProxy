@@ -4,28 +4,17 @@ import static packetproxy.util.Logging.log;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import packetproxy.model.ListenPort;
-import packetproxy.model.ListenPorts;
-import packetproxy.model.Modification;
-import packetproxy.model.Modifications;
-import packetproxy.model.SSLPassThrough;
-import packetproxy.model.SSLPassThroughs;
-import packetproxy.common.ConfigIO;
-import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import packetproxy.model.Server;
-import packetproxy.model.Servers;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class UpdateConfigTool extends AuthenticatedMCPTool {
 
@@ -73,7 +62,7 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 
 		try {
 			log("UpdateConfigTool step 1: Starting configuration update");
-			
+
 			JsonObject backupInfo = null;
 
 			if (backup) {
@@ -124,15 +113,15 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 		Date now = new Date();
 		String timestamp = dateFormat.format(now);
 		String backupId = "backup_" + timestamp.replace(":", "").replace("-", "").replace("T", "_").replace("Z", "");
-		
+
 		// Create backup directory if it doesn't exist
 		File backupDir = new File("backup");
 		if (!backupDir.exists()) {
 			backupDir.mkdirs();
 		}
-		
+
 		String backupPath = backupDir.getPath() + File.separator + backupId + ".json";
-		
+
 		try {
 			// HTTP APIで設定を直接取得（認証チェックを回避）
 			String configText = getConfigFromHttpApiForBackup();
@@ -154,7 +143,7 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 			log("Failed to create backup: " + e.getMessage());
 			throw new Exception("Failed to create configuration backup: " + e.getMessage());
 		}
-		
+
 		JsonObject backupInfo = new JsonObject();
 		backupInfo.addProperty("backup_id", backupId);
 		backupInfo.addProperty("backup_path", backupPath);
@@ -167,17 +156,17 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 
 	private void updateConfiguration(JsonObject configJson) throws Exception {
 		log("UpdateConfigTool starting configuration update using HTTP API");
-		
+
 		// HTTP POST APIで設定を更新（削除処理も自動実行）
 		updateConfigViaHttpApi(configJson.toString());
-		
+
 		log("UpdateConfigTool configuration update completed using HTTP API");
 	}
-	
+
 	private void updateConfigViaHttpApi(String configJsonString) throws Exception {
 		// 設定済みAccessTokenを取得（HTTPリクエスト用）
 		String accessToken = getConfiguredAccessToken();
-		
+
 		// HTTP POSTリクエスト
 		URL url = new URL("http://localhost:32349/config");
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -187,13 +176,13 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 		conn.setDoOutput(true);
 		conn.setConnectTimeout(5000);
 		conn.setReadTimeout(10000);
-		
+
 		// リクエストボディを送信
 		try (OutputStream os = conn.getOutputStream()) {
 			byte[] input = configJsonString.getBytes("utf-8");
 			os.write(input, 0, input.length);
 		}
-		
+
 		int responseCode = conn.getResponseCode();
 		if (responseCode != 200) {
 			// エラーレスポンスがある場合は読み取り
@@ -210,9 +199,10 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 					}
 				}
 			}
-			throw new Exception(errorMessage + ". Check if config sharing is enabled and user confirmed the operation.");
+			throw new Exception(
+					errorMessage + ". Check if config sharing is enabled and user confirmed the operation.");
 		}
-		
+
 		// 成功レスポンスを読み取り（必要に応じて）
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
 			StringBuilder response = new StringBuilder();
@@ -222,14 +212,14 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 			}
 			log("HTTP API response: " + response.toString());
 		}
-		
+
 		conn.disconnect();
 	}
-	
+
 	private String getConfigFromHttpApiForBackup() throws Exception {
 		// 設定済みAccessTokenを取得（HTTPリクエスト用）
 		String accessToken = getConfiguredAccessToken();
-		
+
 		// HTTP GETリクエスト
 		URL url = new URL("http://localhost:32349/config");
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -237,12 +227,12 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 		conn.setRequestProperty("Authorization", accessToken);
 		conn.setConnectTimeout(5000);
 		conn.setReadTimeout(10000);
-		
+
 		int responseCode = conn.getResponseCode();
 		if (responseCode != 200) {
 			throw new Exception("HTTP API returned status: " + responseCode + ". Check if config sharing is enabled.");
 		}
-		
+
 		// レスポンスを読み取り
 		BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 		StringBuilder response = new StringBuilder();
@@ -252,7 +242,7 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 		}
 		reader.close();
 		conn.disconnect();
-		
+
 		return response.toString();
 	}
 

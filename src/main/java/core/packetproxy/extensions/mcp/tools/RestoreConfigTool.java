@@ -109,7 +109,7 @@ public class RestoreConfigTool extends AuthenticatedMCPTool {
 
 		try (FileReader reader = new FileReader(backupFile)) {
 			JsonObject backupConfig = gson.fromJson(reader, JsonObject.class);
-			
+
 			if (backupConfig == null) {
 				throw new Exception("Invalid backup file format");
 			}

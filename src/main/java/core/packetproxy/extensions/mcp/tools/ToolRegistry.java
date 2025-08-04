@@ -22,6 +22,7 @@ public class ToolRegistry {
 		registerTool(new UpdateConfigTool());
 		registerTool(new RestoreConfigTool());
 		registerTool(new LogTool());
+		registerTool(new ResendPacketTool());
 	}
 
 	public void registerTool(MCPTool tool) {
