@@ -25,8 +25,7 @@ import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 
 /**
- * 複数パケット一括送信ツール
- * フェーズ2: 順次送信モード、modifications適用、regex_params機能
+ * 複数パケット一括送信ツール フェーズ2: 順次送信モード、modifications適用、regex_params機能
  */
 public class BulkSendTool extends AuthenticatedMCPTool {
 
@@ -37,13 +36,13 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 
 	@Override
 	public String getDescription() {
-		return "Send multiple packets in bulk with optional modifications. " +
-			   "Use packet_ids array to specify which packets to send (can repeat same ID for multiple variations). " +
-			   "Use regex_params to apply different modifications to each packet based on packet_index (0-based). " +
-			   "For full header replacement, use patterns like 'User-Agent: [^\\r\\n]*'. " +
-			   "For partial replacement, use capture groups like 'Content-Length: ([0-9]+)'. " +
-			   "The value_template supports variables like {{timestamp}}, {{random}}, {{uuid}}, {{packet_index}}. " +
-			   "Note: avoid using both packet_ids array with duplicates AND count parameter simultaneously to prevent unexpected multiplication of packets.";
+		return "Send multiple packets in bulk with optional modifications. "
+				+ "Use packet_ids array to specify which packets to send (can repeat same ID for multiple variations). "
+				+ "Use regex_params to apply different modifications to each packet based on packet_index (0-based). "
+				+ "For full header replacement, use patterns like 'User-Agent: [^\\r\\n]*'. "
+				+ "For partial replacement, use capture groups like 'Content-Length: ([0-9]+)'. "
+				+ "The value_template supports variables like {{timestamp}}, {{random}}, {{uuid}}, {{packet_index}}. "
+				+ "Note: avoid using both packet_ids array with duplicates AND count parameter simultaneously to prevent unexpected multiplication of packets.";
 	}
 
 	@Override
@@ -82,7 +81,8 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 		// interval_ms (optional)
 		JsonObject intervalProp = new JsonObject();
 		intervalProp.addProperty("type", "integer");
-		intervalProp.addProperty("description", "Interval between sends in milliseconds (sequential mode only, default: 0, maximum: 60000)");
+		intervalProp.addProperty("description",
+				"Interval between sends in milliseconds (sequential mode only, default: 0, maximum: 60000)");
 		intervalProp.addProperty("default", 0);
 		intervalProp.addProperty("minimum", 0);
 		intervalProp.addProperty("maximum", 60000);
@@ -108,7 +108,8 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 
 		JsonObject valueTemplateProp = new JsonObject();
 		valueTemplateProp.addProperty("type", "string");
-		valueTemplateProp.addProperty("description", "Template with variables: {{packet_index}}, {{timestamp}}, {{random}}, {{uuid}}");
+		valueTemplateProp.addProperty("description",
+				"Template with variables: {{packet_index}}, {{timestamp}}, {{random}}, {{uuid}}");
 		regexParamProps.add("value_template", valueTemplateProp);
 
 		JsonObject regexTargetProp = new JsonObject();
@@ -241,10 +242,9 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 			throw new IllegalArgumentException("interval_ms must be non-negative for sequential mode");
 		}
 
-		log("BulkSendTool: packet_ids=" + packetIdsArray.size() + ", mode=" + mode + ", count=" + count
-				+ ", interval=" + intervalMs + "ms, allowDuplicateHeaders=" + allowDuplicateHeaders 
-				+ ", timeout=" + timeoutMs + "ms, modifications=" + modifications.size()
-				+ ", regex_params=" + regexParams.size());
+		log("BulkSendTool: packet_ids=" + packetIdsArray.size() + ", mode=" + mode + ", count=" + count + ", interval="
+				+ intervalMs + "ms, allowDuplicateHeaders=" + allowDuplicateHeaders + ", timeout=" + timeoutMs
+				+ "ms, modifications=" + modifications.size() + ", regex_params=" + regexParams.size());
 
 		// パケットIDを取得
 		List<Integer> packetIds = new ArrayList<>();
@@ -266,8 +266,8 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 				// 並列送信
 				for (int i = 0; i < packetIds.size(); i++) {
 					int packetId = packetIds.get(i);
-					BulkSendResult result = processSinglePacket(packetId, i, count, modifications, 
-							regexParams, extractedValues, allowDuplicateHeaders);
+					BulkSendResult result = processSinglePacket(packetId, i, count, modifications, regexParams,
+							extractedValues, allowDuplicateHeaders);
 					results.add(result);
 					sentCount += result.sentCount;
 					failedCount += result.failedCount;
@@ -283,7 +283,7 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 					sentCount += result.sentCount;
 					failedCount += result.failedCount;
 					regexParamsApplied.addAll(result.regexParamsApplied);
-					
+
 					// 次のパケットまでインターバル（最後のパケット以外）
 					if (intervalMs > 0 && i < packetIds.size() - 1) {
 						Thread.sleep(intervalMs);
@@ -317,18 +317,18 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 			resultObj.addProperty("success", r.success);
 			resultObj.addProperty("sent_count", r.sentCount);
 			resultObj.addProperty("failed_count", r.failedCount);
-			
+
 			JsonArray newPacketIds = new JsonArray();
 			for (Integer id : r.newPacketIds) {
 				newPacketIds.add(id);
 			}
 			resultObj.add("new_packet_ids", newPacketIds);
-			
+
 			if (r.error != null) {
 				resultObj.addProperty("error", r.error);
 			}
 			resultObj.addProperty("execution_time_ms", r.executionTimeMs);
-			
+
 			resultsArray.add(resultObj);
 		}
 		result.add("results", resultsArray);
@@ -348,10 +348,10 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 		// パフォーマンス統計
 		JsonObject performance = new JsonObject();
 		double packetsPerSecond = totalCount > 0 ? (double) sentCount / (executionTime / 1000.0) : 0.0;
-		double avgResponseTime = results.size() > 0 
-			? results.stream().mapToLong(r -> r.executionTimeMs).average().orElse(0.0) 
-			: 0.0;
-		
+		double avgResponseTime = results.size() > 0
+				? results.stream().mapToLong(r -> r.executionTimeMs).average().orElse(0.0)
+				: 0.0;
+
 		performance.addProperty("packets_per_second", Math.round(packetsPerSecond * 100.0) / 100.0);
 		performance.addProperty("average_response_time_ms", Math.round(avgResponseTime));
 		performance.addProperty("concurrent_connections", totalPackets);
@@ -359,25 +359,25 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 
 		result.add("job_id", null); // 非同期実行はフェーズ3で実装
 
-		log("BulkSendTool: Completed. Sent: " + sentCount + ", Failed: " + failedCount + ", Time: " + executionTime + "ms");
+		log("BulkSendTool: Completed. Sent: " + sentCount + ", Failed: " + failedCount + ", Time: " + executionTime
+				+ "ms");
 		return result;
 	}
 
 	/**
 	 * 単一パケットの処理（並列送信）
 	 */
-	private BulkSendResult processSinglePacket(int packetId, int packetIndex, int count, 
-			JsonArray modifications, JsonArray regexParams, Map<String, String> extractedValues,
-			boolean allowDuplicateHeaders) {
-		
+	private BulkSendResult processSinglePacket(int packetId, int packetIndex, int count, JsonArray modifications,
+			JsonArray regexParams, Map<String, String> extractedValues, boolean allowDuplicateHeaders) {
+
 		BulkSendResult result = new BulkSendResult();
 		result.originalPacketId = packetId;
 		result.packetIndex = packetIndex;
 		result.newPacketIds = new ArrayList<>();
 		result.regexParamsApplied = new ArrayList<>();
-		
+
 		long startTime = System.currentTimeMillis();
-		
+
 		try {
 			// パケットを取得
 			Packet originalPacket = Packets.getInstance().query(packetId);
@@ -398,11 +398,12 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 			}
 
 			// regex_paramsを適用
-			OneShotPacket regexModifiedPacket = applyRegexParams(originalOneShot, regexParams, packetIndex, 
+			OneShotPacket regexModifiedPacket = applyRegexParams(originalOneShot, regexParams, packetIndex,
 					extractedValues, result.regexParamsApplied);
 
 			// modificationsを適用
-			OneShotPacket modifiedPacket = applyModifications(regexModifiedPacket, modifications, packetIndex + 1, allowDuplicateHeaders);
+			OneShotPacket modifiedPacket = applyModifications(regexModifiedPacket, modifications, packetIndex + 1,
+					allowDuplicateHeaders);
 
 			// 複数回送信用のパケット配列を作成
 			OneShotPacket[] packetsToSend = new OneShotPacket[count];
@@ -471,18 +472,18 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 	/**
 	 * 単一パケットの処理（順次送信）
 	 */
-	private BulkSendResult processSinglePacketSequential(int packetId, int packetIndex, int count, 
+	private BulkSendResult processSinglePacketSequential(int packetId, int packetIndex, int count,
 			JsonArray modifications, JsonArray regexParams, Map<String, String> extractedValues,
 			boolean allowDuplicateHeaders, int intervalMs) {
-		
+
 		BulkSendResult result = new BulkSendResult();
 		result.originalPacketId = packetId;
 		result.packetIndex = packetIndex;
 		result.newPacketIds = new ArrayList<>();
 		result.regexParamsApplied = new ArrayList<>();
-		
+
 		long startTime = System.currentTimeMillis();
-		
+
 		try {
 			// パケットを取得
 			Packet originalPacket = Packets.getInstance().query(packetId);
@@ -509,11 +510,11 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 			for (int i = 0; i < count; i++) {
 				try {
 					// regex_paramsを適用（送信回数も考慮）
-					OneShotPacket regexModifiedPacket = applyRegexParams(originalOneShot, regexParams, packetIndex, 
+					OneShotPacket regexModifiedPacket = applyRegexParams(originalOneShot, regexParams, packetIndex,
 							extractedValues, result.regexParamsApplied);
 
 					// modificationsを適用
-					OneShotPacket modifiedPacket = applyModifications(regexModifiedPacket, modifications, 
+					OneShotPacket modifiedPacket = applyModifications(regexModifiedPacket, modifications,
 							packetIndex * count + i + 1, allowDuplicateHeaders);
 
 					// 単発送信
@@ -526,7 +527,8 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 					}
 
 				} catch (Exception e) {
-					log("BulkSendTool: Failed to send packet " + packetId + " (attempt " + (i + 1) + "): " + e.getMessage());
+					log("BulkSendTool: Failed to send packet " + packetId + " (attempt " + (i + 1) + "): "
+							+ e.getMessage());
 					failCount++;
 				}
 			}
@@ -565,7 +567,7 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 	 */
 	private OneShotPacket applyRegexParams(OneShotPacket original, JsonArray regexParams, int packetIndex,
 			Map<String, String> extractedValues, List<RegexParamApplied> appliedList) throws Exception {
-		
+
 		if (regexParams.size() == 0) {
 			return original;
 		}
@@ -605,7 +607,7 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 							// キャプチャグループがない場合は全体をマッチ
 							extractedValue = matcher.group(0);
 						}
-						
+
 						if (extractedValue != null) {
 							String key = "packet_" + packetIndex + "_" + pattern;
 							extractedValues.put(key, extractedValue);
@@ -617,12 +619,15 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 					// 置換実行
 					String beforeReplace = dataStr;
 					dataStr = matcher.replaceAll(processedValue);
-					
+
 					// デバッグログ: 置換前後の比較
 					if (!beforeReplace.equals(dataStr)) {
 						log("BulkSendTool: Replacement successful - pattern: " + pattern);
-						log("BulkSendTool: Before: " + beforeReplace.substring(Math.max(0, matcher.start() - 20), Math.min(beforeReplace.length(), matcher.end() + 20)));
-						log("BulkSendTool: After: " + dataStr.substring(Math.max(0, dataStr.indexOf(processedValue) - 20), Math.min(dataStr.length(), dataStr.indexOf(processedValue) + processedValue.length() + 20)));
+						log("BulkSendTool: Before: " + beforeReplace.substring(Math.max(0, matcher.start() - 20),
+								Math.min(beforeReplace.length(), matcher.end() + 20)));
+						log("BulkSendTool: After: " + dataStr
+								.substring(Math.max(0, dataStr.indexOf(processedValue) - 20), Math.min(dataStr.length(),
+										dataStr.indexOf(processedValue) + processedValue.length() + 20)));
 					} else {
 						log("BulkSendTool: Warning: No replacement occurred for pattern: " + pattern);
 					}
@@ -704,7 +709,7 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 	 */
 	private OneShotPacket applyModifications(OneShotPacket original, JsonArray modifications, int index,
 			boolean allowDuplicateHeaders) throws Exception {
-		
+
 		if (modifications.size() == 0) {
 			return original;
 		}
