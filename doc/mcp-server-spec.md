@@ -336,6 +336,7 @@ PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変�
         ]
       },
       "backup": true,
+      "suppress_dialog": false,
       "access_token": "your_access_token_here"
     }
   },
@@ -347,11 +348,18 @@ PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変�
 - `access_token` (string, required): PacketProxy設定のアクセストークン
 - `config_json` (object, required): PacketProxyHub互換の設定JSON（完全な形式）
 - `backup` (boolean, optional): 既存設定をバックアップ (デフォルト: true)
+- `suppress_dialog` (boolean, optional): 確認ダイアログを非表示にする (デフォルト: false)
 
 **設定削除について:**
 - `config_json`に含まれないIDの項目は自動的に削除されます
 - 例: serversに`id:1`のみ含まれている場合、`id:2,3...`のサーバーは削除されます
 - HTTP APIは既存設定を完全に置き換える方式で動作します
+
+**ダイアログ制御について:**
+- `suppress_dialog: false` (デフォルト): 設定上書き前に確認ダイアログを表示
+- `suppress_dialog: true`: 確認ダイアログを表示せずに自動的に設定を上書き
+- ダイアログが表示される場合、ユーザーが「はい」を選択した場合のみ設定が適用されます
+- ダイアログで「いいえ」を選択した場合、HTTP 401エラーが返されます
 
 **レスポンス:**
 
@@ -384,7 +392,8 @@ PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変�
     "name": "restore_config",
     "arguments": {
       "access_token": "your_access_token_here",
-      "backup_id": "backup_20250115_103000"
+      "backup_id": "backup_20250115_103000",
+      "suppress_dialog": false
     }
   },
   "id": 6
@@ -394,6 +403,13 @@ PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変�
 **パラメータ:**
 - `access_token` (string, required): PacketProxy設定のアクセストークン
 - `backup_id` (string, required): 復元するバックアップID
+- `suppress_dialog` (boolean, optional): 確認ダイアログを非表示にする (デフォルト: false)
+
+**ダイアログ制御について:**
+- `suppress_dialog: false` (デフォルト): 設定復元前に確認ダイアログを表示
+- `suppress_dialog: true`: 確認ダイアログを表示せずに自動的に設定を復元
+- ダイアログが表示される場合、ユーザーが「はい」を選択した場合のみ設定が適用されます
+- ダイアログで「いいえ」を選択した場合、HTTP 401エラーが返されます
 
 **レスポンス:**
 
@@ -709,6 +725,13 @@ POST /mcp/bulk_send                      # 複数パケット一括送信
 GET  /mcp/logs?level=info                # ログ取得
 POST /mcp/restore/{backup_id}             # バックアップ復元
 ```
+
+### HTTP ヘッダー制御
+
+設定更新API (`POST /config`) では以下の特別なHTTPヘッダーをサポートします：
+
+- `X-Suppress-Dialog: true`: 確認ダイアログを非表示にして自動的に設定を上書き
+- `X-Suppress-Dialog: false` (デフォルト): 確認ダイアログを表示
 
 ### 認証
 

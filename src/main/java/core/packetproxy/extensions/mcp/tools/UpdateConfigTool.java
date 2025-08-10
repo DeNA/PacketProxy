@@ -28,7 +28,7 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 
 	@Override
 	public String getDescription() {
-		return "Update PacketProxy configuration settings";
+		return "Update PacketProxy configuration settings with optional backup and dialog suppression";
 	}
 
 	@Override
@@ -46,6 +46,12 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 		backupProp.addProperty("default", true);
 		schema.add("backup", backupProp);
 
+		JsonObject suppressDialogProp = new JsonObject();
+		suppressDialogProp.addProperty("type", "boolean");
+		suppressDialogProp.addProperty("description", "Suppress confirmation dialog for configuration update (default: false)");
+		suppressDialogProp.addProperty("default", false);
+		schema.add("suppress_dialog", suppressDialogProp);
+
 		return addAccessTokenToSchema(schema);
 	}
 
@@ -59,6 +65,7 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 
 		JsonObject configJson = arguments.getAsJsonObject("config_json");
 		boolean backup = arguments.has("backup") ? arguments.get("backup").getAsBoolean() : true;
+		boolean suppressDialog = arguments.has("suppress_dialog") ? arguments.get("suppress_dialog").getAsBoolean() : false;
 
 		try {
 			log("UpdateConfigTool step 1: Starting configuration update");
@@ -72,7 +79,7 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 			}
 
 			log("UpdateConfigTool step 4: Updating configuration");
-			updateConfiguration(configJson);
+			updateConfiguration(configJson, suppressDialog);
 			log("UpdateConfigTool step 5: Configuration updated successfully");
 
 			log("UpdateConfigTool step 6: Building response data");
@@ -154,16 +161,16 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 		return backupInfo;
 	}
 
-	private void updateConfiguration(JsonObject configJson) throws Exception {
+	private void updateConfiguration(JsonObject configJson, boolean suppressDialog) throws Exception {
 		log("UpdateConfigTool starting configuration update using HTTP API");
 
 		// HTTP POST APIで設定を更新（削除処理も自動実行）
-		updateConfigViaHttpApi(configJson.toString());
+		updateConfigViaHttpApi(configJson.toString(), suppressDialog);
 
 		log("UpdateConfigTool configuration update completed using HTTP API");
 	}
 
-	private void updateConfigViaHttpApi(String configJsonString) throws Exception {
+	private void updateConfigViaHttpApi(String configJsonString, boolean suppressDialog) throws Exception {
 		// 設定済みAccessTokenを取得（HTTPリクエスト用）
 		String accessToken = getConfiguredAccessToken();
 
@@ -173,6 +180,9 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 		conn.setRequestMethod("POST");
 		conn.setRequestProperty("Authorization", accessToken);
 		conn.setRequestProperty("Content-Type", "application/json");
+		if (suppressDialog) {
+			conn.setRequestProperty("X-Suppress-Dialog", "true");
+		}
 		conn.setDoOutput(true);
 		conn.setConnectTimeout(5000);
 		conn.setReadTimeout(10000);

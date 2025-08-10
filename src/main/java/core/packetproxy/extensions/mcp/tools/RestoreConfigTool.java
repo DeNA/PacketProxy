@@ -20,7 +20,7 @@ public class RestoreConfigTool extends AuthenticatedMCPTool {
 
 	@Override
 	public String getDescription() {
-		return "Restore PacketProxy configuration from backup file";
+		return "Restore PacketProxy configuration from backup file with optional dialog suppression";
 	}
 
 	@Override
@@ -31,6 +31,12 @@ public class RestoreConfigTool extends AuthenticatedMCPTool {
 		backupIdProp.addProperty("type", "string");
 		backupIdProp.addProperty("description", "Backup ID to restore from (e.g., backup_20250103_120000)");
 		schema.add("backup_id", backupIdProp);
+
+		JsonObject suppressDialogProp = new JsonObject();
+		suppressDialogProp.addProperty("type", "boolean");
+		suppressDialogProp.addProperty("description", "Suppress confirmation dialog for configuration restore (default: false)");
+		suppressDialogProp.addProperty("default", false);
+		schema.add("suppress_dialog", suppressDialogProp);
 
 		return addAccessTokenToSchema(schema);
 	}
@@ -44,6 +50,7 @@ public class RestoreConfigTool extends AuthenticatedMCPTool {
 		}
 
 		String backupId = arguments.get("backup_id").getAsString();
+		boolean suppressDialog = arguments.has("suppress_dialog") ? arguments.get("suppress_dialog").getAsBoolean() : false;
 
 		try {
 			log("RestoreConfigTool step 1: Loading backup configuration");
@@ -54,6 +61,7 @@ public class RestoreConfigTool extends AuthenticatedMCPTool {
 			JsonObject updateArgs = new JsonObject();
 			updateArgs.add("config_json", backupConfig);
 			updateArgs.addProperty("backup", true);
+			updateArgs.addProperty("suppress_dialog", suppressDialog);
 			updateArgs.addProperty("access_token", arguments.get("access_token").getAsString());
 
 			UpdateConfigTool updateTool = new UpdateConfigTool();
