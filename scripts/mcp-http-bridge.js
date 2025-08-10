@@ -232,7 +232,7 @@ class MCPHttpBridge {
                     'Content-Type': 'application/json',
                     'Content-Length': Buffer.byteLength(postData)
                 },
-                timeout: 5000  // 5 second timeout
+                timeout: 60000  // 60 second timeout
             };
 
             const req = http.request(PACKETPROXY_HTTP_URL, options, (res) => {
