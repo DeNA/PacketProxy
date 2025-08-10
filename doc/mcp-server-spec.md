@@ -120,7 +120,7 @@ PacketProxyのパケット履歴を検索・取得します。フィルタリン
 
 ### 2. `get_packet_detail` - パケット詳細取得
 
-特定のパケットの詳細情報を取得します。
+特定のパケットの詳細情報を取得します。指定したパケットIDがリクエストの場合は対応するレスポンスも、レスポンスの場合は対応するリクエストも同時に返します。ペア取得機能は`include_pair`オプションで制御できます。
 
 **リクエスト:**
 
@@ -133,7 +133,8 @@ PacketProxyのパケット履歴を検索・取得します。フィルタリン
     "arguments": {
       "access_token": "your_access_token_here",
       "packet_id": 123,
-      "include_body": true
+      "include_body": true,
+      "include_pair": true
     }
   },
   "id": 2
@@ -142,41 +143,107 @@ PacketProxyのパケット履歴を検索・取得します。フィルタリン
 
 **パラメータ:**
 - `access_token` (string, required): PacketProxy設定のアクセストークン
-- `packet_id` (number, required): パケットID
+- `packet_id` (number, required): パケットID（リクエストまたはレスポンスのどちらでも指定可能）
 - `include_body` (boolean, optional): リクエスト/レスポンスボディを含める (デフォルト: false)
+- `include_pair` (boolean, optional): ペアパケット（リクエスト指定時はレスポンス、レスポンス指定時はリクエスト）を含める (デフォルト: true)
 
-**レスポンス:**
+**レスポンス（ペアが見つかった場合）:**
 
 ```json
 {
   "jsonrpc": "2.0",
   "result": {
-    "id": 123,
-    "method": "GET",
-    "url": "/api/users",
-    "status": 200,
-    "headers": {
-      "request": [
+    "paired": true,
+    "requested_packet_id": 123,
+    "group": 1001,
+    "conn": 5,
+    "request": {
+      "id": 123,
+      "direction": "client",
+      "method": "GET",
+      "url": "/api/users",
+      "version": "HTTP/1.1",
+      "headers": [
         {"name": "Host", "value": "api.example.com"},
         {"name": "User-Agent", "value": "Mozilla/5.0..."}
       ],
-      "response": [
+      "body": "",
+      "length": 256,
+      "time": "2025-01-15T10:30:00Z",
+      "resend": false,
+      "modified": false,
+      "type": "HTTP",
+      "encode": "HTTP",
+      "client": {"ip": "192.168.1.100", "port": 54321},
+      "server": {"ip": "192.168.1.1", "port": 80}
+    },
+    "response": {
+      "id": 124,
+      "direction": "server",
+      "status": 200,
+      "status_text": "OK",
+      "headers": [
         {"name": "Content-Type", "value": "application/json"},
         {"name": "Content-Length", "value": "1024"}
-      ]
-    },
-    "body": {
-      "request": "",
-      "response": "{\"users\": [...]}"
-    },
-    "timing": {
-      "timestamp": "2025-01-15T10:30:00Z",
-      "duration_ms": 245
+      ],
+      "body": "{\"users\": [...]}",
+      "length": 1024,
+      "time": "2025-01-15T10:30:01Z",
+      "resend": false,
+      "modified": false,
+      "type": "HTTP",
+      "encode": "HTTP",
+      "client": {"ip": "192.168.1.100", "port": 54321},
+      "server": {"ip": "192.168.1.1", "port": 80}
     }
   },
   "id": 2
 }
 ```
+
+**レスポンス（ペアが見つからない場合）:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "paired": false,
+    "requested_packet_id": 123,
+    "group": 1001,
+    "conn": 5,
+    "request": {
+      "id": 123,
+      "direction": "client",
+      "method": "GET",
+      "url": "/api/users",
+      "version": "HTTP/1.1",
+      "headers": [
+        {"name": "Host", "value": "api.example.com"},
+        {"name": "User-Agent", "value": "Mozilla/5.0..."}
+      ],
+      "body": "",
+      "length": 256,
+      "time": "2025-01-15T10:30:00Z",
+      "resend": false,
+      "modified": false,
+      "type": "HTTP",
+      "encode": "HTTP",
+      "client": {"ip": "192.168.1.100", "port": 54321},
+      "server": {"ip": "192.168.1.1", "port": 80}
+    },
+    "response": null
+  },
+  "id": 2
+}
+```
+
+**主な機能:**
+- **ペア検索機能**: 指定されたパケットに対応するリクエスト/レスポンスを自動的に検索（`include_pair=true`の場合）
+- **統一レスポンス形式**: リクエストIDを指定してもレスポンスIDを指定しても、同じ形式でリクエスト/レスポンス両方の詳細を返す
+- **ペア情報**: `paired`フィールドでペアが見つかったかどうかを示す
+- **詳細情報の追加**: 各パケットに`direction`（client/server）フィールドを追加
+- **接続情報**: `group`と`conn`フィールドでパケット間の関連性を示す
+- **ペア取得制御**: `include_pair=false`を指定することで、指定したパケットのみを取得可能
 
 ### 3. `get_logs` - ログ取得
 

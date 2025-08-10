@@ -7,6 +7,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.List;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 
@@ -40,6 +41,12 @@ public class PacketDetailTool extends AuthenticatedMCPTool {
 		includeBodyProp.addProperty("default", false);
 		schema.add("include_body", includeBodyProp);
 
+		JsonObject includePairProp = new JsonObject();
+		includePairProp.addProperty("type", "boolean");
+		includePairProp.addProperty("description", "Whether to include paired packet (request when response specified, response when request specified)");
+		includePairProp.addProperty("default", true);
+		schema.add("include_pair", includePairProp);
+
 		return addAccessTokenToSchema(schema);
 	}
 
@@ -53,6 +60,7 @@ public class PacketDetailTool extends AuthenticatedMCPTool {
 
 		int packetId = arguments.get("packet_id").getAsInt();
 		boolean includeBody = arguments.has("include_body") && arguments.get("include_body").getAsBoolean();
+		boolean includePair = !arguments.has("include_pair") || arguments.get("include_pair").getAsBoolean();
 
 		try {
 			Packets packets = Packets.getInstance();
@@ -62,7 +70,7 @@ public class PacketDetailTool extends AuthenticatedMCPTool {
 				throw new Exception("Packet not found: " + packetId);
 			}
 
-			JsonObject data = buildPacketDetail(packet, includeBody);
+			JsonObject data = buildPacketDetail(packet, includeBody, includePair);
 
 			JsonObject content = new JsonObject();
 			content.addProperty("type", "text");
@@ -83,7 +91,88 @@ public class PacketDetailTool extends AuthenticatedMCPTool {
 		}
 	}
 
-	private JsonObject buildPacketDetail(Packet packet, boolean includeBody) throws Exception {
+	private JsonObject buildPacketDetail(Packet packet, boolean includeBody, boolean includePair) throws Exception {
+		JsonObject result = new JsonObject();
+		
+		if (includePair) {
+			// Try to find the paired packet (request/response)
+			Packet pairedPacket = findPairedPacket(packet);
+			
+			if (pairedPacket != null) {
+				// Build paired request/response structure
+				Packet requestPacket = (packet.getDirection() == Packet.Direction.CLIENT) ? packet : pairedPacket;
+				Packet responsePacket = (packet.getDirection() == Packet.Direction.SERVER) ? packet : pairedPacket;
+				
+				// Request details
+				JsonObject request = buildSinglePacketDetail(requestPacket, includeBody, "request");
+				result.add("request", request);
+				
+				// Response details
+				JsonObject response = buildSinglePacketDetail(responsePacket, includeBody, "response");
+				result.add("response", response);
+				
+				// Add pairing information
+				result.addProperty("paired", true);
+				result.addProperty("requested_packet_id", packet.getId());
+				result.addProperty("group", packet.getGroup());
+				result.addProperty("conn", packet.getConn());
+			} else {
+				// Single packet (no pair found)
+				JsonObject singlePacket = buildSinglePacketDetail(packet, includeBody, packet.getDirection() == Packet.Direction.CLIENT ? "request" : "response");
+				if (packet.getDirection() == Packet.Direction.CLIENT) {
+					result.add("request", singlePacket);
+					result.add("response", null);
+				} else {
+					result.add("request", null);
+					result.add("response", singlePacket);
+				}
+				result.addProperty("paired", false);
+				result.addProperty("requested_packet_id", packet.getId());
+				result.addProperty("group", packet.getGroup());
+				result.addProperty("conn", packet.getConn());
+			}
+		} else {
+			// Return only the requested packet
+			JsonObject singlePacket = buildSinglePacketDetail(packet, includeBody, packet.getDirection() == Packet.Direction.CLIENT ? "request" : "response");
+			if (packet.getDirection() == Packet.Direction.CLIENT) {
+				result.add("request", singlePacket);
+				result.add("response", null);
+			} else {
+				result.add("request", null);
+				result.add("response", singlePacket);
+			}
+			result.addProperty("paired", false);
+			result.addProperty("requested_packet_id", packet.getId());
+			result.addProperty("group", packet.getGroup());
+			result.addProperty("conn", packet.getConn());
+		}
+
+		return result;
+	}
+	
+	private Packet findPairedPacket(Packet packet) throws Exception {
+		Packets packets = Packets.getInstance();
+		
+		// Look for a packet with same group and conn but opposite direction
+		Packet.Direction targetDirection = (packet.getDirection() == Packet.Direction.CLIENT) 
+			? Packet.Direction.SERVER : Packet.Direction.CLIENT;
+		
+		// Search through packets with same group
+		// Note: This is a simple implementation. In a real system, you might want to
+		// add specific query methods to Packets class for better performance
+		List<Packet> allPackets = packets.queryAll();
+		for (Packet p : allPackets) {
+			if (p.getGroup() == packet.getGroup() && 
+			    p.getConn() == packet.getConn() && 
+			    p.getDirection() == targetDirection &&
+			    p.getId() != packet.getId()) {
+				return p;
+			}
+		}
+		return null;
+	}
+	
+	private JsonObject buildSinglePacketDetail(Packet packet, boolean includeBody, String type) throws Exception {
 		JsonObject result = new JsonObject();
 
 		// Basic packet info
@@ -94,6 +183,7 @@ public class PacketDetailTool extends AuthenticatedMCPTool {
 		result.addProperty("modified", packet.getModified());
 		result.addProperty("type", packet.getContentType());
 		result.addProperty("encode", packet.getEncoder());
+		result.addProperty("direction", packet.getDirection().toString().toLowerCase());
 
 		// Client/Server info
 		JsonObject client = new JsonObject();
