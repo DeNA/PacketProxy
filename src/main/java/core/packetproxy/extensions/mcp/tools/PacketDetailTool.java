@@ -43,7 +43,8 @@ public class PacketDetailTool extends AuthenticatedMCPTool {
 
 		JsonObject includePairProp = new JsonObject();
 		includePairProp.addProperty("type", "boolean");
-		includePairProp.addProperty("description", "Whether to include paired packet (request when response specified, response when request specified)");
+		includePairProp.addProperty("description",
+				"Whether to include paired packet (request when response specified, response when request specified)");
 		includePairProp.addProperty("default", true);
 		schema.add("include_pair", includePairProp);
 
@@ -93,24 +94,24 @@ public class PacketDetailTool extends AuthenticatedMCPTool {
 
 	private JsonObject buildPacketDetail(Packet packet, boolean includeBody, boolean includePair) throws Exception {
 		JsonObject result = new JsonObject();
-		
+
 		if (includePair) {
 			// Try to find the paired packet (request/response)
 			Packet pairedPacket = findPairedPacket(packet);
-			
+
 			if (pairedPacket != null) {
 				// Build paired request/response structure
 				Packet requestPacket = (packet.getDirection() == Packet.Direction.CLIENT) ? packet : pairedPacket;
 				Packet responsePacket = (packet.getDirection() == Packet.Direction.SERVER) ? packet : pairedPacket;
-				
+
 				// Request details
 				JsonObject request = buildSinglePacketDetail(requestPacket, includeBody, "request");
 				result.add("request", request);
-				
+
 				// Response details
 				JsonObject response = buildSinglePacketDetail(responsePacket, includeBody, "response");
 				result.add("response", response);
-				
+
 				// Add pairing information
 				result.addProperty("paired", true);
 				result.addProperty("requested_packet_id", packet.getId());
@@ -118,7 +119,8 @@ public class PacketDetailTool extends AuthenticatedMCPTool {
 				result.addProperty("conn", packet.getConn());
 			} else {
 				// Single packet (no pair found)
-				JsonObject singlePacket = buildSinglePacketDetail(packet, includeBody, packet.getDirection() == Packet.Direction.CLIENT ? "request" : "response");
+				JsonObject singlePacket = buildSinglePacketDetail(packet, includeBody,
+						packet.getDirection() == Packet.Direction.CLIENT ? "request" : "response");
 				if (packet.getDirection() == Packet.Direction.CLIENT) {
 					result.add("request", singlePacket);
 					result.add("response", null);
@@ -133,7 +135,8 @@ public class PacketDetailTool extends AuthenticatedMCPTool {
 			}
 		} else {
 			// Return only the requested packet
-			JsonObject singlePacket = buildSinglePacketDetail(packet, includeBody, packet.getDirection() == Packet.Direction.CLIENT ? "request" : "response");
+			JsonObject singlePacket = buildSinglePacketDetail(packet, includeBody,
+					packet.getDirection() == Packet.Direction.CLIENT ? "request" : "response");
 			if (packet.getDirection() == Packet.Direction.CLIENT) {
 				result.add("request", singlePacket);
 				result.add("response", null);
@@ -149,29 +152,28 @@ public class PacketDetailTool extends AuthenticatedMCPTool {
 
 		return result;
 	}
-	
+
 	private Packet findPairedPacket(Packet packet) throws Exception {
 		Packets packets = Packets.getInstance();
-		
+
 		// Look for a packet with same group and conn but opposite direction
-		Packet.Direction targetDirection = (packet.getDirection() == Packet.Direction.CLIENT) 
-			? Packet.Direction.SERVER : Packet.Direction.CLIENT;
-		
+		Packet.Direction targetDirection = (packet.getDirection() == Packet.Direction.CLIENT)
+				? Packet.Direction.SERVER
+				: Packet.Direction.CLIENT;
+
 		// Search through packets with same group
 		// Note: This is a simple implementation. In a real system, you might want to
 		// add specific query methods to Packets class for better performance
 		List<Packet> allPackets = packets.queryAll();
 		for (Packet p : allPackets) {
-			if (p.getGroup() == packet.getGroup() && 
-			    p.getConn() == packet.getConn() && 
-			    p.getDirection() == targetDirection &&
-			    p.getId() != packet.getId()) {
+			if (p.getGroup() == packet.getGroup() && p.getConn() == packet.getConn()
+					&& p.getDirection() == targetDirection && p.getId() != packet.getId()) {
 				return p;
 			}
 		}
 		return null;
 	}
-	
+
 	private JsonObject buildSinglePacketDetail(Packet packet, boolean includeBody, String type) throws Exception {
 		JsonObject result = new JsonObject();
 

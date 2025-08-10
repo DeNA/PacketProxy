@@ -37,7 +37,8 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 
 		JsonObject configJsonProp = new JsonObject();
 		configJsonProp.addProperty("type", "object");
-		configJsonProp.addProperty("description", "PacketProxyHub-compatible configuration JSON containing COMPLETE configuration object. Must include all required arrays: listenPorts, servers, modifications, sslPassThroughs (can be empty arrays). Partial configurations will cause null pointer errors. Recommended workflow: 1) Call get_config() first, 2) Modify specific fields in the returned object, 3) Pass the entire modified object here.");
+		configJsonProp.addProperty("description",
+				"PacketProxyHub-compatible configuration JSON containing COMPLETE configuration object. Must include all required arrays: listenPorts, servers, modifications, sslPassThroughs (can be empty arrays). Partial configurations will cause null pointer errors. Recommended workflow: 1) Call get_config() first, 2) Modify specific fields in the returned object, 3) Pass the entire modified object here.");
 		schema.add("config_json", configJsonProp);
 
 		JsonObject backupProp = new JsonObject();
@@ -48,7 +49,8 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 
 		JsonObject suppressDialogProp = new JsonObject();
 		suppressDialogProp.addProperty("type", "boolean");
-		suppressDialogProp.addProperty("description", "Suppress confirmation dialog for configuration update (default: false)");
+		suppressDialogProp.addProperty("description",
+				"Suppress confirmation dialog for configuration update (default: false)");
 		suppressDialogProp.addProperty("default", false);
 		schema.add("suppress_dialog", suppressDialogProp);
 
@@ -65,7 +67,9 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 
 		JsonObject configJson = arguments.getAsJsonObject("config_json");
 		boolean backup = arguments.has("backup") ? arguments.get("backup").getAsBoolean() : true;
-		boolean suppressDialog = arguments.has("suppress_dialog") ? arguments.get("suppress_dialog").getAsBoolean() : false;
+		boolean suppressDialog = arguments.has("suppress_dialog")
+				? arguments.get("suppress_dialog").getAsBoolean()
+				: false;
 
 		try {
 			log("UpdateConfigTool step 1: Starting configuration update");

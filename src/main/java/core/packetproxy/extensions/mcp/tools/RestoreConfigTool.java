@@ -34,7 +34,8 @@ public class RestoreConfigTool extends AuthenticatedMCPTool {
 
 		JsonObject suppressDialogProp = new JsonObject();
 		suppressDialogProp.addProperty("type", "boolean");
-		suppressDialogProp.addProperty("description", "Suppress confirmation dialog for configuration restore (default: false)");
+		suppressDialogProp.addProperty("description",
+				"Suppress confirmation dialog for configuration restore (default: false)");
 		suppressDialogProp.addProperty("default", false);
 		schema.add("suppress_dialog", suppressDialogProp);
 
@@ -50,7 +51,9 @@ public class RestoreConfigTool extends AuthenticatedMCPTool {
 		}
 
 		String backupId = arguments.get("backup_id").getAsString();
-		boolean suppressDialog = arguments.has("suppress_dialog") ? arguments.get("suppress_dialog").getAsBoolean() : false;
+		boolean suppressDialog = arguments.has("suppress_dialog")
+				? arguments.get("suppress_dialog").getAsBoolean()
+				: false;
 
 		try {
 			log("RestoreConfigTool step 1: Loading backup configuration");

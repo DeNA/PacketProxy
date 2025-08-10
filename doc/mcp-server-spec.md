@@ -423,10 +423,10 @@ IMPORTANT: Requires a complete configuration object, not partial updates.
 **完全な設定オブジェクトが必要:**
 - `config_json`は部分的な設定ではなく、**完全な設定オブジェクト**である必要があります
 - 以下の配列は必須です（空配列でも可）：
-  - `listenPorts`: リッスンポート設定
-  - `servers`: サーバー設定
-  - `modifications`: 改変設定
-  - `sslPassThroughs`: SSL パススルー設定
+- `listenPorts`: リッスンポート設定
+- `servers`: サーバー設定
+- `modifications`: 改変設定
+- `sslPassThroughs`: SSL パススルー設定
 - 部分的な設定を渡すとnull pointerエラーが発生します
 
 **推奨ワークフロー:**
@@ -768,14 +768,14 @@ IMPORTANT: Requires a complete configuration object, not partial updates.
 - `packet_id` (number, required): VulCheckテストのベースとして使用するパケットID
 - `vulcheck_type` (string, required): 実行するVulCheckの種類 (Number, JWT等)。'list'を指定すると利用可能なタイプ一覧を取得
 - `target_locations` (array, required): VulCheckペイロードを注入するパケット内の対象位置の配列。正規表現パターンまたは位置範囲で指定可能
-  - **正規表現アプローチ (推奨):**
-    - `pattern` (string, required): マッチ対象の正規表現パターン (例: `"sessionId=\\w+"`)
-    - `replacement` (string, optional): 置換テンプレート。省略時はマッチ全体を置換。`$1`でペイロードを表す (例: `"sessionId=$1"`)
-    - `description` (string, optional): この対象位置の説明
-  - **位置範囲アプローチ (後方互換性のため保持):**
-    - `start` (number, required): 対象位置の開始位置
-    - `end` (number, required): 対象位置の終了位置  
-    - `description` (string, optional): この対象位置の説明
+- **正規表現アプローチ (推奨):**
+- `pattern` (string, required): マッチ対象の正規表現パターン (例: `"sessionId=\\w+"`)
+- `replacement` (string, optional): 置換テンプレート。省略時はマッチ全体を置換。`$1`でペイロードを表す (例: `"sessionId=$1"`)
+- `description` (string, optional): この対象位置の説明
+- **位置範囲アプローチ (後方互換性のため保持):**
+- `start` (number, required): 対象位置の開始位置
+- `end` (number, required): 対象位置の終了位置  
+- `description` (string, optional): この対象位置の説明
 - `interval_ms` (number, optional): パケット送信間隔(ms) (デフォルト: 100)
 - `mode` (string, optional): 実行モード "sequential" | "parallel" (デフォルト: "sequential")
 - `max_payloads` (number, optional): 位置ごとの最大ペイロード生成数 (デフォルト: 50, 最大: 1000)

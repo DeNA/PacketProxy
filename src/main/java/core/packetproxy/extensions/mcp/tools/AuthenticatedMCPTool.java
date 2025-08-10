@@ -25,7 +25,7 @@ public abstract class AuthenticatedMCPTool implements MCPTool {
 			throw new Exception(
 					"access_token parameter is required. Please provide your PacketProxy access token from Settings or leave empty (\"\") to use environment variable.");
 		}
-		
+
 		// 空文字列の場合は環境変数から取得する想定なのでvalidationをスキップ
 		if (providedToken.trim().isEmpty()) {
 			log("Empty access_token provided, assuming environment variable usage");
@@ -66,7 +66,8 @@ public abstract class AuthenticatedMCPTool implements MCPTool {
 	protected JsonObject addAccessTokenToSchema(JsonObject schema) {
 		JsonObject accessTokenProp = new JsonObject();
 		accessTokenProp.addProperty("type", "string");
-		accessTokenProp.addProperty("description", "Access token for authentication. Leave empty (\"\") to use environment variable (handled by scripts/mcp-http-bridge.js), or provide explicit token string");
+		accessTokenProp.addProperty("description",
+				"Access token for authentication. Leave empty (\"\") to use environment variable (handled by scripts/mcp-http-bridge.js), or provide explicit token string");
 		schema.add("access_token", accessTokenProp);
 		return schema;
 	}
