@@ -38,14 +38,14 @@ public class PacketDetailTool extends AuthenticatedMCPTool {
 		JsonObject includeBodyProp = new JsonObject();
 		includeBodyProp.addProperty("type", "boolean");
 		includeBodyProp.addProperty("description", "Whether to include request/response body");
-		includeBodyProp.addProperty("default", false);
+		includeBodyProp.addProperty("default", true);
 		schema.add("include_body", includeBodyProp);
 
 		JsonObject includePairProp = new JsonObject();
 		includePairProp.addProperty("type", "boolean");
 		includePairProp.addProperty("description",
 				"Whether to include paired packet (request when response specified, response when request specified)");
-		includePairProp.addProperty("default", true);
+		includePairProp.addProperty("default", false);
 		schema.add("include_pair", includePairProp);
 
 		return addAccessTokenToSchema(schema);
@@ -60,8 +60,8 @@ public class PacketDetailTool extends AuthenticatedMCPTool {
 		}
 
 		int packetId = arguments.get("packet_id").getAsInt();
-		boolean includeBody = arguments.has("include_body") && arguments.get("include_body").getAsBoolean();
-		boolean includePair = !arguments.has("include_pair") || arguments.get("include_pair").getAsBoolean();
+		boolean includeBody = !arguments.has("include_body") || arguments.get("include_body").getAsBoolean();
+		boolean includePair = arguments.has("include_pair") && arguments.get("include_pair").getAsBoolean();
 
 		try {
 			Packets packets = Packets.getInstance();

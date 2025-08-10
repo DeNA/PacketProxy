@@ -235,7 +235,8 @@ PacketProxyの現在の設定を確認してください
 
 **パラメータ：**
 - `packet_id` (integer, required): パケットID
-- `include_body` (boolean, optional): ボディを含めるか
+- `include_body` (boolean, optional): ボディを含めるか (デフォルト: false)
+- `include_pair` (boolean, optional): ペアパケットを含めるか (デフォルト: false)
 
 **使用例：**
 

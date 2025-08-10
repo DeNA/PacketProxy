@@ -134,7 +134,7 @@ PacketProxyのパケット履歴を検索・取得します。フィルタリン
       "access_token": "your_access_token_here",
       "packet_id": 123,
       "include_body": true,
-      "include_pair": true
+      "include_pair": false
     }
   },
   "id": 2
@@ -144,8 +144,8 @@ PacketProxyのパケット履歴を検索・取得します。フィルタリン
 **パラメータ:**
 - `access_token` (string, required): PacketProxy設定のアクセストークン
 - `packet_id` (number, required): パケットID（リクエストまたはレスポンスのどちらでも指定可能）
-- `include_body` (boolean, optional): リクエスト/レスポンスボディを含める (デフォルト: false)
-- `include_pair` (boolean, optional): ペアパケット（リクエスト指定時はレスポンス、レスポンス指定時はリクエスト）を含める (デフォルト: true)
+- `include_body` (boolean, optional): リクエスト/レスポンスボディを含める (デフォルト: true)
+- `include_pair` (boolean, optional): ペアパケット（リクエスト指定時はレスポンス、レスポンス指定時はリクエスト）を含める (デフォルト: false)
 
 **レスポンス（ペアが見つかった場合）:**
 
