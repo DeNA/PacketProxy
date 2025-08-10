@@ -279,7 +279,8 @@ PacketProxyの設定情報をHTTP API (`http://localhost:32349/config`) 経由�
 
 ### 5. `update_config` - 設定変更
 
-PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変更します。PacketProxyHub互換の形式を使用し、指定されたIDが含まれない項目は自動的に削除されます。
+Update PacketProxy configuration settings with complete configuration object.
+IMPORTANT: Requires a complete configuration object, not partial updates.
 
 **リクエスト:**
 
@@ -346,9 +347,25 @@ PacketProxyの設定をHTTP API (`http://localhost:32349/config`) 経由で変�
 
 **パラメータ:**
 - `access_token` (string, required): PacketProxy設定のアクセストークン
-- `config_json` (object, required): PacketProxyHub互換の設定JSON（完全な形式）
+- `config_json` (object, required): PacketProxyHub-compatible configuration JSON containing COMPLETE configuration object. Must include all required arrays: listenPorts, servers, modifications, sslPassThroughs (can be empty arrays). Partial configurations will cause null pointer errors. Recommended workflow: 1) Call get_config() first, 2) Modify specific fields in the returned object, 3) Pass the entire modified object here.
 - `backup` (boolean, optional): 既存設定をバックアップ (デフォルト: true)
 - `suppress_dialog` (boolean, optional): 確認ダイアログを非表示にする (デフォルト: false)
+
+**重要な注意事項:**
+
+**完全な設定オブジェクトが必要:**
+- `config_json`は部分的な設定ではなく、**完全な設定オブジェクト**である必要があります
+- 以下の配列は必須です（空配列でも可）：
+  - `listenPorts`: リッスンポート設定
+  - `servers`: サーバー設定
+  - `modifications`: 改変設定
+  - `sslPassThroughs`: SSL パススルー設定
+- 部分的な設定を渡すとnull pointerエラーが発生します
+
+**推奨ワークフロー:**
+1. 最初に`get_config()`を呼び出して現在の完全な設定を取得
+2. 取得した設定オブジェクトの特定のフィールドを変更
+3. 変更した完全なオブジェクトを`update_config()`に渡す
 
 **設定削除について:**
 - `config_json`に含まれないIDの項目は自動的に削除されます

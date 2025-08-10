@@ -28,7 +28,7 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 
 	@Override
 	public String getDescription() {
-		return "Update PacketProxy configuration settings with optional backup and dialog suppression";
+		return "Update PacketProxy configuration settings with complete configuration object. IMPORTANT: Requires a complete configuration object, not partial updates.";
 	}
 
 	@Override
@@ -37,7 +37,7 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 
 		JsonObject configJsonProp = new JsonObject();
 		configJsonProp.addProperty("type", "object");
-		configJsonProp.addProperty("description", "PacketProxyHub-compatible configuration JSON");
+		configJsonProp.addProperty("description", "PacketProxyHub-compatible configuration JSON containing COMPLETE configuration object. Must include all required arrays: listenPorts, servers, modifications, sslPassThroughs (can be empty arrays). Partial configurations will cause null pointer errors. Recommended workflow: 1) Call get_config() first, 2) Modify specific fields in the returned object, 3) Pass the entire modified object here.");
 		schema.add("config_json", configJsonProp);
 
 		JsonObject backupProp = new JsonObject();
