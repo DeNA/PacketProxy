@@ -201,6 +201,7 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 
 	@Override
 	protected JsonObject executeAuthenticated(JsonObject arguments) throws Exception {
+		log("BulkSendTool called with arguments: " + getSafeArgumentsString(arguments));
 		log("BulkSendTool: Starting bulk send operation");
 
 		// パラメータ取得

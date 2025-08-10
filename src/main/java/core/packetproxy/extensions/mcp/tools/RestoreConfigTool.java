@@ -44,7 +44,7 @@ public class RestoreConfigTool extends AuthenticatedMCPTool {
 
 	@Override
 	protected JsonObject executeAuthenticated(JsonObject arguments) throws Exception {
-		log("RestoreConfigTool called with arguments: " + arguments.toString());
+		log("RestoreConfigTool called with arguments: " + getSafeArgumentsString(arguments));
 
 		if (!arguments.has("backup_id")) {
 			throw new Exception("backup_id parameter is required");

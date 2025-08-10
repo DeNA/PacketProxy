@@ -41,7 +41,7 @@ public abstract class AuthenticatedMCPTool implements MCPTool {
 
 		// トークンの照合
 		if (!configuredToken.equals(providedToken)) {
-			log("Access token validation failed. Provided: " + providedToken + ", Expected: " + configuredToken);
+			log("Access token validation failed");
 			throw new Exception(
 					"Invalid access token. Please check your access token from PacketProxy Settings > Import/Export configs section.");
 		}
@@ -70,6 +70,17 @@ public abstract class AuthenticatedMCPTool implements MCPTool {
 				"Access token for authentication. Leave empty (\"\") to use environment variable (handled by scripts/mcp-http-bridge.js), or provide explicit token string");
 		schema.add("access_token", accessTokenProp);
 		return schema;
+	}
+
+	/**
+	 * access_tokenをマスクした安全なargumentsの文字列表現を返す
+	 */
+	protected String getSafeArgumentsString(JsonObject arguments) {
+		JsonObject safeArgs = arguments.deepCopy();
+		if (safeArgs.has("access_token")) {
+			safeArgs.addProperty("access_token", "****");
+		}
+		return safeArgs.toString();
 	}
 
 	/**

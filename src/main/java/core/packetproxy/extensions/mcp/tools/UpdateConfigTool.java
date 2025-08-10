@@ -59,7 +59,7 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 
 	@Override
 	protected JsonObject executeAuthenticated(JsonObject arguments) throws Exception {
-		log("UpdateConfigTool called with arguments: " + arguments.toString());
+		log("UpdateConfigTool called with arguments: " + getSafeArgumentsString(arguments));
 
 		if (!arguments.has("config_json")) {
 			throw new Exception("config_json parameter is required");

@@ -15,6 +15,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -30,8 +31,10 @@ public class MCPServerExtension extends Extension {
 	private JTextArea logArea;
 	private JButton startButton;
 	private JButton stopButton;
+	private JCheckBox maskTokenCheckBox;
 	private boolean isRunning = false;
 	private static final int HTTP_PORT = 8765;
+	private java.util.List<String> logMessages = new java.util.ArrayList<>();
 
 	public MCPServerExtension() {
 		super();
@@ -57,6 +60,16 @@ public class MCPServerExtension extends Extension {
 		stopButton = new JButton("Stop Server");
 		stopButton.setEnabled(false);
 
+		maskTokenCheckBox = new JCheckBox("Mask access_token in logs", true);
+		maskTokenCheckBox.setToolTipText("When enabled, access_token values are masked with asterisks in log display");
+		maskTokenCheckBox.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 15, 0, 0));
+		maskTokenCheckBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				refreshLogDisplay();
+			}
+		});
+
 		startButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -73,6 +86,7 @@ public class MCPServerExtension extends Extension {
 
 		statusPanel.add(startButton);
 		statusPanel.add(stopButton);
+		statusPanel.add(maskTokenCheckBox);
 
 		// Log area
 		logArea = new JTextArea(20, 80);
@@ -158,12 +172,37 @@ public class MCPServerExtension extends Extension {
 	}
 
 	private void addLog(String message) {
+		synchronized (logMessages) {
+			logMessages.add(message);
+		}
 		if (logArea != null) {
 			javax.swing.SwingUtilities.invokeLater(() -> {
-				logArea.append("[" + new java.util.Date() + "] " + message + "\n");
+				String displayMessage = maskTokenCheckBox.isSelected() ? maskAccessToken(message) : message;
+				logArea.append("[" + new java.util.Date() + "] " + displayMessage + "\n");
 				logArea.setCaretPosition(logArea.getDocument().getLength());
 			});
 		}
+	}
+
+	private void refreshLogDisplay() {
+		if (logArea != null) {
+			javax.swing.SwingUtilities.invokeLater(() -> {
+				logArea.setText("");
+				synchronized (logMessages) {
+					for (String message : logMessages) {
+						String displayMessage = maskTokenCheckBox.isSelected() ? maskAccessToken(message) : message;
+						logArea.append("[" + new java.util.Date() + "] " + displayMessage + "\n");
+					}
+				}
+				logArea.setCaretPosition(logArea.getDocument().getLength());
+			});
+		}
+	}
+
+	private String maskAccessToken(String message) {
+		// Pattern to match "access_token":"value" or "access_token": "value" or
+		// access_token=value
+		return message.replaceAll("(?i)(\"?access_token\"?\\s*[:=]\\s*\"?)([^\"\\s&,}]+)(\"?)", "$1****$3");
 	}
 
 	// HTTP handler for MCP requests

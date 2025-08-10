@@ -66,7 +66,7 @@ public class HistoryTool extends AuthenticatedMCPTool {
 
 	@Override
 	protected JsonObject executeAuthenticated(JsonObject arguments) throws Exception {
-		log("HistoryTool called with arguments: " + arguments.toString());
+		log("HistoryTool called with arguments: " + getSafeArgumentsString(arguments));
 
 		int limit = arguments.has("limit") ? arguments.get("limit").getAsInt() : 100;
 		int offset = arguments.has("offset") ? arguments.get("offset").getAsInt() : 0;

@@ -125,6 +125,7 @@ public class ResendPacketTool extends AuthenticatedMCPTool {
 
 	@Override
 	protected JsonObject executeAuthenticated(JsonObject arguments) throws Exception {
+		log("ResendPacketTool called with arguments: " + getSafeArgumentsString(arguments));
 		log("ResendPacketTool: Starting packet resend operation");
 
 		// パラメータ取得

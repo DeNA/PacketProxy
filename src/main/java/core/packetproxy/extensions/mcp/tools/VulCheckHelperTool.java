@@ -130,6 +130,7 @@ public class VulCheckHelperTool extends AuthenticatedMCPTool {
 
 	@Override
 	protected JsonObject executeAuthenticated(JsonObject arguments) throws Exception {
+		log("VulCheckHelperTool called with arguments: " + getSafeArgumentsString(arguments));
 		log("VulCheckHelperTool: Starting VulCheck operation");
 
 		// パラメータ取得

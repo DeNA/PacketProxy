@@ -53,7 +53,7 @@ public class PacketDetailTool extends AuthenticatedMCPTool {
 
 	@Override
 	protected JsonObject executeAuthenticated(JsonObject arguments) throws Exception {
-		log("PacketDetailTool called with arguments: " + arguments.toString());
+		log("PacketDetailTool called with arguments: " + getSafeArgumentsString(arguments));
 
 		if (!arguments.has("packet_id")) {
 			throw new Exception("packet_id is required");

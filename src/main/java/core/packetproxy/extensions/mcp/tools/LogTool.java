@@ -62,7 +62,7 @@ public class LogTool extends AuthenticatedMCPTool {
 
 	@Override
 	protected JsonObject executeAuthenticated(JsonObject arguments) throws Exception {
-		log("LogTool called with arguments: " + arguments.toString());
+		log("LogTool called with arguments: " + getSafeArgumentsString(arguments));
 
 		String level = arguments.has("level") ? arguments.get("level").getAsString() : "info";
 		int limit = arguments.has("limit") ? arguments.get("limit").getAsInt() : 100;

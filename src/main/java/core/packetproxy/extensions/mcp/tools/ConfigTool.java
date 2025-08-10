@@ -57,7 +57,7 @@ public class ConfigTool extends AuthenticatedMCPTool {
 
 	@Override
 	protected JsonObject executeAuthenticated(JsonObject arguments) throws Exception {
-		log("ConfigTool called with arguments: " + arguments.toString());
+		log("ConfigTool called with arguments: " + getSafeArgumentsString(arguments));
 
 		try {
 			// HTTP APIで設定を取得
