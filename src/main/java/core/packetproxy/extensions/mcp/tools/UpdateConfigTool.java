@@ -185,7 +185,7 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 		}
 		conn.setDoOutput(true);
 		conn.setConnectTimeout(5000);
-		conn.setReadTimeout(10000);
+		conn.setReadTimeout(60000);
 
 		// リクエストボディを送信
 		try (OutputStream os = conn.getOutputStream()) {
@@ -236,7 +236,7 @@ public class UpdateConfigTool extends AuthenticatedMCPTool {
 		conn.setRequestMethod("GET");
 		conn.setRequestProperty("Authorization", accessToken);
 		conn.setConnectTimeout(5000);
-		conn.setReadTimeout(10000);
+		conn.setReadTimeout(60000);
 
 		int responseCode = conn.getResponseCode();
 		if (responseCode != 200) {
