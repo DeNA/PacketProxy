@@ -658,6 +658,207 @@ IMPORTANT: Requires a complete configuration object, not partial updates.
 }
 ```
 
+### 9. `call_vulcheck_helper` - VulCheck脆弱性テストヘルパー
+
+指定されたパケットにVulCheckテストケースを適用して、自動的にペイロードを生成し、指定された位置に注入してバッチ送信を実行します。
+
+**リクエスト:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "call_vulcheck_helper",
+    "arguments": {
+      "access_token": "your_access_token_here",
+      "packet_id": 123,
+      "vulcheck_type": "Number",
+      "target_locations": [
+        {
+          "pattern": "userId=\\d+",
+          "replacement": "userId=$1",
+          "description": "User ID parameter"
+        },
+        {
+          "pattern": "amount=[0-9.]+",
+          "replacement": "amount=$1",
+          "description": "Amount field"
+        }
+      ],
+      "interval_ms": 100,
+      "mode": "sequential",
+      "max_payloads": 50,
+      "timeout_ms": 300000
+    }
+  },
+  "id": 9
+}
+```
+
+**パラメータ:**
+- `access_token` (string, required): PacketProxy設定のアクセストークン
+- `packet_id` (number, required): VulCheckテストのベースとして使用するパケットID
+- `vulcheck_type` (string, required): 実行するVulCheckの種類 (Number, JWT等)。'list'を指定すると利用可能なタイプ一覧を取得
+- `target_locations` (array, required): VulCheckペイロードを注入するパケット内の対象位置の配列。正規表現パターンまたは位置範囲で指定可能
+  - **正規表現アプローチ (推奨):**
+    - `pattern` (string, required): マッチ対象の正規表現パターン (例: `"sessionId=\\w+"`)
+    - `replacement` (string, optional): 置換テンプレート。省略時はマッチ全体を置換。`$1`でペイロードを表す (例: `"sessionId=$1"`)
+    - `description` (string, optional): この対象位置の説明
+  - **位置範囲アプローチ (後方互換性のため保持):**
+    - `start` (number, required): 対象位置の開始位置
+    - `end` (number, required): 対象位置の終了位置  
+    - `description` (string, optional): この対象位置の説明
+- `interval_ms` (number, optional): パケット送信間隔(ms) (デフォルト: 100)
+- `mode` (string, optional): 実行モード "sequential" | "parallel" (デフォルト: "sequential")
+- `max_payloads` (number, optional): 位置ごとの最大ペイロード生成数 (デフォルト: 50, 最大: 1000)
+- `timeout_ms` (number, optional): 全体操作タイムアウト(ms) (デフォルト: 300000 - 5分)
+
+**実行モード:**
+- `sequential`: ペイロードを順次送信 (間隔制御あり)
+- `parallel`: 全ペイロードを並列送信 (高速、interval_msは無視)
+
+**利用可能なVulCheckタイプ取得:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "call_vulcheck_helper",
+    "arguments": {
+      "access_token": "your_access_token_here",
+      "packet_id": 123,
+      "vulcheck_type": "list"
+    }
+  },
+  "id": 10
+}
+```
+
+**VulCheckタイプ一覧レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "available_vulcheck_types": "Number, JWT",
+    "vulcheck_types": [
+      {
+        "name": "Number",
+        "description": "VulCheck tests for Number vulnerabilities",
+        "generators": [
+          {"name": "NegativeNumber", "generate_on_start": true},
+          {"name": "Zero", "generate_on_start": true},
+          {"name": "Decimals", "generate_on_start": true},
+          {"name": "IntegerOverflow", "generate_on_start": true}
+        ],
+        "generator_count": 9
+      },
+      {
+        "name": "JWT",
+        "description": "VulCheck tests for JWT vulnerabilities", 
+        "generators": [
+          {"name": "JWTPayloadModified", "generate_on_start": false},
+          {"name": "JWTHeaderAlgNone", "generate_on_start": false}
+        ],
+        "generator_count": 8
+      }
+    ],
+    "total_types": 2
+  },
+  "id": 10
+}
+```
+
+**実行結果レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "success": true,
+    "vulcheck_type": "Number",
+    "mode": "sequential",
+    "total_locations": 2,
+    "total_payloads_generated": 18,
+    "total_packets_sent": 16,
+    "total_failed": 2,
+    "execution_time_ms": 2400,
+    "location_results": [
+      {
+        "start": 45,
+        "end": 50,
+        "description": "User ID parameter (match 1)",
+        "payloads_generated": 9,
+        "packets_sent": 8,
+        "packets_failed": 1,
+        "execution_time_ms": 1200,
+        "generated_payloads": [
+          "-1", "0", "0.1", "2147483647", "2147483648",
+          "-2147483649", "9223372036854775807", "9223372036854775808",
+          "-9223372036854775809"
+        ]
+      },
+      {
+        "start": 78,
+        "end": 85,
+        "description": "Amount field (match 1)",
+        "payloads_generated": 9,
+        "packets_sent": 8,
+        "packets_failed": 1,
+        "execution_time_ms": 1200,
+        "generated_payloads": [
+          "-1", "0", "0.1", "2147483647", "2147483648",
+          "-2147483649", "9223372036854775807", "9223372036854775808",
+          "-9223372036854775809"
+        ]
+      }
+    ],
+    "performance": {
+      "average_interval_ms": 100,
+      "payloads_per_second": 6.67,
+      "success_rate_percent": 88.89
+    }
+  },
+  "id": 9
+}
+```
+
+**使用例:**
+
+```bash
+# 利用可能なVulCheckタイプを確認
+curl -X POST http://localhost:32349/mcp/tools/call \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your_access_token" \
+  -d '{
+    "name": "call_vulcheck_helper",
+    "arguments": {
+      "packet_id": 123,
+      "vulcheck_type": "list"
+    }
+  }'
+
+# Number VulCheckを実行
+curl -X POST http://localhost:32349/mcp/tools/call \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your_access_token" \
+  -d '{
+    "name": "call_vulcheck_helper", 
+    "arguments": {
+      "packet_id": 123,
+      "vulcheck_type": "Number",
+      "target_locations": [
+        {"pattern": "userId=\\d+", "replacement": "userId=$1", "description": "User ID"}
+      ],
+      "mode": "sequential",
+      "interval_ms": 200,
+      "max_payloads": 10
+    }
+  }'
+```
+
 ## フィルタ構文仕様
 
 PacketProxyのFilterTextParserに準拠した構文を使用します。
@@ -739,6 +940,7 @@ GET  /mcp/configs                        # 設定一覧
 PUT  /mcp/configs                        # 設定更新
 POST /mcp/resend/{packet_id}             # パケット再送
 POST /mcp/bulk_send                      # 複数パケット一括送信
+POST /mcp/call_vulcheck_helper           # VulCheck脆弱性テストヘルパー
 GET  /mcp/logs?level=info                # ログ取得
 POST /mcp/restore/{backup_id}             # バックアップ復元
 ```

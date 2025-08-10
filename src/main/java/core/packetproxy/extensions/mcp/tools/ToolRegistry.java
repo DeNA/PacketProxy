@@ -24,6 +24,7 @@ public class ToolRegistry {
 		registerTool(new RestoreConfigTool());
 		registerTool(new ResendPacketTool());
 		registerTool(new BulkSendTool());
+		registerTool(new VulCheckHelperTool());
 	}
 
 	public void registerTool(MCPTool tool) {
