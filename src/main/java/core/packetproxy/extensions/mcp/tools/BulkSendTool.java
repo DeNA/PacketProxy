@@ -319,12 +319,6 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 			resultObj.addProperty("sent_count", r.sentCount);
 			resultObj.addProperty("failed_count", r.failedCount);
 
-			JsonArray newPacketIds = new JsonArray();
-			for (Integer id : r.newPacketIds) {
-				newPacketIds.add(id);
-			}
-			resultObj.add("new_packet_ids", newPacketIds);
-
 			if (r.error != null) {
 				resultObj.addProperty("error", r.error);
 			}
@@ -374,7 +368,6 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 		BulkSendResult result = new BulkSendResult();
 		result.originalPacketId = packetId;
 		result.packetIndex = packetIndex;
-		result.newPacketIds = new ArrayList<>();
 		result.regexParamsApplied = new ArrayList<>();
 
 		long startTime = System.currentTimeMillis();
@@ -455,7 +448,6 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 			} else {
 				result.success = true;
 				result.sentCount = count;
-				// 新しいパケットIDは実際の実装では取得困難なため空のままとする
 			}
 
 		} catch (Exception e) {
@@ -480,7 +472,6 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 		BulkSendResult result = new BulkSendResult();
 		result.originalPacketId = packetId;
 		result.packetIndex = packetIndex;
-		result.newPacketIds = new ArrayList<>();
 		result.regexParamsApplied = new ArrayList<>();
 
 		long startTime = System.currentTimeMillis();
@@ -912,7 +903,6 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 		boolean success;
 		int sentCount;
 		int failedCount;
-		List<Integer> newPacketIds;
 		String error;
 		long executionTimeMs;
 		List<RegexParamApplied> regexParamsApplied;

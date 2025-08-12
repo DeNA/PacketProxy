@@ -175,7 +175,6 @@ public class ResendPacketTool extends AuthenticatedMCPTool {
 		long startTime = System.currentTimeMillis();
 		int sentCount = 0;
 		int failedCount = 0;
-		List<Integer> newPacketIds = new ArrayList<>();
 
 		try {
 			ResendController resendController = ResendController.getInstance();
@@ -221,12 +220,6 @@ public class ResendPacketTool extends AuthenticatedMCPTool {
 		result.addProperty("sent_count", sentCount);
 		result.addProperty("failed_count", failedCount);
 		result.addProperty("execution_time_ms", executionTime);
-
-		JsonArray packetIdsArray = new JsonArray();
-		for (Integer id : newPacketIds) {
-			packetIdsArray.add(id);
-		}
-		result.add("packet_ids", packetIdsArray);
 
 		log("ResendPacketTool: Completed. Sent: " + sentCount + ", Failed: " + failedCount + ", Time: " + executionTime
 				+ "ms");
