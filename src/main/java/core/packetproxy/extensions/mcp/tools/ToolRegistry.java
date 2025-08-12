@@ -56,6 +56,24 @@ public class ToolRegistry {
 			throw new Exception("Unknown tool: " + toolName);
 		}
 
-		return tool.call(arguments);
+		JsonObject toolResult = tool.call(arguments);
+		
+		// MCP仕様に準拠した応答形式に変換
+		JsonObject mcpResponse = new JsonObject();
+		
+		// content配列を作成 (必須)
+		JsonArray content = new JsonArray();
+		JsonObject textContent = new JsonObject();
+		textContent.addProperty("type", "text");
+		textContent.addProperty("text", toolResult.toString());
+		content.add(textContent);
+		
+		mcpResponse.add("content", content);
+		mcpResponse.addProperty("isError", false);
+		
+		// 元の結果をstructuredContentとして保持（オプション）
+		mcpResponse.add("structuredContent", toolResult);
+		
+		return mcpResponse;
 	}
 }
