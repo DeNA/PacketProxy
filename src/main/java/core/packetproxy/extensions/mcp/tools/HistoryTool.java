@@ -48,9 +48,10 @@ public class HistoryTool extends AuthenticatedMCPTool {
 		JsonObject filterProp = new JsonObject();
 		filterProp.addProperty("type", "string");
 		filterProp.addProperty("description", "PacketProxy Filter syntax for filtering packets. "
-				+ "Available columns: id, request, response, length, client_ip, client_port, server_ip, server_port, time, resend, modified, type, encode, alpn, group, full_text, full_text_i, method, url, status. "
+				+ "Available columns: id, request, response, length, client_ip, client_port, server_ip, server_port, time, resend, modified, type, encode, alpn, group, full_text, full_text_i. "
+				+ "Note: method, url, status are NOT available for filtering (only for ordering). "
 				+ "Operators: == (equals), != (not equals), >= (greater or equal), <= (less or equal), =~ (regex match), !~ (regex not match), && (AND), || (OR). "
-				+ "Examples: 'method == GET', 'status >= 400', 'url =~ /api/', 'method == POST && status >= 400', 'length > 1000', 'full_text_i =~ authorization'");
+				+ "Examples: 'type == HTTP', 'length > 1000', 'full_text_i =~ authorization', 'client_port == 80 && server_port == 443'");
 		schema.add("filter", filterProp);
 
 		JsonObject orderProp = new JsonObject();
