@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import packetproxy.VulCheckerManager;
@@ -190,6 +191,9 @@ public class VulCheckHelperTool extends AuthenticatedMCPTool {
 					"VulCheck type '" + vulCheckType + "' not found. Use 'list' to see available types.");
 		}
 
+		// ジョブIDを生成
+		String jobId = UUID.randomUUID().toString();
+
 		// ターゲット位置を解析
 		List<TargetLocation> targetLocations = parseTargetLocations(targetLocationsJson, originalOneShot.getData());
 
@@ -197,7 +201,7 @@ public class VulCheckHelperTool extends AuthenticatedMCPTool {
 
 		// VulCheckテストを実行
 		VulCheckResult result = executeVulCheckTests(originalOneShot, vulChecker, targetLocations, intervalMs, mode,
-				maxPayloads, timeoutMs);
+				maxPayloads, timeoutMs, jobId);
 
 		long executionTime = System.currentTimeMillis() - startTime;
 
@@ -211,6 +215,7 @@ public class VulCheckHelperTool extends AuthenticatedMCPTool {
 		response.addProperty("total_packets_sent", result.totalPacketsSent);
 		response.addProperty("total_failed", result.totalFailed);
 		response.addProperty("execution_time_ms", executionTime);
+		response.addProperty("job_id", jobId);
 
 		// 各ターゲット位置の結果
 		JsonArray locationResults = new JsonArray();
@@ -373,8 +378,8 @@ public class VulCheckHelperTool extends AuthenticatedMCPTool {
 	 * VulCheckテストを実行
 	 */
 	private VulCheckResult executeVulCheckTests(OneShotPacket originalPacket, VulChecker vulChecker,
-			List<TargetLocation> targetLocations, int intervalMs, String mode, int maxPayloads, int timeoutMs)
-			throws Exception {
+			List<TargetLocation> targetLocations, int intervalMs, String mode, int maxPayloads, int timeoutMs,
+			String jobId) throws Exception {
 
 		VulCheckResult result = new VulCheckResult();
 		result.overallSuccess = true;
@@ -388,7 +393,7 @@ public class VulCheckHelperTool extends AuthenticatedMCPTool {
 					+ targetLocation.range.getPositionEnd() + " (" + targetLocation.description + ")");
 
 			LocationResult locResult = processTargetLocation(originalPacket, vulChecker, targetLocation, intervalMs,
-					mode, maxPayloads);
+					mode, maxPayloads, jobId);
 
 			result.locationResults.add(locResult);
 			result.totalPayloadsGenerated += locResult.payloadsGenerated;
@@ -412,7 +417,8 @@ public class VulCheckHelperTool extends AuthenticatedMCPTool {
 	 * 特定のターゲット位置でVulCheckテストを実行
 	 */
 	private LocationResult processTargetLocation(OneShotPacket originalPacket, VulChecker vulChecker,
-			TargetLocation targetLocation, int intervalMs, String mode, int maxPayloads) throws Exception {
+			TargetLocation targetLocation, int intervalMs, String mode, int maxPayloads, String jobId)
+			throws Exception {
 
 		LocationResult result = new LocationResult();
 		result.range = targetLocation.range;
@@ -486,11 +492,13 @@ public class VulCheckHelperTool extends AuthenticatedMCPTool {
 
 					byte[] modifiedData = modifiedText.getBytes();
 
+					// ジョブ情報を付与してパケット作成
+					String temporaryId = UUID.randomUUID().toString();
 					OneShotPacket modifiedPacket = new OneShotPacket(originalPacket.getId(),
 							originalPacket.getListenPort(), originalPacket.getClient(), originalPacket.getServer(),
 							originalPacket.getServerName(), originalPacket.getUseSSL(), modifiedData,
 							originalPacket.getEncoder(), originalPacket.getAlpn(), originalPacket.getDirection(),
-							originalPacket.getConn(), originalPacket.getGroup());
+							originalPacket.getConn(), originalPacket.getGroup(), jobId, temporaryId);
 
 					// 送信モードに応じて処理
 					if ("parallel".equals(mode)) {

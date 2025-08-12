@@ -584,7 +584,7 @@ IMPORTANT: Requires a complete configuration object, not partial updates.
     "success": true,
     "sent_count": 20,
     "failed_count": 0,
-    "packet_ids": [124, 125, 126],
+    "job_id": "af2adff0-a35a-43ef-b653-cb47203727df",
     "execution_time_ms": 2100
   },
   "id": 7
@@ -702,7 +702,7 @@ IMPORTANT: Requires a complete configuration object, not partial updates.
       "average_response_time_ms": 312,
       "concurrent_connections": 3
     },
-    "job_id": null
+    "job_id": "bulk_send_20250804_120030_abc123"
   },
   "id": 8
 }
@@ -886,7 +886,8 @@ IMPORTANT: Requires a complete configuration object, not partial updates.
       "average_interval_ms": 100,
       "payloads_per_second": 6.67,
       "success_rate_percent": 88.89
-    }
+    },
+    "job_id": "vulcheck_20250804_120030_def456"
   },
   "id": 9
 }
@@ -925,6 +926,103 @@ curl -X POST http://localhost:32349/mcp/tools/call \
     }
   }'
 ```
+
+### 10. `get_job_status` - ジョブ状況取得
+
+send系ツール（resend_packet/bulk_send/call_vulcheck_helper）で作成されたジョブの実行状況を取得します。
+
+**リクエスト:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "get_job_status",
+    "arguments": {
+      "job_id": "af2adff0-a35a-43ef-b653-cb47203727df"
+    }
+  },
+  "id": 10
+}
+```
+
+**パラメータ:**
+- `job_id` (string, optional): 取得するジョブのID。指定しない場合は全ジョブの概要を返す
+
+**特定ジョブの詳細レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "job_id": "af2adff0-a35a-43ef-b653-cb47203727df",
+    "total_requests": 5,
+    "requests_sent": 5,
+    "responses_received": 3,
+    "status": "receiving_responses",
+    "requests": [
+      {
+        "temporary_id": "temp_001",
+        "has_request": true,
+        "has_response": true,
+        "request_packet_id": 124,
+        "response_packet_id": 125
+      },
+      {
+        "temporary_id": "temp_002",
+        "has_request": true,
+        "has_response": false,
+        "request_packet_id": 126
+      }
+    ]
+  },
+  "id": 10
+}
+```
+
+**全ジョブ概要レスポンス:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "total_jobs": 3,
+    "jobs": [
+      {
+        "job_id": "af2adff0-a35a-43ef-b653-cb47203727df",
+        "total_requests": 5,
+        "requests_sent": 5,
+        "responses_received": 3,
+        "status": "receiving_responses"
+      },
+      {
+        "job_id": "bulk_send_20250804_120030_abc123",
+        "total_requests": 10,
+        "requests_sent": 10,
+        "responses_received": 10,
+        "status": "completed"
+      }
+    ]
+  },
+  "id": 10
+}
+```
+
+**ジョブ状態:**
+- `created`: ジョブは作成されたがリクエストはまだ送信されていない
+- `requests_sent`: 全リクエストが送信済み、レスポンス待ち
+- `receiving_responses`: 一部のレスポンスを受信中
+- `completed`: 全リクエスト・レスポンスが完了
+
+**ジョブの概念:**
+
+PacketProxyのジョブシステムは、send系ツールで送信されたパケットの追跡を可能にします：
+
+- **job_id**: 各send系ツール実行時に生成されるUUID
+- **temporary_id**: ジョブ内の各リクエスト/レスポンスペアを識別するUUID
+- **パケット関連付け**: 送信されたパケットと受信されたレスポンスがtemporary_idで関連付けられる
+- **状況追跡**: データベースに保存されたパケット履歴からジョブの進行状況をリアルタイムで取得
 
 ## フィルタ構文仕様
 
@@ -1008,6 +1106,7 @@ PUT  /mcp/configs                        # 設定更新
 POST /mcp/resend/{packet_id}             # パケット再送
 POST /mcp/bulk_send                      # 複数パケット一括送信
 POST /mcp/call_vulcheck_helper           # VulCheck脆弱性テストヘルパー
+GET  /mcp/job_status?job_id=...          # ジョブ状況取得
 GET  /mcp/logs?level=info                # ログ取得
 POST /mcp/restore/{backup_id}             # バックアップ復元
 ```

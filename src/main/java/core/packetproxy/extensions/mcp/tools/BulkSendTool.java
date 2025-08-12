@@ -253,6 +253,9 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 			packetIds.add(element.getAsInt());
 		}
 
+		// ジョブIDを生成
+		String jobId = UUID.randomUUID().toString();
+
 		long startTime = System.currentTimeMillis();
 		int totalPackets = packetIds.size();
 		int totalCount = totalPackets * count;
@@ -268,7 +271,7 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 				for (int i = 0; i < packetIds.size(); i++) {
 					int packetId = packetIds.get(i);
 					BulkSendResult result = processSinglePacket(packetId, i, count, modifications, regexParams,
-							extractedValues, allowDuplicateHeaders);
+							extractedValues, allowDuplicateHeaders, jobId);
 					results.add(result);
 					sentCount += result.sentCount;
 					failedCount += result.failedCount;
@@ -279,7 +282,7 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 				for (int i = 0; i < packetIds.size(); i++) {
 					int packetId = packetIds.get(i);
 					BulkSendResult result = processSinglePacketSequential(packetId, i, count, modifications,
-							regexParams, extractedValues, allowDuplicateHeaders, intervalMs);
+							regexParams, extractedValues, allowDuplicateHeaders, intervalMs, jobId);
 					results.add(result);
 					sentCount += result.sentCount;
 					failedCount += result.failedCount;
@@ -352,7 +355,7 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 		performance.addProperty("concurrent_connections", totalPackets);
 		result.add("performance", performance);
 
-		result.add("job_id", null); // 非同期実行はフェーズ3で実装
+		result.addProperty("job_id", jobId);
 
 		log("BulkSendTool: Completed. Sent: " + sentCount + ", Failed: " + failedCount + ", Time: " + executionTime
 				+ "ms");
@@ -363,7 +366,7 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 	 * 単一パケットの処理（並列送信）
 	 */
 	private BulkSendResult processSinglePacket(int packetId, int packetIndex, int count, JsonArray modifications,
-			JsonArray regexParams, Map<String, String> extractedValues, boolean allowDuplicateHeaders) {
+			JsonArray regexParams, Map<String, String> extractedValues, boolean allowDuplicateHeaders, String jobId) {
 
 		BulkSendResult result = new BulkSendResult();
 		result.originalPacketId = packetId;
@@ -399,10 +402,15 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 			OneShotPacket modifiedPacket = applyModifications(regexModifiedPacket, modifications, packetIndex + 1,
 					allowDuplicateHeaders);
 
-			// 複数回送信用のパケット配列を作成
+			// 複数回送信用のパケット配列を作成（各パケットに固有のtemporary_idを付与）
 			OneShotPacket[] packetsToSend = new OneShotPacket[count];
 			for (int i = 0; i < count; i++) {
-				packetsToSend[i] = modifiedPacket;
+				String temporaryId = UUID.randomUUID().toString();
+				packetsToSend[i] = new OneShotPacket(modifiedPacket.getId(), modifiedPacket.getListenPort(),
+						modifiedPacket.getClient(), modifiedPacket.getServer(), modifiedPacket.getServerName(),
+						modifiedPacket.getUseSSL(), modifiedPacket.getData(), modifiedPacket.getEncoder(),
+						modifiedPacket.getAlpn(), modifiedPacket.getDirection(), modifiedPacket.getConn(),
+						modifiedPacket.getGroup(), jobId, temporaryId);
 			}
 
 			// ResendControllerを使用して並列送信
@@ -467,7 +475,7 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 	 */
 	private BulkSendResult processSinglePacketSequential(int packetId, int packetIndex, int count,
 			JsonArray modifications, JsonArray regexParams, Map<String, String> extractedValues,
-			boolean allowDuplicateHeaders, int intervalMs) {
+			boolean allowDuplicateHeaders, int intervalMs, String jobId) {
 
 		BulkSendResult result = new BulkSendResult();
 		result.originalPacketId = packetId;
@@ -509,8 +517,16 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 					OneShotPacket modifiedPacket = applyModifications(regexModifiedPacket, modifications,
 							packetIndex * count + i + 1, allowDuplicateHeaders);
 
+					// ジョブ情報を付与
+					String temporaryId = UUID.randomUUID().toString();
+					OneShotPacket jobPacket = new OneShotPacket(modifiedPacket.getId(), modifiedPacket.getListenPort(),
+							modifiedPacket.getClient(), modifiedPacket.getServer(), modifiedPacket.getServerName(),
+							modifiedPacket.getUseSSL(), modifiedPacket.getData(), modifiedPacket.getEncoder(),
+							modifiedPacket.getAlpn(), modifiedPacket.getDirection(), modifiedPacket.getConn(),
+							modifiedPacket.getGroup(), jobId, temporaryId);
+
 					// 単発送信
-					ResendController.getInstance().resend(modifiedPacket);
+					ResendController.getInstance().resend(jobPacket);
 					successCount++;
 
 					// 同一パケット内の送信間隔
@@ -737,7 +753,7 @@ public class BulkSendTool extends AuthenticatedMCPTool {
 
 		data = dataStr.getBytes();
 
-		// 新しいOneShotPacketを作成
+		// 新しいOneShotPacketを作成（job情報は後で付与）
 		OneShotPacket modifiedPacket = new OneShotPacket(original.getId(), original.getListenPort(),
 				original.getClient(), original.getServer(), original.getServerName(), original.getUseSSL(), data,
 				original.getEncoder(), original.getAlpn(), original.getDirection(), original.getConn(),

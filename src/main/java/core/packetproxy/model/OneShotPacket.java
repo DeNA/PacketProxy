@@ -42,6 +42,8 @@ public class OneShotPacket implements PacketInfo, Cloneable {
 	private boolean auto_modified;
 	private int conn;
 	private long group;
+	private String job_id;
+	private String temporary_id;
 
 	public OneShotPacket() {
 	}
@@ -51,7 +53,15 @@ public class OneShotPacket implements PacketInfo, Cloneable {
 			int conn, long group) {
 		initialize(id, listen_port, client_addr.getAddress().getHostAddress(), client_addr.getPort(),
 				server_addr.getAddress().getHostAddress(), server_addr.getPort(), server_name, use_ssl, data,
-				encoder_name, alpn, dir, conn, group);
+				encoder_name, alpn, dir, conn, group, null, null);
+	}
+
+	public OneShotPacket(int id, int listen_port, InetSocketAddress client_addr, InetSocketAddress server_addr,
+			String server_name, boolean use_ssl, byte[] data, String encoder_name, String alpn, Packet.Direction dir,
+			int conn, long group, String job_id, String temporary_id) {
+		initialize(id, listen_port, client_addr.getAddress().getHostAddress(), client_addr.getPort(),
+				server_addr.getAddress().getHostAddress(), server_addr.getPort(), server_name, use_ssl, data,
+				encoder_name, alpn, dir, conn, group, job_id, temporary_id);
 	}
 
 	@Override
@@ -61,7 +71,7 @@ public class OneShotPacket implements PacketInfo, Cloneable {
 
 	private void initialize(int id, int listen_port, String client_ip, int client_port, String server_ip,
 			int server_port, String server_name, boolean use_ssl, byte[] data, String encoder_name, String alpn,
-			Packet.Direction dir, int conn, long group) {
+			Packet.Direction dir, int conn, long group, String job_id, String temporary_id) {
 		this.id = id;
 		this.listen_port = listen_port;
 		this.client_ip = client_ip;
@@ -77,6 +87,8 @@ public class OneShotPacket implements PacketInfo, Cloneable {
 		this.auto_modified = false;
 		this.conn = conn;
 		this.group = group;
+		this.job_id = job_id;
+		this.temporary_id = temporary_id;
 	}
 
 	public Packet.Direction getDirection() {
@@ -175,6 +187,22 @@ public class OneShotPacket implements PacketInfo, Cloneable {
 		return this.group;
 	}
 
+	public String getJobId() {
+		return this.job_id;
+	}
+
+	public void setJobId(String job_id) {
+		this.job_id = job_id;
+	}
+
+	public String getTemporaryId() {
+		return this.temporary_id;
+	}
+
+	public void setTemporaryId(String temporary_id) {
+		this.temporary_id = temporary_id;
+	}
+
 	public void encode() {
 	}
 
@@ -182,6 +210,8 @@ public class OneShotPacket implements PacketInfo, Cloneable {
 		Packet packet = new Packet(listen_port, client_ip, client_port, server_ip, server_port, server_name, use_ssl,
 				encoder_name, alpn, direction, conn, group);
 		packet.setDecodedData(getData());
+		packet.setJobId(job_id);
+		packet.setTemporaryId(temporary_id);
 		return packet;
 	}
 

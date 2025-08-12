@@ -8,8 +8,6 @@ import com.google.gson.JsonObject;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -172,6 +170,9 @@ public class ResendPacketTool extends AuthenticatedMCPTool {
 
 		log("ResendPacketTool: Original packet found, preparing for resend");
 
+		// ジョブIDを生成
+		String jobId = UUID.randomUUID().toString();
+
 		long startTime = System.currentTimeMillis();
 		int sentCount = 0;
 		int failedCount = 0;
@@ -182,8 +183,21 @@ public class ResendPacketTool extends AuthenticatedMCPTool {
 			if (modifications.size() == 0) {
 				// 改変なしの場合は単純再送
 				log("ResendPacketTool: Simple resend without modifications, count=" + count);
-				resendController.resend(originalOneShot, count);
-				sentCount = count;
+				for (int i = 0; i < count; i++) {
+					String temporaryId = UUID.randomUUID().toString();
+					OneShotPacket jobPacket = new OneShotPacket(originalOneShot.getId(),
+							originalOneShot.getListenPort(), originalOneShot.getClient(), originalOneShot.getServer(),
+							originalOneShot.getServerName(), originalOneShot.getUseSSL(), originalOneShot.getData(),
+							originalOneShot.getEncoder(), originalOneShot.getAlpn(), originalOneShot.getDirection(),
+							originalOneShot.getConn(), originalOneShot.getGroup(), jobId, temporaryId);
+					resendController.resend(jobPacket);
+					sentCount++;
+
+					// インターバル待機（最後の送信後は待機しない）
+					if (intervalMs > 0 && i < count - 1) {
+						Thread.sleep(intervalMs);
+					}
+				}
 			} else {
 				// 複数回送信または改変ありの場合
 				log("ResendPacketTool: Complex resend with count=" + count + " and modifications="
@@ -191,8 +205,9 @@ public class ResendPacketTool extends AuthenticatedMCPTool {
 
 				for (int i = 0; i < count; i++) {
 					try {
+						String temporaryId = UUID.randomUUID().toString();
 						OneShotPacket modifiedPacket = applyModifications(originalOneShot, modifications, i + 1,
-								allowDuplicateHeaders);
+								allowDuplicateHeaders, jobId, temporaryId);
 						resendController.resend(modifiedPacket);
 						sentCount++;
 
@@ -220,6 +235,7 @@ public class ResendPacketTool extends AuthenticatedMCPTool {
 		result.addProperty("sent_count", sentCount);
 		result.addProperty("failed_count", failedCount);
 		result.addProperty("execution_time_ms", executionTime);
+		result.addProperty("job_id", jobId);
 
 		log("ResendPacketTool: Completed. Sent: " + sentCount + ", Failed: " + failedCount + ", Time: " + executionTime
 				+ "ms");
@@ -230,7 +246,7 @@ public class ResendPacketTool extends AuthenticatedMCPTool {
 	 * パケットに改変を適用
 	 */
 	private OneShotPacket applyModifications(OneShotPacket original, JsonArray modifications, int index,
-			boolean allowDuplicateHeaders) throws Exception {
+			boolean allowDuplicateHeaders, String jobId, String temporaryId) throws Exception {
 		if (modifications.size() == 0) {
 			return original;
 		}
@@ -270,7 +286,7 @@ public class ResendPacketTool extends AuthenticatedMCPTool {
 		OneShotPacket modifiedPacket = new OneShotPacket(original.getId(), original.getListenPort(),
 				original.getClient(), original.getServer(), original.getServerName(), original.getUseSSL(), data,
 				original.getEncoder(), original.getAlpn(), original.getDirection(), original.getConn(),
-				original.getGroup());
+				original.getGroup(), jobId, temporaryId);
 
 		return modifiedPacket;
 	}

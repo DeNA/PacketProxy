@@ -236,6 +236,13 @@ public class Packets implements PropertyChangeListener {
 
 						dao.executeRaw("ALTER TABLE `packets` ADD COLUMN color VARCHAR");
 					}
+					// job_idカラムとtemporary_idカラムも追加する
+					if (!result.contains("`job_id` VARCHAR")) {
+						dao.executeRaw("ALTER TABLE `packets` ADD COLUMN job_id VARCHAR");
+					}
+					if (!result.contains("`temporary_id` VARCHAR")) {
+						dao.executeRaw("ALTER TABLE `packets` ADD COLUMN temporary_id VARCHAR");
+					}
 					firePropertyChange(message);
 					break;
 				case RECREATE :
@@ -255,7 +262,7 @@ public class Packets implements PropertyChangeListener {
 		String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='packets'").getFirstResult()[0];
 		// System.out.println(result);
 		return result.equals(
-				"CREATE TABLE `packets` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `direction` VARCHAR , `decoded_data` BLOB , `modified_data` BLOB , `sent_data` BLOB , `received_data` BLOB , `listen_port` INTEGER , `client_ip` VARCHAR , `client_port` INTEGER , `server_ip` VARCHAR , `server_name` VARCHAR , `server_port` INTEGER , `use_ssl` BOOLEAN , `content_type` VARCHAR , `encoder_name` VARCHAR , `alpn` VARCHAR , `modified` BOOLEAN , `resend` BOOLEAN , `date` BIGINT , `conn` INTEGER , `group` BIGINT , `color` VARCHAR )");
+				"CREATE TABLE `packets` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `direction` VARCHAR , `decoded_data` BLOB , `modified_data` BLOB , `sent_data` BLOB , `received_data` BLOB , `listen_port` INTEGER , `client_ip` VARCHAR , `client_port` INTEGER , `server_ip` VARCHAR , `server_name` VARCHAR , `server_port` INTEGER , `use_ssl` BOOLEAN , `content_type` VARCHAR , `encoder_name` VARCHAR , `alpn` VARCHAR , `modified` BOOLEAN , `resend` BOOLEAN , `date` BIGINT , `conn` INTEGER , `group` BIGINT , `color` VARCHAR , `job_id` VARCHAR , `temporary_id` VARCHAR )");
 	}
 
 	private void RecreateTable() throws Exception {
