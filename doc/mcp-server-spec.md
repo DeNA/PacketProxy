@@ -729,6 +729,8 @@ IMPORTANT: Requires a complete configuration object, not partial updates.
 
 指定されたパケットにVulCheckテストケースを適用して、自動的にペイロードを生成し、指定された位置に注入してバッチ送信を実行します。
 
+**重要な制限事項**: 現在、NumberとJWTの脆弱性タイプのみをサポートしています。その他の脆弱性診断については、`bulk_send`や`resend_packet`ツールを使用してください。
+
 **リクエスト:**
 
 ```json
