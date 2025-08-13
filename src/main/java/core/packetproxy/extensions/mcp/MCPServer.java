@@ -60,16 +60,8 @@ public class MCPServer {
 
 	public void stop() {
 		running = false;
-		try {
-			if (reader != null) {
-				reader.close();
-			}
-			if (writer != null) {
-				writer.close();
-			}
-		} catch (IOException e) {
-			logger.accept("Error closing streams: " + e.getMessage());
-		}
+		// Don't close System.in/System.out streams as they are global
+		// Just mark as stopped - the run() loop will break on next read
 	}
 
 	public JsonObject processTestRequest(JsonObject request) throws Exception {
