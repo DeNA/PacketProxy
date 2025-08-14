@@ -96,6 +96,10 @@ public class Frame {
 		return streamId;
 	}
 
+	public void setStreamId(int streamId) {
+		this.streamId = streamId;
+	}
+
 	public byte[] getPayload() {
 		return payload;
 	}

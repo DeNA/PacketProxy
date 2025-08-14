@@ -34,6 +34,7 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import packetproxy.controller.ResendController;
 import packetproxy.controller.ResendController.ResendWorker;
+import packetproxy.controller.SinglePacketAttackController;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.Packet;
 import packetproxy.model.ResenderPacket;
@@ -221,6 +222,7 @@ public class GUIResender implements PropertyChangeListener {
 		private JSplitPane split_panel;
 		private JButton resend_button;
 		private JButton resend_multiple_button;
+		private JButton attack_button;
 		private JPanel main_panel;
 
 		public Resend(Resends parent) throws Exception {
@@ -285,9 +287,22 @@ public class GUIResender implements PropertyChangeListener {
 				}
 			});
 
+			attack_button = new JButton("send x 20 (single-packet attack)");
+			attack_button.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					try {
+						new SinglePacketAttackController(send_panel.getOneShotPacket()).attack(20);
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+				}
+			});
+
 			JPanel button_panel = new JPanel();
 			button_panel.add(resend_button);
 			button_panel.add(resend_multiple_button);
+			button_panel.add(attack_button);
 			button_panel.setMaximumSize(new Dimension(Short.MAX_VALUE, 10));
 
 			main_panel = new JPanel();
@@ -335,10 +350,12 @@ public class GUIResender implements PropertyChangeListener {
 
 				resend_button.setEnabled(false);
 				resend_multiple_button.setEnabled(false);
+				attack_button.setEnabled(false);
 			} else {
 
 				resend_button.setEnabled(true);
 				resend_multiple_button.setEnabled(true);
+				attack_button.setEnabled(true);
 			}
 		}
 	}

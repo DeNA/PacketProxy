@@ -35,6 +35,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 import packetproxy.controller.ResendController;
+import packetproxy.controller.SinglePacketAttackController;
 import packetproxy.http.Http;
 import packetproxy.model.Diff;
 import packetproxy.model.DiffBinary;
@@ -50,6 +51,7 @@ public class GUIData {
 	private TabSet tabs;
 	private JButton resend_button;
 	private JButton resend_multiple_button;
+	private JButton attack_button;
 	private JButton send_to_resender_button;
 	private JButton copy_url_body_button;
 	private JButton copy_url_button;
@@ -156,7 +158,6 @@ public class GUIData {
 
 						data = tabs.getRaw().getData();
 					} else if (index == 1) {
-
 						data = tabs.getBinary().getData();
 					}
 					if (data != null) {
@@ -190,7 +191,6 @@ public class GUIData {
 
 						data = tabs.getRaw().getData();
 					} else if (index == 1) {
-
 						data = tabs.getBinary().getData();
 					}
 					if (data != null) {
@@ -204,6 +204,33 @@ public class GUIData {
 					}
 				} catch (Exception e1) {
 
+					e1.printStackTrace();
+				}
+			}
+		});
+
+		attack_button = new JButton("send x 20 (single-packet attack)");
+		attack_button.setAlignmentX(0.5f);
+		attack_button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					byte[] data = null;
+					int index = tabs.getSelectedIndex();
+					if (index == 0) {
+						data = tabs.getRaw().getData();
+					} else if (index == 1) {
+						data = tabs.getBinary().getData();
+					}
+					if (data != null) {
+						int id = GUIHistory.getInstance().getSelectedPacketId();
+						Packet packet = Packets.getInstance().query(id);
+						new SinglePacketAttackController(packet.getOneShotPacket(data)).attack(20);
+						packet.setResend();
+						Packets.getInstance().update(packet);
+						GUIHistory.getInstance().updateRequestOne(id);
+					}
+				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
 			}
@@ -223,7 +250,6 @@ public class GUIData {
 
 						data = tabs.getRaw().getData();
 					} else if (index == 1) {
-
 						data = tabs.getBinary().getData();
 					}
 					if (data != null) {
@@ -342,7 +368,6 @@ public class GUIData {
 
 					GUIPacket.getInstance().update();
 				} catch (Exception e2) {
-
 					e2.printStackTrace();
 				}
 			}
@@ -374,6 +399,7 @@ public class GUIData {
 		button_panel.add(copy_url_button);
 		button_panel.add(resend_button);
 		button_panel.add(resend_multiple_button);
+		button_panel.add(attack_button);
 		button_panel.add(send_to_resender_button);
 		button_panel.add(new JLabel("  diff: "));
 		button_panel.add(diff_panel);
@@ -386,15 +412,12 @@ public class GUIData {
 	public void updateCharSetCombo() {
 		charSetCombo.removeAllItems();
 		for (String charSetName : charSetUtility.getAvailableCharSetList()) {
-
 			charSetCombo.addItem(charSetName);
 		}
 		String charSetName = CharSetUtility.getInstance().getCharSetForGUIComponent();
 		if (charSetUtility.getAvailableCharSetList().contains(charSetName)) {
-
 			charSetCombo.setSelectedItem(charSetName);
 		} else {
-
 			charSetCombo.setSelectedIndex(0);
 		}
 	}
@@ -409,7 +432,6 @@ public class GUIData {
 
 	public byte[] getData() {
 		if (tabs.getData() == null) {
-
 			return new byte[]{};
 		}
 		try {

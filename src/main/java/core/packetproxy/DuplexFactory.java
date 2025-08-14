@@ -87,6 +87,7 @@ public class DuplexFactory {
 			private Modifications mods = Modifications.getInstance();
 			private Packet client_packet;
 			private Packet server_packet;
+
 			@Override
 			public int onClientPacketReceived(byte[] data) throws Exception {
 				return encoder.checkRequestDelimiter(data);
@@ -355,6 +356,7 @@ public class DuplexFactory {
 					oneshot.getAlpn());
 			private Packet client_packet;
 			private Packet server_packet;
+
 			@Override
 			public int onClientPacketReceived(byte[] data) throws Exception {
 				// return encoder.checkDelimiter(data);
@@ -522,6 +524,173 @@ public class DuplexFactory {
 		return duplex;
 	}
 
+	// Single-packet攻撃用のDuplexSync作成メソッド
+	//
+	// createDuplexSyncFromOneShotPacket（従来版）との主な違い：
+	// 1. sendメソッドの禁止
+	// sendメソッドは完全なリクエストを送信するが、Single-packet攻撃では
+	// リクエストをフレーム単位で分割するため使用不可。
+	// sendメソッド実行時にonClientChunkSendが例外をスロー。
+	// 2. client_packetの作成タイミング変更
+	// 従来版: sendメソッド → onClientChunkSendで作成
+	// 本実装: onServerChunkReceivedで作成（sendメソッド未使用のため）
+	public static DuplexSync createDuplexSyncForSinglePacketAttack(final OneShotPacket oneshot) throws Exception {
+		DuplexSync duplex = new DuplexSync(EndpointFactory.createFromOneShotPacket(oneshot));
+		duplex.addDuplexEventListener(new Duplex.DuplexEventListener() {
+
+			private Packets packets = Packets.getInstance();
+			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(),
+					oneshot.getAlpn());
+			private Packet client_packet;
+			private Packet server_packet;
+
+			@Override
+			public int onClientPacketReceived(byte[] data) throws Exception {
+				return data.length;
+			}
+
+			@Override
+			public int onServerPacketReceived(byte[] data) throws Exception {
+				return encoder.checkResponseDelimiter(data);
+			}
+
+			@Override
+			public byte[] onClientChunkReceived(byte[] data) throws Exception {
+				return data;
+			}
+
+			@Override
+			public byte[] onServerChunkReceived(byte[] data) throws Exception {
+				client_packet = new Packet(0, oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(),
+						oneshot.getUseSSL(), oneshot.getEncoder(), oneshot.getAlpn(), Packet.Direction.CLIENT,
+						duplex.hashCode(), packetproxy.common.UniqueID.getInstance().createId());
+				client_packet.setDecodedData(oneshot.getData());
+				client_packet.setModifiedData(oneshot.getData());
+				client_packet.setResend();
+				client_packet.setReceivedData(oneshot.getData());
+				client_packet.setSentData(encoder.encodeClientRequest(client_packet));
+				packets.update(client_packet);
+
+				var group_id = client_packet.getGroup();
+
+				server_packet = new Packet(0, oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(),
+						oneshot.getUseSSL(), oneshot.getEncoder(), oneshot.getAlpn(), Packet.Direction.SERVER,
+						duplex.hashCode(), group_id);
+				packets.update(server_packet);
+				server_packet.setReceivedData(data);
+				if (data.length < SKIP_LENGTH) {
+					packets.update(server_packet);
+				}
+
+				var decoded_data = encoder.decodeServerResponse(client_packet, server_packet);
+				server_packet.setDecodedData(decoded_data);
+				server_packet.setContentType(encoder.getContentType(client_packet, server_packet));
+
+				if (!server_packet.getContentType().equals("")) {
+					client_packet.setContentType(server_packet.getContentType());
+					packets.update(client_packet);
+				}
+
+				server_packet.setModifiedData(decoded_data);
+				packets.update(server_packet);
+				if (decoded_data.length == 0) {
+					server_packet.setModified();
+					packets.update(server_packet);
+					return new byte[]{};
+				}
+
+				return decoded_data;
+			}
+
+			@Override
+			public byte[] onClientChunkSend(byte[] data) throws Exception {
+				throw new UnsupportedOperationException(
+						"onClientChunkSend() should never be called in createDuplexSyncForSinglePacketAttack. "
+								+ "Use execFastSend() instead of send() because Single Packet Attack requires sending "
+								+ "partial requests, not complete ones. The send() method is designed for complete requests.");
+			}
+
+			@Override
+			public byte[] onServerChunkSend(byte[] data) throws Exception {
+				byte[] encoded_data = encoder.encodeServerResponse(client_packet, server_packet);
+				server_packet.setSentData(encoded_data);
+				packets.update(server_packet);
+				return encoded_data;
+			}
+
+			@Override
+			public byte[] onClientChunkSendForced(byte[] data) throws Exception {
+				return null;
+			}
+
+			@Override
+			public byte[] onServerChunkSendForced(byte[] data) throws Exception {
+				return null;
+			}
+
+			@Override
+			public void onClientChunkArrived(byte[] data) throws Exception {
+				encoder.clientRequestArrived(data);
+			}
+
+			@Override
+			public void onServerChunkArrived(byte[] data) throws Exception {
+				encoder.serverResponseArrived(data);
+			}
+
+			@Override
+			public byte[] onClientChunkPassThrough() throws Exception {
+				return encoder.passThroughClientRequest();
+			}
+
+			@Override
+			public byte[] onServerChunkPassThrough() throws Exception {
+				return encoder.passThroughServerResponse();
+			}
+
+			@Override
+			public byte[] onClientChunkAvailable() throws Exception {
+				return encoder.clientRequestAvailable();
+			}
+
+			@Override
+			public byte[] onServerChunkAvailable() throws Exception {
+				return encoder.serverResponseAvailable();
+			}
+
+			@Override
+			public void onClientChunkFlowControl(byte[] data) throws Exception {
+				encoder.putToClientFlowControlledQueue(data);
+			}
+
+			@Override
+			public void onServerChunkFlowControl(byte[] data) throws Exception {
+				encoder.putToServerFlowControlledQueue(data);
+			}
+
+			@Override
+			public void closeClientChunkFlowControl() throws Exception {
+				encoder.closeClientFlowControlledQueue();
+			}
+
+			@Override
+			public void closeServerChunkFlowControl() throws Exception {
+				encoder.closeServerFlowControlledQueue();
+			}
+
+			@Override
+			public InputStream getClientChunkFlowControlSink() throws Exception {
+				return encoder.getClientFlowControlledInputStream();
+			}
+
+			@Override
+			public InputStream getServerChunkFlowControlSink() throws Exception {
+				return encoder.getServerFlowControlledInputStream();
+			}
+		});
+		return duplex;
+	}
+
 	// original_duplexと接続を共有しているが、イベントリスナーは再送用のものに差し替えたDuplexを返す
 	public static Duplex createDuplexFromOriginalDuplex(Duplex original_duplex, OneShotPacket oneshot)
 			throws Exception {
@@ -533,6 +702,7 @@ public class DuplexFactory {
 					oneshot.getAlpn());
 			private Packet client_packet;
 			private Packet server_packet;
+
 			@Override
 			public int onClientPacketReceived(byte[] data) throws Exception {
 				// return encoder.checkDelimiter(data);
