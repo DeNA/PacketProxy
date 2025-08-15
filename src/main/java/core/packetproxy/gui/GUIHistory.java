@@ -86,7 +86,6 @@ import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 import packetproxy.model.ResenderPackets;
 import packetproxy.util.CharSetUtility;
-import packetproxy.util.PacketProxyUtility;
 
 public class GUIHistory implements PropertyChangeListener {
 
@@ -439,11 +438,7 @@ public class GUIHistory implements PropertyChangeListener {
 		sorter.toggleSortOrder(14); /* 14 is 'group' column */
 		table.setRowSorter(sorter);
 
-		int mask_key = ActionEvent.META_MASK;
-		if (!PacketProxyUtility.getInstance().isMac()) {
-
-			mask_key = ActionEvent.CTRL_MASK;
-		}
+		int mask_key = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 		menu = new JPopupMenu();
 
 		JMenuItem send = createMenuItem("send", KeyEvent.VK_S, KeyStroke.getKeyStroke(KeyEvent.VK_S, mask_key),
@@ -824,16 +819,8 @@ public class GUIHistory implements PropertyChangeListener {
 			public void keyPressed(KeyEvent e) {
 				try {
 
-					int mask_key = KeyEvent.META_MASK;
-					if (!PacketProxyUtility.getInstance().isMac()) {
-
-						mask_key = KeyEvent.CTRL_MASK;
-					}
+					int mask_key = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 					int p;
-					Packet packet;
-					Http http;
-					Clipboard clipboard;
-					StringSelection selection;
 					switch (e.getKeyCode()) {
 
 						case KeyEvent.VK_J :
@@ -847,25 +834,25 @@ public class GUIHistory implements PropertyChangeListener {
 							table.changeSelection(p, 0, false, false);
 							break;
 						case KeyEvent.VK_Y :
-							if ((e.getModifiers() & mask_key) == mask_key) {
+							if ((e.getModifiersEx() & mask_key) == mask_key) {
 
 								copy.doClick();
 								break;
 							}
 						case KeyEvent.VK_S :
-							if ((e.getModifiers() & mask_key) == mask_key) {
+							if ((e.getModifiersEx() & mask_key) == mask_key) {
 
 								send.doClick();
 							}
 							break;
 						case KeyEvent.VK_R :
-							if ((e.getModifiers() & mask_key) == mask_key) {
+							if ((e.getModifiersEx() & mask_key) == mask_key) {
 
 								sendToResender.doClick();
 							}
 							break;
 						case KeyEvent.VK_M :
-							if ((e.getModifiers() & mask_key) == mask_key) {
+							if ((e.getModifiersEx() & mask_key) == mask_key) {
 
 								copyAll.doClick();
 							}
