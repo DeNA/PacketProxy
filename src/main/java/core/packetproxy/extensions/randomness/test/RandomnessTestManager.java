@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.extensions.randomness.test;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -101,7 +102,7 @@ public class RandomnessTestManager {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		return res;
 	}

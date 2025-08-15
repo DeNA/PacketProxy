@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -65,7 +66,7 @@ public class GUIMenu extends JMenuBar {
 							JOptionPane.showMessageDialog(null, I18nString.get("Data saved successfully"));
 						} catch (Exception e1) {
 
-							e1.printStackTrace();
+							errWithStackTrace(e1);
 							JOptionPane.showMessageDialog(null, I18nString.get("Data can't be saved with error"));
 						}
 					}
@@ -100,7 +101,7 @@ public class GUIMenu extends JMenuBar {
 							JOptionPane.showMessageDialog(null, I18nString.get("Data saved successfully"));
 						} catch (Exception e1) {
 
-							e1.printStackTrace();
+							errWithStackTrace(e1);
 							JOptionPane.showMessageDialog(null, I18nString.get("Data can't be saved with error"));
 						}
 					}
@@ -137,7 +138,7 @@ public class GUIMenu extends JMenuBar {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 					JOptionPane.showMessageDialog(null, I18nString.get("Data can't be loaded with error"));
 				}
 			}
@@ -162,7 +163,7 @@ public class GUIMenu extends JMenuBar {
 
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -178,7 +179,7 @@ public class GUIMenu extends JMenuBar {
 
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -194,7 +195,7 @@ public class GUIMenu extends JMenuBar {
 
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -209,7 +210,7 @@ public class GUIMenu extends JMenuBar {
 					GUIMain.getInstance().getTabbedPane().setSelectedIndex(Panes.BULKSENDER.ordinal());
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -224,7 +225,7 @@ public class GUIMenu extends JMenuBar {
 					GUIMain.getInstance().getTabbedPane().setSelectedIndex(Panes.OPTIONS.ordinal());
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -239,7 +240,7 @@ public class GUIMenu extends JMenuBar {
 					GUIMain.getInstance().getTabbedPane().setSelectedIndex(Panes.LOG.ordinal());
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -270,7 +271,7 @@ public class GUIMenu extends JMenuBar {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 					JOptionPane.showMessageDialog(null, I18nString.get("Config can't be loaded with error"));
 				}
 			}
@@ -296,7 +297,7 @@ public class GUIMenu extends JMenuBar {
 								JOptionPane.showMessageDialog(null, I18nString.get("Config saved successfully"));
 							} catch (Exception e1) {
 
-								e1.printStackTrace();
+								errWithStackTrace(e1);
 								JOptionPane.showMessageDialog(null, I18nString.get("Config can't be saved with error"));
 							}
 						}
@@ -313,7 +314,7 @@ public class GUIMenu extends JMenuBar {
 					filechooser.showSaveDialog();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});

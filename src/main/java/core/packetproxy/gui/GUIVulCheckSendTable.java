@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.*;
 import java.awt.event.KeyAdapter;
@@ -79,7 +80,7 @@ public class GUIVulCheckSendTable {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 				return c;
 			}
@@ -144,7 +145,7 @@ public class GUIVulCheckSendTable {
 					table.setRowSelectionInterval(rowIndex, rowIndex);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -159,7 +160,7 @@ public class GUIVulCheckSendTable {
 					onSelected.accept(generatorName);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});

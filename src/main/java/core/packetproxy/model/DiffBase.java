@@ -42,7 +42,7 @@ public abstract class DiffBase {
 	// System.out.println(String.format("Targ CHG: %d %d", pos, length)); }
 	// });
 	// } catch (Exception e) {
-	// e.printStackTrace();
+	// errWithStackTrace(e);
 	// }
 	// }
 	//

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package packetproxy.gui;
-
 import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import java.awt.*;
@@ -137,7 +137,7 @@ public class GUIOption {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});

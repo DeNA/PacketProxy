@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.common;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -54,7 +55,7 @@ public class GRPCMessage {
 				return base64.toString(grpcMessage.toBytes()).getBytes();
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 				return new byte[0];
 			}
 		}));
@@ -68,7 +69,7 @@ public class GRPCMessage {
 				return grpcMessage.toBytes();
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 				return new byte[0];
 			}
 		});

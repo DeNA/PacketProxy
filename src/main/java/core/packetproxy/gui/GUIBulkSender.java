@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -131,7 +132,7 @@ public class GUIBulkSender {
 									}
 								} catch (Exception e) {
 
-									e.printStackTrace();
+									errWithStackTrace(e);
 								}
 							}
 						});
@@ -182,7 +183,7 @@ public class GUIBulkSender {
 													}
 												} catch (Exception e) {
 
-													e.printStackTrace();
+													errWithStackTrace(e);
 												}
 											}
 										});
@@ -190,14 +191,14 @@ public class GUIBulkSender {
 									}
 								} catch (Exception e) {
 
-									e.printStackTrace();
+									errWithStackTrace(e);
 								}
 							}
 						}.start();
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -218,7 +219,7 @@ public class GUIBulkSender {
 					sendPacketId = 0;
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});

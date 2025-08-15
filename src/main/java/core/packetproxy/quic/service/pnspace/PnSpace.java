@@ -211,7 +211,7 @@ public abstract class PnSpace {
 				this.conn.close();
 			} else {
 
-				System.err.println("Error: cannot process frame: " + frame);
+				err("Error: cannot process frame: %s", frame);
 			}
 		}
 	}

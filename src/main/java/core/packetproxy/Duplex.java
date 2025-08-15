@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -87,7 +88,7 @@ public abstract class Duplex {
 			serverInputForFlowControl = new PipedInputStream(serverOutputForFlowControl, PIPE_SIZE);
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

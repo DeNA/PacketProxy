@@ -15,6 +15,7 @@
  */
 
 package packetproxy.http3.service.frame;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.common.collect.Sets;
 import java.lang.reflect.Modifier;
@@ -64,7 +65,7 @@ public class FrameParser {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

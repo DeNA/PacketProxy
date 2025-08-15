@@ -1,7 +1,7 @@
 package packetproxy.model;
-
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import static packetproxy.model.PropertyChangeEventType.RESENDER_PACKETS;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.DeleteBuilder;
@@ -113,7 +113,7 @@ public class ResenderPackets implements PropertyChangeListener {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

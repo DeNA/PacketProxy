@@ -15,6 +15,7 @@
  */
 
 package packetproxy.quic.service.connection;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -70,11 +71,11 @@ public class ClientConnection extends Connection implements Endpoint {
 				return true; /* 処理できないので捨てる */
 			} catch (AEADBadTagException e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 				return true; /* 処理できないので捨てる */
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 				return true; /* 処理できないので捨てる */
 			}
 		});

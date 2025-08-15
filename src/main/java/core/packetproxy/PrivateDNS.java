@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package packetproxy;
-
 import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import java.io.IOException;
@@ -164,7 +164,7 @@ public class PrivateDNS {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		}
@@ -182,7 +182,7 @@ public class PrivateDNS {
 					state.setState(false);
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		}
@@ -374,15 +374,15 @@ public class PrivateDNS {
 					soc.send(sendPacket);
 				} catch (SocketException e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 					finish();
 					return;
 				} catch (IOException e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 					finish();
 					return;
 				}

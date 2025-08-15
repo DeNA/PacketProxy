@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Container;
 import java.awt.Rectangle;
@@ -58,7 +59,7 @@ public class GUIDecoderDialog extends JDialog {
 			setVisible(true);
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

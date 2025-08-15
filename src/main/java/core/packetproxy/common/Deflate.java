@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.common;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.ByteArrayOutputStream;
 import java.util.zip.DataFormatException;
@@ -43,7 +44,7 @@ public class Deflate {
 			}
 		} catch (DataFormatException e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		return os.toByteArray();
 	}

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import difflib.Chunk;
 import difflib.Delta;
@@ -44,7 +45,7 @@ public class Diff extends DiffBase {
 	// System.out.println(String.format("Targ CHG: %d %d", pos, length)); }
 	// });
 	// } catch (Exception e) {
-	// e.printStackTrace();
+	// errWithStackTrace(e);
 	// }
 	// }
 
@@ -91,7 +92,7 @@ public class Diff extends DiffBase {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -127,7 +128,7 @@ public class Diff extends DiffBase {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 }

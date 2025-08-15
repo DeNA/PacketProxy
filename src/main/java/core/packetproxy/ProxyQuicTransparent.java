@@ -15,7 +15,7 @@
  */
 
 package packetproxy;
-
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import packetproxy.model.ListenPort;
@@ -71,7 +71,7 @@ public class ProxyQuicTransparent extends Proxy {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

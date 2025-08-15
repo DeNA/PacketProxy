@@ -15,6 +15,7 @@
  */
 
 package packetproxy.http3.value.frame;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.common.collect.ImmutableList;
 import java.io.ByteArrayOutputStream;
@@ -67,7 +68,7 @@ public class DataFrame implements Frame {
 			frameStream.write(this.data);
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		return frameStream.toByteArray();
 	}

@@ -16,6 +16,7 @@
 package packetproxy;
 
 import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import com.github.dockerjava.api.DockerClient;
@@ -160,7 +161,7 @@ public class OpenVPN {
 			log(e.toString());
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -238,7 +239,7 @@ public class OpenVPN {
 			execCommand(client, commands);
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -265,7 +266,7 @@ public class OpenVPN {
 		public void onError(Throwable error) {
 			if (closed)
 				return;
-			System.err.println(error.toString());
+			err(error.toString());
 			onComplete();
 		}
 
@@ -306,7 +307,7 @@ public class OpenVPN {
 				close();
 			} catch (IOException e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 			return (RC_T) this;
 		}

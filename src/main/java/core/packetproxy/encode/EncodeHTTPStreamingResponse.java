@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.encode;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.InputStream;
 import packetproxy.http.Http;
@@ -260,7 +261,7 @@ public class EncodeHTTPStreamingResponse extends Encoder {
 			summary = statusCode;
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 			summary = "Headlineを生成できません・・・";
 		}
 		return summary;
@@ -280,7 +281,7 @@ public class EncodeHTTPStreamingResponse extends Encoder {
 			summary = http.getMethod() + " " + http.getURL(packet.getServerPort(), packet.getUseSSL());
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 			summary = "Headlineを生成できません・・・";
 		}
 		return summary;

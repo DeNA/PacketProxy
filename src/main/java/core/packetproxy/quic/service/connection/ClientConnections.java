@@ -15,6 +15,7 @@
  */
 
 package packetproxy.quic.service.connection;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -47,7 +48,7 @@ public class ClientConnections {
 			this.socket = new DatagramSocket(listenPort);
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

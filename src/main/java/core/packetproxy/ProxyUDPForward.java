@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package packetproxy;
-
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import java.net.InetSocketAddress;
@@ -52,7 +52,7 @@ public class ProxyUDPForward extends Proxy {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 package packetproxy.gui;
-
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import static packetproxy.model.PropertyChangeEventType.FILTERS;
 import static packetproxy.model.PropertyChangeEventType.PACKETS;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -224,7 +224,7 @@ public class GUIHistory implements PropertyChangeListener {
 					dlg.showDialog();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -263,7 +263,7 @@ public class GUIHistory implements PropertyChangeListener {
 								dlg = null;
 							} catch (Exception e1) {
 
-								e1.getStackTrace();
+								errWithStackTrace(e1);
 							}
 						});
 						dlg.setBounds(x, y, width, height); // 仮サイズ
@@ -273,7 +273,7 @@ public class GUIHistory implements PropertyChangeListener {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -293,7 +293,7 @@ public class GUIHistory implements PropertyChangeListener {
 					dlg.showDialog();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -409,7 +409,7 @@ public class GUIHistory implements PropertyChangeListener {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 				return c;
 			}
@@ -465,7 +465,7 @@ public class GUIHistory implements PropertyChangeListener {
 							GUIHistory.getInstance().updateRequestOne(GUIHistory.getInstance().getSelectedPacketId());
 						} catch (Exception e1) {
 
-							e1.printStackTrace();
+							errWithStackTrace(e1);
 						}
 					}
 				});
@@ -489,7 +489,7 @@ public class GUIHistory implements PropertyChangeListener {
 							GUIHistory.getInstance().updateRequestOne(GUIHistory.getInstance().getSelectedPacketId());
 						} catch (Exception e1) {
 
-							e1.printStackTrace();
+							errWithStackTrace(e1);
 						}
 					}
 				});
@@ -515,7 +515,7 @@ public class GUIHistory implements PropertyChangeListener {
 							clipboard.setContents(selection, selection);
 						} catch (Exception e1) {
 
-							e1.printStackTrace();
+							errWithStackTrace(e1);
 						}
 					}
 				});
@@ -536,7 +536,7 @@ public class GUIHistory implements PropertyChangeListener {
 
 						} catch (Exception e1) {
 
-							e1.printStackTrace();
+							errWithStackTrace(e1);
 						}
 					}
 				});
@@ -556,7 +556,7 @@ public class GUIHistory implements PropertyChangeListener {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -576,7 +576,7 @@ public class GUIHistory implements PropertyChangeListener {
 							JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", file.getPath()));
 						} catch (Exception e1) {
 
-							e1.printStackTrace();
+							errWithStackTrace(e1);
 							JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
 						}
 						dialogOnce = false;
@@ -611,7 +611,7 @@ public class GUIHistory implements PropertyChangeListener {
 							JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", file.getPath()));
 						} catch (Exception e1) {
 
-							e1.printStackTrace();
+							errWithStackTrace(e1);
 							JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
 						}
 						dialogOnce = false;
@@ -646,7 +646,7 @@ public class GUIHistory implements PropertyChangeListener {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -667,7 +667,7 @@ public class GUIHistory implements PropertyChangeListener {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -688,7 +688,7 @@ public class GUIHistory implements PropertyChangeListener {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -706,7 +706,7 @@ public class GUIHistory implements PropertyChangeListener {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -726,7 +726,7 @@ public class GUIHistory implements PropertyChangeListener {
 					updateAll();
 				} catch (Exception e2) {
 
-					e2.printStackTrace();
+					errWithStackTrace(e2);
 				}
 			}
 		});
@@ -745,7 +745,7 @@ public class GUIHistory implements PropertyChangeListener {
 					updateAll();
 				} catch (Exception e2) {
 
-					e2.printStackTrace();
+					errWithStackTrace(e2);
 				}
 			}
 		});
@@ -799,7 +799,7 @@ public class GUIHistory implements PropertyChangeListener {
 					clipboard.setContents(command, command);
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -899,7 +899,7 @@ public class GUIHistory implements PropertyChangeListener {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -928,7 +928,7 @@ public class GUIHistory implements PropertyChangeListener {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -999,7 +999,7 @@ public class GUIHistory implements PropertyChangeListener {
 					updateRequest(true);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 					JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
 				}
 				dialogOnce = false;
@@ -1052,7 +1052,7 @@ public class GUIHistory implements PropertyChangeListener {
 				}
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		});
 	}
@@ -1092,7 +1092,7 @@ public class GUIHistory implements PropertyChangeListener {
 				}
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		});
 	}
@@ -1109,7 +1109,7 @@ public class GUIHistory implements PropertyChangeListener {
 				}
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		});
 	}
@@ -1156,7 +1156,7 @@ public class GUIHistory implements PropertyChangeListener {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 
@@ -1172,7 +1172,7 @@ public class GUIHistory implements PropertyChangeListener {
 					// sortByText(gui_filter.getText());
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		};
@@ -1260,14 +1260,14 @@ public class GUIHistory implements PropertyChangeListener {
 									} catch (Exception e) {
 
 										// TODO Auto-generated catch block
-										e.printStackTrace();
+										errWithStackTrace(e);
 									}
 								}
 							}.set(history, packet));
 						}
 					} catch (Exception e) {
 
-						e.printStackTrace();
+						errWithStackTrace(e);
 					}
 				}
 			}
@@ -1336,14 +1336,14 @@ public class GUIHistory implements PropertyChangeListener {
 		} catch (ParseException e) {
 
 			// // ignore
-			// e.printStackTrace();
+			// errWithStackTrace(e);
 		} catch (NumberFormatException e) {
 
 			// // ignore
-			// e.printStackTrace();
+			// errWithStackTrace(e);
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		return false;
 	}

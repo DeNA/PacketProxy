@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.common;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
@@ -47,7 +48,7 @@ public class StringUtils {
 			return prettyUpJson(new String(json)).getBytes("UTF-8");
 		} catch (UnsupportedEncodingException e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		return prettyUpJson(new String(json)).getBytes();
 	}

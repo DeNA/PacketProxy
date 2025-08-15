@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -112,7 +113,7 @@ public class RawTextPane extends ExtendedTextPane {
 					GUIVulCheckHelper.getInstance().addVulCheck(vulChecker, packet.getOneShotPacket(getData()), range);
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			});
 			menu.add(vulCheckerItem);
@@ -143,7 +144,7 @@ public class RawTextPane extends ExtendedTextPane {
 					dlg.showDialog();
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -176,7 +177,7 @@ public class RawTextPane extends ExtendedTextPane {
 					dlg.showDialog();
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -205,7 +206,7 @@ public class RawTextPane extends ExtendedTextPane {
 					dlg.showDialog();
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -232,7 +233,7 @@ public class RawTextPane extends ExtendedTextPane {
 					dlg.showDialog();
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -263,7 +264,7 @@ public class RawTextPane extends ExtendedTextPane {
 					dlg.showDialog();
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -288,7 +289,7 @@ public class RawTextPane extends ExtendedTextPane {
 					dlg.showDialog();
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -313,7 +314,7 @@ public class RawTextPane extends ExtendedTextPane {
 					dlg.showDialog();
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -353,7 +354,7 @@ public class RawTextPane extends ExtendedTextPane {
 					dlg.showDialog();
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -384,7 +385,7 @@ public class RawTextPane extends ExtendedTextPane {
 					dlg.showDialog();
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -448,7 +449,7 @@ public class RawTextPane extends ExtendedTextPane {
 			undo_manager.discardAllEdits();
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 }

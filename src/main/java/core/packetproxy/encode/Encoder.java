@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.encode;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -52,7 +53,7 @@ public abstract class Encoder {
 			serverInputForFlowControl = new PipedInputStream(serverOutputForFlowControl, PIPE_SIZE);
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

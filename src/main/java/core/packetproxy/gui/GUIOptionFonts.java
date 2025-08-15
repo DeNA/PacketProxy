@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -66,7 +67,7 @@ public class GUIOptionFonts {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -83,7 +84,7 @@ public class GUIOptionFonts {
 							FontManager.getInstance().getUIFont().getSize()));
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -119,7 +120,7 @@ public class GUIOptionFonts {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -136,7 +137,7 @@ public class GUIOptionFonts {
 							FontManager.getInstance().getFont().getSize()));
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});

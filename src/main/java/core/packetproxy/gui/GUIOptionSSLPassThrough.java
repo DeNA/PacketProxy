@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package packetproxy.gui;
-
 import static packetproxy.model.PropertyChangeEventType.SSL_PASS_THROUGHS;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -66,7 +66,7 @@ public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrou
 					table.setRowSelectionInterval(rowIndex, rowIndex);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -85,7 +85,7 @@ public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrou
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -106,7 +106,7 @@ public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrou
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -119,7 +119,7 @@ public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrou
 					SSLPassThroughs.getInstance().delete(getSelectedTableContent());
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -136,7 +136,7 @@ public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrou
 					(ssl.getListenPort() == SSLPassThrough.ALL_PORTS) ? "*" : ssl.getListenPort()});
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -156,7 +156,7 @@ public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrou
 			updateTable(sslPassThroughs.queryAll());
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

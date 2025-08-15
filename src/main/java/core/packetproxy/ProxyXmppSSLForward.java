@@ -17,6 +17,8 @@ package packetproxy;
 
 import static packetproxy.http.Https.createSSLContext;
 import static packetproxy.http.Https.createSSLSocketFactory;
+import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import java.io.InputStream;
@@ -63,7 +65,7 @@ public class ProxyXmppSSLForward extends Proxy {
 
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		}
 	}
@@ -88,7 +90,7 @@ public class ProxyXmppSSLForward extends Proxy {
 						int len = cI.read(buff, 0, buff.length);
 						if (len < 0) {
 
-							System.err.println("ERROR: xmpp client socket closed");
+							err("ERROR: xmpp client socket closed");
 							return;
 						}
 						String body = new String(ArrayUtils.subarray(buff, 0, len));
@@ -99,7 +101,7 @@ public class ProxyXmppSSLForward extends Proxy {
 				} while (true);
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		});
 
@@ -117,7 +119,7 @@ public class ProxyXmppSSLForward extends Proxy {
 						int len2 = sI.read(buff, 0, buff.length);
 						if (len2 < 0) {
 
-							System.err.println("ERROR: xmpp server socket closed");
+							err("ERROR: xmpp server socket closed");
 							return;
 						}
 						String body = new String(ArrayUtils.subarray(buff, 0, len2));
@@ -135,7 +137,7 @@ public class ProxyXmppSSLForward extends Proxy {
 				} while (true);
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		});
 

@@ -16,6 +16,8 @@
 
 package packetproxy.quic.value.frame;
 
+import static packetproxy.util.Logging.err;
+
 import com.google.common.collect.ImmutableList;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -56,7 +58,7 @@ public class NewTokenFrame extends Frame {
 		long tokenLength = VariableLengthInteger.parse(buffer).getValue();
 		if (tokenLength == 0) {
 
-			System.err.println("NewTokenFrame: error: FRAME_ENCODING_ERROR");
+			err("NewTokenFrame: error: FRAME_ENCODING_ERROR");
 		}
 		Token token = Token.of(SimpleBytes.parse(buffer, tokenLength).getBytes());
 

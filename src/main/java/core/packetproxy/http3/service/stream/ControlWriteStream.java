@@ -15,6 +15,7 @@
  */
 
 package packetproxy.http3.service.stream;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.ByteArrayOutputStream;
 import packetproxy.http3.value.Setting;
@@ -34,7 +35,7 @@ public class ControlWriteStream extends Stream implements WriteStream {
 			buffer.write(new byte[]{(byte) super.streamType.type});
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -49,7 +50,7 @@ public class ControlWriteStream extends Stream implements WriteStream {
 			buffer.write(data);
 		} catch (Exception e) {
 
-			e.printStackTrace(); /* 致命的なエラー */
+			errWithStackTrace(e); /* 致命的なエラー */
 		}
 	}
 

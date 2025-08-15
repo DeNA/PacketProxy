@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 package packetproxy.model;
-
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import static packetproxy.model.PropertyChangeEventType.SSL_PASS_THROUGHS;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.j256.ormlite.dao.Dao;
 import java.beans.PropertyChangeEvent;
@@ -183,7 +183,7 @@ public class SSLPassThroughs implements PropertyChangeListener {
 			ListenPortManager.getInstance().rebootIfHTTPProxyRunning();
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		changes.firePropertyChange(SSL_PASS_THROUGHS.toString(), null, value);
 	}
@@ -224,7 +224,7 @@ public class SSLPassThroughs implements PropertyChangeListener {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

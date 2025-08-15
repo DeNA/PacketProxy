@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package packetproxy.gui;
-
 import static packetproxy.model.PropertyChangeEventType.CONFIGS;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -133,7 +133,7 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 			dnsInterface = new JComboBox(getIntAddrs());
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		// dnsInterface.setPrototypeDisplayValue("xxxxxxx");
 		dnsInterface.setMaximumRowCount(dnsInterface.getItemCount());
@@ -163,7 +163,7 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 				return getLocalIP();
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		} else {
 
@@ -200,7 +200,7 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 			text.setText(getLocalIP());
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		text.setMaximumSize(new Dimension(300, 30));
 		text.setPreferredSize(new Dimension(200, 30));
@@ -215,7 +215,7 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 			text.setText(getLocalIP6());
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		text.setMaximumSize(new Dimension(600, 30));
 		text.setPreferredSize(new Dimension(500, 30));
@@ -231,7 +231,7 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 				privateDNS.start(new DNSSpoofingIPGetter(this));
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

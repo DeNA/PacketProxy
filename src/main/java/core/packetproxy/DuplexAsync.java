@@ -103,7 +103,7 @@ public class DuplexAsync extends Duplex {
 					closeOnClientChunkFlowControl();
 				} catch (Exception e) {
 
-					// e.printStackTrace();
+					// errWithStackTrace(e);
 				}
 			}
 		});
@@ -123,7 +123,7 @@ public class DuplexAsync extends Duplex {
 					closeOnServerChunkFlowControl();
 				} catch (Exception e) {
 
-					// e.printStackTrace();
+					// errWithStackTrace(e);
 				}
 			}
 		});
@@ -150,9 +150,9 @@ public class DuplexAsync extends Duplex {
 						client_output.close();
 					} catch (Exception e1) {
 
-						// e1.printStackTrace();
+						// errWithStackTrace(e1);
 					}
-					// e.printStackTrace();
+					// errWithStackTrace(e);
 				}
 			}
 		});
@@ -179,9 +179,9 @@ public class DuplexAsync extends Duplex {
 						server_output.close();
 					} catch (Exception e1) {
 
-						// e1.printStackTrace();
+						// errWithStackTrace(e1);
 					}
-					// e.printStackTrace();
+					// errWithStackTrace(e);
 				}
 			}
 		});

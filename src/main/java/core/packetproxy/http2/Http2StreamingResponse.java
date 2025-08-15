@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.http2;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayDeque;
@@ -109,7 +110,7 @@ public class Http2StreamingResponse extends FramesBase {
 							}
 						} catch (Exception e) {
 
-							e.printStackTrace();
+							errWithStackTrace(e);
 						}
 					}
 				});

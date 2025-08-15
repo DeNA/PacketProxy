@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -59,7 +60,7 @@ public class GUIOptionHttp {
 					combo.setSelectedItem(priority);
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});

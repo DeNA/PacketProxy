@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package packetproxy.model;
-
 import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -83,7 +83,7 @@ public class Server {
 			return !(InetAddress.getByName(host).getHostAddress().equals(host));
 		} catch (UnknownHostException e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 			return true;
 		}
 	}
@@ -205,7 +205,7 @@ public class Server {
 		} catch (Exception e) {
 
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			errWithStackTrace(e);
 			return new ArrayList<InetAddress>();
 		}
 	}

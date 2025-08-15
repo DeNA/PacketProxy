@@ -1,4 +1,5 @@
 package packetproxy.common;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -47,7 +48,7 @@ public class FilterIO {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 }

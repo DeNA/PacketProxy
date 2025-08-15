@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package packetproxy;
-
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import java.net.ServerSocket;
@@ -179,7 +179,7 @@ public class ProxyHttp extends Proxy {
 				client_loopback.start();
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		}
 		for (Socket sc : clients) {
@@ -189,7 +189,7 @@ public class ProxyHttp extends Proxy {
 				sc.close();
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		}
 	}

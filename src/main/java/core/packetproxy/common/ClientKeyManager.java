@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.common;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +45,7 @@ public class ClientKeyManager {
 				setKeyManagers(cert.getServer(), cert.load());
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		}
 	}

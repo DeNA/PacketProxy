@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.File;
 import java.io.InputStream;
@@ -63,13 +64,13 @@ public class PacketProxy {
 						}
 					} catch (Exception e2) {
 
-						e2.printStackTrace();
+						errWithStackTrace(e2);
 					}
 					continue;
 				}
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 			break;
 		}

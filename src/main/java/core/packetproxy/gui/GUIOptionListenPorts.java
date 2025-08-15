@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -64,7 +65,7 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort> {
 					table.setRowSelectionInterval(rowIndex, rowIndex);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -83,7 +84,7 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort> {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -104,7 +105,7 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort> {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -117,7 +118,7 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort> {
 					listenPorts.delete(getSelectedTableContent());
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -140,7 +141,7 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort> {
 					listenPort.getServer() != null ? listenPort.getServer().toString() : serverNullStr});
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -160,7 +161,7 @@ public class GUIOptionListenPorts extends GUIOptionComponentBase<ListenPort> {
 			updateTable(listenPorts.queryAll());
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

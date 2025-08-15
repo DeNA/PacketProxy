@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
-
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import java.awt.Container;
@@ -115,7 +115,7 @@ public class GUIOptionListenPortDialog extends JDialog {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -225,7 +225,7 @@ public class GUIOptionListenPortDialog extends JDialog {
 					updateNextHopList((String) event.getItem());
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -316,7 +316,7 @@ public class GUIOptionListenPortDialog extends JDialog {
 					dispose();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});

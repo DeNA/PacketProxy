@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.http2.frames;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
@@ -45,7 +46,7 @@ public class FrameUtils {
 			WINDOW_UPDATE = Hex.decodeHex("0000040800000000005fffffff".toCharArray()); // connection_window_size:unlimited
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

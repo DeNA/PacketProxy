@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Container;
 import java.awt.Rectangle;
@@ -52,7 +53,7 @@ public class GUIDiffDialogParent extends JDialog {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -64,7 +65,7 @@ public class GUIDiffDialogParent extends JDialog {
 			setVisible(true);
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -91,7 +92,7 @@ public class GUIDiffDialogParent extends JDialog {
 					dispose();
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -107,7 +108,7 @@ public class GUIDiffDialogParent extends JDialog {
 			json_panel = new GUIDiffJson();
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		JComponent raw_text = raw_panel.createPanel();
 		JComponent binary_text = binary_panel.createPanel();
@@ -126,7 +127,7 @@ public class GUIDiffDialogParent extends JDialog {
 					update();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});

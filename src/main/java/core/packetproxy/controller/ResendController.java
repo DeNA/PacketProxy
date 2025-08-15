@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package packetproxy.controller;
-
 import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
@@ -78,7 +78,7 @@ public class ResendController {
 				worker.get(20000, TimeUnit.MILLISECONDS);
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		}
 	}
@@ -151,7 +151,7 @@ public class ResendController {
 						sendData.send();
 					} catch (Exception e) {
 
-						e.printStackTrace();
+						errWithStackTrace(e);
 					}
 				});
 				list.stream().filter(o -> !o.isDirectSend()).parallel().forEach(sendData -> {
@@ -161,7 +161,7 @@ public class ResendController {
 						sendData.send();
 					} catch (Exception e) {
 
-						e.printStackTrace();
+						errWithStackTrace(e);
 					}
 				});
 
@@ -169,11 +169,11 @@ public class ResendController {
 
 				err("Resend Connection is timeout!");
 				err("All resend packets are dropped.");
-				e.printStackTrace();
+				errWithStackTrace(e);
 				return null;
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 				throw e;
 			}
 			return null;

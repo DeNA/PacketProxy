@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.extensions.randomness;
-
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import com.google.re2j.Matcher;
@@ -221,7 +221,7 @@ public class RandomnessExtension extends Extension {
 								});
 							} catch (Exception e) {
 
-								e.printStackTrace();
+								errWithStackTrace(e);
 							}
 							return arg;
 						});
@@ -232,14 +232,14 @@ public class RandomnessExtension extends Extension {
 								Thread.sleep(100); // wait 0.1 sec before sending next packet
 							} catch (Exception e) {
 
-								e.printStackTrace();
+								errWithStackTrace(e);
 							}
 							return arg;
 						});
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -256,7 +256,7 @@ public class RandomnessExtension extends Extension {
 					sendData.setData("".getBytes());
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -370,7 +370,7 @@ public class RandomnessExtension extends Extension {
 					chart.getXYPlot().setDataset(collection);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -427,7 +427,7 @@ public class RandomnessExtension extends Extension {
 			return new String(raw, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		return "";
 	}
@@ -465,7 +465,7 @@ public class RandomnessExtension extends Extension {
 					add(packet.getOneShotFromModifiedData(), packet.getId());
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});

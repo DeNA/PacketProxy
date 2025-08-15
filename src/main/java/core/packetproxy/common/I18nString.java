@@ -15,6 +15,8 @@
  */
 package packetproxy.common;
 
+import static packetproxy.util.Logging.err;
+
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.regex.Pattern;
@@ -65,7 +67,7 @@ public class I18nString {
 				return message;
 			} catch (Exception e) {
 
-				System.err.println(String.format("[Error] can't read resource: %s", message));
+				err("[Error] can't read resource: %s", message);
 				return message;
 			}
 		}

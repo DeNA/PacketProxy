@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.util;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -91,7 +92,7 @@ public class SearchBox extends JPanel {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 

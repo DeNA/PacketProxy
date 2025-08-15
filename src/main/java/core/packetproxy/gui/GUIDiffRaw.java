@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -44,7 +45,7 @@ public class GUIDiffRaw extends GUIDiffBase {
 					update();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});

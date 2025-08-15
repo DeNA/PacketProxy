@@ -32,7 +32,7 @@ public class CamelCase {
 			util.packetProxyLog(CamelCase.toCamelCase("abc_def-ghf"));
 			util.packetProxyLog(CamelCase.toCamelCase("abc%def$-ghf"));
 		} catch (Exception e) {
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 	*/

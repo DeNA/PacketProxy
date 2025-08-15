@@ -1,6 +1,6 @@
 package packetproxy.gui;
-
 import static packetproxy.model.PropertyChangeEventType.CONFIGS;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -52,7 +52,7 @@ public class GUIOptionHubServer implements PropertyChangeListener {
 				}
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		});
 		checkBox.setMinimumSize(new Dimension(Short.MAX_VALUE, checkBox.getMaximumSize().height));
@@ -82,7 +82,7 @@ public class GUIOptionHubServer implements PropertyChangeListener {
 					generateAccessToken();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -130,7 +130,7 @@ public class GUIOptionHubServer implements PropertyChangeListener {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

@@ -16,6 +16,8 @@
 
 package packetproxy.quic.value;
 
+import static packetproxy.util.Logging.err;
+
 import java.nio.ByteBuffer;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -115,7 +117,7 @@ public class TruncatedPacketNumber {
 				return ((long) (bytes[0] & 0xff) << 24) | ((bytes[1] & 0xff) << 16) | ((bytes[2] & 0xff) << 8)
 						| (bytes[3] & 0xff);
 			default :
-				System.err.println("[Error] can't decode packetNumber from ByteArray to Long");
+				err("[Error] can't decode packetNumber from ByteArray to Long");
 				return 0;
 		}
 	}
@@ -136,8 +138,7 @@ public class TruncatedPacketNumber {
 			return new byte[]{(byte) ((packetNumber >> 24) & 0xff), (byte) ((packetNumber >> 16) & 0xff),
 					(byte) ((packetNumber >> 8) & 0xff), (byte) (packetNumber & 0xff)};
 		}
-		System.err.println(
-				String.format("[Error] can't encode packetNumber from Long to ByteArray (byteLength=%d)", byteLength));
+		err("[Error] can't encode packetNumber from Long to ByteArray (byteLength=%d)", byteLength);
 		return null;
 	}
 }

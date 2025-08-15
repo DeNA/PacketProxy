@@ -1,5 +1,7 @@
 package packetproxy.quic.service.transportparameter;
 
+import static packetproxy.util.Logging.err;
+
 import java.nio.ByteBuffer;
 import lombok.Getter;
 import lombok.Setter;
@@ -162,7 +164,7 @@ public class TransportParameters extends Extension {
 
 		} else if (param instanceof UnknownParameter) {
 
-			System.err.println(String.format("[Error] Unknown Transport Parameter: %s", param));
+			err("[Error] Unknown Transport Parameter: %s", param);
 		}
 	}
 

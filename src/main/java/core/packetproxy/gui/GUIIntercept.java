@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -93,7 +94,7 @@ public class GUIIntercept implements PropertyChangeListener {
 					intercept_controller.forward(getInterceptData());
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -108,7 +109,7 @@ public class GUIIntercept implements PropertyChangeListener {
 					intercept_controller.forward_multiple(getInterceptData());
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -123,7 +124,7 @@ public class GUIIntercept implements PropertyChangeListener {
 					intercept_controller.drop();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -141,7 +142,7 @@ public class GUIIntercept implements PropertyChangeListener {
 					GUIResender.getInstance().addResends(packet.getOneShotPacket(getInterceptData()));
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -157,7 +158,7 @@ public class GUIIntercept implements PropertyChangeListener {
 					GUIBulkSender.getInstance().add(packet.getOneShotPacket(getInterceptData()), packet.getId());
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -286,7 +287,7 @@ public class GUIIntercept implements PropertyChangeListener {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 }

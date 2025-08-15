@@ -17,6 +17,7 @@ package packetproxy.gui;
 
 import static packetproxy.model.PropertyChangeEventType.RESENDER_PACKETS;
 import static packetproxy.model.PropertyChangeEventType.SELECTED_INDEX;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -54,7 +55,7 @@ public class GUIResender implements PropertyChangeListener {
 				ResenderPackets.getInstance().deleteResends(resends_index);
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		}
 	}
@@ -142,7 +143,7 @@ public class GUIResender implements PropertyChangeListener {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -174,7 +175,7 @@ public class GUIResender implements PropertyChangeListener {
 					ResenderPackets.getInstance().deleteResend(resends_index, resend_index);
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		}
@@ -257,13 +258,13 @@ public class GUIResender implements PropertyChangeListener {
 									rollback();
 								} catch (Exception e) {
 
-									e.printStackTrace();
+									errWithStackTrace(e);
 								}
 							}
 						});
 					} catch (Exception e1) {
 
-						e1.printStackTrace();
+						errWithStackTrace(e1);
 					}
 				}
 			});
@@ -282,7 +283,7 @@ public class GUIResender implements PropertyChangeListener {
 						rollback();
 					} catch (Exception e1) {
 
-						e1.printStackTrace();
+						errWithStackTrace(e1);
 					}
 				}
 			});
@@ -294,7 +295,7 @@ public class GUIResender implements PropertyChangeListener {
 					try {
 						new SinglePacketAttackController(send_panel.getOneShotPacket()).attack(20);
 					} catch (Exception e1) {
-						e1.printStackTrace();
+						errWithStackTrace(e1);
 					}
 				}
 			});

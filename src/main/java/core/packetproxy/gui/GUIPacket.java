@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -43,7 +44,7 @@ public class GUIPacket {
 	// byte[] result = gui.prettyFormatJSONInRawData(data, "hoge");
 	// System.out.println(new String(result));
 	// } catch (Exception e) {
-	// e.printStackTrace();
+	// errWithStackTrace(e);
 	// }
 	// }
 
@@ -82,7 +83,7 @@ public class GUIPacket {
 					update();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
