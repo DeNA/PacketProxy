@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package packetproxy.http2.frames;
+import static packetproxy.util.Logging.errWithStackTrace;
+import static packetproxy.util.Logging.log;
 
 import com.google.common.collect.Sets;
 import java.nio.file.Path;
@@ -69,7 +71,7 @@ public class FrameFactory {
 
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -108,7 +110,7 @@ public class FrameFactory {
 	}
 
 	public static void debug() {
-		System.out.println(frameList.toString());
+		log(frameList.toString());
 	}
 
 	private FrameFactory() {

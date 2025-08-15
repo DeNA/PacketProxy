@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.CardLayout;
 import java.awt.Component;
@@ -142,7 +143,7 @@ public class GUIOptionExportCertificateAndPrivateKeyDialog extends JDialog {
 					} catch (Exception e) {
 
 						JOptionPane.showMessageDialog(owner, I18nString.get("[Error] failed to export."));
-						e.printStackTrace();
+						errWithStackTrace(e);
 					}
 				}
 
@@ -222,7 +223,7 @@ public class GUIOptionExportCertificateAndPrivateKeyDialog extends JDialog {
 					} catch (Exception e) {
 
 						JOptionPane.showMessageDialog(owner, I18nString.get("[Error] failed to export."));
-						e.printStackTrace();
+						errWithStackTrace(e);
 					}
 				}
 

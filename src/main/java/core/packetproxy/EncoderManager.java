@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.common.collect.Sets;
 import java.io.File;
@@ -63,7 +64,7 @@ public class EncoderManager {
 			loadModules();
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -91,7 +92,7 @@ public class EncoderManager {
 				}
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		}
 		loadModulesFromJar(module_list);
@@ -133,7 +134,7 @@ public class EncoderManager {
 					klass = urlClassLoader.loadClass(encode_class_path);
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 					continue;
 				}
 

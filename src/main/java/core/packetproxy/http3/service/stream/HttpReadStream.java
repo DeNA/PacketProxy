@@ -16,6 +16,7 @@
 
 package packetproxy.http3.service.stream;
 
+import static packetproxy.util.Logging.log;
 import static packetproxy.util.Throwing.rethrow;
 
 import java.io.ByteArrayOutputStream;
@@ -49,7 +50,7 @@ public class HttpReadStream extends Stream implements ReadStream {
 		}
 		if (frame instanceof GreaseFrame) {
 
-			System.out.println(frame);
+			log(frame.toString());
 			return;
 		}
 		throw new Exception("Error: write UnknownFrame(neither HeaderFrame nor DataFrame) to HttpStream.");

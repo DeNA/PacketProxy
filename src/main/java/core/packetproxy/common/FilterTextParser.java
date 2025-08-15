@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.common;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -318,7 +319,7 @@ public class FilterTextParser {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 				return groupIds.stream().anyMatch(g -> g.equals(v));
 			}

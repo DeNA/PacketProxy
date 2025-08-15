@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -186,14 +187,14 @@ public class GUIVulCheckTab {
 								}
 							} catch (Exception e) {
 
-								e.printStackTrace();
+								errWithStackTrace(e);
 							}
 						}
 					});
 
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -231,13 +232,13 @@ public class GUIVulCheckTab {
 											}
 										} catch (Exception e) {
 
-											e.printStackTrace();
+											errWithStackTrace(e);
 										}
 									}
 								});
 							} catch (Exception e1) {
 
-								e1.printStackTrace();
+								errWithStackTrace(e1);
 							}
 							return arg;
 						});
@@ -248,14 +249,14 @@ public class GUIVulCheckTab {
 								Thread.sleep(100); // wait 0.1 sec before sending next packet
 							} catch (Exception e1) {
 
-								e1.printStackTrace();
+								errWithStackTrace(e1);
 							}
 							return arg;
 						});
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.common.collect.Sets;
 import java.lang.reflect.Modifier;
@@ -55,7 +56,7 @@ public class PPContextMenuManager {
 			loadItems();
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

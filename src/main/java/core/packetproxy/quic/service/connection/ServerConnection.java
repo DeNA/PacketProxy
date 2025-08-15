@@ -15,6 +15,7 @@
  */
 
 package packetproxy.quic.service.connection;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -65,7 +66,7 @@ public class ServerConnection extends Connection {
 						return false;
 					} catch (Exception e) {
 
-						e.printStackTrace();
+						errWithStackTrace(e);
 						return false;
 					}
 				});

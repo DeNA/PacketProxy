@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.http1;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -118,7 +119,7 @@ public class Http1StreamingResponse {
 						}
 					} catch (Exception e) {
 
-						e.printStackTrace();
+						errWithStackTrace(e);
 					}
 				}
 			});

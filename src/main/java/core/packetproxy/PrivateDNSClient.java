@@ -15,7 +15,7 @@
  */
 
 package packetproxy;
-
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import java.net.InetAddress;
@@ -97,7 +97,7 @@ public class PrivateDNSClient {
 						}
 					} catch (Exception e) {
 
-						e.printStackTrace();
+						errWithStackTrace(e);
 					}
 					return false;
 				});

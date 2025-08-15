@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.http;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
@@ -137,7 +138,7 @@ public class Https {
 				serverSSLSocket[0].startHandshake();
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 			return serverSSLSocket[0].getApplicationProtocol();
 		});

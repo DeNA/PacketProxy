@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.common;
-
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -33,7 +33,7 @@ public class BinaryBuffer {
 	 * c.insert(1, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".getBytes());
 	 * System.out.println(c.toString());
 	 * } catch (Exception e) {
-	 * e.printStackTrace();
+	 * errWithStackTrace(e);
 	 * }
 	 * }
 	 */
@@ -61,7 +61,7 @@ public class BinaryBuffer {
 			return msg;
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		return "";
 	}

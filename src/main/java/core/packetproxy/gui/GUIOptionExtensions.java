@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -65,7 +66,7 @@ public class GUIOptionExtensions extends GUIOptionComponentBase<Extension> imple
 					table.setRowSelectionInterval(rowIndex, columnIndex);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -83,7 +84,7 @@ public class GUIOptionExtensions extends GUIOptionComponentBase<Extension> imple
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -104,7 +105,7 @@ public class GUIOptionExtensions extends GUIOptionComponentBase<Extension> imple
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -118,7 +119,7 @@ public class GUIOptionExtensions extends GUIOptionComponentBase<Extension> imple
 					Extensions.getInstance().delete(getSelectedTableContent());
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -134,7 +135,7 @@ public class GUIOptionExtensions extends GUIOptionComponentBase<Extension> imple
 			option_model.addRow(new Object[]{ext.isEnabled(), ext.getName(), ext.getPath(),});
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -154,7 +155,7 @@ public class GUIOptionExtensions extends GUIOptionComponentBase<Extension> imple
 			updateTable(extensions.queryAll());
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

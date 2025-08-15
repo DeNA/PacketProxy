@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package packetproxy;
-
 import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import com.google.re2j.Matcher;
@@ -59,7 +59,7 @@ public class ProxyHttpTransparent extends Proxy {
 				createHttpTransparentProxy(client);
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		}
 	}
@@ -157,7 +157,7 @@ public class ProxyHttpTransparent extends Proxy {
 
 			InetSocketAddress addr = hostPort.getInetSocketAddress();
 			log("Connection Refused: %s:%d", addr.getHostName(), addr.getPort());
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

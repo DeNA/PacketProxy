@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package packetproxy.http;
-
 import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 public class HeaderField {
 
@@ -30,7 +30,7 @@ public class HeaderField {
 		} else {
 
 			err("invalid header field");
-			new Throwable().printStackTrace();
+			errWithStackTrace(new Throwable());
 		}
 	}
 

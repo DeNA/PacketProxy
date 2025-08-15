@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -47,7 +48,7 @@ public class VulCheckerManager {
 			loadVulCheckers();
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -73,7 +74,7 @@ public class VulCheckerManager {
 				}
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		}
 	}

@@ -15,6 +15,7 @@
  */
 
 package packetproxy.vulchecker.generator;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -77,7 +78,7 @@ public class JWTSignWithAppleOtherTokenGenerator extends Generator {
 					desktop.browse(new URI("https://token.funacs.com/apple"));
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});

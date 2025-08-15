@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -64,7 +65,7 @@ public class BinaryTextPane extends ExtendedTextPane {
 					clipboard.setContents(selection, selection);
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});

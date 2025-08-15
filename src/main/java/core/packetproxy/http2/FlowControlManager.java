@@ -15,6 +15,8 @@
  */
 package packetproxy.http2;
 
+import static packetproxy.util.Logging.err;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
@@ -74,7 +76,7 @@ public class FlowControlManager {
 		}
 		if (initialStreamWindowSize != 65535) {
 
-			System.err.println("[Error] Initial window size is reset. We cannot handle it (not implemented yet)");
+			err("[Error] Initial window size is reset. We cannot handle it (not implemented yet)");
 		}
 		initialStreamWindowSize = frame.get(SettingsFrameType.SETTINGS_INITIAL_WINDOW_SIZE);
 	}

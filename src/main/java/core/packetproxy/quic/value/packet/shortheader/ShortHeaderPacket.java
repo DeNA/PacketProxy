@@ -1,4 +1,5 @@
 package packetproxy.quic.value.packet.shortheader;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.nio.ByteBuffer;
 import java.util.Optional;
@@ -150,7 +151,7 @@ public class ShortHeaderPacket extends QuicPacket implements PnSpacePacket {
 					this.packetNumber, Frames.parse(this.payload));
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 			return "";
 		}
 	}

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.encode;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +43,7 @@ public class EncodeCBOR extends EncodeHTTPBase {
 
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		return new byte[0];
 	}

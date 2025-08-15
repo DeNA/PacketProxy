@@ -16,6 +16,8 @@
 
 package packetproxy.quic.service.framegenerator;
 
+import static packetproxy.util.Logging.err;
+
 import java.util.ArrayList;
 import java.util.List;
 import packetproxy.quic.service.framegenerator.helper.ReceivedPacketNumbers;
@@ -110,7 +112,7 @@ public class AckFrameGenerator {
 	public AckRange generateAckRange(long largestOfGap) {
 		if (this.receivedPacketNumbers.isReceived(largestOfGap)) {
 
-			System.err.println(String.format("largestGap(%d) is not a gap", largestOfGap));
+			err("largestGap(%d) is not a gap", largestOfGap);
 			return null;
 		}
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -206,7 +207,7 @@ public class GUIFilterConfig {
 					updateImpl();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -223,7 +224,7 @@ public class GUIFilterConfig {
 					updateImpl();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -245,7 +246,7 @@ public class GUIFilterConfig {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -273,7 +274,7 @@ public class GUIFilterConfig {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 					JOptionPane.showMessageDialog(null, I18nString.get("Config can't be loaded with error"));
 				}
 			}
@@ -298,7 +299,7 @@ public class GUIFilterConfig {
 								JOptionPane.showMessageDialog(null, I18nString.get("Config saved successfully"));
 							} catch (Exception e1) {
 
-								e1.printStackTrace();
+								errWithStackTrace(e1);
 								JOptionPane.showMessageDialog(null, I18nString.get("Config can't be saved with error"));
 							}
 						}
@@ -315,7 +316,7 @@ public class GUIFilterConfig {
 					filechooser.showSaveDialog();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -358,7 +359,7 @@ public class GUIFilterConfig {
 	// }
 	// sorter.setRowFilter(RowFilter.orFilter(list));
 	// } catch (Exception e) {
-	// e.printStackTrace();
+	// errWithStackTrace(e);
 	// }
 	// }
 }

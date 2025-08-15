@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
-
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import java.awt.event.ActionEvent;
@@ -64,7 +64,7 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 					table.setRowSelectionInterval(rowIndex, rowIndex);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -84,7 +84,7 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 					log("Modification button is pressed.");
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -105,7 +105,7 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -118,7 +118,7 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 					modifications.delete(getSelectedTableContent());
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -135,7 +135,7 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 					mod.getReplaced(), mod.getServerName()});
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -155,7 +155,7 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 			updateTable(modifications.queryAll());
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

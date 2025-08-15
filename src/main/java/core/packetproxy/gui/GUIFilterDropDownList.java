@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package packetproxy.gui;
-
 import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -98,7 +98,7 @@ public class GUIFilterDropDownList extends JDialog {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 				return c;
 			}
@@ -133,7 +133,7 @@ public class GUIFilterDropDownList extends JDialog {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});

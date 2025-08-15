@@ -15,6 +15,8 @@
  */
 package packetproxy.common;
 
+import static packetproxy.util.Logging.err;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -414,7 +416,7 @@ public class Protobuf3 {
 							var = ((Long) o).longValue();
 						} else {
 
-							System.err.println("Unknown object type");
+							err("Unknown object type");
 						}
 						writeVar(var, tmp);
 					});
@@ -439,7 +441,7 @@ public class Protobuf3 {
 					break;
 				}
 				default :
-					System.err.println(String.format("Unknown type: %s", type));
+					err("Unknown type: %s", type);
 			}
 		}
 		return output.toByteArray();

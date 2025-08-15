@@ -15,6 +15,7 @@
  */
 
 package packetproxy.quic.service.frame;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.common.collect.ImmutableList;
 import java.nio.ByteBuffer;
@@ -48,7 +49,7 @@ public class Frames implements Iterable<Frame> {
 			return new Frames(frames);
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		return Frames.empty;
 	}

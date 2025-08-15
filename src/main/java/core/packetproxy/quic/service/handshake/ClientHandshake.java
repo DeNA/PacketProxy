@@ -19,6 +19,7 @@ package packetproxy.quic.service.handshake;
 import static packetproxy.quic.service.handshake.HandshakeState.State.*;
 import static packetproxy.quic.utils.Constants.PnSpaceType.PnSpaceHandshake;
 import static packetproxy.quic.utils.Constants.PnSpaceType.PnSpaceInitial;
+import static packetproxy.util.Logging.err;
 
 import java.io.IOException;
 import java.security.cert.CertificateException;
@@ -105,7 +106,7 @@ public class ClientHandshake implements Handshake {
 			this.engine.received((NewSessionTicketMessage) message, ProtectionKeysType.Application);
 		} else {
 
-			System.err.println("Error: couldn't process message " + message);
+			err("Error: couldn't process message %s", message);
 		}
 	}
 

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package packetproxy.model;
-
 import static java.util.Comparator.comparing;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -81,7 +81,7 @@ public class CAFactory {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 	public static Optional<CA> findByUTF8Name(String name) {

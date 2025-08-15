@@ -15,6 +15,7 @@
  */
 package packetproxy.gui;
 
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import java.awt.Color;
@@ -95,7 +96,7 @@ public class GUIData {
 					clipboard.setContents(selection, selection);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -116,7 +117,7 @@ public class GUIData {
 					clipboard.setContents(selection, selection);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -139,7 +140,7 @@ public class GUIData {
 
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -171,7 +172,7 @@ public class GUIData {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -204,7 +205,7 @@ public class GUIData {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -231,7 +232,7 @@ public class GUIData {
 						GUIHistory.getInstance().updateRequestOne(id);
 					}
 				} catch (Exception e1) {
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -263,7 +264,7 @@ public class GUIData {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -293,7 +294,7 @@ public class GUIData {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -313,7 +314,7 @@ public class GUIData {
 					dlg.showDialog();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -354,7 +355,7 @@ public class GUIData {
 					log("Diff: original text was saved!");
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -368,7 +369,7 @@ public class GUIData {
 
 					GUIPacket.getInstance().update();
 				} catch (Exception e2) {
-					e2.printStackTrace();
+					errWithStackTrace(e2);
 				}
 			}
 		});
@@ -439,7 +440,7 @@ public class GUIData {
 			return tabs.getData();
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		return new byte[]{};
 	}

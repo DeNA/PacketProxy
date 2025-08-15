@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -63,7 +64,7 @@ public class GUIOptionResolutions extends GUIOptionComponentBase<Resolution> {
 					table.setRowSelectionInterval(rowIndex, rowIndex);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -78,7 +79,7 @@ public class GUIOptionResolutions extends GUIOptionComponentBase<Resolution> {
 					resolutions.create(resolution);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -98,7 +99,7 @@ public class GUIOptionResolutions extends GUIOptionComponentBase<Resolution> {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -111,7 +112,7 @@ public class GUIOptionResolutions extends GUIOptionComponentBase<Resolution> {
 					resolutions.delete(getSelectedTableContent());
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -128,7 +129,7 @@ public class GUIOptionResolutions extends GUIOptionComponentBase<Resolution> {
 					resolution.getComment()});
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -148,7 +149,7 @@ public class GUIOptionResolutions extends GUIOptionComponentBase<Resolution> {
 			updateTable(resolutions.queryAll());
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

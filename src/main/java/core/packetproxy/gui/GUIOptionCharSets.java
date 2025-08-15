@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -55,7 +56,7 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet> {
 					table.setRowSelectionInterval(rowIndex, rowIndex);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -73,7 +74,7 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet> {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -87,7 +88,7 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet> {
 					charsets.delete(charset);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -117,7 +118,7 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet> {
 			updateTable(charsets.queryAll());
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

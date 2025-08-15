@@ -15,6 +15,8 @@
  */
 package packetproxy.http2;
 
+import static packetproxy.util.Logging.err;
+
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.LinkedList;
@@ -101,16 +103,14 @@ public class FrameManager {
 			GoawayFrame goAwayFrame = (GoawayFrame) frame;
 			if (goAwayFrame.getErrorCode() != 0) { // 0 is NO_ERROR
 
-				System.err.println("GoAway:" + goAwayFrame);
-				System.err.flush();
+				err("GoAway:%s", goAwayFrame);
 			}
 		} else if (frame instanceof RstStreamFrame) {
 
 			RstStreamFrame rstFrame = (RstStreamFrame) frame;
 			if (rstFrame.getErrorCode() != 0 && rstFrame.getErrorCode() != 8) { // 0 is NO_ERROR, 8 is CANCEL
 
-				System.err.println("RstStream:" + rstFrame);
-				System.err.flush();
+				err("RstStream:%s", rstFrame);
 			}
 		} else if (frame instanceof WindowUpdateFrame) {
 

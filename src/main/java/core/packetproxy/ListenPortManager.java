@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 package packetproxy;
-
 import static packetproxy.model.PropertyChangeEventType.LISTEN_PORTS;
 import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import java.beans.PropertyChangeEvent;
@@ -138,7 +138,7 @@ public class ListenPortManager implements PropertyChangeListener {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 }

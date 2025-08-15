@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Dimension;
 import javax.swing.BoxLayout;
@@ -52,7 +53,7 @@ public class GUIPacketData {
 			tabs.setData(data);
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

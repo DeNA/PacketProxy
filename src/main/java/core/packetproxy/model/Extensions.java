@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 package packetproxy.model;
-
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import static packetproxy.model.PropertyChangeEventType.EXTENSIONS;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.j256.ormlite.dao.Dao;
 import java.beans.PropertyChangeEvent;
@@ -105,7 +105,7 @@ public class Extensions implements PropertyChangeListener {
 				extension = (Extension) constructor.newInstance();
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 			return extension;
 		}
@@ -132,7 +132,7 @@ public class Extensions implements PropertyChangeListener {
 					extension = (Extension) constructor.newInstance(name, path);
 				} catch (ClassNotFoundException e1) {
 
-					// e1.printStackTrace();
+					// errWithStackTrace(e1);
 				}
 			}
 			jar.close();
@@ -140,7 +140,7 @@ public class Extensions implements PropertyChangeListener {
 			return extension;
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 			return null;
 		}
 	}
@@ -301,7 +301,7 @@ public class Extensions implements PropertyChangeListener {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

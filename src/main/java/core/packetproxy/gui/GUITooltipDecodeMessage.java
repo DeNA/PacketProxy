@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -32,7 +33,7 @@ public class GUITooltipDecodeMessage {
 			this.original = new String(raw_text, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		this.decoded = null;
 	}

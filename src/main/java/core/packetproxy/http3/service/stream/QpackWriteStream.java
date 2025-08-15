@@ -15,6 +15,7 @@
  */
 
 package packetproxy.http3.service.stream;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.ByteArrayOutputStream;
 import packetproxy.quic.value.QuicMessage;
@@ -33,7 +34,7 @@ public class QpackWriteStream extends Stream implements WriteStream {
 			buffer.write(VariableLengthInteger.of(super.streamType.type).getBytes());
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

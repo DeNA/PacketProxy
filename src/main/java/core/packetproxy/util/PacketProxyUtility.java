@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.util;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
@@ -44,7 +45,7 @@ public class PacketProxyUtility {
 			return stream.map(this::prettyFormatJSON).filter(j -> !j.isEmpty()).collect(Collectors.joining("\n"))
 					.getBytes();
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			errWithStackTrace(e);
 			return "convert failed".getBytes();
 		}
 	}

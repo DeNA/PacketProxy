@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package packetproxy;
-
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import com.google.re2j.Matcher;
@@ -70,7 +70,7 @@ public class ProxySSLTransparent extends Proxy {
 				checkTransparentSSLProxy(client, listen_socket.getLocalPort());
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		}
 		for (Socket sc : clients) {
@@ -80,7 +80,7 @@ public class ProxySSLTransparent extends Proxy {
 				sc.close();
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		}
 	}

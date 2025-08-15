@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package packetproxy.common;
-
 import static packetproxy.util.Logging.log;
 
 import java.io.ByteArrayInputStream;
@@ -39,7 +38,7 @@ public class JWT {
 	 * jwt.setPayloadValue("c/d","fuga");
 	 * PacketProxyUtility.getInstance().packetProxyLog(jwt.toJwtString());
 	 * } catch (Exception e) {
-	 * e.printStackTrace();
+	 * errWithStackTrace(e);
 	 * }
 	 * }
 	 */

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.encode;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.mobius.software.mqtt.parser.MQJsonParser;
 import com.mobius.software.mqtt.parser.MQParser;
@@ -136,7 +137,7 @@ public class EncodeMQTT extends Encoder {
 			return msgId != null ? msgId + ": " + cmd : cmd;
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 			return "Failed to Parse as MQTT Protocol";
 		}
 	}
@@ -158,7 +159,7 @@ public class EncodeMQTT extends Encoder {
 	 * util.packetProxyLog(json);
 	 * util.packetProxyLog(parser.messageObject(json).toString());
 	 * } catch (Exception e) {
-	 * e.printStackTrace();
+	 * errWithStackTrace(e);
 	 * }
 	 *
 	 * EncodeMQTT mqtt = new EncodeMQTT();
@@ -199,7 +200,7 @@ public class EncodeMQTT extends Encoder {
 	 * return;
 	 * }
 	 * } catch (Exception e) {
-	 * e.printStackTrace();
+	 * errWithStackTrace(e);
 	 * }
 	 * util.packetProxyLog("Passed some tests.");
 	 * }

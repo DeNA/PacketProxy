@@ -266,7 +266,6 @@ class Simplex extends Thread {
 			}
 		} catch (TimeoutException e) {
 
-			e.printStackTrace();
 			errWithStackTrace(e);
 			log("-----");
 			log(new String(bout.toByteArray()));
@@ -276,7 +275,6 @@ class Simplex extends Thread {
 				in.close();
 			} catch (Exception e1) {
 
-				e1.printStackTrace();
 				errWithStackTrace(e);
 			}
 		} catch (SSLException e) {
@@ -287,7 +285,6 @@ class Simplex extends Thread {
 			// System.err.println(String.format("SocketException: %s", e.getMessage()));
 		} catch (Exception e) {
 
-			e.printStackTrace();
 			errWithStackTrace(e);
 		} finally {
 
@@ -302,7 +299,6 @@ class Simplex extends Thread {
 						out.close();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
 					errWithStackTrace(e1);
 				}
 				try {
@@ -311,7 +307,6 @@ class Simplex extends Thread {
 						out.close();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
 					errWithStackTrace(e1);
 				}
 			}

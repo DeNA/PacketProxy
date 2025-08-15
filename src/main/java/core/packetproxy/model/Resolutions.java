@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package packetproxy.model;
-
 import static packetproxy.model.PropertyChangeEventType.RESOLUTIONS_UPDATED;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.j256.ormlite.dao.Dao;
 import java.beans.PropertyChangeEvent;
@@ -86,7 +86,7 @@ public class Resolutions implements PropertyChangeListener {
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -214,7 +214,7 @@ public class Resolutions implements PropertyChangeListener {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.http;
-
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import com.google.re2j.Matcher;
@@ -110,7 +110,7 @@ public class Http {
 	 * // System.out.println(new String(http.toByteArray()));
 	 *
 	 * } catch (Exception e) {
-	 * e.printStackTrace();
+	 * errWithStackTrace(e);
 	 * }
 	 * }
 	 */
@@ -682,7 +682,7 @@ public class Http {
 			body = new String(getBody(), "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 			return null;
 		}
 		List<String> pairs = Arrays.asList(body.split("&"));
@@ -699,7 +699,7 @@ public class Http {
 			body = new String(getBody(), "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 			return null;
 		}
 		String[] pairs = body.split("&");

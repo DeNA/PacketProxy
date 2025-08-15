@@ -19,6 +19,7 @@ package packetproxy.quic.service.handshake;
 import static packetproxy.quic.utils.Constants.PnSpaceType.PnSpaceHandshake;
 import static packetproxy.quic.utils.Constants.PnSpaceType.PnSpaceInitial;
 import static packetproxy.quic.utils.Constants.TOKEN_SIZE;
+import static packetproxy.util.Logging.err;
 import static packetproxy.util.Throwing.rethrow;
 
 import java.io.IOException;
@@ -104,7 +105,7 @@ public class ServerHandshake implements Handshake {
 			this.engine.received((FinishedMessage) message, ProtectionKeysType.Handshake);
 		} else {
 
-			System.err.println("Error: cannot process message " + message);
+			err("Error: cannot process message %s", message);
 		}
 	}
 

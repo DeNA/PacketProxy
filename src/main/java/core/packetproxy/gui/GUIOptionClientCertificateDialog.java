@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Container;
 import java.awt.Dimension;
@@ -157,7 +158,7 @@ public class GUIOptionClientCertificateDialog extends JDialog {
 				}
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		});
 
@@ -251,7 +252,7 @@ public class GUIOptionClientCertificateDialog extends JDialog {
 
 			} catch (Exception e1) {
 
-				e1.printStackTrace();
+				errWithStackTrace(e1);
 			}
 		});
 	}

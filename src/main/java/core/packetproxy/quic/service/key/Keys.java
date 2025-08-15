@@ -1,4 +1,5 @@
 package packetproxy.quic.service.key;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -104,7 +105,7 @@ public class Keys {
 				}
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		}
 	}

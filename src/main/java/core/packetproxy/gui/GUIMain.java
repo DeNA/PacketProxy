@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package packetproxy.gui;
-
 import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static packetproxy.util.Logging.errWithStackTrace;
 
@@ -146,7 +145,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		} catch (Exception e) {
 
 			errWithStackTrace(e);
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

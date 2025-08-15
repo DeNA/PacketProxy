@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.encode;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.mobius.software.mqtt.parser.MQJsonParser;
 import com.mobius.software.mqtt.parser.MQParser;
@@ -163,7 +164,7 @@ public class EncodeMQTTWebSocket extends EncodeHTTPWebSocket {
 			return msgId != null ? msgId + ": " + cmd : cmd;
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 			return "Failed to Parse as MQTT Protocol";
 		}
 	}

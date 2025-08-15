@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.util;
-
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import java.nio.charset.Charset;
@@ -110,7 +110,7 @@ public class CharSetUtility {
 			data = new String(rawData, StandardCharsets.UTF_8);
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		int cur = 0;
 		while (true) {
@@ -282,7 +282,7 @@ public class CharSetUtility {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		return ret;
 	}

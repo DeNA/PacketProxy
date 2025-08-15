@@ -15,6 +15,8 @@
  */
 package packetproxy.http2;
 
+import static packetproxy.util.Logging.err;
+
 import java.io.ByteArrayOutputStream;
 import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
@@ -116,9 +118,8 @@ public class FlowControl {
 		int capacity = Math.min(windowSize, connectionWindowSize);
 		if (capacity == 0) {
 
-			System.err.printf("[HTTP/2 FlowControl] try to send %d data, but running out of window (streamId: %d)\n",
-					queue.size(), this.streamId);
-			System.err.flush();
+			err("[HTTP/2 FlowControl] try to send %d data, but running out of window (streamId: %d)", queue.size(),
+					this.streamId);
 			return null;
 		}
 		// 少しだけcapacityに余裕を持たせる
@@ -132,8 +133,7 @@ public class FlowControl {
 		int dataLen = Math.min(queue.size(), capacity);
 		if (dataLen == 0) {
 
-			System.err.printf("[HTTP/2 FlowControl] sending data is not found (streamId: %d)\n", this.streamId);
-			System.err.flush();
+			err("[HTTP/2 FlowControl] sending data is not found (streamId: %d)", this.streamId);
 			return null;
 		}
 		this.windowSize -= dataLen;

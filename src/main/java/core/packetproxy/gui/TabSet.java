@@ -17,6 +17,7 @@ package packetproxy.gui;
 
 import static packetproxy.model.PropertyChangeEventType.SELECTED_INDEX;
 import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.BorderLayout;
 import java.beans.PropertyChangeListener;
@@ -75,7 +76,7 @@ public class TabSet {
 					update();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});
@@ -210,7 +211,7 @@ public class TabSet {
 			searchBox.textChanged();
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		firePropertyChange(getSelectedIndex());
 	}

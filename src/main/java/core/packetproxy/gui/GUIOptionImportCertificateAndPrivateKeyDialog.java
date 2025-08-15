@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.CardLayout;
 import java.awt.Component;
@@ -156,7 +157,7 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 				}
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		});
 		certificatePanel.add(certificateChoosebutton);
@@ -183,7 +184,7 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 				}
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		});
 		privateKeyPanel.add(privateKeyChoosebutton);
@@ -219,7 +220,7 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 			} catch (Exception e) {
 
 				JOptionPane.showMessageDialog(cardPanel, I18nString.get("[Error] failed to import."));
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		});
 
@@ -251,7 +252,7 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 				}
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		});
 		certificatePanel.add(certificateChoosebutton);
@@ -278,7 +279,7 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 				}
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		});
 		privateKeyPanel.add(privateKeyChoosebutton);
@@ -314,7 +315,7 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 			} catch (Exception e) {
 
 				JOptionPane.showMessageDialog(cardPanel, I18nString.get("[Error] failed to import."));
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		});
 
@@ -346,7 +347,7 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 				}
 			} catch (Exception e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		});
 		p12Panel.add(p12Choosebutton);
@@ -388,7 +389,7 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 			} catch (Exception e) {
 
 				JOptionPane.showMessageDialog(cardPanel, I18nString.get("[Error] failed to import."));
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 		});
 

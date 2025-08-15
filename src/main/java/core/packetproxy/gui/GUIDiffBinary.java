@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
+
 import java.awt.*;
 import javax.swing.*;
 import packetproxy.common.Binary;
@@ -33,7 +35,7 @@ public class GUIDiffBinary extends GUIDiffBase {
 			strTarg = super.sortUniq(new Binary(ds.getTarget()).toHexString().toString());
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		return new DiffSet(strOrig.getBytes(), strTarg.getBytes());
 	}

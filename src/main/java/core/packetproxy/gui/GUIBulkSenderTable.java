@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
-
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import java.awt.Color;
@@ -118,7 +118,7 @@ public class GUIBulkSenderTable {
 					}
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 				return c;
 			}
@@ -168,7 +168,7 @@ public class GUIBulkSenderTable {
 						regexParams = dlg.showDialog();
 					} catch (Exception e) {
 
-						e.printStackTrace();
+						errWithStackTrace(e);
 					}
 				}
 			});
@@ -196,7 +196,7 @@ public class GUIBulkSenderTable {
 						}
 					} catch (Exception e) {
 
-						e.printStackTrace();
+						errWithStackTrace(e);
 					}
 				}
 			});
@@ -212,7 +212,7 @@ public class GUIBulkSenderTable {
 					onSelected.accept(select_id);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		});

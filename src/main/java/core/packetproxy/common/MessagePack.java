@@ -15,6 +15,9 @@
  */
 package packetproxy.common;
 
+import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.errWithStackTrace;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
@@ -460,7 +463,7 @@ public class MessagePack {
 
 			if (input.available() == 0) {
 
-				System.err.println("MessagePack Parse failed: out of range");
+				err("MessagePack Parse failed: out of range");
 				return false;
 			}
 			byte firstByte = (byte) (input.read() & 0xff);
@@ -598,7 +601,7 @@ public class MessagePack {
 			messages.put(keyString(key, ordinary), value);
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 			return false;
 		}
 		return true;

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.BorderLayout;
 import java.awt.event.KeyEvent;
@@ -116,7 +117,7 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 
@@ -232,7 +233,7 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 			coloringSearchBinary();
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -262,7 +263,7 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 			return coloringSearchBinary(search_bytes);
 		} catch (Exception e) {
 
-			// e.printStackTrace();
+			// errWithStackTrace(e);
 			byte[] search_bytes = search_text.getText().getBytes();
 			return coloringSearchBinary(search_bytes);
 		}

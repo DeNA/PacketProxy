@@ -73,7 +73,7 @@ public class Binary {
 			long end = System.currentTimeMillis();
 			util.packetProxyLog("size: " + data.length() + ", time: " + ((end - start) / 1000.0));
 		} catch (Exception e) {
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 	*/

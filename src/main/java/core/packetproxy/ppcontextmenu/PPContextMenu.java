@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.ppcontextmenu;
-
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import java.awt.event.ActionEvent;
@@ -42,7 +42,7 @@ public abstract class PPContextMenu {
 				} catch (Exception e) {
 
 					log("Error: %s module something happened.", getLabelName());
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});

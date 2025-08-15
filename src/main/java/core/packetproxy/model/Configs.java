@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 package packetproxy.model;
-
 import static packetproxy.model.PropertyChangeEventType.CONFIGS;
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.j256.ormlite.dao.Dao;
 import java.beans.PropertyChangeEvent;
@@ -141,7 +141,7 @@ public class Configs implements PropertyChangeListener {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 }

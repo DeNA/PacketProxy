@@ -3,6 +3,7 @@
  *
  ************************************************************/
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -339,7 +340,7 @@ public class JFontChooser extends JComponent {
 				newValue = doc.getText(0, doc.getLength());
 			} catch (BadLocationException e) {
 
-				e.printStackTrace();
+				errWithStackTrace(e);
 			}
 
 			if (newValue.length() > 0) {

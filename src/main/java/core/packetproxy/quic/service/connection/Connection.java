@@ -15,7 +15,7 @@
  */
 
 package packetproxy.quic.service.connection;
-
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Throwing.rethrow;
 
 import java.io.ByteArrayOutputStream;
@@ -167,7 +167,7 @@ public abstract class Connection implements Endpoint {
 							}
 						} catch (Exception e) {
 
-							e.printStackTrace();
+							errWithStackTrace(e);
 						}
 						return false;
 					});
@@ -222,7 +222,7 @@ public abstract class Connection implements Endpoint {
 					/* exception simply ignored */
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -249,7 +249,7 @@ public abstract class Connection implements Endpoint {
 			this.executor.shutdownNow();
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

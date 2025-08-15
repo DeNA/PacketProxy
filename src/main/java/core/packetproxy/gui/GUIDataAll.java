@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.GridLayout;
 import javax.swing.BoxLayout;
@@ -77,7 +78,7 @@ public class GUIDataAll {
 			sent_text.setCaretPosition(0);
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 }

@@ -27,6 +27,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 package packetproxy.common;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.math.BigInteger;
 import java.util.Random;
@@ -134,7 +135,7 @@ public class ARC4 implements Cloneable {
 			ret.state = this.state.clone();
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		return ret;
 	}

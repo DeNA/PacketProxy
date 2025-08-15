@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.common.primitives.Bytes;
 import difflib.Chunk;
@@ -44,7 +45,7 @@ public class DiffBinary extends DiffBase {
 	// System.out.println(String.format("Targ CHG: %d %d", pos, length)); }
 	// });
 	// } catch (Exception e) {
-	// e.printStackTrace();
+	// errWithStackTrace(e);
 	// }
 	// }
 
@@ -91,7 +92,7 @@ public class DiffBinary extends DiffBase {
 			}
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

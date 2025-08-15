@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.http;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -163,7 +164,7 @@ public class HttpHeader {
 			return new String(raw, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		return "";
 	}

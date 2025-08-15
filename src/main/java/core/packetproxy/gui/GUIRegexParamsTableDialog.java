@@ -1,4 +1,5 @@
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -45,7 +46,7 @@ public class GUIRegexParamsTableDialog extends JDialog {
 			setVisible(true);
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 		return this.regexParams;
 	}
@@ -86,7 +87,7 @@ public class GUIRegexParamsTableDialog extends JDialog {
 					dispose();
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 		});
@@ -103,7 +104,7 @@ public class GUIRegexParamsTableDialog extends JDialog {
 					table.setRowSelectionInterval(rowIndex, rowIndex);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -123,7 +124,7 @@ public class GUIRegexParamsTableDialog extends JDialog {
 					updateTable();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -144,7 +145,7 @@ public class GUIRegexParamsTableDialog extends JDialog {
 					updateTable();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -158,7 +159,7 @@ public class GUIRegexParamsTableDialog extends JDialog {
 					updateTable();
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -124,7 +125,7 @@ public class GUIExtensions {
 					Extensions.getInstance().create(ext);
 				} catch (Exception e) {
 
-					e.printStackTrace();
+					errWithStackTrace(e);
 				}
 			}
 			jar.close();

@@ -17,6 +17,7 @@ package packetproxy.model;
 
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import static packetproxy.util.Logging.err;
+import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import com.j256.ormlite.dao.Dao;
@@ -63,7 +64,7 @@ public class Database {
 			log("%s directory is not found...", databaseDir.toAbsolutePath());
 			log("creating the directory...");
 			Files.createDirectories(databaseDir);
-			System.out.println("success!");
+			log("success!");
 		} else {
 
 			if (!Files.isDirectory(databaseDir)) {
@@ -187,7 +188,7 @@ public class Database {
 			conn.close();
 		} catch (Exception e) {
 
-			e.getStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 

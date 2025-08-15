@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -65,7 +66,7 @@ public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCer
 					table.setRowSelectionInterval(rowIndex, rowIndex);
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -83,7 +84,7 @@ public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCer
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -103,7 +104,7 @@ public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCer
 					}
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -116,7 +117,7 @@ public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCer
 					clientCertificates.delete(getSelectedTableContent());
 				} catch (Exception e1) {
 
-					e1.printStackTrace();
+					errWithStackTrace(e1);
 				}
 			}
 		};
@@ -133,7 +134,7 @@ public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCer
 					certificate.getServerName(), certificate.getSubject(), certificate.getIssuer(),});
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
@@ -153,7 +154,7 @@ public class GUIOptionClientCertificate extends GUIOptionComponentBase<ClientCer
 			updateTable(clientCertificates.queryAll());
 		} catch (Exception e) {
 
-			e.printStackTrace();
+			errWithStackTrace(e);
 		}
 	}
 
