@@ -17,6 +17,7 @@ package packetproxy.util;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.IllegalFormatException;
 import packetproxy.gui.GUILog;
 
 public class Logging {
@@ -27,7 +28,7 @@ public class Logging {
 	private Logging() {
 	}
 
-	public static void log(String format, Object... args) {
+	public static void log(String format, Object... args) throws IllegalFormatException {
 		LocalDateTime now = LocalDateTime.now();
 		String ns = dtf.format(now);
 		String ss = ns + "       " + String.format(format, args);
@@ -35,7 +36,7 @@ public class Logging {
 		guiLog.append(ss);
 	}
 
-	public static void err(String format, Object... args) {
+	public static void err(String format, Object... args) throws IllegalFormatException {
 		LocalDateTime now = LocalDateTime.now();
 		String ns = dtf.format(now);
 		String ss = ns + "       " + String.format(format, args);
@@ -43,8 +44,8 @@ public class Logging {
 		guiLog.appendErr(ss);
 	}
 
-	public static void errWithStackTrace(Throwable e) {
-		err(e.getMessage());
+	public static void errWithStackTrace(Throwable e) throws IllegalFormatException {
+		err(e.toString());
 		StackTraceElement[] stackTrace = e.getStackTrace();
 		for (var element : stackTrace) {
 			err(element.toString());
