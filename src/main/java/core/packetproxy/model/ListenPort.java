@@ -27,7 +27,22 @@ public class ListenPort {
 		TCP, UDP
 	}
 	public enum TYPE {
-		HTTP_PROXY, FORWARDER, SSL_FORWARDER, UDP_FORWARDER, SSL_TRANSPARENT_PROXY, HTTP_TRANSPARENT_PROXY, XMPP_SSL_FORWARDER, QUIC_FORWARDER, QUIC_TRANSPARENT_PROXY
+		HTTP_PROXY, FORWARDER, SSL_FORWARDER, UDP_FORWARDER, SSL_TRANSPARENT_PROXY, HTTP_TRANSPARENT_PROXY, XMPP_SSL_FORWARDER, QUIC_FORWARDER, QUIC_TRANSPARENT_PROXY;
+
+		public boolean isForwarder() {
+			return this == FORWARDER || this == SSL_FORWARDER || this == UDP_FORWARDER || this == XMPP_SSL_FORWARDER
+					|| this == QUIC_FORWARDER;
+		}
+
+		public Protocol getProtocol() {
+			if (this == QUIC_FORWARDER || this == QUIC_TRANSPARENT_PROXY || this == UDP_FORWARDER) {
+
+				return Protocol.UDP;
+			} else {
+
+				return Protocol.TCP;
+			}
+		}
 	}
 
 	@DatabaseField(generatedId = true)
@@ -44,16 +59,6 @@ public class ListenPort {
 	private int server_id;
 	private Protocol protocol = null;
 
-	private Protocol getProtocolForPortType(TYPE type) {
-		if (type == TYPE.QUIC_FORWARDER || type == TYPE.QUIC_TRANSPARENT_PROXY || type == TYPE.UDP_FORWARDER) {
-
-			return Protocol.UDP;
-		} else {
-
-			return Protocol.TCP;
-		}
-	}
-
 	public ListenPort() {
 		// ORMLite needs a no-arg constructor
 	}
@@ -64,7 +69,7 @@ public class ListenPort {
 		this.type = type;
 		this.server_id = 0;
 		this.ca_name = "PacketProxy CA";
-		this.protocol = getProtocolForPortType(type);
+		this.protocol = type.getProtocol();
 	}
 
 	public ListenPort(int port, TYPE type, Server server, String ca_name) {
@@ -73,7 +78,7 @@ public class ListenPort {
 		this.type = type;
 		this.server_id = (server != null) ? server.getId() : 0;
 		this.ca_name = ca_name;
-		this.protocol = getProtocolForPortType(type);
+		this.protocol = type.getProtocol();
 	}
 
 	public boolean isEnabled() {
@@ -119,7 +124,7 @@ public class ListenPort {
 	public Protocol getProtocol() {
 		if (this.protocol == null) {
 
-			this.protocol = getProtocolForPortType(this.type);
+			this.protocol = this.type.getProtocol();
 		}
 		return this.protocol;
 	}

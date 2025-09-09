@@ -15,6 +15,7 @@
  */
 package packetproxy;
 import static packetproxy.model.PropertyChangeEventType.LISTEN_PORTS;
+import static packetproxy.model.PropertyChangeEventType.SERVERS;
 import static packetproxy.util.Logging.err;
 import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import packetproxy.model.ListenPort;
 import packetproxy.model.ListenPorts;
+import packetproxy.model.Servers;
 
 public class ListenPortManager implements PropertyChangeListener {
 
@@ -48,6 +50,7 @@ public class ListenPortManager implements PropertyChangeListener {
 		listen_map = new HashMap<String, Listen>();
 		listenPorts = ListenPorts.getInstance();
 		listenPorts.addPropertyChangeListener(this);
+		Servers.getInstance().addPropertyChangeListener(this);
 		listenPorts.refresh();
 	}
 
@@ -114,6 +117,36 @@ public class ListenPortManager implements PropertyChangeListener {
 		}
 	}
 
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (LISTEN_PORTS.matches(evt)) {
+
+			try {
+
+				synchronized (listen_map) {
+
+					stopIfRunning();
+					startIfStateChanged();
+				}
+			} catch (Exception e) {
+
+				errWithStackTrace(e);
+			}
+		} else if (SERVERS.matches(evt)) {
+
+			try {
+
+				synchronized (listen_map) {
+
+					restartAffectedForwarders();
+				}
+			} catch (Exception e) {
+
+				errWithStackTrace(e);
+			}
+		}
+	}
+
 	private void startIfStateChanged() throws Exception {
 		List<ListenPort> list = listenPorts.queryEnabled();
 		for (ListenPort listen_port : list) {
@@ -122,23 +155,21 @@ public class ListenPortManager implements PropertyChangeListener {
 		}
 	}
 
-	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
-		if (!LISTEN_PORTS.matches(evt)) {
+	private void restartAffectedForwarders() throws Exception {
+		List<ListenPort> list = listenPorts.queryEnabled();
+		for (ListenPort listen_port : list) {
 
-			return;
-		}
+			if (listen_port.getType().isForwarder()) {
 
-		try {
+				Listen listen = listen_map.get(listen_port.getProtoPort());
+				if (listen != null) {
 
-			synchronized (listen_map) {
-
-				stopIfRunning();
-				startIfStateChanged();
+					log("## restarting forwarder due to server change: %s", listen_port.getProtoPort());
+					listen.close();
+					Listen new_listen = new Listen(listen_port);
+					listen_map.put(listen_port.getProtoPort(), new_listen);
+				}
 			}
-		} catch (Exception e) {
-
-			errWithStackTrace(e);
 		}
 	}
 }
