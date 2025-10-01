@@ -67,8 +67,9 @@ dependencies {
   implementation 'org.eclipse.jetty.http3:http3-qpack:11.0.11'
   implementation 'com.github.docker-java:docker-java:3.3.0'
   implementation 'com.github.docker-java:docker-java-transport-httpclient5:3.3.0'
-  implementation 'org.apache.commons:commons-compress:1.26.2'
+  implementation 'org.apache.commons:commons-compress:1.28.0'
   implementation 'com.github.luben:zstd-jni:1.5.6-3'
+  implementation 'org.brotli:dec:0.1.2'
   implementation files('libs/agent15.jar')
 
   izpack 'org.codehaus.izpack:izpack-dist:5.1.3'

@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import org.apache.commons.collections4.map.MultiValueMap;
+import org.apache.commons.compress.compressors.brotli.BrotliCompressorInputStream;
 import org.apache.commons.compress.compressors.zstandard.ZstdCompressorInputStream;
 import org.apache.commons.compress.compressors.zstandard.ZstdCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
@@ -121,6 +122,7 @@ public class Http {
 	static final Pattern CHUNKED_PATTERN = Pattern.compile("\nTransfer-Encoding *: *chunked", Pattern.CASE_INSENSITIVE);
 	static final Pattern GZIP_PATTERN = Pattern.compile("\nContent-Encoding *: *gzip", Pattern.CASE_INSENSITIVE);
 	static final Pattern ZSTD_PATTERN = Pattern.compile("\nContent-Encoding *: *zstd", Pattern.CASE_INSENSITIVE);
+	static final Pattern BR_PATTERN = Pattern.compile("\nContent-Encoding *: *br", Pattern.CASE_INSENSITIVE);
 
 	// TODO header系作業をHttpHeaderに分離
 	public static int parseHttpDelimiter(byte[] data) throws Exception {
@@ -185,6 +187,16 @@ public class Http {
 
 					byte[] body = ArrayUtils.subarray(data, header_size, data.length);
 					zstd_decompress(body);
+				} catch (Exception e1) {
+
+					return -1;
+				}
+			} else if (BR_PATTERN.matcher(header_str).find()) {
+
+				try {
+
+					byte[] body = ArrayUtils.subarray(data, header_size, data.length);
+					br_decompress(body);
 				} catch (Exception e1) {
 
 					return -1;
@@ -334,6 +346,12 @@ public class Http {
 			} else if (enc.isPresent() && enc.get().equalsIgnoreCase("zstd")) {
 
 				cookedBody = zstd_decompress(cookedBody);
+				header.removeAll(headerName);
+				if (cookedBody == null)
+					return null;
+			} else if (enc.isPresent() && enc.get().equalsIgnoreCase("br")) {
+
+				cookedBody = br_decompress(cookedBody);
 				header.removeAll(headerName);
 				if (cookedBody == null)
 					return null;
@@ -572,6 +590,12 @@ public class Http {
 		ZstdCompressorOutputStream zstdOut = new ZstdCompressorOutputStream(out);
 		zstdOut.write(input_data);
 		return out.toByteArray();
+	}
+
+	private static byte[] br_decompress(byte[] input_data) throws Exception {
+		ByteArrayInputStream in = new ByteArrayInputStream(input_data);
+		BrotliCompressorInputStream brIn = new BrotliCompressorInputStream(in);
+		return IOUtils.toByteArray(brIn);
 	}
 
 	private static byte[] gunzip(byte[] input_data) throws Exception {
