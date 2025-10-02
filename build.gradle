@@ -12,7 +12,7 @@ plugins {
   id 'java'
   id 'application'
   id 'eclipse'
-  id 'me.champeau.jmh' version '0.6.6'
+  id 'me.champeau.jmh' version '0.7.3'
   id 'com.bmuschko.izpack' version '3.2'
   id 'com.github.hierynomus.license-report' version "0.16.1"
   id "de.undercouch.download" version "4.0.0"
@@ -26,15 +26,16 @@ repositories {
 
 dependencies {
 
-  compileOnly 'org.projectlombok:lombok:1.18.38'
-  annotationProcessor 'org.projectlombok:lombok:1.18.38'
-  testCompileOnly 'org.projectlombok:lombok:1.18.38'
-  testAnnotationProcessor 'org.projectlombok:lombok:1.18.38'
+  compileOnly 'org.projectlombok:lombok:1.18.42'
+  annotationProcessor 'org.projectlombok:lombok:1.18.42'
+  testCompileOnly 'org.projectlombok:lombok:1.18.42'
+  testAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
 
-  testImplementation 'org.junit.jupiter:junit-jupiter:5.4.2'
+  testImplementation 'org.junit.jupiter:junit-jupiter:6.0.0'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
   testImplementation 'org.assertj:assertj-core:3.23.1'
   testImplementation 'org.mockito:mockito-core:4.7.0'
-  testImplementation 'org.projectlombok:lombok:1.18.34'
+  testImplementation 'org.projectlombok:lombok:1.18.42'
 
   implementation 'com.google.guava:guava:24.1-jre'
   implementation 'commons-codec:commons-codec:1.6'
@@ -133,7 +134,9 @@ spotless {
   }
 }
 
-mainClassName = "packetproxy/PacketProxy"
+application {
+  mainClass = "packetproxy/PacketProxy"
+}
 
 task setVersion {
   project.ext.version = "git describe --tags --abbrev=0".execute().text.replace("\n","")
@@ -274,7 +277,7 @@ jar {
   }
   manifest {
     attributes (
-        "Main-Class": project.mainClassName,
+        "Main-Class": "packetproxy/PacketProxy",
         "Class-Path": configurations.runtimeClasspath.collect { it.getName() }.join(' ')
         )
   }
