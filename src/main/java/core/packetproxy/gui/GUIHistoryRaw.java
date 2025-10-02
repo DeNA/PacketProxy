@@ -40,7 +40,7 @@ public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataCh
 		raw_text = new RawTextPane();
 		raw_text.setParentHistory(this);
 		raw_text.addDataChangedListener(this);
-		
+
 		jsonHighlighter = new JsonSyntaxHighlighter(raw_text.getStyledDocument());
 
 		text_panel = new JScrollPane(raw_text);
