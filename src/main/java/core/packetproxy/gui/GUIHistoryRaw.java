@@ -21,10 +21,12 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import packetproxy.common.JsonSyntaxHighlighter;
 
 public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataChangedListener {
 
 	private RawTextPane raw_text;
+	private JsonSyntaxHighlighter jsonHighlighter;
 	@Override
 	public JTextPane getTextPane() {
 		return raw_text;
@@ -38,6 +40,8 @@ public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataCh
 		raw_text = new RawTextPane();
 		raw_text.setParentHistory(this);
 		raw_text.addDataChangedListener(this);
+		
+		jsonHighlighter = new JsonSyntaxHighlighter(raw_text.getStyledDocument());
 
 		text_panel = new JScrollPane(raw_text);
 		panel = new JPanel(new BorderLayout());
@@ -51,6 +55,9 @@ public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataCh
 	public void appendData(byte[] data) throws Exception {
 		javax.swing.text.StyledDocument document = raw_text.getStyledDocument();
 		document.insertString(document.getLength(), new String(data), null);
+		javax.swing.SwingUtilities.invokeLater(() -> {
+			jsonHighlighter.applyHighlightingIfJson();
+		});
 	}
 
 	@Override
@@ -60,6 +67,9 @@ public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataCh
 
 	private void setData(byte[] data, boolean trimming) throws Exception {
 		raw_text.setData(data, trimming);
+		javax.swing.SwingUtilities.invokeLater(() -> {
+			jsonHighlighter.applyHighlightingIfJson();
+		});
 	}
 
 	@Override
@@ -80,6 +90,9 @@ public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataCh
 	@Override
 	public void dataChanged(byte[] data) {
 		callDataChanged(data);
+		javax.swing.SwingUtilities.invokeLater(() -> {
+			jsonHighlighter.applyHighlightingIfJson();
+		});
 	}
 
 }

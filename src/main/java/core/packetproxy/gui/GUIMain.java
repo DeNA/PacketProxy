@@ -192,7 +192,10 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 			}
 		}
 
-		// フォントの設定
+		// フォント設定をデフォルトに復元（シンタックスハイライト機能による影響を防ぐため）
+		FontManager.getInstance().restoreUIFont();
+		FontManager.getInstance().restoreFont();
+		
 		UIManager.getLookAndFeelDefaults().put("defaultFont", FontManager.getInstance().getUIFont());
 		// OptionPaneのロケール
 		JOptionPane.setDefaultLocale(I18nString.getLocale());
