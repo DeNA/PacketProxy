@@ -155,7 +155,7 @@ project.ext {
   nameWin32Release = "PacketProxy-${gitVersion}-Installer-Win32.jar"
   nameWin64Release = "PacketProxy-${gitVersion}-Installer-Win64.jar"
   nameLinuxReleaseDir = "PacketProxy-${gitVersion}-Linux"
-  nameLinuxRelease = "PacketProxy-${gitVersion}-Linux.jar"
+  nameLinuxRelease = "PacketProxy-${gitVersion}-Installer-Linux.jar"
   // path
   pathInstaller     = "${buildDir}/distributions/${nameInstaller}"
   pathWorkDir       = "${buildDir}/distributions"
