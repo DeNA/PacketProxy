@@ -130,20 +130,26 @@ public class ConfigHttpServer extends NanoHTTPD {
 
 			try {
 
-				GUIMain.getInstance().setAlwaysOnTop(true);
-				GUIMain.getInstance().setVisible(true);
+				// Check if dialog suppression is requested
+				String suppressDialog = session.getHeaders().get("x-suppress-dialog");
+				boolean showDialog = !"true".equals(suppressDialog);
 
-				GUIMain.getInstance().getTabbedPane().setSelectedIndex(GUIMain.Panes.OPTIONS.ordinal());
+				if (showDialog) {
+					GUIMain.getInstance().setAlwaysOnTop(true);
+					GUIMain.getInstance().setVisible(true);
 
-				int option = JOptionPane.showConfirmDialog(GUIMain.getInstance(),
-						I18nString.get("Do you want to overwrite config?"), I18nString.get("Loading config"),
-						JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+					GUIMain.getInstance().getTabbedPane().setSelectedIndex(GUIMain.Panes.OPTIONS.ordinal());
 
-				GUIMain.getInstance().setAlwaysOnTop(false);
+					int option = JOptionPane.showConfirmDialog(GUIMain.getInstance(),
+							I18nString.get("Do you want to overwrite config?"), I18nString.get("Loading config"),
+							JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
-				if (option == JOptionPane.NO_OPTION) {
+					GUIMain.getInstance().setAlwaysOnTop(false);
 
-					return NanoHTTPD.newFixedLengthResponse(Response.Status.UNAUTHORIZED, MIME_HTML, null);
+					if (option == JOptionPane.NO_OPTION) {
+
+						return NanoHTTPD.newFixedLengthResponse(Response.Status.UNAUTHORIZED, MIME_HTML, null);
+					}
 				}
 
 				HashMap<String, String> map = new HashMap<String, String>();
