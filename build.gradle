@@ -87,8 +87,8 @@ dependencies {
 }
 
 licenseReport {
- outputDir = "$buildDir/reports/licenses"
- configurations = ['runtimeClasspath']
+  outputDir = "$buildDir/reports/licenses"
+  configurations = ['runtimeClasspath']
 }
 
 tasks.withType(JavaCompile) {
@@ -137,6 +137,10 @@ spotless {
 
 application {
   mainClass = "packetproxy/PacketProxy"
+}
+
+def shell(String command) {
+  ["sh", "-c", command].execute().waitForProcessOutput(System.out, System.err)
 }
 
 def gitVersion = "git describe --tags --abbrev=0".execute().text.replace("\n","")
@@ -290,7 +294,7 @@ jar {
 }
 
 task prepareJPackage(dependsOn: "jar") {
-  doFirst {
+  doLast {
     def workDir = "${project.ext.pathMacWorkDir}"
     delete "${workDir}"
     new File("${workDir}").mkdirs()
@@ -308,12 +312,11 @@ task prepareJPackage(dependsOn: "jar") {
       from "${projectDir}/src/main/resources/gui/icon.png"
       into "${workDir}/icon.iconset/"
     }
-    "mv ${workDir}/icon.iconset/icon.png ${workDir}/icon.iconset/icon_256x256.png".execute()
-    "iconutil -c icns --output ${workDir}/icon.icns ${workDir}/icon.iconset/".execute()
+    shell("mv ${workDir}/icon.iconset/icon.png ${workDir}/icon.iconset/icon_256x256.png")
+    shell("iconutil -c icns --output ${workDir}/icon.icns ${workDir}/icon.iconset/")
   }
   onlyIf { Os.isFamily(Os.FAMILY_MAC) }
 }
-
 
 class CreateWinTarget extends DefaultTask {
   @Input
@@ -358,20 +361,26 @@ class CreateWinTarget extends DefaultTask {
   }
 }
 
-task createWin64Target(type: CreateWinTarget, dependsOn: ['jar', 'generateLicenseReport']) {
+task createWin64Target(type: CreateWinTarget, dependsOn: [
+  'jar',
+  'generateLicenseReport'
+]) {
   workDir   = project.ext.pathWin64WorkDir
   targetDir = project.ext.pathWin64Target
   jdkUrl    = 'https://corretto.aws/downloads/resources/17.0.15.6.1/amazon-corretto-17.0.15.6.1-windows-x64-jdk.zip'
 }
 
-task createLinuxTarget(dependsOn: ['jar', 'generateLicenseReport']) {
-  def workDir   = project.ext.pathLinuxWorkDir
+task createLinuxTarget(dependsOn: [
+  'jar',
+  'generateLicenseReport'
+]) {
+  def workDir = project.ext.pathLinuxWorkDir
   def targetDir = project.ext.pathLinuxTarget
-  def jdkUrl    = 'https://corretto.aws/downloads/resources/17.0.15.6.1/amazon-corretto-17.0.15.6.1-linux-x64.tar.gz'
+  def jdkUrl = 'https://corretto.aws/downloads/resources/17.0.15.6.1/amazon-corretto-17.0.15.6.1-linux-x64.tar.gz'
   def buildDirectory = project.buildDir
   def projectDirectory = project.projectDir
-  
-  doFirst {
+
+  doLast {
     delete {
       delete "${workDir}"
     }
@@ -410,9 +419,8 @@ task createLinuxTarget(dependsOn: ['jar', 'generateLicenseReport']) {
   }
 }
 
-
 task preIzpack {
-  doFirst {
+  doLast {
     copy {
       from "${projectDir}/installer/izpack/shortcutSpec.xml"
       into "${project.ext.pathWorkDir}"
@@ -479,16 +487,16 @@ task createMacJPackage(type: Exec, dependsOn: "prepareJPackage") {
 }
 
 task resignMacJPackage(dependsOn: "createMacJPackage") {
-  doFirst {
-    ["sh", "-c", "hdiutil convert ${pathMacSignedReleaseJPackage} -format UDRW -o ${project.ext.pathMacWorkDir}/tmp.dmg"].execute().waitForProcessOutput(System.out, System.err)
-    ["sh", "-c", "hdiutil mount ${project.ext.pathMacWorkDir}/tmp.dmg"].execute().waitForProcessOutput(System.out, System.err)
-    ["sh", "-c", "rm -rf /tmp/packetproxy && mkdir /tmp/packetproxy && cd /tmp/packetproxy && jar xvf /Volumes/PacketProxy/PacketProxy.app/Contents/app/PacketProxy.jar"].execute().waitForProcessOutput(System.out, System.err)
-    ["sh", "-c", "cd /tmp/packetproxy; for i in \$(find . -type f); do if file \$i | grep Mach-O > /dev/null; then codesign -fv --timestamp --options=runtime --deep -s \"${project.ext.signedKey}\" \$i; fi; done"].execute().waitForProcessOutput(System.out, System.err)
-    ["sh", "-c", "cd /tmp/packetproxy; jar cvfm /Volumes/PacketProxy/PacketProxy.app/Contents/app/PacketProxy.jar META-INF/MANIFEST.MF *"].execute().waitForProcessOutput(System.out, System.err)
-    ["sh", "-c", "cd /Volumes/PacketProxy/PacketProxy.app/Contents/; for i in \$(find . -type f); do if file \$i | grep Mach-O > /dev/null; then codesign -fv --timestamp --options=runtime --deep -s \"${project.ext.signedKey}\" \$i; fi; done"].execute().waitForProcessOutput(System.out, System.err)
-    ["sh", "-c", "cd /Volumes/PacketProxy; codesign -fv --timestamp --options=runtime --deep -s \"${project.ext.signedKey}\" --entitlements ${projectDir}/assets/resign/entitlements.xml PacketProxy.app"].execute().waitForProcessOutput(System.out, System.err)
-    ["sh", "-c", "hdiutil detach /Volumes/PacketProxy"].execute().waitForProcessOutput(System.out, System.err)
-    ["sh", "-c", "rm ${pathMacSignedReleaseJPackage}; hdiutil convert ${project.ext.pathMacWorkDir}/tmp.dmg -format UDZO -o ${pathMacSignedReleaseJPackage}"].execute().waitForProcessOutput(System.out, System.err)
+  doLast {
+    shell("hdiutil convert ${pathMacSignedReleaseJPackage} -format UDRW -o ${project.ext.pathMacWorkDir}/tmp.dmg")
+    shell("hdiutil mount ${project.ext.pathMacWorkDir}/tmp.dmg")
+    shell("rm -rf /tmp/packetproxy && mkdir /tmp/packetproxy && cd /tmp/packetproxy && jar xvf /Volumes/PacketProxy/PacketProxy.app/Contents/app/PacketProxy.jar")
+    shell("cd /tmp/packetproxy; for i in \$(find . -type f); do if file \$i | grep Mach-O > /dev/null; then codesign -fv --timestamp --options=runtime --deep -s \"${project.ext.signedKey}\" \$i; fi; done")
+    shell("cd /tmp/packetproxy; jar cvfm /Volumes/PacketProxy/PacketProxy.app/Contents/app/PacketProxy.jar META-INF/MANIFEST.MF *")
+    shell("cd /Volumes/PacketProxy/PacketProxy.app/Contents/; for i in \$(find . -type f); do if file \$i | grep Mach-O > /dev/null; then codesign -fv --timestamp --options=runtime --deep -s \"${project.ext.signedKey}\" \$i; fi; done")
+    shell("cd /Volumes/PacketProxy; codesign -fv --timestamp --options=runtime --deep -s \"${project.ext.signedKey}\" --entitlements ${projectDir}/assets/resign/entitlements.xml PacketProxy.app")
+    shell("hdiutil detach /Volumes/PacketProxy")
+    shell("rm ${pathMacSignedReleaseJPackage}; hdiutil convert ${project.ext.pathMacWorkDir}/tmp.dmg -format UDZO -o ${pathMacSignedReleaseJPackage}")
   }
   onlyIf { Os.isFamily(Os.FAMILY_MAC) }
 }
@@ -542,14 +550,14 @@ task createWinRelease(dependsOn: 'createWin64Release') {
 }
 
 task createLinuxRelease(dependsOn: 'createLinuxInstaller') {
-  doFirst {
+  doLast {
     file(project.ext.pathLinuxReleaseDir).mkdirs()
     copy {
       from "${projectDir}/installer/izpack/installer.sh"
       from "${project.ext.pathLinuxInstaller}"
       into "${project.ext.pathLinuxReleaseDir}"
     }
-    "cd ${project.ext.pathLinuxWorkDir}; tar czvf ${project.ext.nameLinuxRelease} ${project.ext.nameLinuxReleaseDir}".execute()
+    shell("cd ${project.ext.pathLinuxWorkDir}; tar czvf ${project.ext.nameLinuxRelease} ${project.ext.nameLinuxReleaseDir}")
   }
 }
 
