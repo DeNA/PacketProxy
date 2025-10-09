@@ -81,11 +81,11 @@ public class PacketProxy {
 	public ListenPortManager listenPortManager;
 
 	public PacketProxy() throws Exception {
-		ClientKeyManager.initialize();
 	}
 
 	public void start() throws Exception {
 		startGUI();
+		ClientKeyManager.initialize();
 		listenPortManager = ListenPortManager.getInstance();
 		// encoderのロードに1,2秒かかるのでここでロードをしておく（ここでしておかないと通信がacceptされたタイミングでロードする）
 		EncoderManager.getInstance();
