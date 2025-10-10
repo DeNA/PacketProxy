@@ -55,7 +55,6 @@ public class Database {
 	private ConnectionSource source;
 
 	private Database() throws Exception {
-		createDB();
 	}
 
 	private void createDB() throws Exception {
@@ -152,6 +151,24 @@ public class Database {
 
 			TableUtils.dropTable(source, c, true);
 		}
+	}
+
+	public void openAt(String path) throws Exception {
+		firePropertyChange(DatabaseMessage.DISCONNECT_NOW);
+
+		if (source != null) {
+
+			source.close();
+		}
+
+		Path dest = FileSystems.getDefault().getPath(path);
+		Path parent = dest.getParent();
+
+		databasePath = dest;
+		databaseDir = parent != null ? parent : dest.getParent();
+		createDB();
+
+		firePropertyChange(DatabaseMessage.RECONNECT);
 	}
 
 	private static void migrateTableWithoutHistory(Path srcDBPath, Path dstDBPath) {

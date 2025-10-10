@@ -67,11 +67,6 @@ public class Packets implements PropertyChangeListener {
 	private Packets(boolean restore) throws Exception {
 		database = Database.getInstance();
 		database.addPropertyChangeListener(this);
-		if (!restore) {
-
-			log("drop history...");
-			database.dropPacketTableFaster();
-		}
 		dao = database.createTable(Packet.class);
 		if (restore) {
 
