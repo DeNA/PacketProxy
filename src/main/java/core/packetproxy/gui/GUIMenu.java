@@ -30,6 +30,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import packetproxy.common.ConfigIO;
 import packetproxy.common.I18nString;
+import packetproxy.common.RecentProjectsStore;
 import packetproxy.common.Utils;
 import packetproxy.model.Database;
 import packetproxy.model.Packets;
@@ -63,6 +64,7 @@ public class GUIMenu extends JMenuBar {
 						try {
 
 							Database.getInstance().Save(file.getAbsolutePath());
+							RecentProjectsStore.add(file.toPath());
 							JOptionPane.showMessageDialog(null, I18nString.get("Data saved successfully"));
 						} catch (Exception e1) {
 
@@ -135,6 +137,7 @@ public class GUIMenu extends JMenuBar {
 
 						File file = filechooser.getSelectedFile();
 						Database.getInstance().Load(file.getAbsolutePath());
+						RecentProjectsStore.add(file.toPath());
 					}
 				} catch (Exception e1) {
 

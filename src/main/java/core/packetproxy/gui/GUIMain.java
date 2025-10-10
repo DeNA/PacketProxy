@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package packetproxy.gui;
-import static javax.swing.JOptionPane.YES_NO_OPTION;
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.*;
@@ -100,6 +99,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 	private GUIMain(String title) {
 		try {
 
+			gui_history = initProjectAndHistory();
 			setLookandFeel();
 			setTitle(title);
 			setBounds(10, 10, 1100, 850);
@@ -109,7 +109,6 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 			setJMenuBar(menu_bar);
 
 			gui_option = new GUIOption(this);
-			gui_history = getGUIHistory();
 			gui_intercept = new GUIIntercept(this);
 			gui_resender = GUIResender.getInstance();
 			gui_bulksender = GUIBulkSender.getInstance();
@@ -149,31 +148,10 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		}
 	}
 
-	private GUIHistory getGUIHistory() throws Exception {
-		// 環境変数RESTORE_HISTORYで指定されている場合promptせずに起動
-		String restoreHistoryEnv = System.getenv("RESTORE_HISTORY");
-		if (restoreHistoryEnv != null) {
-
-			if (restoreHistoryEnv.matches("(?i)(true|yes|y|restore)")) {
-
-				return GUIHistory.restoreLastInstance(this);
-			} else if (restoreHistoryEnv.matches("(?i)(false|no|n|drop)")) {
-
-				return GUIHistory.getInstance(this);
-			}
-		}
-
-		// 環境変数RESTORE_HISTORYで指定されていなかった場合Historyをrestoreするか聞く
-		int restoreHistory = JOptionPane.showConfirmDialog(this,
-				I18nString.get("Do you want to load the previous packet data?"),
-				I18nString.get("Loading previous packet data"), YES_NO_OPTION);
-		if (restoreHistory == YES_NO_OPTION) {
-
-			return GUIHistory.restoreLastInstance(this);
-		} else {
-
-			return GUIHistory.getInstance(this);
-		}
+	private GUIHistory initProjectAndHistory() throws Exception {
+		var chooser = new GUIProjectChooserDialog(this);
+		var restore = chooser.chooseAndSetup();
+		return restore ? GUIHistory.restoreLastInstance(this) : GUIHistory.getInstance(this);
 	}
 
 	private void setLookandFeel() throws Exception {
