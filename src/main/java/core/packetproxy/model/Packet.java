@@ -76,6 +76,10 @@ public class Packet implements PacketInfo {
 	private long group;
 	@DatabaseField
 	private String color;
+	@DatabaseField
+	private String job_id;
+	@DatabaseField
+	private String temporary_id;
 
 	public Packet() {
 		// ORMLite needs a no-arg constructor
@@ -128,7 +132,7 @@ public class Packet implements PacketInfo {
 
 	public OneShotPacket getOneShotPacket(byte[] data) {
 		return new OneShotPacket(getId(), getListenPort(), getClient(), getServer(), getServerName(), getUseSSL(), data,
-				getEncoder(), getAlpn(), getDirection(), getConn(), getGroup());
+				getEncoder(), getAlpn(), getDirection(), getConn(), getGroup(), getJobId(), getTemporaryId());
 
 	}
 
@@ -142,7 +146,8 @@ public class Packet implements PacketInfo {
 
 	public OneShotPacket getOneShotFromModifiedData() {
 		return new OneShotPacket(getId(), getListenPort(), getClient(), getServer(), getServerName(), getUseSSL(),
-				getModifiedData(), getEncoder(), getAlpn(), getDirection(), getConn(), getGroup());
+				getModifiedData(), getEncoder(), getAlpn(), getDirection(), getConn(), getGroup(), getJobId(),
+				getTemporaryId());
 	}
 
 	public void setSentData(byte[] data) {
@@ -163,7 +168,8 @@ public class Packet implements PacketInfo {
 
 	public OneShotPacket getOneShotFromReceivedData() {
 		return new OneShotPacket(getId(), getListenPort(), getClient(), getServer(), getServerName(), getUseSSL(),
-				getReceivedData(), getEncoder(), getAlpn(), getDirection(), getConn(), getGroup());
+				getReceivedData(), getEncoder(), getAlpn(), getDirection(), getConn(), getGroup(), getJobId(),
+				getTemporaryId());
 	}
 
 	public void setDecodedData(byte[] data) {
@@ -176,7 +182,8 @@ public class Packet implements PacketInfo {
 
 	public OneShotPacket getOneShotFromDecodedData() {
 		return new OneShotPacket(getId(), getListenPort(), getClient(), getServer(), getServerName(), getUseSSL(),
-				getDecodedData(), getEncoder(), getAlpn(), getDirection(), getConn(), getGroup());
+				getDecodedData(), getEncoder(), getAlpn(), getDirection(), getConn(), getGroup(), getJobId(),
+				getTemporaryId());
 	}
 
 	public void setModified() {
@@ -269,6 +276,22 @@ public class Packet implements PacketInfo {
 
 	public void setColor(String color) {
 		this.color = color;
+	}
+
+	public String getJobId() {
+		return this.job_id;
+	}
+
+	public void setJobId(String job_id) {
+		this.job_id = job_id;
+	}
+
+	public String getTemporaryId() {
+		return this.temporary_id;
+	}
+
+	public void setTemporaryId(String temporary_id) {
+		this.temporary_id = temporary_id;
 	}
 
 	public String getSummarizedRequest() throws Exception {
