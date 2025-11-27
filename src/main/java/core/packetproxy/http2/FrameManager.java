@@ -119,6 +119,7 @@ public class FrameManager {
 		} else if (frame instanceof PingFrame) {
 
 			PingFrame pingFrame = (PingFrame) frame;
+			controlFrames.add(pingFrame);
 			// System.out.println("Ping:" + pingFrame);
 			// System.out.flush();
 		} else {
