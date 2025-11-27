@@ -126,10 +126,9 @@ public class HeadersFrame extends Frame {
 		HttpHeader headers = (originalHttpHeader == true ? http.getOriginalHeader() : http.getHeader());
 		HttpFields.Mutable mutableFields = HttpFields.build();
 		for (HeaderField field : headers.getFields()) {
-
-			if (field.getName().equals("X-PacketProxy-HTTP2-Host")) {
-
-				scheme = "https";
+			if (field.getName().equals("X-PacketProxy-HTTP2-Scheme")) {
+				scheme = field.getValue();
+			} else if (field.getName().equals("X-PacketProxy-HTTP2-Host")) {
 				authority = field.getValue();
 				path = http.getPath();
 				query = http.getQueryAsString();
@@ -289,7 +288,7 @@ public class HeadersFrame extends Frame {
 		if (!isGRPC2ndResponseHeader) {
 
 			if (bRequest) {
-
+				buf.write(String.format("X-PacketProxy-HTTP2-Scheme: %s\r\n", scheme).getBytes());
 				buf.write(String.format("X-PacketProxy-HTTP2-Host: %s\r\n", authority).getBytes());
 			}
 			if (priority) {

@@ -368,7 +368,7 @@ public class Http {
 	public String getURL(int port, boolean use_ssl) {
 		if (version.equals("HTTP/2") || version.equals("HTTP/3")) {
 
-			return getURI();
+			return getURI(use_ssl);
 		} else { /* HTTP/1.1 */
 
 			String query = (getQueryAsString() != null && getQueryAsString().length() > 0)
@@ -381,7 +381,7 @@ public class Http {
 		}
 	}
 
-	private String getURI() {
+	private String getURI(boolean use_ssl) {
 		String authority = "unknown";
 		if (version.equals("HTTP/2")) {
 
@@ -390,7 +390,7 @@ public class Http {
 
 			authority = getFirstHeader("x-packetproxy-http3-host");
 		}
-		String scheme = "https";
+		String scheme = (use_ssl ? "https" : "http");
 		String path = getPath();
 		String query = getQueryAsString();
 		String queryStr = (query != null && query.length() > 0) ? "?" + query : "";
