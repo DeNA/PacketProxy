@@ -17,7 +17,8 @@ plugins {
   id 'com.github.jk1.dependency-license-report' version '2.5'
   id "de.undercouch.download" version "5.6.0"
   id "com.diffplug.spotless" version "7.1.0"
-  id 'org.jetbrains.kotlin.jvm'
+  id 'org.jetbrains.kotlin.jvm' version '1.9.22'
+  id 'io.github.goooler.shadow' version '8.1.8'
 }
 
 repositories {
@@ -26,7 +27,6 @@ repositories {
 }
 
 dependencies {
-
   compileOnly 'org.projectlombok:lombok:1.18.42'
   annotationProcessor 'org.projectlombok:lombok:1.18.42'
   testCompileOnly 'org.projectlombok:lombok:1.18.42'
@@ -49,9 +49,10 @@ dependencies {
   implementation 'com.google.protobuf:protobuf-java:4.31.1'
   implementation 'org.slf4j:slf4j-log4j12:1.7.25'
   implementation 'org.slf4j:slf4j-api:2.0.9'
-  implementation 'org.jline:jline:3.29.0'
-  implementation 'org.jline:jline-terminal-jna:3.29.0'
-  implementation 'org.jline:jline-terminal-jansi:3.29.0'
+
+  implementation 'org.jline:jline:3.25.1'
+  implementation 'org.jline:jline-terminal-jansi:3.25.1'
+
   implementation 'ch.qos.logback:logback-classic:1.4.14'
   implementation 'com.googlecode.java-diff-utils:diffutils:1.2.1'
   implementation 'com.google.re2j:re2j:1.1'

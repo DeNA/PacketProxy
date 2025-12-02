@@ -23,7 +23,7 @@ object CLIMode {
                 .terminal(terminal)
                 .build()
 
-            println("=== Headless Mode Shell ===")
+            println("=== CLI Mode ===")
 
             while (true) {
                 val line = reader.readLine("> ")
@@ -56,8 +56,7 @@ object CLIMode {
 
     // フォールバック用の簡易入力処理
     private fun fallbackInput() {
-        println("=== Headless Mode Shell (Fallback Mode) ===")
-        println("コマンドを入力してください (exitで終了)")
+        println("=== Fallback CLI Mode ===")
 
         val scanner = java.util.Scanner(System.`in`)
         while (true) {
