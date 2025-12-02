@@ -45,6 +45,11 @@ public class PacketProxy {
 		var isHeadless = Arrays.asList(args).contains("--headless");
 		Logging.init(isHeadless);
 
+		if (isHeadless) {
+			CLIMode.run();
+			System.exit(0);
+		}
+
 		if (Utils.supportedJava() == false) {
 			JOptionPane.showMessageDialog(null, I18nString.get("PacketProxy can be executed with JDK17 or later"),
 					I18nString.get("Error"), JOptionPane.ERROR_MESSAGE);
