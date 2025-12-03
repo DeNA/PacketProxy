@@ -21,6 +21,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import javax.swing.*;
 import org.apache.commons.io.IOUtils;
+import packetproxy.cli.CLIMode;
 import packetproxy.common.ClientKeyManager;
 import packetproxy.common.I18nString;
 import packetproxy.common.Utils;

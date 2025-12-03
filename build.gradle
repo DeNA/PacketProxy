@@ -143,7 +143,7 @@ spotless {
 }
 
 application {
-  mainClass = "packetproxy/PacketProxy"
+  mainClass = "packetproxy.PacketProxy"
 }
 
 def shell(String command) {
@@ -229,6 +229,24 @@ sourceSets {
       }
       srcDirs = list
     }
+    kotlin {
+      def list = ['src/main/kotlin/core']
+
+      // load additional dena kotlin sources if it exists
+      ['dena/', 'denaN/', 'denaL/'].each { def dir ->
+        def srcs = file(dir + 'kotlin-sources.gradle')
+        if (srcs.exists()) {
+          Eval.me(srcs.text).each { def src ->
+            if (file(dir + src).exists()) {
+              list << dir + src
+            }
+          }
+        }
+      }
+      srcDirs = list
+    }
+    // Kotlinコンパイル時にJavaのソースディレクトリをクラスパスに含める
+    kotlin.srcDirs += java.srcDirs
     resources {
       def list = ['src/main/resources']
       // load additional dena resources if it exists
