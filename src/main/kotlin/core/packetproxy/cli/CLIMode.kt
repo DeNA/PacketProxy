@@ -15,6 +15,8 @@
  */
 package packetproxy.cli
 
+import org.fusesource.jansi.Ansi
+import org.fusesource.jansi.Ansi.Color.CYAN
 import org.jline.builtins.Completers.TreeCompleter
 import org.jline.builtins.Completers.TreeCompleter.node
 import org.jline.reader.EndOfFileException
@@ -47,9 +49,11 @@ object CLIMode {
         val reader = try {
             val commandCompleter = TreeCompleter(
                 node("exit"),
+                node("echo"),
                 node("help"),
                 node("status"),
-                node("show", node(StringsCompleter("logs", "config"))),
+
+                node("set", node(StringsCompleter("encoder", "proxy"))),
             )
 
             LineReaderBuilder.builder()
@@ -65,36 +69,49 @@ object CLIMode {
 
         println("=== CLI Mode ===")
 
-        // 対話ループ
-        while (true) {
-            try {
-                val command = reader.readLine("> ").trim()
+        // リソース管理を改善: try-finallyで確実にクリーンアップ
+        try {
+            val ps1 = Ansi.ansi()
+                .fg(CYAN).a("> ").reset()
+                .toString()
 
-                when (command) {
-                    "exit" -> {
-                        terminal.close()
-                        return
+            while (true) {
+                try {
+                    val line = reader.readLine(ps1).trim()
+                    if (line.isEmpty()) continue
+
+                    val (cmd, args) = CommandParser.parse(line)
+                    when (cmd) {
+                        "echo" -> println("Echo: ${args.joinToString(", ")}")
+                        "exit" -> break
+                        "help" -> println("echo | exit | status | set")
+                        "status" -> println("稼働中 (Port: 8080)")
+
+                        "set" -> {
+                            if (args.size <= 1) {
+                                println("encoder | proxy")
+                            } else {
+                                println("${args[0]}: ${args[1]}")
+                            }
+                        }
+
+                        else -> println("不明なコマンド: $line")
                     }
-
-                    "status" -> println("稼働中 (Port: 8080)")
-                    "help" -> println("使えるコマンド: exit, status, show")
-                    "show logs" -> println("s logs")
-                    "show config" -> println("s config")
-                    "" -> continue
-                    else -> println("不明なコマンド: $command")
+                } catch (e: UserInterruptException) {
+                    // Ctrl + C: アプリケーション継続、改行
+                    continue
+                } catch (e: EndOfFileException) {
+                    // Ctrl + D: アプリケーションを終了
+                    println("${ps1}exit")
+                    break
+                } catch (e: Exception) {
+                    Logging.errWithStackTrace(e)
+                    e.printStackTrace()
                 }
-            } catch (e: UserInterruptException) {
-                // Ctrl + C: アプリケーション継続、改行
-            } catch (e: EndOfFileException) {
-                // Ctrl + D: アプリケーションを終了
-                println("> exit")
-                terminal.close()
-                return
-            } catch (e: Exception) {
-                // その他の例外: ログを出力して対話を続ける
-                Logging.errWithStackTrace(e)
-                e.printStackTrace()
             }
+        } finally {
+            // リソースのクリーンアップ
+            terminal.close()
         }
     }
 
@@ -131,7 +148,7 @@ object CLIMode {
         Logging.log("Proxy Server listening on port 8080...")
         while (true) {
             Logging.log("hi: %d", i++)
-            Thread.sleep(5000)
+            Thread.sleep(10000)
         }
     }
 }

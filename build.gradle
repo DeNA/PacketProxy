@@ -17,7 +17,7 @@ plugins {
   id 'com.github.jk1.dependency-license-report' version '2.5'
   id "de.undercouch.download" version "5.6.0"
   id "com.diffplug.spotless" version "7.1.0"
-  id 'org.jetbrains.kotlin.jvm' version '1.9.22'
+  id 'org.jetbrains.kotlin.jvm' version '2.2.21'
   id 'io.github.goooler.shadow' version '8.1.8'
 }
 
