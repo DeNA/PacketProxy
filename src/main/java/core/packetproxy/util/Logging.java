@@ -31,7 +31,14 @@ public class Logging {
 	public static void log(String format, Object... args) throws IllegalFormatException {
 		LocalDateTime now = LocalDateTime.now();
 		String ns = dtf.format(now);
-		String ss = ns + "       " + String.format(format, args);
+		String ss;
+		if (args.length == 0) {
+			// 引数がない場合は、formatをそのまま使用（String.formatを使わない）
+			ss = ns + "       " + format;
+		} else {
+			// 引数がある場合のみString.formatを使用
+			ss = ns + "       " + String.format(format, args);
+		}
 		System.out.println(ss);
 		guiLog.append(ss);
 	}
@@ -39,7 +46,14 @@ public class Logging {
 	public static void err(String format, Object... args) throws IllegalFormatException {
 		LocalDateTime now = LocalDateTime.now();
 		String ns = dtf.format(now);
-		String ss = ns + "       " + String.format(format, args);
+		String ss;
+		if (args.length == 0) {
+			// 引数がない場合は、formatをそのまま使用（String.formatを使わない）
+			ss = ns + "       " + format;
+		} else {
+			// 引数がある場合のみString.formatを使用
+			ss = ns + "       " + String.format(format, args);
+		}
 		System.err.println(ss);
 		guiLog.appendErr(ss);
 	}
