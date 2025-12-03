@@ -17,27 +17,42 @@ object CLIMode {
             startProxyServer()
         }
 
-        try {
+        // terminalのbuildを試行
+        val terminal = try {
+            TerminalBuilder.builder()
+                .system(true)
+                .build()
+        } catch (e: Exception) {
+            Logging.log("ターミナルの初期化に失敗しました。フォールバックモードに移行します: ${e.message}")
+            fallbackInput()
+            return
+        }
+
+        // readerのbuildを試行
+        val reader = try {
             val commandCompleter = TreeCompleter(
                 node("exit"),
                 node("help"),
                 node("status"),
-
                 node("show", node(StringsCompleter("logs", "config"))),
             )
 
-            val terminal = TerminalBuilder.builder()
-                .system(true)
-                .build()
-
-            val reader = LineReaderBuilder.builder()
+            LineReaderBuilder.builder()
                 .terminal(terminal)
                 .completer(commandCompleter)
                 .build()
+        } catch (e: Exception) {
+            Logging.log("LineReaderの初期化に失敗しました。フォールバックモードに移行します: ${e.message}")
+            terminal.close()
+            fallbackInput()
+            return
+        }
 
-            println("=== CLI Mode ===")
+        println("=== CLI Mode ===")
 
-            while (true) {
+        // 対話ループ
+        while (true) {
+            try {
                 val command = reader.readLine("> ").trim()
 
                 when (command) {
@@ -53,17 +68,18 @@ object CLIMode {
                     "" -> continue
                     else -> println("不明なコマンド: $command")
                 }
+            } catch (e: UserInterruptException) {
+                // Ctrl + C: アプリケーション継続、改行
+            } catch (e: EndOfFileException) {
+                // Ctrl + D: アプリケーションを終了
+                println("> exit")
+                terminal.close()
+                return
+            } catch (e: Exception) {
+                // その他の例外: ログを出力して対話を続ける
+                Logging.errWithStackTrace(e)
+                e.printStackTrace()
             }
-
-        } catch (e: UserInterruptException) {
-            // Ctrl + C
-            println("\n中断されました。終了します。")
-        } catch (e: EndOfFileException) {
-            // Ctrl + D
-            println("\n終了します。")
-        } catch (e: Exception) {
-            Logging.errWithStackTrace(e)
-            fallbackInput()
         }
     }
 
@@ -73,18 +89,24 @@ object CLIMode {
 
         val scanner = java.util.Scanner(System.`in`)
         while (true) {
-            print("> ")
-            val line = scanner.nextLine().trim()
+            try {
+                print("> ")
+                val line = scanner.nextLine().trim()
 
-            when (line) {
-                "exit" -> {
-                    return
+                when (line) {
+                    "exit" -> {
+                        return
+                    }
+
+                    "status" -> println("稼働中 (Port: 8080)")
+                    "help" -> println("使えるコマンド: exit, status, monitor")
+                    "" -> continue
+                    else -> println("不明なコマンド: $line")
                 }
-
-                "status" -> println("稼働中 (Port: 8080)")
-                "help" -> println("使えるコマンド: exit, status, monitor")
-                "" -> continue
-                else -> println("不明なコマンド: $line")
+            } catch (e: Exception) {
+                // Scannerのエラー（EOFなど）: 終了
+                println("\n終了します。")
+                return
             }
         }
     }
