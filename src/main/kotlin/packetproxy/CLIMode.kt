@@ -1,8 +1,11 @@
 package packetproxy
 
+import org.jline.builtins.Completers.TreeCompleter
+import org.jline.builtins.Completers.TreeCompleter.node
 import org.jline.reader.EndOfFileException
 import org.jline.reader.LineReaderBuilder
 import org.jline.reader.UserInterruptException
+import org.jline.reader.impl.completer.StringsCompleter
 import org.jline.terminal.TerminalBuilder
 import packetproxy.util.Logging
 import kotlin.concurrent.thread
@@ -15,19 +18,27 @@ object CLIMode {
         }
 
         try {
+            val commandCompleter = TreeCompleter(
+                node("exit"),
+                node("help"),
+                node("status"),
+
+                node("show", node(StringsCompleter("logs", "config"))),
+            )
+
             val terminal = TerminalBuilder.builder()
                 .system(true)
                 .build()
 
             val reader = LineReaderBuilder.builder()
                 .terminal(terminal)
+                .completer(commandCompleter)
                 .build()
 
             println("=== CLI Mode ===")
 
             while (true) {
-                val line = reader.readLine("> ")
-                val command = line.trim()
+                val command = reader.readLine("> ").trim()
 
                 when (command) {
                     "exit" -> {
@@ -36,7 +47,9 @@ object CLIMode {
                     }
 
                     "status" -> println("稼働中 (Port: 8080)")
-                    "help" -> println("使えるコマンド: exit, status, monitor")
+                    "help" -> println("使えるコマンド: exit, status, show")
+                    "show logs" -> println("s logs")
+                    "show config" -> println("s config")
                     "" -> continue
                     else -> println("不明なコマンド: $command")
                 }
