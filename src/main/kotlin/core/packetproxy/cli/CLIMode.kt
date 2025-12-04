@@ -17,6 +17,7 @@ package packetproxy.cli
 
 import org.fusesource.jansi.Ansi
 import org.fusesource.jansi.Ansi.Color.CYAN
+import org.fusesource.jansi.Ansi.Color.GREEN
 import org.jline.builtins.Completers.TreeCompleter
 import org.jline.builtins.Completers.TreeCompleter.node
 import org.jline.reader.EndOfFileException
@@ -87,6 +88,8 @@ object CLIMode {
         // readerのbuildを試行
         val reader = try {
             val commandCompleter = TreeCompleter(
+                node("d", "decode"),
+                node("e", "encode"),
                 node("exit"),
                 node("echo"),
                 node("help"),
@@ -111,9 +114,14 @@ object CLIMode {
 
         // リソース管理を改善: try-finallyで確実にクリーンアップ
         try {
-            val ps1 = Ansi.ansi()
-                .fg(CYAN).a("> ").reset()
+            val promptEncoder = Ansi.ansi()
+                .fg(GREEN).a("  B-E > ").reset()
                 .toString()
+            val promptDecoder = Ansi.ansi()
+                .fg(CYAN).a("D-B   > ").reset()
+                .toString()
+
+            var ps1 = promptEncoder
 
             while (true) {
                 try {
@@ -122,6 +130,8 @@ object CLIMode {
 
                     val (cmd, args) = CommandParser.parse(line)
                     when (cmd) {
+                        "d", "decode" -> ps1 = promptDecoder
+                        "e", "encode" -> ps1 = promptEncoder
                         "echo" -> println("Echo: ${args.joinToString(", ")}")
                         "exit" -> break
                         "help" -> {
