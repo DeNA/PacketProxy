@@ -19,54 +19,41 @@ import org.jline.reader.EndOfFileException
 import org.jline.reader.LineReaderBuilder
 import org.jline.reader.UserInterruptException
 import org.jline.terminal.TerminalBuilder
+import packetproxy.EncoderManager
 import packetproxy.ListenPortManager
+import packetproxy.VulCheckerManager
+import packetproxy.common.ClientKeyManager
 import packetproxy.common.ConfigIO
 import packetproxy.common.Utils
 import packetproxy.model.Database
 import packetproxy.model.Packets
 import packetproxy.util.Logging
 import java.nio.file.Paths
-import kotlin.concurrent.thread
+
+/**
+ * CLI初期化結果
+ */
+private data class CLIInitResult(
+    val success: Boolean,
+    val message: String? = null
+)
 
 object CLIMode {
     @JvmStatic
     @JvmOverloads
     fun run(settingJsonPath: String? = null) {
-        try {
-            val dbPath = Paths.get(
-                System.getProperty("user.home"),
-                ".packetproxy",
-                "db",
-                "resources.sqlite3"
-            )
-            Database.getInstance().openAt(dbPath.toString())
-            Logging.log("データベースを初期化しました: ${dbPath}")
-        } catch (e: Exception) {
-            Logging.errWithStackTrace(e)
-            Logging.log("データベースの初期化に失敗しました。続行します: ${e.message}")
+        // 初期化処理を実行
+        val initResult = initializeCLIComponents()
+        if (!initResult.success) {
+            Logging.log("初期化に失敗しました: ${initResult.message}")
+            // 初期化に失敗しても続行可能な場合は続行
         }
 
-        // Packetsを初期化（パケット受信に必要）
-        try {
-            Packets.getInstance(false)  // CLIモードでは履歴を復元しない
-            Logging.log("Packetsを初期化しました")
-        } catch (e: Exception) {
-            Logging.errWithStackTrace(e)
-            Logging.log("Packetsの初期化に失敗しました。続行します: ${e.message}")
+        // 設定ファイルを読み込む（ListenPortManager初期化後）
+        val settingsLoaded = loadSettingsFromJson(settingJsonPath)
+        if (settingsLoaded) {
+            Logging.log("設定ファイルからプロキシ設定を読み込みました。有効なプロキシは自動的に開始されます。")
         }
-
-        // ListenPortManagerを初期化（プロキシの自動管理を有効化）
-        try {
-            ListenPortManager.getInstance()
-        } catch (e: Exception) {
-            Logging.log("ListenPortManagerの初期化に失敗しました: ${e.message}")
-        }
-
-        thread {
-            startProxyServer()
-        }
-
-        loadSettingsFromJson(settingJsonPath)
 
         // terminalのbuildを試行
         val terminal = try {
@@ -111,7 +98,7 @@ object CLIMode {
                     if (line.isEmpty()) continue
 
                     val (cmd, args) = CommandParser.parse(line)
-                    
+
                     // モード切り替えコマンド
                     when (cmd) {
                         "d", "decode" -> {
@@ -119,14 +106,14 @@ object CLIMode {
                             dynamicCompleter.updateHandler(currentHandler)
                             continue
                         }
+
                         "e", "encode" -> {
                             currentHandler = encodeHandler
                             dynamicCompleter.updateHandler(currentHandler)
                             continue
                         }
-                        "exit" -> break
+
                         else -> {
-                            // 現在のハンドラーでコマンドを処理
                             if (!currentHandler.handleCommand(cmd, args)) {
                                 // ハンドラーで処理されなかった場合のフォールバック
                                 when (cmd) {
@@ -137,10 +124,10 @@ object CLIMode {
                         }
                     }
                 } catch (e: UserInterruptException) {
-                    // Ctrl + C: アプリケーション継続、改行
+                    // Ctrl + C: 継続、改行
                     continue
                 } catch (e: EndOfFileException) {
-                    // Ctrl + D: アプリケーションを終了
+                    // Ctrl + D: 終了
                     println("${currentHandler.getPrompt()}exit")
                     break
                 } catch (e: Exception) {
@@ -184,12 +171,153 @@ object CLIMode {
     }
 
     /**
-     * JSON設定ファイルを読み込んで適用
+     * CLIコンポーネントを初期化
+     * GUIモードと同様の順序で初期化を行う
      */
-    private fun loadSettingsFromJson(jsonPath: String?) {
-        if (jsonPath?.isEmpty() ?: true) return
+    private fun initializeCLIComponents(): CLIInitResult {
+        // 1. データベースを初期化
+        val dbResult = initializeDatabase()
+        if (!dbResult.success) {
+            return CLIInitResult(false, "データベースの初期化に失敗しました")
+        }
 
-        try {
+        // 2. Packetsを初期化（パケット受信に必要）
+        val packetsResult = initializePackets()
+        if (!packetsResult.success) {
+            return CLIInitResult(false, "Packetsの初期化に失敗しました")
+        }
+
+        // 3. ClientKeyManagerを初期化
+        val clientKeyResult = initializeClientKeyManager()
+        if (!clientKeyResult.success) {
+            Logging.log("ClientKeyManagerの初期化に失敗しましたが、続行します")
+        }
+
+        // 4. EncoderManagerを初期化（encoderのロードに時間がかかるため事前にロード）
+        val encoderResult = initializeEncoderManager()
+        if (!encoderResult.success) {
+            Logging.log("EncoderManagerの初期化に失敗しましたが、続行します")
+        }
+
+        // 5. VulCheckerManagerを初期化
+        val vulCheckerResult = initializeVulCheckerManager()
+        if (!vulCheckerResult.success) {
+            Logging.log("VulCheckerManagerの初期化に失敗しましたが、続行します")
+        }
+
+        // 6. ListenPortManagerを初期化（プロキシの自動管理を有効化）
+        // この時点で有効なListenPortが自動的に開始される
+        val listenPortResult = initializeListenPortManager()
+        if (!listenPortResult.success) {
+            return CLIInitResult(false, "ListenPortManagerの初期化に失敗しました")
+        }
+
+        return CLIInitResult(true, "すべてのコンポーネントの初期化が完了しました")
+    }
+
+    /**
+     * データベースを初期化
+     */
+    private fun initializeDatabase(): CLIInitResult {
+        return try {
+            val dbPath = Paths.get(
+                System.getProperty("user.home"),
+                ".packetproxy",
+                "db",
+                "resources.sqlite3"
+            )
+            Database.getInstance().openAt(dbPath.toString())
+            Logging.log("データベースを初期化しました: $dbPath")
+            CLIInitResult(true)
+        } catch (e: Exception) {
+            Logging.errWithStackTrace(e)
+            CLIInitResult(false, "データベースの初期化に失敗しました: ${e.message}")
+        }
+    }
+
+    /**
+     * Packetsを初期化
+     */
+    private fun initializePackets(): CLIInitResult {
+        return try {
+            Packets.getInstance(false)  // CLIモードでは履歴を復元しない
+            Logging.log("Packetsを初期化しました")
+            CLIInitResult(true)
+        } catch (e: Exception) {
+            Logging.errWithStackTrace(e)
+            CLIInitResult(false, "Packetsの初期化に失敗しました: ${e.message}")
+        }
+    }
+
+    /**
+     * ClientKeyManagerを初期化
+     */
+    private fun initializeClientKeyManager(): CLIInitResult {
+        return try {
+            ClientKeyManager.initialize()
+            Logging.log("ClientKeyManagerを初期化しました")
+            CLIInitResult(true)
+        } catch (e: Exception) {
+            Logging.errWithStackTrace(e)
+            CLIInitResult(false, "ClientKeyManagerの初期化に失敗しました: ${e.message}")
+        }
+    }
+
+    /**
+     * EncoderManagerを初期化
+     */
+    private fun initializeEncoderManager(): CLIInitResult {
+        return try {
+            EncoderManager.getInstance()
+            Logging.log("EncoderManagerを初期化しました")
+            CLIInitResult(true)
+        } catch (e: Exception) {
+            Logging.errWithStackTrace(e)
+            CLIInitResult(false, "EncoderManagerの初期化に失敗しました: ${e.message}")
+        }
+    }
+
+    /**
+     * VulCheckerManagerを初期化
+     */
+    private fun initializeVulCheckerManager(): CLIInitResult {
+        return try {
+            VulCheckerManager.getInstance()
+            Logging.log("VulCheckerManagerを初期化しました")
+            CLIInitResult(true)
+        } catch (e: Exception) {
+            Logging.errWithStackTrace(e)
+            CLIInitResult(false, "VulCheckerManagerの初期化に失敗しました: ${e.message}")
+        }
+    }
+
+    /**
+     * ListenPortManagerを初期化
+     * この時点で有効なListenPortが自動的に開始される
+     */
+    private fun initializeListenPortManager(): CLIInitResult {
+        return try {
+            ListenPortManager.getInstance()
+            Logging.log("ListenPortManagerを初期化しました（有効なプロキシは自動的に開始されます）")
+            CLIInitResult(true)
+        } catch (e: Exception) {
+            Logging.errWithStackTrace(e)
+            CLIInitResult(false, "ListenPortManagerの初期化に失敗しました: ${e.message}")
+        }
+    }
+
+    /**
+     * JSON設定ファイルを読み込んで適用
+     * ListenPortManager初期化後に呼び出すことで、設定ファイル内の有効なプロキシが自動的に開始される
+     * @return 設定ファイルが読み込まれた場合true
+     */
+    private fun loadSettingsFromJson(jsonPath: String?): Boolean {
+        if (jsonPath?.isEmpty() ?: true) {
+            return false
+        }
+
+        return try {
+            Logging.log("設定ファイルを読み込みます: $jsonPath")
             val jsonBytes = Utils.readfile(jsonPath)
             val json = String(jsonBytes, Charsets.UTF_8)
 
@@ -197,18 +325,12 @@ object CLIMode {
             configIO.setOptions(json)
 
             Logging.log("設定ファイルを正常に読み込みました: $jsonPath")
+            Logging.log("設定ファイル内の有効なプロキシは自動的に開始されます")
+            true
         } catch (e: Exception) {
             Logging.err("設定ファイルの読み込みに失敗しました: ${e.message}", e)
             Logging.errWithStackTrace(e)
-        }
-    }
-
-    private fun startProxyServer() {
-        var i = 0
-        Logging.log("Proxy Server listening on port 8080...")
-        while (true) {
-            Logging.log("hi: %d", i++)
-            Thread.sleep(10000)
+            false
         }
     }
 }

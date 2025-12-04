@@ -23,7 +23,6 @@ import org.jline.reader.impl.completer.StringsCompleter
 
 /**
  * Encode Modeのハンドラー
- * Binary to Encoded (B-E) モード
  */
 class EncodeModeHandler : CLIModeHandler {
     override fun getModeName(): String = "encode"
@@ -56,12 +55,11 @@ class EncodeModeHandler : CLIModeHandler {
     override fun handleCommand(cmd: String, args: List<String>): Boolean {
         return when (cmd) {
             "e", "encode" -> {
-                // 既にencode modeなので何もしない
                 true
             }
 
             "d", "decode" -> {
-                // decode modeへの切り替えはCLIModeで処理
+                // mode切り替えはCLIModeで処理
                 false
             }
 

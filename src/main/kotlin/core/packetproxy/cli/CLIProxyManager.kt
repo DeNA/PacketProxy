@@ -164,11 +164,12 @@ object CLIProxyManager {
             }
 
             // 存在しない場合は新規作成
+            // encoderが空文字列の場合、デフォルトとして"HTTP"を設定（GUIモードと同様）
             val server = Server(
                 host,
                 port,
                 false,  // use_ssl
-                "",     // encoder
+                "HTTP", // encoder (デフォルト: GUIモードと同様に"HTTP"を使用)
                 false,  // resolved_by_dns
                 false,  // resolved_by_dns6
                 false,  // http_proxy

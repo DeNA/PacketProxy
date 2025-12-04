@@ -22,7 +22,6 @@ import org.jline.builtins.Completers.TreeCompleter.node
 
 /**
  * Decode Modeのハンドラー
- * Decoded to Binary (D-B) モード
  */
 class DecodeModeHandler : CLIModeHandler {
     override fun getModeName(): String = "decode"
@@ -49,12 +48,11 @@ class DecodeModeHandler : CLIModeHandler {
     override fun handleCommand(cmd: String, args: List<String>): Boolean {
         return when (cmd) {
             "d", "decode" -> {
-                // 既にdecode modeなので何もしない
                 true
             }
 
             "e", "encode" -> {
-                // encode modeへの切り替えはCLIModeで処理
+                // mode切り替えはCLIModeで処理
                 false
             }
 
@@ -77,8 +75,7 @@ class DecodeModeHandler : CLIModeHandler {
                 println("稼働中 (Port: 8080) [Decode Mode]")
                 true
             }
-            // Decode mode固有のコマンドを追加可能
-            // 例: decode packet <id> など
+
             else -> false
         }
     }
