@@ -34,14 +34,12 @@ class DecodeModeHandler : CLIModeHandler {
 
     override fun createCompleter(): TreeCompleter {
         return TreeCompleter(
-            node("d", "decode"),
-            node("e", "encode"),
+            node("decode"),
+            node("encode"),
+            node("switch"),
             node("exit"),
-            node("echo"),
             node("help"),
             node("status"),
-            // Decode mode固有のコマンドを追加可能
-            node("decode", node("packet")),
         )
     }
 
@@ -83,12 +81,9 @@ class DecodeModeHandler : CLIModeHandler {
     override fun getHelpMessage(): String {
         return """
 利用可能なコマンド (Decode Mode):
-  echo <text>              - テキストをエコー
   exit                     - 終了
   status                   - ステータス表示
-  d, decode               - Decode Modeに切り替え（現在のモード）
-  e, encode               - Encode Modeに切り替え
-  decode packet <id>      - パケットをデコード（未実装）
+  e, encode, s, switch     - Encode Modeに切り替え
         """.trimIndent()
     }
 }

@@ -101,6 +101,16 @@ object CLIMode {
 
                     // モード切り替えコマンド
                     when (cmd) {
+                        "s", "switch" -> {
+                            currentHandler = if (currentHandler == decodeHandler) {
+                                encodeHandler
+                            } else {
+                                decodeHandler
+                            }
+                            dynamicCompleter.updateHandler(currentHandler)
+                            continue
+                        }
+
                         "d", "decode" -> {
                             currentHandler = decodeHandler
                             dynamicCompleter.updateHandler(currentHandler)
@@ -151,12 +161,12 @@ object CLIMode {
             try {
                 print("> ")
                 val line = scanner.nextLine().trim()
+                if (line.isEmpty()) continue
 
-                when (line) {
-                    "exit" -> {
-                        return
-                    }
+                val (cmd, args) = CommandParser.parse(line)
 
+                when (cmd) {
+                    "exit" -> return
                     "status" -> println("稼働中 (Port: 8080)")
                     "help" -> println("使えるコマンド: exit, status, monitor")
                     "" -> continue

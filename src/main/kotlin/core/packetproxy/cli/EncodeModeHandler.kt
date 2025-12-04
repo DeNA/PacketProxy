@@ -35,14 +35,14 @@ class EncodeModeHandler : CLIModeHandler {
 
     override fun createCompleter(): TreeCompleter {
         return TreeCompleter(
-            node("d", "decode"),
-            node("e", "encode"),
+            node("decode"),
+            node("encode"),
+            node("switch"),
             node("exit"),
-            node("echo"),
             node("help"),
             node("status"),
+
             node("list", node(StringsCompleter("servers", "proxies"))),
-            node("delete", node("server")),
             node(
                 "set",
                 node("server"),
@@ -90,11 +90,6 @@ class EncodeModeHandler : CLIModeHandler {
 
             "list" -> {
                 handleListCommand(args)
-                true
-            }
-
-            "delete" -> {
-                handleDeleteCommand(args)
                 true
             }
 
@@ -191,31 +186,12 @@ class EncodeModeHandler : CLIModeHandler {
         }
     }
 
-    private fun handleDeleteCommand(args: List<String>) {
-        if (args.isEmpty() || args[0] != "server") {
-            println("使用方法: delete server <id>")
-            return
-        }
-        val serverId = args.getOrNull(1)?.toIntOrNull() ?: run {
-            println("サーバーIDを指定してください")
-            return
-        }
-        val result = CLIProxyManager.deleteServer(serverId)
-        result.onSuccess { message ->
-            println(message)
-        }.onFailure { e ->
-            println("エラー: ${e.message}")
-        }
-    }
-
     override fun getHelpMessage(): String {
         return """
 利用可能なコマンド (Encode Mode):
-  echo <text>              - テキストをエコー
   exit                     - 終了
   status                   - ステータス表示
-  d, decode               - Decode Modeに切り替え
-  e, encode               - Encode Modeに切り替え（現在のモード）
+  d, decode, s, switch     - Decode Modeに切り替え
   set server <host> <port> [ssl] [encoder] [comment] - サーバーを設定
   list servers              - サーバー一覧を表示
   delete server <id>        - サーバーを削除
