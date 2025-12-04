@@ -42,7 +42,15 @@ public class PacketProxy {
 		Logging.init(isHeadless);
 
 		if (isHeadless) {
-			CLIMode.run();
+			String settingJson = "--setting-json=";
+			String settingJsonPath = null;
+			for (String arg : args) {
+				if (arg.startsWith(settingJson)) {
+					settingJsonPath = arg.substring(settingJson.length());
+					break;
+				}
+			}
+			CLIMode.run(settingJsonPath);
 			System.exit(0);
 		}
 

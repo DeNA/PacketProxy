@@ -25,6 +25,8 @@ import org.jline.reader.UserInterruptException
 import org.jline.reader.impl.completer.StringsCompleter
 import org.jline.terminal.TerminalBuilder
 import packetproxy.ListenPortManager
+import packetproxy.common.ConfigIO
+import packetproxy.common.Utils
 import packetproxy.model.Database
 import packetproxy.model.Packets
 import packetproxy.util.Logging
@@ -33,7 +35,8 @@ import kotlin.concurrent.thread
 
 object CLIMode {
     @JvmStatic
-    fun run() {
+    @JvmOverloads
+    fun run(settingJsonPath: String? = null) {
         try {
             val dbPath = Paths.get(
                 System.getProperty("user.home"),
@@ -67,6 +70,8 @@ object CLIMode {
         thread {
             startProxyServer()
         }
+
+        loadSettingsFromJson(settingJsonPath)
 
         // terminalのbuildを試行
         val terminal = try {
@@ -130,6 +135,7 @@ object CLIMode {
                             println("  set proxy <port> [host] [target_port] - プロキシを設定")
                             println("  list proxies             - プロキシ一覧を表示")
                         }
+
                         "status" -> println("稼働中 (Port: 8080)")
 
                         "set" -> {
@@ -137,7 +143,7 @@ object CLIMode {
                                 println("server | proxy | encoder")
                                 continue
                             }
-                            
+
                             if (args[0] == "server") {
                                 val host = args.getOrNull(1) ?: run {
                                     println("使用方法: set server <host> <port> [ssl] [encoder] [comment]")
@@ -200,6 +206,7 @@ object CLIMode {
                                         }
                                     }
                                 }
+
                                 "proxies" -> {
                                     val proxies = CLIProxyManager.listProxies()
                                     if (proxies.isEmpty()) {
@@ -211,6 +218,7 @@ object CLIMode {
                                         }
                                     }
                                 }
+
                                 else -> println("不明なリストタイプ: ${args[0]}")
                             }
                         }
@@ -278,6 +286,26 @@ object CLIMode {
                 println("\n終了します。")
                 return
             }
+        }
+    }
+
+    /**
+     * JSON設定ファイルを読み込んで適用
+     */
+    private fun loadSettingsFromJson(jsonPath: String?) {
+        if (jsonPath?.isEmpty() ?: true) return
+
+        try {
+            val jsonBytes = Utils.readfile(jsonPath)
+            val json = String(jsonBytes, Charsets.UTF_8)
+
+            val configIO = ConfigIO()
+            configIO.setOptions(json)
+
+            Logging.log("設定ファイルを正常に読み込みました: $jsonPath")
+        } catch (e: Exception) {
+            Logging.err("設定ファイルの読み込みに失敗しました: ${e.message}", e)
+            Logging.errWithStackTrace(e)
         }
     }
 
