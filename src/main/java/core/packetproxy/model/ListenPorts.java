@@ -27,18 +27,8 @@ import java.util.stream.Collectors;
 import packetproxy.model.Database.DatabaseMessage;
 
 public class ListenPorts implements PropertyChangeListener {
-
 	private static ListenPorts instance;
 	private PropertyChangeSupport changes = new PropertyChangeSupport(this);
-
-	public static ListenPorts getInstance() throws Exception {
-		if (instance == null) {
-
-			instance = new ListenPorts();
-		}
-		return instance;
-	}
-
 	private Database database;
 	private Dao<ListenPort, Integer> dao;
 	private Servers servers;
@@ -49,9 +39,15 @@ public class ListenPorts implements PropertyChangeListener {
 		dao = database.createTable(ListenPort.class, this);
 	}
 
+	public static ListenPorts getInstance() throws Exception {
+		if (instance == null) {
+			instance = new ListenPorts();
+		}
+		return instance;
+	}
+
 	public void create(ListenPort listen) throws Exception {
 		if (isAlreadyEnabled(listen)) { // 他ポートが既にListenしていたら、Enableにさせない
-
 			listen.setDisabled();
 		}
 		dao.createIfNotExists(listen);
@@ -142,15 +138,12 @@ public class ListenPorts implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (!DATABASE_MESSAGE.matches(evt)) {
-
 			return;
 		}
 
 		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
-
 			switch (message) {
-
 				case PAUSE :
 					// TODO ロックを取る
 					break;

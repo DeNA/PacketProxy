@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import static packetproxy.model.PropertyChangeEventType.SERVERS;
 import static packetproxy.util.Logging.errWithStackTrace;

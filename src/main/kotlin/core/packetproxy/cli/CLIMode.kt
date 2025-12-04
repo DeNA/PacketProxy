@@ -24,12 +24,46 @@ import org.jline.reader.LineReaderBuilder
 import org.jline.reader.UserInterruptException
 import org.jline.reader.impl.completer.StringsCompleter
 import org.jline.terminal.TerminalBuilder
+import packetproxy.ListenPortManager
+import packetproxy.model.Database
+import packetproxy.model.Packets
 import packetproxy.util.Logging
+import java.nio.file.Paths
 import kotlin.concurrent.thread
 
 object CLIMode {
     @JvmStatic
     fun run() {
+        try {
+            val dbPath = Paths.get(
+                System.getProperty("user.home"),
+                ".packetproxy",
+                "db",
+                "resources.sqlite3"
+            )
+            Database.getInstance().openAt(dbPath.toString())
+            Logging.log("データベースを初期化しました: ${dbPath}")
+        } catch (e: Exception) {
+            Logging.errWithStackTrace(e)
+            Logging.log("データベースの初期化に失敗しました。続行します: ${e.message}")
+        }
+
+        // Packetsを初期化（パケット受信に必要）
+        try {
+            Packets.getInstance(false)  // CLIモードでは履歴を復元しない
+            Logging.log("Packetsを初期化しました")
+        } catch (e: Exception) {
+            Logging.errWithStackTrace(e)
+            Logging.log("Packetsの初期化に失敗しました。続行します: ${e.message}")
+        }
+
+        // ListenPortManagerを初期化（プロキシの自動管理を有効化）
+        try {
+            ListenPortManager.getInstance()
+        } catch (e: Exception) {
+            Logging.log("ListenPortManagerの初期化に失敗しました: ${e.message}")
+        }
+
         thread {
             startProxyServer()
         }
@@ -90,8 +124,30 @@ object CLIMode {
                         "set" -> {
                             if (args.size <= 1) {
                                 println("encoder | proxy")
-                            } else {
-                                println("${args[0]}: ${args[1]}")
+                                continue
+                            }
+                            if (args[0] == "encoder") {
+                                continue
+                            }
+
+                            if (args[0] == "proxy") {
+                                val listenPort = args.getOrNull(1)?.toIntOrNull() ?: run {
+//                                    println("使用方法: set proxy <listen_port> [target_host] [target_port]")
+                                    println("例: set proxy 8081                    # localhost:8080に転送")
+//                                    println("例: set proxy 8081 localhost 9000     # localhost:9000に転送")
+//                                    println("例: set proxy 8081 proxy.example.com 3128  # proxy.example.com:3128に転送")
+                                    continue
+                                }
+
+                                val targetHost = args.getOrNull(2) ?: "localhost"
+                                val targetPort = args.getOrNull(3)?.toIntOrNull() ?: 8080
+
+                                val result = CLIProxyManager.startProxy(listenPort, targetHost, targetPort)
+                                result.onSuccess { message ->
+                                    println(message)
+                                }.onFailure { e ->
+                                    println("エラー: ${e.message}")
+                                }
                             }
                         }
 
@@ -112,6 +168,7 @@ object CLIMode {
         } finally {
             // リソースのクリーンアップ
             terminal.close()
+            CLIProxyManager.stopAll()
         }
     }
 
