@@ -24,7 +24,6 @@ import packetproxy.util.Logging
 object CLIProxyManager {
     // 遅延初期化: 最初にアクセスされた時に初期化
     private val listenPorts: ListenPorts by lazy {
-        println("inited")
         ListenPorts.getInstance()
     }
 
@@ -77,7 +76,83 @@ object CLIProxyManager {
     }
 
     /**
-     * サーバーを取得または作成
+     * サーバーを作成
+     * @param host ホスト名またはIPアドレス
+     * @param port ポート番号
+     * @param useSsl SSLを使用するか（デフォルト: false）
+     * @param encoder エンコーダー名（デフォルト: 空文字列）
+     * @param comment コメント（デフォルト: "CLI Mode"）
+     */
+    fun createServer(
+        host: String,
+        port: Int,
+        useSsl: Boolean = false,
+        encoder: String = "",
+        comment: String = "CLI Mode"
+    ): Result<Server> {
+        return try {
+            // 既存のサーバーを検索
+            val existing = servers.queryByHostNameAndPort(host, port)
+            if (existing != null) {
+                return Result.failure(Exception("サーバー $host:$port は既に存在します (ID: ${existing.getId()})"))
+            }
+
+            // 新規作成
+            val server = Server(
+                host,
+                port,
+                useSsl,
+                encoder,
+                false,  // resolved_by_dns
+                false,  // resolved_by_dns6
+                false,  // http_proxy
+                comment
+            )
+            servers.create(server)
+
+            // IDが正しく設定されるように再取得
+            val createdServer = servers.queryByHostNameAndPort(host, port)
+                ?: return Result.failure(Exception("サーバーの作成に失敗しました"))
+
+            Logging.log("サーバーを作成しました: ID=${createdServer.getId()}, $host:$port")
+            Result.success(createdServer)
+        } catch (e: Exception) {
+            Logging.errWithStackTrace(e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * サーバー一覧を取得
+     */
+    fun listServers(): List<Pair<Int, String>> {
+        return try {
+            servers.queryAll().map { server ->
+                server.getId() to "${server.ip}:${server.port} (SSL: ${server.getUseSSL()}, Encoder: ${server.encoder})"
+            }
+        } catch (e: Exception) {
+            Logging.errWithStackTrace(e)
+            emptyList()
+        }
+    }
+
+    /**
+     * サーバーを削除
+     */
+    fun deleteServer(serverId: Int): Result<String> {
+        return try {
+            val server = servers.query(serverId)
+            servers.delete(server)
+            Logging.log("サーバーを削除しました: ID=$serverId, ${server.ip}:${server.port}")
+            Result.success("サーバーを削除しました: ID=$serverId")
+        } catch (e: Exception) {
+            Logging.errWithStackTrace(e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * サーバーを取得または作成（内部用）
      */
     private fun getOrCreateServer(host: String, port: Int): Server {
         return try {

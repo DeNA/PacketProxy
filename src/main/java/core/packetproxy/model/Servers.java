@@ -53,6 +53,15 @@ public class Servers implements PropertyChangeListener {
 
 	public void create(Server server) throws Exception {
 		dao.createIfNotExists(server);
+		// createIfNotExistsの後、IDが設定されていない可能性があるため、再取得してIDを設定
+		// if (server.getId() == 0) {
+		// Server existing = dao.queryBuilder().where().eq("ip",
+		// server.getIp()).and().eq("port", server.getPort())
+		// .and().eq("encoder", server.getEncoder()).queryForFirst();
+		// if (existing != null) {
+		// server.setId(existing.getId());
+		// }
+		// }
 		cache.clear();
 		firePropertyChange();
 	}
