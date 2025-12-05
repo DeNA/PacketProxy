@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import static packetproxy.model.PropertyChangeEventType.LISTEN_PORTS;
 import static packetproxy.util.Logging.errWithStackTrace;
@@ -25,20 +26,11 @@ import java.beans.PropertyChangeSupport;
 import java.util.List;
 import java.util.stream.Collectors;
 import packetproxy.model.Database.DatabaseMessage;
+import packetproxy.util.Logging;
 
 public class ListenPorts implements PropertyChangeListener {
-
 	private static ListenPorts instance;
 	private PropertyChangeSupport changes = new PropertyChangeSupport(this);
-
-	public static ListenPorts getInstance() throws Exception {
-		if (instance == null) {
-
-			instance = new ListenPorts();
-		}
-		return instance;
-	}
-
 	private Database database;
 	private Dao<ListenPort, Integer> dao;
 	private Servers servers;
@@ -49,9 +41,37 @@ public class ListenPorts implements PropertyChangeListener {
 		dao = database.createTable(ListenPort.class, this);
 	}
 
-	public void create(ListenPort listen) throws Exception {
-		if (isAlreadyEnabled(listen)) { // 他ポートが既にListenしていたら、Enableにさせない
+	public static ListenPorts getInstance() throws Exception {
+		if (instance == null) {
+			instance = new ListenPorts();
+		}
+		return instance;
+	}
 
+	public void create(ListenPort listen) throws Exception {
+		// 既に同じ組み合わせのレコードが存在するかチェック（uniqueCombo制約: port, type, server_id）
+		List<ListenPort> existingList = dao.queryBuilder().where().eq("port", listen.getPort()).and()
+				.eq("type", listen.getType()).and().eq("server_id", listen.getServerId()).query();
+
+		if (!existingList.isEmpty()) {
+			ListenPort existing = existingList.get(0);
+			Logging.log("既に同じListenPortが存在します: id=%d, port=%d, type=%s, server_id=%d", existing.getId(),
+					existing.getPort(), existing.getType(), existing.getServerId());
+			// 既に存在する場合は、そのレコードを更新する
+			if (listen.isEnabled()) {
+				existing.setEnabled();
+			} else {
+				existing.setDisabled();
+			}
+			// CA名を更新
+			if (listen.getCA().isPresent()) {
+				existing.setCA(listen.getCA().get());
+			}
+			update(existing);
+			return;
+		}
+
+		if (isAlreadyEnabled(listen)) { // 他ポートが既にListenしていたら、Enableにさせない
 			listen.setDisabled();
 		}
 		dao.createIfNotExists(listen);
@@ -142,15 +162,12 @@ public class ListenPorts implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (!DATABASE_MESSAGE.matches(evt)) {
-
 			return;
 		}
 
 		DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 		try {
-
 			switch (message) {
-
 				case PAUSE :
 					// TODO ロックを取る
 					break;

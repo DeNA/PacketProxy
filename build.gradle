@@ -1,5 +1,5 @@
+import com.bmuschko.gradle.izpack.CreateInstallerTask
 import org.apache.tools.ant.taskdefs.condition.Os
-import com.bmuschko.gradle.izpack.*
 import org.gradle.plugins.ide.eclipse.model.AccessRule
 
 buildscript {
@@ -17,15 +17,16 @@ plugins {
   id 'com.github.jk1.dependency-license-report' version '2.5'
   id "de.undercouch.download" version "5.6.0"
   id "com.diffplug.spotless" version "7.1.0"
+  id 'org.jetbrains.kotlin.jvm' version '2.2.21'
+  id 'io.github.goooler.shadow' version '8.1.8'
 }
 
 repositories {
   mavenCentral()
-  maven { url 'https://jitpack.io' }
+  maven { url = 'https://jitpack.io' }
 }
 
 dependencies {
-
   compileOnly 'org.projectlombok:lombok:1.18.42'
   annotationProcessor 'org.projectlombok:lombok:1.18.42'
   testCompileOnly 'org.projectlombok:lombok:1.18.42'
@@ -46,8 +47,13 @@ dependencies {
   implementation 'com.j256.ormlite:ormlite-core:4.48'
   implementation 'com.j256.ormlite:ormlite-jdbc:4.48'
   implementation 'com.google.protobuf:protobuf-java:4.31.1'
-  implementation 'org.slf4j:slf4j-api:1.7.14'
   implementation 'org.slf4j:slf4j-log4j12:1.7.25'
+  implementation 'org.slf4j:slf4j-api:2.0.9'
+
+  implementation 'org.jline:jline:3.25.1'
+  implementation 'org.jline:jline-terminal-jansi:3.25.1'
+
+  implementation 'ch.qos.logback:logback-classic:1.4.14'
   implementation 'com.googlecode.java-diff-utils:diffutils:1.2.1'
   implementation 'com.google.re2j:re2j:1.1'
   implementation 'com.github.mobius-software-ltd:mqtt-parser:parser-1.0.3'
@@ -84,6 +90,7 @@ dependencies {
       }
     }
   }
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
 licenseReport {
@@ -123,7 +130,7 @@ spotless {
     target '**/*.gradle'
 
     greclipse()
-    indentWithSpaces(2)
+    leadingTabsToSpaces(2)
     trimTrailingWhitespace()
     endWithNewline()
   }
@@ -136,20 +143,20 @@ spotless {
 }
 
 application {
-  mainClass = "packetproxy/PacketProxy"
+  mainClass = "packetproxy.PacketProxy"
 }
 
 def shell(String command) {
   ["sh", "-c", command].execute().waitForProcessOutput(System.out, System.err)
 }
 
-def gitVersion = "git describe --tags --abbrev=0".execute().text.replace("\n","")
+def gitVersion = "git describe --tags --abbrev=0".execute().text.replace("\n", "")
 new File("${projectDir}/src/main/resources/version").text = gitVersion
 
 project.ext {
-  nameInstaller    = "PacketProxy-${gitVersion}-Installer.jar"
+  nameInstaller = "PacketProxy-${gitVersion}-Installer.jar"
   nameMacInstallApp = "PacketProxy-${gitVersion}-Installer-Mac.app"
-  nameMacRelease   = "PacketProxy-${gitVersion}-Installer-Mac.zip"
+  nameMacRelease = "PacketProxy-${gitVersion}-Installer-Mac.zip"
   nameMacSignedReleaseJPackage = "PacketProxy-${gitVersion}.dmg"
   nameMacSignedRelease = "PacketProxy-${gitVersion}-Installer-Mac-Signed.dmg"
   nameWin32Release = "PacketProxy-${gitVersion}-Installer-Win32.jar"
@@ -157,39 +164,39 @@ project.ext {
   nameLinuxReleaseDir = "PacketProxy-${gitVersion}-Linux"
   nameLinuxRelease = "PacketProxy-${gitVersion}-Installer-Linux.jar"
   // path
-  pathInstaller     = "${buildDir}/distributions/${nameInstaller}"
-  pathWorkDir       = "${buildDir}/distributions"
+  pathInstaller = "${buildDir}/distributions/${nameInstaller}"
+  pathWorkDir = "${buildDir}/distributions"
   // Mac
-  pathMacWorkDir    = "${buildDir}/distributions/mac"
-  pathMacTarget     = "${pathMacWorkDir}/target"
-  pathMacInstaller  = "${pathMacWorkDir}/${nameInstaller}"
+  pathMacWorkDir = "${buildDir}/distributions/mac"
+  pathMacTarget = "${pathMacWorkDir}/target"
+  pathMacInstaller = "${pathMacWorkDir}/${nameInstaller}"
   pathMacInstallApp = "${pathMacWorkDir}/${nameMacInstallApp}"
-  pathMacRelease    = "${pathMacWorkDir}/${nameMacRelease}"
+  pathMacRelease = "${pathMacWorkDir}/${nameMacRelease}"
   pathMacSignedReleaseJPackage = "${pathMacWorkDir}/${nameMacSignedReleaseJPackage}"
   pathMacSignedRelease = "${pathMacWorkDir}/${nameMacSignedRelease}"
   // Win32
-  pathWin32WorkDir   = "${buildDir}/distributions/win32"
-  pathWin32Target    = "${pathWin32WorkDir}/target"
+  pathWin32WorkDir = "${buildDir}/distributions/win32"
+  pathWin32Target = "${pathWin32WorkDir}/target"
   pathWin32Installer = "${pathWin32WorkDir}/${nameInstaller}"
-  pathWin32Release   = "${pathWin32WorkDir}/${nameWin32Release}"
+  pathWin32Release = "${pathWin32WorkDir}/${nameWin32Release}"
   // Win64
-  pathWin64WorkDir   = "${buildDir}/distributions/win64"
-  pathWin64Target    = "${pathWin64WorkDir}/target"
+  pathWin64WorkDir = "${buildDir}/distributions/win64"
+  pathWin64Target = "${pathWin64WorkDir}/target"
   pathWin64Installer = "${pathWin64WorkDir}/${nameInstaller}"
-  pathWin64Release   = "${pathWin64WorkDir}/${nameWin64Release}"
+  pathWin64Release = "${pathWin64WorkDir}/${nameWin64Release}"
   // Linux
-  pathLinuxWorkDir   = "${buildDir}/distributions/Linux"
-  pathLinuxTarget    = "${pathLinuxWorkDir}/target"
+  pathLinuxWorkDir = "${buildDir}/distributions/Linux"
+  pathLinuxTarget = "${pathLinuxWorkDir}/target"
   pathLinuxInstaller = "${pathLinuxWorkDir}/${nameInstaller}"
   pathLinuxReleaseDir = "${pathLinuxWorkDir}/${nameLinuxReleaseDir}"
-  pathLinuxRelease   = "${pathLinuxWorkDir}/${nameLinuxRelease}"
+  pathLinuxRelease = "${pathLinuxWorkDir}/${nameLinuxRelease}"
 }
 
 project.ext {
-  appleId      = "test@example.com"
-  applePasswd  = "xxxx-xxxx-xxxx-xxxx"
-  signedKey    = "Developer ID Application: YYYYYYYY (ZZZZZZZZ)"
-  teamId       = "ZZZZZZZZ"
+  appleId = "test@example.com"
+  applePasswd = "xxxx-xxxx-xxxx-xxxx"
+  signedKey = "Developer ID Application: YYYYYYYY (ZZZZZZZZ)"
+  teamId = "ZZZZZZZZ"
 }
 
 eclipse {
@@ -222,6 +229,24 @@ sourceSets {
       }
       srcDirs = list
     }
+    kotlin {
+      def list = ['src/main/kotlin/core']
+
+      // load additional dena kotlin sources if it exists
+      ['dena/', 'denaN/', 'denaL/'].each { def dir ->
+        def srcs = file(dir + 'kotlin-sources.gradle')
+        if (srcs.exists()) {
+          Eval.me(srcs.text).each { def src ->
+            if (file(dir + src).exists()) {
+              list << dir + src
+            }
+          }
+        }
+      }
+      srcDirs = list
+    }
+    // Kotlinコンパイル時にJavaのソースディレクトリをクラスパスに含める
+    kotlin.srcDirs += java.srcDirs
     resources {
       def list = ['src/main/resources']
       // load additional dena resources if it exists
@@ -268,13 +293,13 @@ jar {
     serviceDir.deleteDir()
     serviceDir.mkdirs()
     for (file in configurations.runtimeClasspath) {
-      zipTree(file).matching{ include 'META-INF/services/*' }.each { f ->
+      zipTree(file).matching { include 'META-INF/services/*' }.each { f ->
         new File(serviceDir, f.name) << f.getText("UTF-8") << "\n"
       }
     }
   }
   manifest {
-    attributes (
+    attributes(
         "Main-Class": "packetproxy/PacketProxy",
         "Class-Path": configurations.runtimeClasspath.collect { it.getName() }.join(' ')
         )
@@ -365,9 +390,9 @@ task createWin64Target(type: CreateWinTarget, dependsOn: [
   'jar',
   'generateLicenseReport'
 ]) {
-  workDir   = project.ext.pathWin64WorkDir
+  workDir = project.ext.pathWin64WorkDir
   targetDir = project.ext.pathWin64Target
-  jdkUrl    = 'https://corretto.aws/downloads/resources/17.0.15.6.1/amazon-corretto-17.0.15.6.1-windows-x64-jdk.zip'
+  jdkUrl = 'https://corretto.aws/downloads/resources/17.0.15.6.1/amazon-corretto-17.0.15.6.1-windows-x64-jdk.zip'
 }
 
 task createLinuxTarget(dependsOn: [
@@ -436,7 +461,7 @@ task preIzpack {
   }
 }
 
-task izpackWin64 (type: CreateInstallerTask, dependsOn: [
+task izpackWin64(type: CreateInstallerTask, dependsOn: [
   'createWin64Target',
   'preIzpack'
 ]) {
@@ -445,11 +470,11 @@ task izpackWin64 (type: CreateInstallerTask, dependsOn: [
   outputFile = file(project.ext.pathWin64Installer)
   compression = 'deflate'
   compressionLevel = 9
-  appProperties = ['app.group': 'PacketProxy', 'app.name': 'PacketProxy', 'app.title': 'PacketProxy',
+  appProperties = ['app.group'  : 'PacketProxy', 'app.name': 'PacketProxy', 'app.title': 'PacketProxy',
     'app.version': gitVersion, 'app.subpath': "PacketProxy-${gitVersion}"]
 }
 
-task izpackLinux (type: CreateInstallerTask, dependsOn: [
+task izpackLinux(type: CreateInstallerTask, dependsOn: [
   'createLinuxTarget',
   'preIzpack'
 ]) {
@@ -458,7 +483,7 @@ task izpackLinux (type: CreateInstallerTask, dependsOn: [
   outputFile = file(project.ext.pathLinuxInstaller)
   compression = 'deflate'
   compressionLevel = 9
-  appProperties = ['app.group': 'PacketProxy', 'app.name': 'PacketProxy', 'app.title': 'PacketProxy',
+  appProperties = ['app.group'  : 'PacketProxy', 'app.name': 'PacketProxy', 'app.title': 'PacketProxy',
     'app.version': gitVersion, 'app.subpath': "PacketProxy-${gitVersion}"]
 }
 
