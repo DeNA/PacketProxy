@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -e
+
+PROJECT_ROOT=$(cd $(dirname "$0") && pwd)
+TARGET_BIN="$PROJECT_ROOT/build/install/PacketProxy/bin/PacketProxy"
+
+function _help() {
+    cat <<EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Description:
+  A packet normalization proxy designed for integration with other tools.
+
+Options:
+  log   Launch directly in log streaming mode.
+        Useful for observing traffic in real-time.
+        (Note: In this mode, Ctrl+C terminates the application.)
+
+  help  Show this help message.
+
+Default Behavior:
+  If no arguments are provided, the tool starts in an interactive shell mode.
+EOF
+}
+
+OPTION=""
+case "$1" in
+"") ;;
+"log" | "down") OPTION="down" ;;
+"help" | *)
+    _help
+    exit 0
+    ;;
+esac
+
+./gradlew installDist --quiet
+
+test -f "$TARGET_BIN"
+exec sudo "$TARGET_BIN" --gulp="$OPTION"
