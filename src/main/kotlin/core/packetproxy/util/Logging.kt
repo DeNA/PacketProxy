@@ -23,6 +23,9 @@ import ch.qos.logback.core.ConsoleAppender
 import ch.qos.logback.core.FileAppender
 import java.io.File
 import java.io.IOException
+import java.io.RandomAccessFile
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -122,5 +125,55 @@ object Logging {
     for (element in stackTrace) {
       err(element.toString())
     }
+  }
+
+  /** CLIモードでのlogの継続出力を行う */
+  fun startTailLog() {
+    if (tailThread != null || !isGulp) return
+
+    tailThread = Thread {
+      val raf = RandomAccessFile(logFile, "r")
+      try {
+        // ファイルの末尾から開始
+        raf.seek(raf.length())
+
+        while (keepTailing.get()) {
+          val currentLength = logFile.length()
+          val buffer = ByteArray(8192)
+          var bytesRead: Int
+
+          while (raf.filePointer < currentLength) {
+            bytesRead =
+              raf.read(buffer, 0, minOf(buffer.size, (currentLength - raf.filePointer).toInt()))
+
+            if (bytesRead > 0) {
+              print(String(buffer, 0, bytesRead, StandardCharsets.UTF_8))
+            }
+          }
+
+          try {
+            Thread.sleep(100)
+          } catch (e: InterruptedException) {}
+        }
+      } finally {
+        raf.close()
+      }
+    }
+
+    keepTailing.set(true)
+    tailThread!!.isDaemon = true
+    tailThread!!.start()
+  }
+
+  fun stopTailLog() {
+    keepTailing.set(false)
+    tailThread?.interrupt()
+    tailThread = null
+  }
+
+  fun printLog(lineCount: Int) {
+    val lines = Files.readAllLines(logFile.toPath(), StandardCharsets.UTF_8)
+    val startIndex = maxOf(0, lines.size - lineCount)
+    lines.subList(startIndex, lines.size).forEach { println(it) }
   }
 }
