@@ -15,7 +15,9 @@
  */
 package packetproxy.gulp
 
+import kotlin.math.abs
 import org.jline.reader.EndOfFileException
+import org.jline.reader.LineReader
 import org.jline.reader.LineReaderBuilder
 import org.jline.reader.UserInterruptException
 import org.jline.terminal.TerminalBuilder
@@ -63,6 +65,9 @@ object GulpTerminal {
           when (parsed.cmd) {
             "" -> continue
             "exit" -> break
+
+            "l",
+            "log" -> handleLogCommand(reader, parsed.args)
 
             else -> {
               currentHandler = currentHandler.handleCommand(parsed)
@@ -130,6 +135,34 @@ object GulpTerminal {
     } catch (e: Exception) {
       Logging.err("設定ファイルの読み込みに失敗しました: ${e.message}", e)
       Logging.errWithStackTrace(e)
+    }
+  }
+
+  /** readerを渡したいのでCLIModeHandlerでは処理しない */
+  private fun handleLogCommand(reader: LineReader, args: List<String>) {
+    val lineCount = abs(args.firstOrNull()?.toIntOrNull() ?: 0)
+
+    // 引数で数値が指定された場合は末尾からその行数分出力して終了
+    if (lineCount != 0) {
+      Logging.printLog(lineCount)
+      return
+    }
+
+    // 引数に数値が指定されなかった場合は継続出力を行う(Ctrl + C/D で終了)
+    try {
+      // 最初に末尾30行分出力してしまう
+      Logging.printLog(30)
+      Logging.startTailLog()
+      while (true) reader.readLine()
+    } catch (e: Exception) {
+      when (e) {
+        is UserInterruptException,
+        is EndOfFileException -> {}
+
+        else -> Logging.errWithStackTrace(e)
+      }
+    } finally {
+      Logging.stopTailLog()
     }
   }
 }
