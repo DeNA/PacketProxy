@@ -34,11 +34,18 @@ object Logging {
   private val dtf: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
   private val guiLog: GUILog = GUILog.getInstance()
   private val logger = LoggerFactory.getLogger("")
-  private var isCLI: Boolean = false
+  private var isGulp: Boolean = false
 
-  const val FILE_PATH = "logs/cli.log"
+  // log出力先のファイルの絶対PATH
+  private val logFilePath by lazy {
+    val projectRoot = System.getProperty("app.home") ?: "."
+    val logDir = File(projectRoot, "logs")
+    if (!logDir.exists()) logDir.mkdirs()
+    "${logDir.absolutePath}/gulp.log"
+  }
+
   private val logFile by lazy {
-    val logFile = File(FILE_PATH)
+    val logFile = File(logFilePath)
     if (!logFile.exists()) throw IOException("not found: ${logFile.absolutePath}")
     logFile
   }
@@ -52,8 +59,8 @@ object Logging {
   }
 
   @JvmStatic
-  fun init(isCLI: Boolean) {
-    this.isCLI = isCLI
+  fun init(isGulp: Boolean) {
+    this.isGulp = isGulp
     val context = LoggerFactory.getILoggerFactory() as LoggerContext
 
     context.reset()
@@ -66,11 +73,11 @@ object Logging {
       }
 
     val appender =
-      if (isCLI) {
+      if (isGulp) {
         FileAppender<ILoggingEvent>().apply {
           this.context = context
           name = "FILE"
-          file = FILE_PATH
+          file = logFilePath
           isAppend = false
           this.encoder = encoder
           start()
@@ -95,7 +102,7 @@ object Logging {
     val fs = formatString(format, *args)
 
     logger.info(fs)
-    if (!isCLI) guiLog.append(fs)
+    if (!isGulp) guiLog.append(fs)
   }
 
   @JvmStatic
@@ -104,7 +111,7 @@ object Logging {
     val fs = formatString(format, *args)
 
     logger.error(fs)
-    if (!isCLI) guiLog.appendErr(fs)
+    if (!isGulp) guiLog.appendErr(fs)
   }
 
   @JvmStatic

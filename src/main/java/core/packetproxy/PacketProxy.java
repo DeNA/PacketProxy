@@ -35,7 +35,16 @@ public class PacketProxy {
 	public PacketProxy() throws Exception {
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
+		String gulpMode = getOption("--gulp", args);
+		Logging.init(gulpMode != null);
+
+		if (gulpMode != null) {
+			String settingsJson = getOption("--settings-json", args);
+			Logging.log("Gulp Mode: " + settingsJson);
+			System.exit(0);
+		}
+
 		if (!Utils.supportedJava()) {
 			JOptionPane.showMessageDialog(null, I18nString.get("PacketProxy can be executed with JDK17 or later"),
 					I18nString.get("Error"), JOptionPane.ERROR_MESSAGE);
@@ -70,6 +79,27 @@ public class PacketProxy {
 			break;
 		}
 		splash.close();
+	}
+
+	/**
+	 * バイナリに渡される引数を解釈する
+	 *
+	 * @param option
+	 *            取得したいオプションの文字列（末尾に=を含まない）
+	 * @param args
+	 *            対象の引数の配列
+	 * @return 存在しない場合はnull, 存在する場合、最初の出現に対しての=以降の文字列（=が含まれない場合や=以降が存在しない場合は空文字）
+	 */
+	private static String getOption(String option, String[] args) {
+		String addedOption = option + "=";
+
+		for (String arg : args) {
+			if (arg.equals(option))
+				return "";
+			if (arg.startsWith(addedOption))
+				return arg.substring(addedOption.length());
+		}
+		return null;
 	}
 
 	public void start() throws Exception {
