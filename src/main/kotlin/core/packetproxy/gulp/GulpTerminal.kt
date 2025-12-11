@@ -144,14 +144,12 @@ object GulpTerminal {
 
     // 引数で数値が指定された場合は末尾からその行数分出力して終了
     if (lineCount != 0) {
-      Logging.printLog(lineCount)
+      Logging.printLines(lineCount)
       return
     }
 
     // 引数に数値が指定されなかった場合は継続出力を行う(Ctrl + C/D で終了)
     try {
-      // 最初に末尾30行分出力してしまう
-      Logging.printLog(30)
       Logging.startTailLog()
       while (true) reader.readLine()
     } catch (e: Exception) {

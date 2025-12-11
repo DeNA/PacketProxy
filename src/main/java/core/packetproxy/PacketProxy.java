@@ -43,7 +43,25 @@ public class PacketProxy {
 		if (gulpMode != null) {
 			String settingsJson = getOption("--settings-json", args);
 			Logging.log("Gulp Mode: " + settingsJson);
-			GulpTerminal.run(settingsJson);
+
+			if (gulpMode.equals("down")) {
+				// シグナルハンドラーを設定してCtrl+Cを検出
+				Runtime.getRuntime().addShutdownHook(new Thread() {
+					@Override
+					public void run() {
+						Logging.stopTailLog();
+					}
+				});
+
+				try {
+					Logging.startTailLog(true);
+				} catch (Exception e) {
+					Logging.errWithStackTrace(e);
+				}
+			} else {
+				GulpTerminal.run(settingsJson);
+			}
+
 			System.exit(0);
 		}
 

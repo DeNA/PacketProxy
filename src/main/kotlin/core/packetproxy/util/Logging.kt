@@ -25,7 +25,6 @@ import java.io.File
 import java.io.IOException
 import java.io.RandomAccessFile
 import java.nio.charset.StandardCharsets
-import java.nio.file.Files
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -127,53 +126,95 @@ object Logging {
     }
   }
 
-  /** CLIモードでのlogの継続出力を行う */
-  fun startTailLog() {
+  /**
+   * CLIモードでのlogの継続出力を行う
+   *
+   * @param blocking trueの場合、メインスレッドでブロッキング実行し、ファイルの先頭から継続出力する（Ctrl+Cで停止可能）
+   *   falseの場合、別スレッドで非ブロッキング実行し、ファイルの末尾から継続出力する（デフォルト）
+   */
+  @JvmStatic
+  @JvmOverloads
+  fun startTailLog(blocking: Boolean = false) {
     if (tailThread != null || !isGulp) return
 
-    tailThread = Thread {
-      val raf = RandomAccessFile(logFile, "r")
-      try {
-        // ファイルの末尾から開始
-        raf.seek(raf.length())
+    val tailLogRunnable = Runnable {
+      RandomAccessFile(logFile, "r").use { raf ->
+        // ブロッキング実行される場合は先頭、そうでない場合は末尾30行目から出力を開始する
+        if (blocking) {
+          raf.seek(0)
+        } else {
+          seekToLastNLines(raf, 30)
+        }
 
+        // 新しい追加分を追跡する
         while (keepTailing.get()) {
-          val currentLength = logFile.length()
-          val buffer = ByteArray(8192)
-          var bytesRead: Int
-
-          while (raf.filePointer < currentLength) {
-            bytesRead =
-              raf.read(buffer, 0, minOf(buffer.size, (currentLength - raf.filePointer).toInt()))
-
-            if (bytesRead > 0) {
-              print(String(buffer, 0, bytesRead, StandardCharsets.UTF_8))
-            }
-          }
+          printRemaining(raf)
 
           try {
             Thread.sleep(100)
-          } catch (e: InterruptedException) {}
+          } catch (e: InterruptedException) {
+            break
+          }
         }
-      } finally {
-        raf.close()
       }
     }
 
     keepTailing.set(true)
-    tailThread!!.isDaemon = true
-    tailThread!!.start()
+    if (blocking) {
+      // メインスレッドでブロッキング実行
+      tailLogRunnable.run()
+    } else {
+      // 別スレッドで非ブロッキング実行
+      tailThread = Thread(tailLogRunnable)
+      tailThread!!.isDaemon = true
+      tailThread!!.start()
+    }
   }
 
+  @JvmStatic
   fun stopTailLog() {
     keepTailing.set(false)
     tailThread?.interrupt()
     tailThread = null
   }
 
-  fun printLog(lineCount: Int) {
-    val lines = Files.readAllLines(logFile.toPath(), StandardCharsets.UTF_8)
-    val startIndex = maxOf(0, lines.size - lineCount)
-    lines.subList(startIndex, lines.size).forEach { println(it) }
+  fun printLines(linesToRead: Int) {
+    RandomAccessFile(logFile, "r").use { raf ->
+      seekToLastNLines(raf, linesToRead)
+      printRemaining(raf)
+    }
+  }
+
+  private fun seekToLastNLines(raf: RandomAccessFile, linesToRead: Int) {
+    var pos = raf.length() // ファイルの末尾 + 1
+    var lineFeedCount = 0
+
+    while (pos > 0) {
+      pos--
+      raf.seek(pos)
+      if (raf.read() != '\n'.code) continue
+
+      lineFeedCount++
+      if (lineFeedCount > linesToRead) {
+        raf.seek(pos + 1)
+        return
+      }
+    }
+
+    raf.seek(0) // ログがN行に満たなければ先頭を指す
+  }
+
+  /** raf.seekされた箇所から末尾までを出力する */
+  private fun printRemaining(raf: RandomAccessFile) {
+    val buffer = ByteArray(8192)
+    val initialLength = logFile.length()
+    while (raf.filePointer < initialLength) {
+      val bytesRead =
+        raf.read(buffer, 0, minOf(buffer.size, (initialLength - raf.filePointer).toInt()))
+
+      if (bytesRead > 0) {
+        print(String(buffer, 0, bytesRead, StandardCharsets.UTF_8))
+      }
+    }
   }
 }
