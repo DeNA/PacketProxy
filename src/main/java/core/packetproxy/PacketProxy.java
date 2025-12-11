@@ -25,6 +25,7 @@ import packetproxy.common.I18nString;
 import packetproxy.common.Utils;
 import packetproxy.gui.GUIMain;
 import packetproxy.gui.Splash;
+import packetproxy.gulp.GulpTerminal;
 import packetproxy.model.Database;
 import packetproxy.util.Logging;
 
@@ -42,6 +43,7 @@ public class PacketProxy {
 		if (gulpMode != null) {
 			String settingsJson = getOption("--settings-json", args);
 			Logging.log("Gulp Mode: " + settingsJson);
+			GulpTerminal.run(settingsJson);
 			System.exit(0);
 		}
 
