@@ -33,7 +33,8 @@ case "$1" in
     ;;
 esac
 
-./gradlew installDist --quiet
+"$PROJECT_ROOT/gradlew" -p "$PROJECT_ROOT" installDist --quiet
 
 test -f "$TARGET_BIN"
-exec sudo "$TARGET_BIN" --gulp="$OPTION"
+export JAVA_OPTS="-Dapp.home=$PROJECT_ROOT"
+exec sudo "$TARGET_BIN" --gulp="$OPTION" --settings-json="$SETTINGS_JSON"
