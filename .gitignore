@@ -19,6 +19,7 @@
 /***/*.sqlite3
 /***/*.class
 /***/.DS_Store
+/.kotlin
 
 # jenv
 .java-version
