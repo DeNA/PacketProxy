@@ -15,6 +15,7 @@
  */
 package packetproxy;
 
+import core.packetproxy.gulp.GulpTerminal;
 import java.io.File;
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -42,6 +43,7 @@ public class PacketProxy {
 		if (gulpMode != null) {
 			String settingsJson = getOption("--settings-json", args);
 			Logging.log("Gulp Mode: " + settingsJson);
+			GulpTerminal.run(settingsJson);
 			System.exit(0);
 		}
 
