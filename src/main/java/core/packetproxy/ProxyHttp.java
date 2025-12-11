@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
@@ -34,7 +35,6 @@ import packetproxy.model.Server;
 import packetproxy.model.Servers;
 
 public class ProxyHttp extends Proxy {
-
 	private ListenPort listen_info;
 	private ServerSocket listen_socket;
 
@@ -47,9 +47,7 @@ public class ProxyHttp extends Proxy {
 	public void run() {
 		List<Socket> clients = new ArrayList<Socket>();
 		while (!listen_socket.isClosed()) {
-
 			try {
-
 				final Socket client = listen_socket.accept();
 				clients.add(client);
 				log("accept");
@@ -57,7 +55,6 @@ public class ProxyHttp extends Proxy {
 				final Simplex client_loopback = new Simplex(client.getInputStream(), client.getOutputStream());
 
 				client_loopback.addSimplexEventListener(new SimplexEventAdapter() {
-
 					@Override
 					public int onPacketReceived(byte[] data) throws Exception {
 						return Http.parseHttpDelimiter(data);
@@ -67,7 +64,6 @@ public class ProxyHttp extends Proxy {
 					public byte[] onChunkReceived(byte[] data) throws Exception {
 						byte[] result = new byte[]{};
 						synchronized (client_loopback) {
-
 							Http http = Http.create(data);
 							// System.out.println(String.format("%s: %s:%s", http.getMethod(),
 							// http.getServerName(), http.getServerPort()));
@@ -92,7 +88,6 @@ public class ProxyHttp extends Proxy {
 									SocketEndpoint client_e = new SocketEndpoint(client);
 									DuplexAsync d = new DuplexAsync(client_e, server_e);
 									d.start();
-
 								} else {
 
 									SSLSocketEndpoint clientE;
@@ -126,7 +121,6 @@ public class ProxyHttp extends Proxy {
 								}
 
 								client_loopback.finishWithoutClose();
-
 							} else if (http.isProxy()) {
 
 								SocketEndpoint client_e = new SocketEndpoint(client);
@@ -178,17 +172,13 @@ public class ProxyHttp extends Proxy {
 				});
 				client_loopback.start();
 			} catch (Exception e) {
-
 				errWithStackTrace(e);
 			}
 		}
 		for (Socket sc : clients) {
-
 			try {
-
 				sc.close();
 			} catch (Exception e) {
-
 				errWithStackTrace(e);
 			}
 		}

@@ -27,6 +27,7 @@ public class Extension {
 
 	@DatabaseField(id = true)
 	private String name;
+
 	@DatabaseField
 	private boolean enabled;
 	@DatabaseField

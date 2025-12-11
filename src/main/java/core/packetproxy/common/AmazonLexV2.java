@@ -174,5 +174,4 @@ public record AmazonLexV2(Message[] messages) {
 		}
 		return outputStream.toByteArray();
 	}
-
 }

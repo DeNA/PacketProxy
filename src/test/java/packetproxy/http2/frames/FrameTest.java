@@ -53,5 +53,4 @@ public class FrameTest {
 		frame.saveExtra("0123456789".getBytes());
 		System.out.println(new String(Hex.encodeHex(frame.toByteArrayWithoutExtra())));
 	}
-
 }

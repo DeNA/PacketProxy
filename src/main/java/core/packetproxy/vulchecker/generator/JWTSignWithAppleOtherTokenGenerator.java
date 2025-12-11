@@ -15,6 +15,7 @@
  */
 
 package packetproxy.vulchecker.generator;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.*;
@@ -98,7 +99,6 @@ public class JWTSignWithAppleOtherTokenGenerator extends Generator {
 		if (server == null) {
 
 			server = new TokenHttpServer("localhost", 32350, token -> {
-
 				tokenFromBrowser = token;
 				dlg.dispose();
 			});

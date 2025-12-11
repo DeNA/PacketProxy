@@ -138,5 +138,4 @@ class CryptoFramesToMessagesTest {
 		assertThat(ret1.get()).isInstanceOf(ClientHello.class);
 		assertThat(ret2.get()).isInstanceOf(ClientHello.class);
 	}
-
 }

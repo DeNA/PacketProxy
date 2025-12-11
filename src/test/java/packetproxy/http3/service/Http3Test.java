@@ -38,5 +38,4 @@ class Http3Test {
 
 		assertThat(httpRaw.getEncodedHeader()).isEqualTo(testHttpRaw.getEncodedHeader());
 	}
-
 }

@@ -48,6 +48,7 @@ public abstract class DiffBase {
 	//
 	public DiffBase() {
 	}
+
 	protected EventListenerList diffEventListenerList = new EventListenerList();
 	protected byte[] orig = null;
 	protected DiffSet set;

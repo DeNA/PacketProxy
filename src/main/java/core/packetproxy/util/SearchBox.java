@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.util;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Color;
@@ -62,6 +63,7 @@ public class SearchBox extends JPanel {
 
 			private String prev_word = null;
 			private int cur_pos = 0;
+
 			@Override
 			public void keyReleased(KeyEvent arg0) {
 				try {
@@ -194,9 +196,7 @@ public class SearchBox extends JPanel {
 		document.setCharacterAttributes(0, str.length(), attributes, false);
 	}
 
-	/**
-	 * TODO HTTPの構造を解釈して、明らかにパラメータではない所を除外する
-	 */
+	/** TODO HTTPの構造を解釈して、明らかにパラメータではない所を除外する */
 	public void coloringHTTPText() {
 		javax.swing.text.StyledDocument document = baseText.getStyledDocument();
 		String str = baseText.getText();

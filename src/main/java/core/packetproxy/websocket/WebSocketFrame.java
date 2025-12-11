@@ -55,7 +55,8 @@ public class WebSocketFrame {
 					return -1;
 				length += 2;
 				length += ((data[i + 2] & 0xff) << 8) + (data[i + 3] & 0xff);
-			} else { /* lengthType == 127 */
+			} else {
+				/* lengthType == 127 */
 
 				if (empty(data, i + 2))
 					return -1;
@@ -104,7 +105,8 @@ public class WebSocketFrame {
 			} else if (lengthType == 126) {
 
 				length = buffer.getShort();
-			} else { /* lengthType == 127 */
+			} else {
+				/* lengthType == 127 */
 
 				length = buffer.getInt();
 			}
@@ -189,5 +191,4 @@ public class WebSocketFrame {
 		buffer.flip();
 		return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
 	}
-
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.http2;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.ByteArrayOutputStream;
@@ -64,14 +65,13 @@ public class Http2StreamingResponse extends FramesBase {
 				out.write(headersFrame.toByteArrayWithoutExtra(super.getServerHpackEncoder(), true));
 				frameQueue.add(headersFrame);
 				synchronized (stream) {
-
 					stream.write(headersFrame);
 				}
-			} else { /* Data Frame */
+			} else {
+				/* Data Frame */
 
 				out.write(frame.toByteArray());
 				synchronized (stream) {
-
 					stream.write(frame);
 				}
 				Thread guiHistoryUpdater = new Thread(new Runnable() {
@@ -81,7 +81,6 @@ public class Http2StreamingResponse extends FramesBase {
 
 							ByteArrayOutputStream data = new ByteArrayOutputStream();
 							synchronized (stream) {
-
 								for (Frame frame : stream.read(frame.getStreamId())) {
 
 									if (frame instanceof HeadersFrame) {

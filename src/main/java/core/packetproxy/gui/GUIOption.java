@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.err;
 import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
@@ -190,7 +191,6 @@ public class GUIOption {
 
 		JComboBox<String> ca_combo = new JComboBox<String>();
 		CAFactory.queryExportable().forEach(ca -> {
-
 			ca_combo.addItem(ca.getUTF8Name());
 			ca_combo.setEnabled(true);
 		});

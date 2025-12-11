@@ -31,5 +31,4 @@ class WriteStreamIdTest {
 		assertThat(id1).isNotEqualTo(id3);
 		assertThat(id1.equals(id2)).isTrue();
 	}
-
 }

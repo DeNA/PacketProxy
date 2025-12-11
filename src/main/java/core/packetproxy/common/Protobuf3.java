@@ -204,7 +204,8 @@ public class Protobuf3 {
 			i += varLen[0];
 			entries++;
 		}
-		if (entries > 64) { /* 64エントリを超える場合はrepeatedとみなさずbytesとみなす */
+		if (entries > 64) {
+			/* 64エントリを超える場合はrepeatedとみなさずbytesとみなす */
 
 			return false;
 		}
@@ -254,9 +255,7 @@ public class Protobuf3 {
 			Key key = new Key(data);
 
 			switch (key.getWireType()) {
-
 				case Variant : {
-
 					if (validateVar(data) == false) {
 
 						return false;
@@ -266,7 +265,6 @@ public class Protobuf3 {
 					break;
 				}
 				case Bit32 : {
-
 					if (validateBit32(data) == false) {
 
 						return false;
@@ -276,7 +274,6 @@ public class Protobuf3 {
 					break;
 				}
 				case Bit64 : {
-
 					if (validateBit64(data) == false) {
 
 						return false;
@@ -286,7 +283,6 @@ public class Protobuf3 {
 					break;
 				}
 				case LengthDelimited : {
-
 					if (validateVar(data) == false) {
 
 						return false;
@@ -342,7 +338,6 @@ public class Protobuf3 {
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		TreeMap<String, String> orderedKeys = new TreeMap<String, String>();
 		messages.keySet().stream().forEach(key -> {
-
 			String[] keyval = key.split(":");
 			String index = String.format("%s-%s", keyval[1], key);
 			orderedKeys.put(index, key);
@@ -354,9 +349,7 @@ public class Protobuf3 {
 			String type = keyval[2];
 
 			switch (type) {
-
 				case "Varint" : {
-
 					new Key(fieldNumber, Key.Type.Variant).writeTo(output);
 					Object d = messages.get(key);
 					long var = 0;
@@ -371,7 +364,6 @@ public class Protobuf3 {
 					break;
 				}
 				case "String" : {
-
 					new Key(fieldNumber, Key.Type.LengthDelimited).writeTo(output);
 					String str = messages.get(key).toString();
 					writeVar(str.getBytes().length, output);
@@ -379,14 +371,12 @@ public class Protobuf3 {
 					break;
 				}
 				case "32-bit" : {
-
 					new Key(fieldNumber, Key.Type.Bit32).writeTo(output);
 					int bit32 = (int) messages.get(key);
 					output.write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(bit32).array());
 					break;
 				}
 				case "64-bit" : {
-
 					new Key(fieldNumber, Key.Type.Bit64).writeTo(output);
 					Object d = messages.get(key);
 					long bit64 = 0;
@@ -401,12 +391,10 @@ public class Protobuf3 {
 					break;
 				}
 				case "repeated" : {
-
 					new Key(fieldNumber, Key.Type.LengthDelimited).writeTo(output);
 					List<Object> list = (List<Object>) messages.get(key);
 					ByteArrayOutputStream tmp = new ByteArrayOutputStream();
 					list.stream().forEach(o -> {
-
 						long var = 0;
 						if (o instanceof Integer) {
 
@@ -425,7 +413,6 @@ public class Protobuf3 {
 					break;
 				}
 				case "embedded message" : {
-
 					new Key(fieldNumber, Key.Type.LengthDelimited).writeTo(output);
 					byte[] tmp = encodeData((Map<String, Object>) messages.get(key));
 					writeVar(tmp.length, output);
@@ -433,7 +420,6 @@ public class Protobuf3 {
 					break;
 				}
 				case "bytes" : {
-
 					new Key(fieldNumber, Key.Type.LengthDelimited).writeTo(output);
 					byte[] bytes = encodeBytes((String) messages.get(key));
 					writeVar(bytes.length, output);
@@ -446,5 +432,4 @@ public class Protobuf3 {
 		}
 		return output.toByteArray();
 	}
-
 }

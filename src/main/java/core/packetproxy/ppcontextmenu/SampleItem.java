@@ -42,6 +42,5 @@ public class SampleItem extends PPContextMenu {
 		FileUtils.writeByteArrayToFile(file, data);
 		JOptionPane.showMessageDialog((JFrame) this.dependentData.get("main_frame"),
 				String.format("%sに保存しました！", file.getPath()));
-
 	}
 }

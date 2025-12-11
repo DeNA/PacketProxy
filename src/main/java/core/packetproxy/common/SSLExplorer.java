@@ -1,33 +1,33 @@
 /*
-* Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions
-* are met:
-*
-*   - Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*
-*   - Redistributions in binary form must reproduce the above copyright
-*     notice, this list of conditions and the following disclaimer in the
-*     documentation and/or other materials provided with the distribution.
-*
-*   - Neither the name of Oracle or the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-* IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-* THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-* PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-* CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-* EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-* PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-* LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-* NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *   - Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *
+ *   - Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ *
+ *   - Neither the name of Oracle or the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 package packetproxy.common;
 
@@ -49,7 +49,8 @@ public final class SSLExplorer {
 
 	/**
 	 * The header size of TLS/SSL records.
-	 * <P>
+	 *
+	 * <p>
 	 * The value of this constant is {@value}.
 	 */
 	public static final int RECORD_HEADER_SIZE = 0x05;
@@ -57,10 +58,12 @@ public final class SSLExplorer {
 	/**
 	 * Returns the required number of bytes in the {@code source} {@link ByteBuffer}
 	 * necessary to explore SSL/TLS connection.
-	 * <P>
+	 *
+	 * <p>
 	 * This method tries to parse as few bytes as possible from {@code source} byte
 	 * buffer to get the length of an SSL/TLS record.
-	 * <P>
+	 *
+	 * <p>
 	 * This method accesses the {@code source} parameter in read-only mode, and does
 	 * not update the buffer's properties such as capacity, limit, position, and
 	 * mark values.
@@ -101,7 +104,8 @@ public final class SSLExplorer {
 	/**
 	 * Returns the required number of bytes in the {@code source} byte array
 	 * necessary to explore SSL/TLS connection.
-	 * <P>
+	 *
+	 * <p>
 	 * This method tries to parse as few bytes as possible from {@code source} byte
 	 * array to get the length of an SSL/TLS record.
 	 *
@@ -113,7 +117,6 @@ public final class SSLExplorer {
 	 *            is read from.
 	 * @param length
 	 *            the maximum number of bytes to read.
-	 *
 	 * @throws BufferUnderflowException
 	 *             if less than {@code RECORD_HEADER_SIZE} bytes remaining in
 	 *             {@code source}
@@ -127,14 +130,17 @@ public final class SSLExplorer {
 
 	/**
 	 * Launch and explore the security capabilities from byte buffer.
-	 * <P>
+	 *
+	 * <p>
 	 * This method tries to parse as few records as possible from {@code source}
 	 * byte buffer to get the {@link SSLCapabilities} of an SSL/TLS connection.
-	 * <P>
+	 *
+	 * <p>
 	 * Please NOTE that this method must be called before any handshaking occurs.
 	 * The behavior of this method is not defined in this release if the handshake
 	 * has begun, or has completed.
-	 * <P>
+	 *
+	 * <p>
 	 * This method accesses the {@code source} parameter in read-only mode, and does
 	 * not update the buffer's properties such as capacity, limit, position, and
 	 * mark values.
@@ -142,13 +148,11 @@ public final class SSLExplorer {
 	 * @param source
 	 *            a {@link ByteBuffer} containing inbound or outbound network data
 	 *            for an SSL/TLS connection.
-	 *
 	 * @throws IOException
 	 *             on network data error
 	 * @throws BufferUnderflowException
 	 *             if not enough source bytes available to make a complete
 	 *             exploration.
-	 *
 	 * @return the explored {@link SSLCapabilities} of the SSL/TLS connection
 	 */
 	public static final SSLCapabilities explore(ByteBuffer source) throws IOException {
@@ -180,7 +184,8 @@ public final class SSLExplorer {
 
 	/**
 	 * Launch and explore the security capabilities from byte array.
-	 * <P>
+	 *
+	 * <p>
 	 * Please NOTE that this method must be called before any handshaking occurs.
 	 * The behavior of this method is not defined in this release if the handshake
 	 * has begun, or has completed. Once handshake has begun, or has completed, the
@@ -194,14 +199,12 @@ public final class SSLExplorer {
 	 *            is read from.
 	 * @param length
 	 *            the maximum number of bytes to read.
-	 *
 	 * @throws IOException
 	 *             on network data error
 	 * @throws BufferUnderflowException
 	 *             if not enough source bytes available to make a complete
 	 *             exploration.
 	 * @return the explored {@link SSLCapabilities} of the SSL/TLS connection
-	 *
 	 * @see #explore(ByteBuffer)
 	 */
 	public static final SSLCapabilities explore(byte[] source, int offset, int length) throws IOException {
@@ -491,7 +494,6 @@ public final class SSLExplorer {
 
 				SNIServerName serverName;
 				switch (code) {
-
 					case StandardConstants.SNI_HOST_NAME :
 						if (encoded.length == 0) {
 
@@ -509,7 +511,7 @@ public final class SSLExplorer {
 				}
 
 				remains -= encoded.length + 3; // NameType: 1 byte
-												// HostName length: 2 bytes
+				// HostName length: 2 bytes
 			}
 		} else if (extLen == 0) { // "server_name" extension in ServerHello
 
@@ -572,7 +574,6 @@ public final class SSLExplorer {
 		List<SNIServerName> sniNames;
 
 		static {
-
 			versionMap.put(0x0002, "SSLv2Hello");
 			versionMap.put(0x0300, "SSLv3");
 			versionMap.put(0x0301, "TLSv1");

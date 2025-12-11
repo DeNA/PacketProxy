@@ -143,5 +143,4 @@ public class FlowControlManager {
 	public InputStream getInputStream() {
 		return inputForFlowControl;
 	}
-
 }

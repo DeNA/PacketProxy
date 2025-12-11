@@ -120,5 +120,4 @@ public class LongHeaderPacket extends QuicPacket {
 	public ConnectionId getDestConnId() {
 		return this.connectionIdPair.getDestConnId();
 	}
-
 }

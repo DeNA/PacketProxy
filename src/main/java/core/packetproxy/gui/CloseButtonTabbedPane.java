@@ -70,5 +70,4 @@ public class CloseButtonTabbedPane extends JTabbedPane {
 		super.addTab(null, content);
 		setTabComponentAt(getTabCount() - 1, main_panel);
 	}
-
 }

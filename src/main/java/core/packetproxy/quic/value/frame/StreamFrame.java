@@ -112,5 +112,4 @@ public class StreamFrame extends Frame {
 	public boolean isAckEliciting() {
 		return true;
 	}
-
 }

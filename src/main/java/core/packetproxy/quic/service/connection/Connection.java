@@ -15,6 +15,7 @@
  */
 
 package packetproxy.quic.service.connection;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Throwing.rethrow;
 
@@ -104,7 +105,6 @@ public abstract class Connection implements Endpoint {
 					List<QuicPacket> packets = pnSpaces.pollSendPackets(); // Blocking here
 					awaitingSendPackets.put(packets);
 					awaitingSendPackets.forEachAndRemovedIfReturnTrue(packet -> {
-
 						try {
 
 							// if (role == Constants.Role.SERVER) {
@@ -208,7 +208,6 @@ public abstract class Connection implements Endpoint {
 						readQueue.write(readChunk, 0, length);
 						ByteBuffer buffer = ByteBuffer.wrap(readQueue.toByteArray());
 						QuicMessages.parse(buffer).forEach(rethrow(msg -> {
-
 							getPnSpace(Constants.PnSpaceType.PnSpaceApplicationData).addSendQuicMessage(msg);
 						}));
 						readQueue.reset();
@@ -285,5 +284,4 @@ public abstract class Connection implements Endpoint {
 	public abstract boolean peerCompletedAddressValidation();
 
 	public abstract Handshake getHandshake();
-
 }

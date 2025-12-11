@@ -55,5 +55,4 @@ public class StreamsBlockedUniFrame extends Frame {
 	public boolean isAckEliciting() {
 		return true;
 	}
-
 }

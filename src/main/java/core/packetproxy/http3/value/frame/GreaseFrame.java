@@ -73,5 +73,4 @@ public class GreaseFrame implements Frame {
 	public String toString() {
 		return String.format("GreaseFrame(type=0x%x,data=[%s])", this.type, new String(this.data));
 	}
-
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.http1;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.ByteArrayOutputStream;
@@ -147,5 +148,4 @@ public class Http1StreamingResponse {
 	public byte[] encodeServerResponse(byte[] input_data) throws Exception {
 		return null;
 	}
-
 }

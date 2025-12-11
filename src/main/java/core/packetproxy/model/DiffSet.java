@@ -19,6 +19,7 @@ public class DiffSet {
 
 	protected byte[] original;
 	protected byte[] target;
+
 	public DiffSet(byte[] original, byte[] target) {
 		this.original = original;
 		this.target = target;

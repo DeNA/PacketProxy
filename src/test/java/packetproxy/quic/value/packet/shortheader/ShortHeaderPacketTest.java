@@ -35,5 +35,4 @@ class ShortHeaderPacketTest {
 		byte[] restoredData = packet.getBytes(key, PacketNumber.Infinite);
 		assertThat(data).isEqualTo(restoredData);
 	}
-
 }

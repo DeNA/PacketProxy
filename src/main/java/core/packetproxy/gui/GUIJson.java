@@ -27,6 +27,7 @@ public class GUIJson extends GUIHistoryPanel implements RawTextPane.DataChangedL
 
 	private RawTextPane raw_text;
 	private JsonSyntaxHighlighter jsonHighlighter;
+
 	@Override
 	public JTextPane getTextPane() {
 		return raw_text;

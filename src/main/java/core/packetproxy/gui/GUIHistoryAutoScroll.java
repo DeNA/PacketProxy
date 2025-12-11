@@ -72,5 +72,4 @@ public class GUIHistoryAutoScroll extends JLabel {
 			err("Auto scrolling was turned OFF");
 		}
 	}
-
 }

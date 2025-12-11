@@ -64,5 +64,4 @@ class SettingsFrameTest {
 		assertThat(frames.get(1)).isInstanceOf(GreaseFrame.class);
 		System.out.println(frames);
 	}
-
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Toolkit;
@@ -56,8 +57,8 @@ public class BinaryTextPane extends ExtendedTextPane {
 
 					int position_start = (int) (getSelectionStart() / 3);
 					int position_end = (int) (getSelectionEnd() / 3) + 1;
-					byte[] data_org = getData();// new String(getData(), "UTF-8").substring(position_start,
-												// position_end).getBytes();
+					byte[] data_org = getData(); // new String(getData(), "UTF-8").substring(position_start,
+					// position_end).getBytes();
 					byte[] data = Arrays.copyOfRange(data_org, position_start, position_end);
 					String copyData = new String(Base64.getEncoder().encode(data), "UTF-8");
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();

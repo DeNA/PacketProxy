@@ -25,11 +25,11 @@ import packetproxy.quic.value.VariableLengthInteger;
 @AllArgsConstructor
 @Getter
 public enum SettingParam {
-
 	QpackMaxTableCapacity(0x01, 0), MaxFieldSectionSize(0x06, Long.MAX_VALUE), QpackBlockedStreams(0x07,
 			0), EnableConnectProtocol(0x08, 0), H3Datagram(0x33, 0), H3DatagramOld(0x276, 0), EnableMetaData(0x4d44, 0);
 	final long id;
 	public final long defaultValue;
+
 	public boolean idEqualsTo(long id) {
 		return this.id == id;
 	}

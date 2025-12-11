@@ -36,7 +36,8 @@ public class StreamFramesToMessages {
 		if (streamId.isBidirectional()) {
 
 			this.putToOneshot(frame);
-		} else { /* uni-directional */
+		} else {
+			/* uni-directional */
 
 			this.putToContinuous(frame);
 		}
@@ -64,7 +65,8 @@ public class StreamFramesToMessages {
 		if (streamId.isBidirectional()) {
 
 			return this.getFromOneshot(streamId);
-		} else { /* uni-directional */
+		} else {
+			/* uni-directional */
 
 			return this.getFromContinuous(streamId);
 		}
@@ -87,5 +89,4 @@ public class StreamFramesToMessages {
 		}
 		return this.oneshotStreamMap.get(streamId).get();
 	}
-
 }

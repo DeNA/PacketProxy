@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.common;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.re2j.Matcher;
@@ -290,7 +291,8 @@ public class StringUtils {
 			} else if ((octet & 0xF8) == 0xF0) {
 
 				end = i + 3;
-			} else { /* Java supports BMP only */
+			} else {
+				/* Java supports BMP only */
 
 				return false;
 			}
@@ -306,5 +308,4 @@ public class StringUtils {
 		}
 		return true;
 	}
-
 }

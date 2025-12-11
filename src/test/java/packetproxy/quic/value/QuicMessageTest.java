@@ -51,5 +51,4 @@ class QuicMessageTest {
 		assertThat(msg.streamIdIs(StreamId.of(0x3))).isTrue();
 		assertThat(msg.streamIdIs(StreamId.of(0x4))).isFalse();
 	}
-
 }

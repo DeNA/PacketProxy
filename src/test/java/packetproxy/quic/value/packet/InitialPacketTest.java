@@ -163,5 +163,4 @@ class InitialPacketTest {
 		byte[] req4 = ipCli3.getBytes(clientInitialKey, PacketNumber.Infinite);
 		assertThat(ipCli2).isEqualTo(ipCli3);
 	}
-
 }

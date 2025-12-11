@@ -74,5 +74,4 @@ public class NewTokenFrame extends Frame {
 	public boolean isAckEliciting() {
 		return true;
 	}
-
 }

@@ -141,5 +141,4 @@ public class QuicPacketParser {
 			throw new Exception(String.format("Unknown Error: packet type (%x) received", type));
 		}
 	}
-
 }

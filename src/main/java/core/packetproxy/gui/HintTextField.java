@@ -82,7 +82,6 @@ public class HintTextField extends JTextField {
 		Font oldFont = g2.getFont();
 		Color oldColor = g2.getColor();
 		{
-
 			Insets insets = getBorder().getBorderInsets(this);
 			int h = g2.getFontMetrics().getAscent();
 
@@ -99,6 +98,5 @@ public class HintTextField extends JTextField {
 		}
 		g2.setFont(oldFont);
 		g2.setColor(oldColor);
-
 	}
 }

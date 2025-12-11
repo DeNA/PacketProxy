@@ -51,5 +51,4 @@ class FramesTest {
 			System.out.println(frame.toString());
 		}
 	}
-
 }

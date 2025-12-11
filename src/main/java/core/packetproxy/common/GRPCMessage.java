@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.common;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.ByteArrayInputStream;
@@ -49,7 +50,6 @@ public class GRPCMessage {
 
 	public static String encodeTextMessages(List<Map<String, Object>> messages) throws Exception {
 		return new String(encodeMessages(messages, (grpcMessage) -> {
-
 			try {
 
 				return base64.toString(grpcMessage.toBytes()).getBytes();
@@ -63,7 +63,6 @@ public class GRPCMessage {
 
 	public static byte[] encodeMessages(List<Map<String, Object>> messages) throws Exception {
 		return encodeMessages(messages, (grpcMessage) -> {
-
 			try {
 
 				return grpcMessage.toBytes();

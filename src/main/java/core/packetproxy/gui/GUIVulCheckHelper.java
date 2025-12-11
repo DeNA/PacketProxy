@@ -74,5 +74,4 @@ public class GUIVulCheckHelper {
 		this.vulCheckTab.addTab(String.valueOf(list.size()), panel);
 		this.vulCheckTab.setSelectedComponent(panel);
 	}
-
 }

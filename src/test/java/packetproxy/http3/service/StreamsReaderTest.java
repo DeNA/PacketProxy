@@ -36,5 +36,4 @@ class StreamsReaderTest {
 		assertThat(settings.getQpackMaxTableCapacity()).isEqualTo(0);
 		assertThat(settings.getMaxFieldSectionSize()).isEqualTo(Long.MAX_VALUE);
 	}
-
 }

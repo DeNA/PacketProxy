@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.CardLayout;
@@ -99,11 +100,9 @@ public class GUIOptionExportCertificateAndPrivateKeyDialog extends JDialog {
 		panel.add(buttons);
 
 		selectCancelButton.addActionListener(e -> {
-
 			dispose();
 		});
 		selectDoneButton.addActionListener(e -> {
-
 			String extension = "";
 			if (selectCertificatePEMButton.isSelected() || selectCertificateDERButton.isSelected()) {
 
@@ -200,12 +199,10 @@ public class GUIOptionExportCertificateAndPrivateKeyDialog extends JDialog {
 		panel.add(buttons);
 
 		enterCancelButton.addActionListener(e -> {
-
 			p12PasswordField.setText("");
 			cardLayout.show(cardPanel, "select panel");
 		});
 		enterDoneButton.addActionListener(e -> {
-
 			WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "p12");
 			filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
 

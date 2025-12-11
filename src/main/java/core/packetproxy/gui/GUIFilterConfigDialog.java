@@ -57,6 +57,5 @@ public class GUIFilterConfigDialog extends JDialog {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.add(new GUIFilterConfig(owner).createPanel());
 		c.add(panel);
-
 	}
 }

@@ -115,5 +115,4 @@ class TruncatedQuicPacketNumberTest {
 		assertEquals(packetNumber, truncatedPn2.getPacketNumber(largestAckedPn));
 		assertEquals(truncatedPn1, truncatedPn2);
 	}
-
 }

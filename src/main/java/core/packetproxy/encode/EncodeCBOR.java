@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.encode;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.fasterxml.jackson.core.type.TypeReference;

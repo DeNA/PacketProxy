@@ -19,10 +19,13 @@ public class ConfigHttpServer extends NanoHTTPD {
 
 		@SerializedName(value = "listenPorts")
 		List<ListenPort> listenPortList;
+
 		@SerializedName(value = "servers")
 		List<Server> serverList;
+
 		@SerializedName(value = "modifications")
 		List<Modification> modificationList;
+
 		@SerializedName(value = "sslPassThroughs")
 		List<SSLPassThrough> sslPassThroughList;
 	}
@@ -184,5 +187,4 @@ public class ConfigHttpServer extends NanoHTTPD {
 
 		return NanoHTTPD.newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_HTML, null);
 	}
-
 }

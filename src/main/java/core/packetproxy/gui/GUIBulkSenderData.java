@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.util.function.Consumer;
@@ -52,7 +53,6 @@ public class GUIBulkSenderData {
 		main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
 
 		raw_panel = new GUIBulkSenderDataRaw(data -> {
-
 			onChanged.accept(data);
 		});
 		JComponent raw_text = raw_panel.createPanel();
@@ -88,7 +88,6 @@ public class GUIBulkSenderData {
 		try {
 
 			switch (data_pane.getSelectedIndex()) {
-
 				case 0 :
 					raw_panel.setData(showing_data);
 					break;

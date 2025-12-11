@@ -52,7 +52,6 @@ class QuicMessagesTest {
 	@Test
 	void forEachが動作すること() {
 		this.msgs.forEach(msg -> {
-
 			System.out.println(msg);
 		});
 	}
@@ -84,5 +83,4 @@ class QuicMessagesTest {
 				"000000000000000100000000000000010100000000000000020000000000000001020000000000000003000000000000000103"
 						.toCharArray()));
 	}
-
 }

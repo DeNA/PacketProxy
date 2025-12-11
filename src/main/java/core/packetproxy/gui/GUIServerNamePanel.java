@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Dimension;
@@ -29,6 +30,7 @@ public class GUIServerNamePanel extends JPanel {
 
 	private JLabel client_label;
 	private JLabel server_label;
+
 	public GUIServerNamePanel() {
 		setPreferredSize(new Dimension(100, 24));
 		setMinimumSize(new Dimension(10, 24));

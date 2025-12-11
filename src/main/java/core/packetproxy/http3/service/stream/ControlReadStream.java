@@ -53,7 +53,6 @@ public class ControlReadStream extends Stream implements ReadStream {
 		}
 		Frames frames = FrameParser.parse(targetData);
 		frames.forEach(rethrow(frame -> {
-
 			if (frame instanceof SettingsFrame) {
 
 				SettingsFrame settingFrame = (SettingsFrame) frame;
@@ -73,7 +72,6 @@ public class ControlReadStream extends Stream implements ReadStream {
 	public byte[] readAllBytes() {
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		this.frames.forEach(rethrow(frame -> {
-
 			bytes.write(frame.getBytes());
 		}));
 		this.frames.clear();
@@ -83,5 +81,4 @@ public class ControlReadStream extends Stream implements ReadStream {
 	public Optional<Setting> getSetting() {
 		return this.setting != null ? Optional.of(this.setting) : Optional.empty();
 	}
-
 }

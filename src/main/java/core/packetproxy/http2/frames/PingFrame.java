@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 package packetproxy.http2.frames;
+
 public class PingFrame extends Frame {
 
 	protected static Type TYPE = Type.PING;
+
 	public PingFrame(Frame frame) throws Exception {
 		super(frame);
 	}

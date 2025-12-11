@@ -49,8 +49,8 @@ public class Database {
 		return instance;
 	}
 
-	private static int ALERT_DB_FILE_SIZE_MB = 1536;// 1.5GB (LIMIT = 2GB)
-	private Path databaseDir = Paths.get(System.getProperty("user.home") + "/.packetproxy/db");// FileSystems.getDefault().getPath("db");
+	private static int ALERT_DB_FILE_SIZE_MB = 1536; // 1.5GB (LIMIT = 2GB)
+	private Path databaseDir = Paths.get(System.getProperty("user.home") + "/.packetproxy/db"); // FileSystems.getDefault().getPath("db");
 	private Path databasePath = Paths.get(databaseDir.toString() + "/resources.sqlite3");
 	private ConnectionSource source;
 

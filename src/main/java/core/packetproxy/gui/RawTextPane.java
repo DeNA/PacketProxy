@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Toolkit;
@@ -65,16 +66,17 @@ public class RawTextPane extends ExtendedTextPane {
 					mask_key = KeyEvent.CTRL_MASK;
 				}
 				switch (e.getKeyCode()) {
-
 					case KeyEvent.VK_Z :
-						if ((Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()
-								& e.getModifiers()) > 0) { /* Command key */
+						if ((Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() & e.getModifiers()) > 0) {
+							/* Command key */
 
-							if (e.isShiftDown()) { /* Ctrl-Shift-Z */
+							if (e.isShiftDown()) {
+								/* Ctrl-Shift-Z */
 
 								if (undo_manager.canRedo())
 									undo_manager.redo();
-							} else { /* Ctrl-Z */
+							} else {
+								/* Ctrl-Z */
 
 								if (undo_manager.canUndo())
 									undo_manager.undo();
@@ -83,11 +85,11 @@ public class RawTextPane extends ExtendedTextPane {
 						}
 						break;
 					case KeyEvent.VK_Y :
-						if ((Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()
-								& e.getModifiers()) > 0) { /* Command key */
+						if ((Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() & e.getModifiers()) > 0) {
+							/* Command key */
 
-							if (undo_manager.canRedo()) /* Ctrl-Y */
-								undo_manager.redo();
+							if (undo_manager.canRedo())
+								/* Ctrl-Y */ undo_manager.redo();
 							e.consume();
 						}
 						break;
@@ -105,7 +107,6 @@ public class RawTextPane extends ExtendedTextPane {
 			VulChecker vulChecker = VulCheckerManager.getInstance().createInstance(vulCheckerName);
 			JMenuItem vulCheckerItem = new JMenuItem(vulChecker.getName());
 			vulCheckerItem.addActionListener(actionEvent -> {
-
 				try {
 
 					Range range = Range.of(getSelectionStart(), getSelectionEnd());
@@ -200,7 +201,6 @@ public class RawTextPane extends ExtendedTextPane {
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
 					dlg.setData(Arrays.stream(new String(data, charSetName).split("\\."))
 							.map(Base64.getUrlDecoder()::decode).reduce((a, b) -> {
-
 								return ArrayUtils.addAll(ArrayUtils.addAll(a, ".".getBytes()), b);
 							}).get());
 					dlg.showDialog();
@@ -336,19 +336,18 @@ public class RawTextPane extends ExtendedTextPane {
 					byte[] data = new String(getData(), charSetName).substring(position_start, position_end).getBytes();
 					GUIDecoderDialog dlg = new GUIDecoderDialog();
 					dlg.setData(Arrays.stream(new String(data, charSetName).split("\\.")).map((a) -> {
-
 						String b = "";
 						if (a.charAt(0) == '{') {
 
 							b = new String(Base64.getUrlEncoder().encode(a.getBytes()));
-						} else { /* signature */
+						} else {
+							/* signature */
 
 							b = new String(Base64.getUrlEncoder()
 									.encode("12345678901234567890123456789012".getBytes())); /* return 32 bytes data */
 						}
 						return StringUtils.strip(b, "=").getBytes();
 					}).reduce((a, b) -> {
-
 						return ArrayUtils.addAll(ArrayUtils.addAll(a, ".".getBytes()), b);
 					}).get());
 					dlg.showDialog();

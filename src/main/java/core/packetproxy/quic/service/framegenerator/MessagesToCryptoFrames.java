@@ -55,5 +55,4 @@ public class MessagesToCryptoFrames {
 		this.handshakeMessages.clear(); /* remove all messages */
 		return framesBuilder.build();
 	}
-
 }

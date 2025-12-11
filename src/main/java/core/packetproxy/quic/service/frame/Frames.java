@@ -15,6 +15,7 @@
  */
 
 package packetproxy.quic.service.frame;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.common.collect.ImmutableList;
@@ -92,5 +93,4 @@ public class Frames implements Iterable<Frame> {
 	public Iterator<Frame> iterator() {
 		return frames.iterator();
 	}
-
 }

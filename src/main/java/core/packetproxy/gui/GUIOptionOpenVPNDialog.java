@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Container;
@@ -138,5 +139,4 @@ public class GUIOptionOpenVPNDialog extends JDialog {
 			}
 		});
 	}
-
 }

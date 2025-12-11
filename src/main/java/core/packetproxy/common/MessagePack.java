@@ -38,7 +38,6 @@ public class MessagePack {
 	public static class Key {
 
 		public static enum Type {
-
 			Integer, UnsignedInteger, Float, Boolean, RawString, RawBinary, Map, Array, Extension, Nil, None;
 
 			public static Type fromString(String str) {
@@ -184,9 +183,7 @@ public class MessagePack {
 		// nは値または長さ
 		public void fitType(long n) {
 			switch (this.type) {
-
 				case Integer : {
-
 					if (this.fix && (n < -32 || 127 < n)) {
 
 						this.fix = false;
@@ -205,7 +202,6 @@ public class MessagePack {
 					break;
 				}
 				case UnsignedInteger : {
-
 					assert (!this.fix);
 					if (this.size < getUnsignedIntegerSize(n)) {
 
@@ -221,12 +217,10 @@ public class MessagePack {
 					break;
 				}
 				case Boolean : {
-
 					this.value = (n == 0 ? 0 : 1);
 					break;
 				}
 				case RawString : {
-
 					if (this.fix && n >= 32) {
 
 						this.fix = false;
@@ -245,7 +239,6 @@ public class MessagePack {
 					break;
 				}
 				case RawBinary : {
-
 					assert (!this.fix);
 					if (this.size < getUnsignedIntegerSize(n)) {
 
@@ -255,7 +248,6 @@ public class MessagePack {
 				}
 				case Array :
 				case Map : {
-
 					if (this.fix && n >= 16) {
 
 						this.fix = false;
@@ -279,7 +271,6 @@ public class MessagePack {
 					break;
 				}
 				case Extension : {
-
 					if (this.fix && n != 1 && n != 2 && n != 4 && n != 8 && n != 16) {
 
 						this.fix = false;
@@ -312,9 +303,7 @@ public class MessagePack {
 
 		public byte toFirstByte() {
 			switch (this.type) {
-
 				case Integer : {
-
 					if (this.fix) {
 
 						return (byte) this.value;
@@ -324,22 +313,18 @@ public class MessagePack {
 					}
 				}
 				case UnsignedInteger : {
-
 					assert (!this.fix);
 					return (byte) (0xcc + rightmostBitPostion(this.size));
 				}
 				case Float : {
-
 					assert (!this.fix);
 					return (byte) (0xca + rightmostBitPostion(this.size) - 2);
 				}
 				case Boolean : {
-
 					assert (this.fix);
 					return (byte) (0xc2 + this.value);
 				}
 				case RawString : {
-
 					if (this.fix) {
 
 						return (byte) (0xa0 + this.size);
@@ -349,12 +334,10 @@ public class MessagePack {
 					}
 				}
 				case RawBinary : {
-
 					assert (!this.fix);
 					return (byte) (0xc4 + rightmostBitPostion(this.size));
 				}
 				case Map : {
-
 					if (this.fix) {
 
 						return (byte) (0x80 + this.size);
@@ -364,7 +347,6 @@ public class MessagePack {
 					}
 				}
 				case Array : {
-
 					if (this.fix) {
 
 						return (byte) (0x90 + this.size);
@@ -374,7 +356,6 @@ public class MessagePack {
 					}
 				}
 				case Extension : {
-
 					if (this.fix) {
 
 						return (byte) (0xd4 + rightmostBitPostion(this.size));
@@ -384,11 +365,9 @@ public class MessagePack {
 					}
 				}
 				case Nil : {
-
 					return (byte) 0xc0;
 				}
 				case None : {
-
 					return (byte) 0xc1;
 				}
 			}
@@ -471,9 +450,7 @@ public class MessagePack {
 			Object value = null;
 			// System.out.println(key + " rest: " + input.available());
 			switch (key.type) {
-
 				case Integer : {
-
 					if (key.fix) {
 
 						value = key.value;
@@ -484,13 +461,11 @@ public class MessagePack {
 					break;
 				}
 				case UnsignedInteger : {
-
 					assert (!key.fix);
 					value = decodeInteger(key.size, false, input);
 					break;
 				}
 				case Float : {
-
 					assert (!key.fix);
 					if (key.size == 4) {
 
@@ -502,12 +477,10 @@ public class MessagePack {
 					break;
 				}
 				case Boolean : {
-
 					value = key.value;
 					break;
 				}
 				case RawString : {
-
 					int length;
 					if (key.fix) {
 
@@ -520,14 +493,12 @@ public class MessagePack {
 					break;
 				}
 				case RawBinary : {
-
 					assert (!key.fix);
 					int length = (int) decodeInteger(key.size, false, input);
 					value = decodeBinary(length, input);
 					break;
 				}
 				case Map : {
-
 					int length;
 					if (key.fix) {
 
@@ -550,7 +521,6 @@ public class MessagePack {
 					break;
 				}
 				case Array : {
-
 					int length;
 					if (key.fix) {
 
@@ -573,7 +543,6 @@ public class MessagePack {
 					break;
 				}
 				case Extension : {
-
 					int length;
 					if (key.fix) {
 
@@ -588,12 +557,10 @@ public class MessagePack {
 					break;
 				}
 				case Nil : {
-
 					value = null;
 					break;
 				}
 				case None : {
-
 					value = null;
 					break;
 				}
@@ -635,7 +602,6 @@ public class MessagePack {
 
 			Key key;
 			{
-
 				String[] keyval = keyStr.split(":");
 				Key.Type type = Key.Type.fromString(keyval[1]);
 				int size = Integer.parseInt(keyval[2]);
@@ -645,9 +611,7 @@ public class MessagePack {
 			// System.out.println(key);
 
 			switch (key.type) {
-
 				case Integer : {
-
 					long value = ((Number) messages.get(keyStr)).longValue();
 					key.fitType((value));
 					output.write(key.toFirstByte());
@@ -659,7 +623,6 @@ public class MessagePack {
 					break;
 				}
 				case UnsignedInteger : {
-
 					assert (!key.fix);
 					long value = ((Number) messages.get(keyStr)).longValue();
 					key.fitType((value));
@@ -669,7 +632,6 @@ public class MessagePack {
 					break;
 				}
 				case Float : {
-
 					assert (!key.fix);
 					double value = (Double) messages.get(keyStr);
 					output.write(key.toFirstByte());
@@ -685,14 +647,12 @@ public class MessagePack {
 					break;
 				}
 				case Boolean : {
-
 					long value = ((Number) messages.get(keyStr)).longValue();
 					key.fitType(value);
 					output.write(key.toFirstByte());
 					break;
 				}
 				case RawString : {
-
 					String value = (String) messages.get(keyStr);
 					key.fitType((long) value.length());
 					output.write(key.toFirstByte());
@@ -705,7 +665,6 @@ public class MessagePack {
 					break;
 				}
 				case RawBinary : {
-
 					String value = (String) messages.get(keyStr);
 					key.fitType((long) value.length() / 2);
 					output.write(key.toFirstByte());
@@ -718,7 +677,6 @@ public class MessagePack {
 					break;
 				}
 				case Map : {
-
 					List<Object> list = (List<Object>) messages.get(keyStr);
 					key.fitType((long) list.size() / 2);
 					output.write(key.toFirstByte());
@@ -735,7 +693,6 @@ public class MessagePack {
 					break;
 				}
 				case Array : {
-
 					List<Object> list = (List<Object>) messages.get(keyStr);
 					key.fitType((long) list.size());
 					output.write(key.toFirstByte());
@@ -752,7 +709,6 @@ public class MessagePack {
 					break;
 				}
 				case Extension : {
-
 					String value = (String) messages.get(keyStr);
 					String[] typevalue = value.split(":");
 					byte type = (byte) Integer.parseInt(typevalue[0]);
@@ -769,12 +725,10 @@ public class MessagePack {
 					break;
 				}
 				case Nil : {
-
 					output.write(key.toFirstByte());
 					break;
 				}
 				case None : {
-
 					output.write(key.toFirstByte());
 					break;
 				}

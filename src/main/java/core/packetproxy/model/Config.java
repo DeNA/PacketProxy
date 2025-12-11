@@ -23,6 +23,7 @@ public class Config {
 
 	@DatabaseField(id = true)
 	private String key;
+
 	@DatabaseField
 	private String value;
 

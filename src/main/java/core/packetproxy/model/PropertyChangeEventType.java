@@ -18,7 +18,6 @@ package packetproxy.model;
 import java.beans.PropertyChangeEvent;
 
 public enum PropertyChangeEventType {
-
 	INTERCEPT_DATA("interceptData"), INTERCEPT_MODE("interceptMode"),
 
 	SSL_PASS_THROUGHS("sslPassThroughs"),

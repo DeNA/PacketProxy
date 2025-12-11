@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.BorderLayout;
@@ -39,10 +40,12 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 	private final int TRIMMING_SIZE = 100000;
 	private final int DEFAULT_SHOW_SIZE = 2000;
 	private BinaryTextPane binary_text;
+
 	@Override
 	public JTextPane getTextPane() {
 		return binary_text;
 	}
+
 	private boolean show_all;
 	private JComponent box_panel;
 	private JComponent panel;
@@ -362,6 +365,5 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 
 	@Override
 	public void dataChanged(byte[] data) {
-
 	}
 }

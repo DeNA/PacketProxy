@@ -50,5 +50,4 @@ public class SendFrameQueue {
 	public synchronized void clear() {
 		this.frames.clear();
 	}
-
 }

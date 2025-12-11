@@ -25,10 +25,12 @@ abstract class GUIHistoryPanel {
 	public abstract JTextPane getTextPane();
 
 	protected EventListenerList listenerList = new EventListenerList();
+
 	public interface DataChangedListener extends EventListener {
 
 		void dataChanged(byte[] data);
 	}
+
 	public void addDataChangedListener(DataChangedListener listener) {
 		listenerList.add(DataChangedListener.class, listener);
 	}

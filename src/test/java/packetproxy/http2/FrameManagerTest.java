@@ -71,5 +71,4 @@ public class FrameManagerTest {
 		h2.write(responseFrames);
 		h2.readControlFrames();
 	}
-
 }

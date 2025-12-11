@@ -206,7 +206,6 @@ public class OpenVPN {
 			execCommand(client, commands);
 			// change server/client config file(udp->tcp-server/tcp-client)
 			switch (proto) {
-
 				case "TCP" :
 					commands = new String[]{"/bin/sh", "-c",
 							"sed -i s/udp/tcp-server/ /opt/Dockovpn/config/server.conf"};

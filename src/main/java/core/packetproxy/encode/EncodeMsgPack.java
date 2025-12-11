@@ -52,5 +52,4 @@ public class EncodeMsgPack extends EncodeHTTPBase {
 		inputHttp.setBody(MessagePack.encode(new String(inputHttp.getBody())));
 		return inputHttp;
 	}
-
 }

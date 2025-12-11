@@ -33,6 +33,7 @@ public class GUILog {
 	private JPanel mainPanel;
 	private static GUILog instance;
 	private Object thread_lock;
+
 	public static GUILog getInstance() {
 		if (instance == null) {
 
@@ -59,7 +60,6 @@ public class GUILog {
 		try {
 
 			synchronized (thread_lock) {
-
 				StyledDocument doc = text.getStyledDocument();
 				doc.insertString(doc.getLength(), s + "\n\r", null);
 			}
@@ -72,7 +72,6 @@ public class GUILog {
 		try {
 
 			synchronized (thread_lock) {
-
 				SimpleAttributeSet keyWord = new SimpleAttributeSet();
 				StyleConstants.setBackground(keyWord, new Color(240, 150, 150));
 				StyleConstants.setBold(keyWord, true);

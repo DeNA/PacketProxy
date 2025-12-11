@@ -113,5 +113,4 @@ public class AckFrame extends Frame {
 	public boolean isAckEliciting() {
 		return false;
 	}
-
 }

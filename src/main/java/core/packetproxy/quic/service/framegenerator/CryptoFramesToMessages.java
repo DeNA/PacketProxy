@@ -66,7 +66,8 @@ public class CryptoFramesToMessages {
 
 		if (this.nextMessageLength == 0) {
 
-			if (this.messages.size() < 4) { /* header(4B) = messageType(1B) + messageLength(3B) */
+			if (this.messages.size() < 4) {
+				/* header(4B) = messageType(1B) + messageLength(3B) */
 
 				if (!refillOneCryptoFrameToNextMessageBuffer(this.alreadyParsedBytes + this.messages.size())) {
 
@@ -160,5 +161,4 @@ public class CryptoFramesToMessages {
 				throws TlsProtocolException, IOException {
 		}
 	}
-
 }

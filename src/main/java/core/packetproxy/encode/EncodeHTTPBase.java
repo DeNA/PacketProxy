@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.encode;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.InputStream;
@@ -28,6 +29,7 @@ public abstract class EncodeHTTPBase extends Encoder {
 	public enum HTTPVersion {
 		HTTP1, HTTP2, HTTP3
 	}
+
 	private HTTPVersion httpVersion;
 	private FramesBase http2;
 	private Http3 http3;
@@ -373,5 +375,4 @@ public abstract class EncodeHTTPBase extends Encoder {
 	protected abstract Http decodeClientRequestHttp(Http inputHttp) throws Exception;
 
 	protected abstract Http encodeClientRequestHttp(Http inputHttp) throws Exception;
-
 }

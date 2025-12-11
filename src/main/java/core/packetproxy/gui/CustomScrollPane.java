@@ -27,6 +27,7 @@ public class CustomScrollPane extends JScrollPane {
 		super();
 		addMouseWheelListener(new CustomMouseWheelListener());
 	}
+
 	class CustomMouseWheelListener implements MouseWheelListener {
 
 		private JScrollBar bar;

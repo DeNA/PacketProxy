@@ -32,5 +32,4 @@ public class ZeroRttKey extends Key {
 	public ZeroRttKey(byte[] secret, byte[] key, byte[] iv, byte[] hp) {
 		super(secret, key, iv, hp);
 	}
-
 }

@@ -15,6 +15,7 @@
  */
 
 package packetproxy.http3.service.stream;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.ByteArrayOutputStream;

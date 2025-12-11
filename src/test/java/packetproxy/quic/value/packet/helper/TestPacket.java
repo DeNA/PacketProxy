@@ -77,5 +77,4 @@ public class TestPacket extends QuicPacket implements PnSpacePacket {
 	public PnSpaceType getPnSpaceType() {
 		return PnSpaceInitial;
 	}
-
 }

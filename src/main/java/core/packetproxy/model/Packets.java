@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import static packetproxy.model.PropertyChangeEventType.PACKETS;
 import static packetproxy.util.Logging.errWithStackTrace;
@@ -83,7 +84,6 @@ public class Packets implements PropertyChangeListener {
 	// TODO できれば非同期でやる（大きいデータのときに数秒止まってしまうので）
 	public void create(Packet packet) throws Exception {
 		synchronized (dao) {
-
 			dao.createIfNotExists(packet);
 		}
 		firePropertyChange();
@@ -100,7 +100,6 @@ public class Packets implements PropertyChangeListener {
 		}
 		Dao.CreateOrUpdateStatus status;
 		synchronized (dao) {
-
 			status = dao.createOrUpdate(packet);
 		}
 		if (status.isCreated()) {
@@ -130,7 +129,6 @@ public class Packets implements PropertyChangeListener {
 
 	public void deleteAll() throws Exception {
 		synchronized (dao) {
-
 			dao.deleteBuilder().delete();
 		}
 		firePropertyChange();
@@ -138,7 +136,6 @@ public class Packets implements PropertyChangeListener {
 
 	public void delete(Packet packet) throws Exception {
 		synchronized (dao) {
-
 			dao.delete(packet);
 		}
 		firePropertyChange();
@@ -212,7 +209,6 @@ public class Packets implements PropertyChangeListener {
 		try {
 
 			switch (message) {
-
 				case PAUSE :
 					// TODO ロックを取る
 					break;

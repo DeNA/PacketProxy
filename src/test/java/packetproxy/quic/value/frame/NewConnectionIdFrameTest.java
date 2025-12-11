@@ -35,5 +35,4 @@ class NewConnectionIdFrameTest {
 		System.out.println(frame2);
 		assertThat(frame).isEqualTo(frame2);
 	}
-
 }

@@ -40,5 +40,4 @@ public class InitialKey extends Key {
 	public InitialKey(byte[] secret, byte[] key, byte[] iv, byte[] hp) {
 		super(secret, key, iv, hp);
 	}
-
 }

@@ -51,5 +51,4 @@ public class ScheduledTimer {
 			this.future.cancel(false);
 		}
 	}
-
 }

@@ -86,5 +86,4 @@ public class AckEcnFrame extends AckFrame {
 	public boolean isAckEliciting() {
 		return false;
 	}
-
 }

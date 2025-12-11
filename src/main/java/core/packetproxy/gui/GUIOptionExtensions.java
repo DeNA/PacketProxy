@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.event.ActionEvent;
@@ -49,7 +50,8 @@ public class GUIOptionExtensions extends GUIOptionComponentBase<Extension> imple
 
 					int columnIndex = table.columnAtPoint(e.getPoint());
 					int rowIndex = table.rowAtPoint(e.getPoint());
-					if (columnIndex == 0) { /* check box area */
+					if (columnIndex == 0) {
+						/* check box area */
 
 						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 0);
 						Extension ext = getSelectedTableContent();

@@ -23,8 +23,10 @@ public class Filter {
 
 	@DatabaseField(generatedId = true)
 	private int id;
+
 	@DatabaseField(unique = true)
 	private String name;
+
 	@DatabaseField
 	private String filter;
 

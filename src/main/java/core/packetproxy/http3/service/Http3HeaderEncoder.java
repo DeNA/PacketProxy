@@ -38,16 +38,12 @@ public class Http3HeaderEncoder {
 		this.encoder.setCapacity((int) capacity);
 	}
 
-	/**
-	 * エンコーダに命令を入力する Note: エンコーダの内部状態が変化します
-	 */
+	/** エンコーダに命令を入力する Note: エンコーダの内部状態が変化します */
 	public void putInstructions(byte[] instructions) throws QpackException {
 		this.encoder.parseInstructions(ByteBuffer.wrap(instructions));
 	}
 
-	/**
-	 * 現在のデコーダの内部状態を命令化する
-	 */
+	/** 現在のデコーダの内部状態を命令化する */
 	public byte[] getInstructions() {
 		ByteArrayOutputStream encoderInsts = new ByteArrayOutputStream();
 		this.lease.getByteBuffers()
@@ -55,14 +51,11 @@ public class Http3HeaderEncoder {
 		return encoderInsts.toByteArray();
 	}
 
-	/**
-	 * ヘッダをエンコードする Note: エンコーダの内部状態が変化します
-	 */
+	/** ヘッダをエンコードする Note: エンコーダの内部状態が変化します */
 	public byte[] encode(long streamId, MetaData metaData) throws QpackException {
 		ByteBuffer buffer = ByteBuffer.allocate(4096);
 		this.encoder.encode(buffer, streamId, metaData);
 		buffer.flip();
 		return SimpleBytes.parse(buffer, buffer.remaining()).getBytes();
 	}
-
 }

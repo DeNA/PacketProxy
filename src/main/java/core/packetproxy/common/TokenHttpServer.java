@@ -74,5 +74,4 @@ public class TokenHttpServer extends NanoHTTPD {
 
 		return NanoHTTPD.newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_HTML, null);
 	}
-
 }

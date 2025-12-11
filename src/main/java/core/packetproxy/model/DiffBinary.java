@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.common.primitives.Bytes;
@@ -51,7 +52,9 @@ public class DiffBinary extends DiffBase {
 
 	private DiffBinary() {
 	}
+
 	static DiffBinary instance = null;
+
 	public static DiffBinary getInstance() throws Exception {
 		if (instance == null) {
 

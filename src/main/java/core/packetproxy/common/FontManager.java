@@ -46,7 +46,6 @@ public class FontManager {
 	private MultiKeyMap<String, LocaleFontStyles> defaultFonts = new MultiKeyMap<String, LocaleFontStyles>() {
 
 		{
-
 			put(new MultiKey<String>("Windows", Locale.JAPAN.getLanguage()),
 					new LocaleFontStyles(new FontStyle("SansSerif", 13), new FontStyle("ＭＳ ゴシック", 13)));
 			put(new MultiKey<String>("Windows", Locale.ENGLISH.getLanguage()),
@@ -129,6 +128,7 @@ public class FontManager {
 
 		String fontName;
 		int fontSize;
+
 		FontStyle(String fontName, int fontSize) {
 			this.fontName = fontName;
 			this.fontSize = fontSize;
@@ -139,6 +139,7 @@ public class FontManager {
 
 		FontStyle uiFont;
 		FontStyle font;
+
 		LocaleFontStyles(FontStyle uiFont, FontStyle font) {
 			this.uiFont = uiFont;
 			this.font = font;

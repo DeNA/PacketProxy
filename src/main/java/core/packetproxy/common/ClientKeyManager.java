@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.common;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.util.HashMap;
@@ -23,9 +24,7 @@ import packetproxy.model.ClientCertificate;
 import packetproxy.model.ClientCertificates;
 import packetproxy.model.Server;
 
-/**
- * KeyManager Class for Client Certificate
- */
+/** KeyManager Class for Client Certificate */
 public class ClientKeyManager {
 
 	private static HashMap<Integer, KeyManager[]> keyManagersHashMap = new HashMap<>();

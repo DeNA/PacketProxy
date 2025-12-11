@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.model.PropertyChangeEventType.CONFIGS;
 import static packetproxy.util.Logging.errWithStackTrace;
 
@@ -183,7 +184,6 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 	private JCheckBox createCheckBox() {
 		checkBox = new JCheckBox(I18nString.get("Use private DNS server"));
 		checkBox.addActionListener(e -> {
-
 			if (checkBox.isSelected())
 				privateDNS.start(new DNSSpoofingIPGetter(this));
 			else

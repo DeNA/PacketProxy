@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.extensions.randomness;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
@@ -121,7 +122,6 @@ public class RandomnessExtension extends Extension {
 
 	private JComponent createSendPanel() throws Exception {
 		sendData = new GUIBulkSenderData(owner, GUIBulkSenderData.Type.CLIENT, data -> {
-
 			OneShotPacket pkt = sendPacket;
 			if (pkt != null)
 				pkt.setData(data);
@@ -181,7 +181,6 @@ public class RandomnessExtension extends Extension {
 					for (int i = 0; i < count; i++) {
 
 						future = future.thenApplyAsync(arg -> {
-
 							try {
 
 								ResendController.getInstance().resend(new ResendController.ResendWorker(sendPacket, 1) {
@@ -226,7 +225,6 @@ public class RandomnessExtension extends Extension {
 							return arg;
 						});
 						future = future.thenApplyAsync(arg -> {
-
 							try {
 
 								Thread.sleep(100); // wait 0.1 sec before sending next packet
@@ -312,7 +310,6 @@ public class RandomnessExtension extends Extension {
 					// preprocess
 					ArrayList<Integer[]> preprocessed = new ArrayList<>();
 					switch (preprocessKey) {
-
 						case "hex" :
 							for (String token : tokens) {
 

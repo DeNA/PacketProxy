@@ -308,5 +308,4 @@ public class HeadersFrame extends Frame {
 
 		saveExtra(buf.toByteArray());
 	}
-
 }

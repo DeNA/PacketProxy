@@ -31,5 +31,4 @@ class SettingTest {
 		assertThat(setting.getEnableConnectProtocol()).isEqualTo(0);
 		assertThat(setting.getMaxFieldSectionSize()).isEqualTo(Long.MAX_VALUE);
 	}
-
 }

@@ -25,10 +25,13 @@ public class SSLPassThrough {
 
 	@DatabaseField(generatedId = true)
 	private int id;
+
 	@DatabaseField
 	private Boolean enabled;
+
 	@DatabaseField(uniqueCombo = true)
 	private String server_name;
+
 	@DatabaseField(uniqueCombo = true)
 	private int listen_port;
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import javax.swing.JComponent;
@@ -93,7 +94,6 @@ public class GUIPacket {
 
 	public byte[] getData() {
 		switch (packet_pane.getSelectedIndex()) {
-
 			case 0 :
 				return received_panel.getData();
 			case 1 :
@@ -113,7 +113,6 @@ public class GUIPacket {
 			return;
 		}
 		switch (packet_pane.getSelectedIndex()) {
-
 			case 0 :
 				received_panel.setData(showing_packet.getReceivedData());
 				break;

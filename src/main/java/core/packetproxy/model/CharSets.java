@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+
 import static packetproxy.model.PropertyChangeEventType.CHARSET_UPDATED;
 import static packetproxy.util.Logging.errWithStackTrace;
 
@@ -132,7 +133,6 @@ public class CharSets implements PropertyChangeListener {
 		try {
 
 			switch (message) {
-
 				case PAUSE :
 					// TODO ロックを取る
 					break;

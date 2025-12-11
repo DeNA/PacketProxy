@@ -25,8 +25,10 @@ import lombok.experimental.NonFinal;
 public class QuicPacket {
 
 	byte maskedType;
+
 	@NonFinal
 	byte type; /* Packet number length bits are not included. all the bits should be cleared */
+
 	@NonFinal
 	int origPnLength;
 
@@ -56,7 +58,8 @@ public class QuicPacket {
 
 			leftHand = (byte) (type & (byte) 0xe0);
 			rightHand = (byte) ((type ^ maskKey[0]) & 0x1f);
-		} else { /* headerType == LongHeaderType */
+		} else {
+			/* headerType == LongHeaderType */
 
 			leftHand = (byte) (type & (byte) 0xf0);
 			rightHand = (byte) ((type ^ maskKey[0]) & 0x0f);
@@ -89,5 +92,4 @@ public class QuicPacket {
 	protected int size() {
 		return 1;
 	}
-
 }

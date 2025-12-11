@@ -33,5 +33,4 @@ public class QpackWriteStreamTest {
 		assertThat(msgs.size()).isEqualTo(1);
 		assertThat(msgs.get(0)).isEqualTo(QuicMessage.of(StreamId.of(0xa), new byte[]{0x3, 0x11, 0x22, 0x33}));
 	}
-
 }

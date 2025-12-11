@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.common;
+
 import static packetproxy.util.Logging.log;
 
 import java.io.ByteArrayInputStream;

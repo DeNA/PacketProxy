@@ -32,22 +32,29 @@ public class Modification {
 	public enum Direction {
 		CLIENT_REQUEST, SERVER_RESPONSE, ALL
 	};
+
 	public enum Method {
 		SIMPLE, REGEX, BINARY
 	};
 
 	@DatabaseField(generatedId = true)
 	private int id;
+
 	@DatabaseField
 	private Boolean enabled;
+
 	@DatabaseField(uniqueCombo = true)
 	private int server_id;
+
 	@DatabaseField(uniqueCombo = true)
 	private Direction direction;
+
 	@DatabaseField(uniqueCombo = true)
 	private String pattern;
+
 	@DatabaseField(uniqueCombo = true)
 	private Method method;
+
 	@DatabaseField
 	private String replaced;
 

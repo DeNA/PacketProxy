@@ -21,6 +21,7 @@ import org.apache.commons.lang3.ObjectUtils.Null;
 public class OptionTableModel extends DefaultTableModel {
 
 	private static final long serialVersionUID = 1L;
+
 	public OptionTableModel(String[] columnNames, int rowNum) {
 		super(columnNames, rowNum);
 	}

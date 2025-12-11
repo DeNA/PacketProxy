@@ -68,5 +68,4 @@ public class PingFrame extends Frame {
 	public boolean isAckEliciting() {
 		return true;
 	}
-
 }

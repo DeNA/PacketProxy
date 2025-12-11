@@ -28,7 +28,7 @@ import packetproxy.quic.value.frame.StreamFrame;
 @Getter
 public class ContinuousStream {
 
-	private final Map<Long/*offset*/, StreamFrame> frameMap = new HashMap<>();
+	private final Map<Long /*offset*/, StreamFrame> frameMap = new HashMap<>();
 	private final StreamId streamId;
 	private long currentOffset = 0;
 	private boolean finished = false;

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.event.KeyEvent;
@@ -247,6 +248,7 @@ abstract class ExtendedTextPane extends JTextPane {
 
 		void dataChanged(byte[] data);
 	}
+
 	public void addDataChangedListener(DataChangedListener listener) {
 		listenerList.add(DataChangedListener.class, listener);
 	}

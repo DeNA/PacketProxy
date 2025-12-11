@@ -27,6 +27,7 @@ public class Binary {
 	public static class HexString {
 
 		private String str;
+
 		public HexString(String str) {
 			this.str = str;
 		}
@@ -40,6 +41,7 @@ public class Binary {
 	public static class AsciiString {
 
 		private String str;
+
 		public AsciiString(String str) {
 			this.str = str;
 		}

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.common;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.text.ParseException;
@@ -46,71 +47,70 @@ public class FilterTextParser {
 	private static HashedMap<String, Integer> columnMapper = new HashedMap<String, Integer>() {
 
 		{
-
 			put("id", 0);
 		}
-		{
 
+		{
 			put("request", 1);
 		}
-		{
 
+		{
 			put("response", 2);
 		}
-		{
 
+		{
 			put("length", 3);
 		}
-		{
 
+		{
 			put("client_ip", 4);
 		}
-		{
 
+		{
 			put("client_port", 5);
 		}
-		{
 
+		{
 			put("server_ip", 6);
 		}
-		{
 
+		{
 			put("server_port", 7);
 		}
-		{
 
+		{
 			put("time", 8);
 		}
-		{
 
+		{
 			put("resend", 9);
 		}
-		{
 
+		{
 			put("modified", 10);
 		}
-		{
 
+		{
 			put("type", 11);
 		}
-		{
 
+		{
 			put("encode", 12);
 		}
-		{
 
+		{
 			put("alpn", 13);
 		}
-		{
 
+		{
 			put("group", 14);
 		}
-		{
 
+		{
 			put("full_text", 15);
 		}
-		{
 
+		{
 			put("full_text_i", 16);
 		}
 	};
@@ -274,11 +274,13 @@ public class FilterTextParser {
 	private static RowFilter<Object, Object> generateRequestRowFilter(String searchWord, int column) throws Exception {
 		return new RequestRowFilter(searchWord, new int[]{column});
 	}
+
 	private static class RequestRowFilter extends MyGeneralFilter {
 
 		Set<Long> groupIds;
 		String searchWord;
 		int already_analyzed_row_num = 0;
+
 		public RequestRowFilter(String searchWord, int[] columns) throws Exception {
 			super(columns);
 			this.searchWord = searchWord;
@@ -342,11 +344,13 @@ public class FilterTextParser {
 		packets.stream().forEach(p -> fullTextRowFilter.groupIds.add(p.getGroup()));
 		return fullTextRowFilter;
 	}
+
 	private static class FullTextRowFilter extends MyGeneralFilter {
 
 		Set<Long> groupIds;
 		String searchWord;
 		long already_analyzed_row_num = 0;
+
 		public FullTextRowFilter(String searchWord, int[] columns) throws Exception {
 			super(columns);
 			this.searchWord = searchWord;
@@ -371,6 +375,7 @@ public class FilterTextParser {
 	private abstract static class MyGeneralFilter extends RowFilter<Object, Object> {
 
 		private int[] columns;
+
 		MyGeneralFilter(int[] columns) {
 			this.columns = columns;
 		}

@@ -39,16 +39,12 @@ public class Http3HeaderDecoder {
 		this.decoder = new QpackDecoder(instructions -> instructions.forEach(i -> i.encode(this.lease)), 1024 * 1024);
 	}
 
-	/**
-	 * デコーダに命令を入力する Note: デコーダの内部状態が変化します
-	 */
+	/** デコーダに命令を入力する Note: デコーダの内部状態が変化します */
 	public void putInstructions(byte[] instructions) throws QpackException {
 		this.decoder.parseInstructions(ByteBuffer.wrap(instructions));
 	}
 
-	/**
-	 * 現在のデコーダの内部状態を命令化する
-	 */
+	/** 現在のデコーダの内部状態を命令化する */
 	public byte[] getInstructions() {
 		ByteArrayOutputStream decoderInsts = new ByteArrayOutputStream();
 		this.lease.getByteBuffers()
@@ -56,16 +52,12 @@ public class Http3HeaderDecoder {
 		return decoderInsts.toByteArray();
 	}
 
-	/**
-	 * エンコードされたヘッダをデコードする Note: デコーダの内部状態が変化します
-	 */
+	/** エンコードされたヘッダをデコードする Note: デコーダの内部状態が変化します */
 	public List<MetaData> decode(long streamId, byte[] headerEncoded) throws QpackException {
 		List<MetaData> metaDataList = new ArrayList<>();
 		this.decoder.decode(streamId, ByteBuffer.wrap(headerEncoded), (sid, metadata) -> {
-
 			metaDataList.add(metadata);
 		});
 		return metaDataList;
 	}
-
 }

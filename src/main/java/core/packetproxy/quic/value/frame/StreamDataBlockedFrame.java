@@ -57,5 +57,4 @@ public class StreamDataBlockedFrame extends Frame {
 	public boolean isAckEliciting() {
 		return true;
 	}
-
 }

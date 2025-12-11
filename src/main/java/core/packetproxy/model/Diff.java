@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import difflib.Chunk;
@@ -51,7 +52,9 @@ public class Diff extends DiffBase {
 
 	private Diff() {
 	}
+
 	static Diff instance = null;
+
 	public static Diff getInstance() throws Exception {
 		if (instance == null) {
 

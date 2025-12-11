@@ -123,7 +123,6 @@ public class TabSet {
 			return new byte[]{};
 		}
 		switch (getSelectedIndex()) {
-
 			case 0 :
 				return raw_panel.getData();
 			case 1 :
@@ -172,7 +171,6 @@ public class TabSet {
 		try {
 
 			switch (getSelectedIndex()) {
-
 				case 0 :
 					raw_panel.setData(data);
 					break;
@@ -191,7 +189,6 @@ public class TabSet {
 				return;
 			}
 			switch (getSelectedIndex()) {
-
 				case 0 :
 					searchBox.setVisible(true);
 					searchBox.setBaseText(raw_panel.getTextPane(), emphasis);

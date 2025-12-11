@@ -40,6 +40,7 @@ public class PacketNumber {
 
 	@Getter(AccessLevel.NONE)
 	boolean infinite;
+
 	long number;
 
 	private PacketNumber() {
@@ -95,5 +96,4 @@ public class PacketNumber {
 	public String toString() {
 		return "PacketNumber(" + (this.infinite ? "INF" : this.number) + ")";
 	}
-
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.event.ActionEvent;
@@ -42,9 +43,11 @@ public class GUIMenu extends JMenuBar {
 	private static final String defaultDir = System.getProperty("user.home");
 	GUIMenu self;
 	JFrame owner;
+
 	private enum Panes {
 		HISTORY, INTERCEPT, RESENDER, BULKSENDER, OPTIONS, LOG
 	};
+
 	public GUIMenu(JFrame owner) {
 		self = this;
 		this.owner = owner;

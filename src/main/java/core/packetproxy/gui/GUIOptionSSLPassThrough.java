@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.model.PropertyChangeEventType.SSL_PASS_THROUGHS;
 import static packetproxy.util.Logging.errWithStackTrace;
 
@@ -50,7 +51,8 @@ public class GUIOptionSSLPassThrough extends GUIOptionComponentBase<SSLPassThrou
 
 					int columnIndex = table.columnAtPoint(e.getPoint());
 					int rowIndex = table.rowAtPoint(e.getPoint());
-					if (columnIndex == 0) { /* check box area */
+					if (columnIndex == 0) {
+						/* check box area */
 
 						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 0);
 						SSLPassThrough ssl = getSelectedTableContent();

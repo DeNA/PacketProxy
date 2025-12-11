@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Container;
@@ -115,13 +116,11 @@ public class GUIOptionClientCertificateDialog extends JDialog {
 		certificateTypeCombo.setSelectedIndex(0); /* default p12 */
 		certificateTypeCombo.setMaximumRowCount(ClientCertificate.Type.values().length);
 		certificateTypeCombo.addItemListener(e -> {
-
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 
 				String t = (String) e.getItem();
 				certFilePath.resetChoosableFileFilters();
 				switch (ClientCertificate.Type.getTypeFromText(t)) {
-
 					case JKS :
 						certFilePath.addChoosableFileFilter(
 								new FileNameExtensionFilter(I18nString.get("Client Certificate file (*.jks)"), "jks"));
@@ -146,7 +145,6 @@ public class GUIOptionClientCertificateDialog extends JDialog {
 
 		JButton button = new JButton(I18nString.get("choose..."));
 		button.addActionListener(arg0 -> {
-
 			try {
 
 				certFilePath.setAcceptAllFileFilterUsed(false);
@@ -210,13 +208,11 @@ public class GUIOptionClientCertificateDialog extends JDialog {
 		c.add(panel);
 
 		buttonCancel.addActionListener(e -> {
-
 			certificate = null;
 			dispose();
 		});
 
 		buttonSet.addActionListener(e -> {
-
 			try {
 
 				ClientCertificate.Type type = ClientCertificate.Type

@@ -34,16 +34,22 @@ public class Packet implements PacketInfo {
 
 	@DatabaseField(generatedId = true)
 	private int id;
+
 	@DatabaseField(dataType = DataType.ENUM_STRING)
 	private Direction direction;
+
 	@DatabaseField(dataType = DataType.BYTE_ARRAY)
 	private byte[] decoded_data;
+
 	@DatabaseField(dataType = DataType.BYTE_ARRAY)
 	private byte[] modified_data;
+
 	@DatabaseField(dataType = DataType.BYTE_ARRAY)
 	private byte[] sent_data;
+
 	@DatabaseField(dataType = DataType.BYTE_ARRAY)
 	private byte[] received_data;
+
 	@DatabaseField
 	private int listen_port;
 	@DatabaseField
@@ -68,8 +74,10 @@ public class Packet implements PacketInfo {
 	private boolean modified;
 	@DatabaseField
 	private boolean resend;
+
 	@DatabaseField(dataType = DataType.DATE_LONG)
 	private Date date;
+
 	@DatabaseField
 	private int conn;
 	@DatabaseField
@@ -129,7 +137,6 @@ public class Packet implements PacketInfo {
 	public OneShotPacket getOneShotPacket(byte[] data) {
 		return new OneShotPacket(getId(), getListenPort(), getClient(), getServer(), getServerName(), getUseSSL(), data,
 				getEncoder(), getAlpn(), getDirection(), getConn(), getGroup());
-
 	}
 
 	public void setModifiedData(byte[] data) {
@@ -292,6 +299,5 @@ public class Packet implements PacketInfo {
 	}
 
 	public void decode() {
-
 	}
 }

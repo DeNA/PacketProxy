@@ -186,5 +186,4 @@ public class LongHeaderPnSpacePacket extends LongHeaderPacket implements PnSpace
 
 	protected void getBytesExtra(ByteBuffer buffer) throws Exception {
 	};
-
 }

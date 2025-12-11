@@ -62,5 +62,4 @@ public class RawFrame implements Frame {
 	public String toString() {
 		return String.format("RawFrame(data=[%s])", Hex.encodeHexString(this.data));
 	}
-
 }

@@ -133,5 +133,4 @@ class AckFrameGeneratorTest {
 		assertEquals(0, ackFrame2.getAckRanges().get(0).getGap());
 		assertEquals(0, ackFrame2.getAckRanges().get(0).getAckRangeLength());
 	}
-
 }

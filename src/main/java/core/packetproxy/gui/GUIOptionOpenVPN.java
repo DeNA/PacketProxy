@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Color;
@@ -271,7 +272,6 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 	private JCheckBox createCheckBox() {
 		checkBox = new JCheckBox(I18nString.get("Use OpenVPN"));
 		checkBox.addActionListener(e -> {
-
 			if (checkBox.isSelected()) {
 
 				String proto = vpnProtocol.getSelectedItem().toString();

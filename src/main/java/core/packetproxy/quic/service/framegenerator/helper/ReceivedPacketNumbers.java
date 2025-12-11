@@ -88,5 +88,4 @@ public class ReceivedPacketNumbers {
 		}
 		return Math.max(smallestValid, unreceivedPacketNumbers.floor(largestOfRange) + 1);
 	}
-
 }

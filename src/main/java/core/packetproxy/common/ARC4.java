@@ -27,14 +27,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 package packetproxy.common;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.math.BigInteger;
 import java.util.Random;
 
-/**
- * An unofficial implementation of the ARC4 cipher algorithm.
- */
+/** An unofficial implementation of the ARC4 cipher algorithm. */
 public class ARC4 implements Cloneable {
 
 	private byte[] key;
@@ -42,9 +41,7 @@ public class ARC4 implements Cloneable {
 	private int x;
 	private int y;
 
-	/**
-	 * Constructs a new ARC4 object with a randomly generated encryption key.
-	 */
+	/** Constructs a new ARC4 object with a randomly generated encryption key. */
 	public ARC4() {
 		this.state = new byte[256];
 		this.key = new BigInteger(2048, new Random()).toByteArray();
@@ -68,9 +65,7 @@ public class ARC4 implements Cloneable {
 		reset();
 	}
 
-	/**
-	 * Resets the cipher to start encrypting a new stream of data.
-	 */
+	/** Resets the cipher to start encrypting a new stream of data. */
 	public void reset() {
 		// The key-scheduling algorithm
 		for (int i = 0; i < 256; i++) {

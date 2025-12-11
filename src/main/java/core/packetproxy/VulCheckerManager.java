@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.common.collect.ImmutableMap;

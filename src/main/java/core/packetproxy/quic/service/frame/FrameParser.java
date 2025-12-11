@@ -79,5 +79,4 @@ public class FrameParser {
 			return createInstance(klass, buffer);
 		}
 	}
-
 }

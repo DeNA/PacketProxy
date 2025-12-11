@@ -84,5 +84,4 @@ public class QuicPacketBuilder {
 		}
 		throw new Exception("error: unknown packet type");
 	}
-
 }

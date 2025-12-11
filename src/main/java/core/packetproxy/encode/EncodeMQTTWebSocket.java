@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.encode;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.mobius.software.mqtt.parser.MQJsonParser;
@@ -50,6 +51,7 @@ public class EncodeMQTTWebSocket extends EncodeHTTPWebSocket {
 	}
 
 	public static MQJsonParser parser = new MQJsonParser();
+
 	private byte[] encodeMQTT(byte[] b) throws Exception {
 		String json = new String(b);
 		MQMessage m = parser.messageObject(json);

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+
 import static packetproxy.model.PropertyChangeEventType.MODIFICATIONS_UPDATED;
 import static packetproxy.util.Logging.errWithStackTrace;
 
@@ -173,7 +174,6 @@ public class Modifications implements PropertyChangeListener {
 		try {
 
 			switch (message) {
-
 				case PAUSE :
 					// TODO ロックを取る
 					break;

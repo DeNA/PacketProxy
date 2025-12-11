@@ -38,9 +38,7 @@ public class AwaitingPackets<T> {
 		return this.awaitings.poll();
 	}
 
-	/**
-	 * 全ての要素に対して関数を適用する。関数の結果がtrueになった場合は要素から削除
-	 */
+	/** 全ての要素に対して関数を適用する。関数の結果がtrueになった場合は要素から削除 */
 	public synchronized void forEachAndRemovedIfReturnTrue(Predicate<T> predicate) {
 		T e;
 		List<T> targets = new ArrayList<>();
@@ -50,7 +48,6 @@ public class AwaitingPackets<T> {
 		}
 		List<T> failed = new ArrayList<>();
 		targets.forEach(target -> {
-
 			if (!predicate.test(target)) {
 
 				failed.add(target);
@@ -61,5 +58,4 @@ public class AwaitingPackets<T> {
 			this.awaitings.addAll(failed);
 		}
 	}
-
 }

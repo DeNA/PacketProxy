@@ -15,16 +15,18 @@ public class ConfigIO {
 
 		@SerializedName(value = "listenPorts")
 		List<ListenPort> listenPortList;
+
 		@SerializedName(value = "servers")
 		List<Server> serverList;
+
 		@SerializedName(value = "modifications")
 		List<Modification> modificationList;
+
 		@SerializedName(value = "sslPassThroughs")
 		List<SSLPassThrough> sslPassThroughList;
 	}
 
 	public ConfigIO() {
-
 	}
 
 	private void fixUpServerList(Map<Integer, Integer> serverMap, List<Server> serverList) {

@@ -104,7 +104,6 @@ public abstract class PnSpace {
 		 * ack-eliciting was newly acked.
 		 */
 		newlyAckedPackets.getLargest().ifPresent(packet -> {
-
 			if (packet.getPacketNumber() == ackFrame.getLargestAckedPn()
 					&& newlyAckedPackets.hasAnyAckElicitingPacket()) {
 
@@ -157,7 +156,6 @@ public abstract class PnSpace {
 
 				frameToMsgCryptoStream.write((CryptoFrame) frame);
 				frameToMsgCryptoStream.getHandshakeMessages().forEach(rethrow(msg -> {
-
 					this.conn.getHandshake().received(msg);
 				}));
 			} else if (frame instanceof StreamFrame) {
@@ -165,7 +163,6 @@ public abstract class PnSpace {
 				StreamFrame streamFrame = (StreamFrame) frame;
 				this.frameToMsgStream.put(streamFrame);
 				this.frameToMsgStream.get(streamFrame.getStreamId()).ifPresent(rethrow(msg -> {
-
 					OutputStream os = this.conn.getPipe().getRawEndpoint().getOutputStream();
 					os.write(msg.getBytes());
 					os.flush();
@@ -251,7 +248,6 @@ public abstract class PnSpace {
 
 	public void OnPacketsLost(LostPackets lostPackets) {
 		lostPackets.stream().forEach(sentPacket -> {
-
 			this.addSendFrames(sentPacket.getPacket().getFrames()); /* resend packet */
 		});
 	}
@@ -295,5 +291,4 @@ public abstract class PnSpace {
 		}
 		return lostPackets;
 	}
-
 }

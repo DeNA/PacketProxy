@@ -109,5 +109,4 @@ public class HeadersFrameTest {
 		HeadersFrame headerFrame = new HeadersFrame(frameData, decoder);
 		System.out.println(new String(headerFrame.getExtra()));
 	}
-
 }

@@ -70,7 +70,6 @@ public class SentPackets implements Iterable<SentPacket> {
 		PacketNumbers ackPns = ackFrame.getAckedPacketNumbers();
 		SentPackets newlyAckedPns = new SentPackets();
 		ackPns.stream().forEach(pn -> {
-
 			if (sentPacketMap.containsKey(pn)) {
 
 				SentPacket sentPacket = sentPacketMap.remove(pn);

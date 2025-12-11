@@ -40,5 +40,4 @@ public class StatelessResetTokenParameter extends TransportParameter {
 	public byte[] getValue() {
 		return super.parameterValue;
 	}
-
 }

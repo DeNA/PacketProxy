@@ -47,5 +47,4 @@ public class LostPackets implements Iterable<SentPacket> {
 	public Iterator<SentPacket> iterator() {
 		return lostPackets.values().iterator();
 	}
-
 }

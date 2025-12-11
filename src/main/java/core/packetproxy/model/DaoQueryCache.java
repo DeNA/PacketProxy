@@ -26,6 +26,7 @@ import java.util.List;
 public class DaoQueryCache<T> {
 
 	private HashMap<String, HashMap<Integer, List<T>>> query_cache;
+
 	public DaoQueryCache() {
 		clear();
 	}

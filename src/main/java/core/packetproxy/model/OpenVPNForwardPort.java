@@ -22,7 +22,6 @@ import com.j256.ormlite.table.DatabaseTable;
 public class OpenVPNForwardPort {
 
 	public enum TYPE {
-
 		TCP("tcp"), UDP("udp");
 
 		private final String proto;
@@ -38,10 +37,13 @@ public class OpenVPNForwardPort {
 
 	@DatabaseField(generatedId = true)
 	private int id;
+
 	@DatabaseField(uniqueCombo = true)
 	private TYPE type;
+
 	@DatabaseField(uniqueCombo = true)
 	private int fromPort;
+
 	@DatabaseField(uniqueCombo = true)
 	private int toPort;
 

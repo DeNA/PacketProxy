@@ -38,7 +38,6 @@ class Http3HeaderEncoderDecoderTest {
 
 		decoder.putInstructions(headerInsts);
 		decoder.decode(0, headerEncoded).forEach(outputHeader -> {
-
 			HttpFields fields = outputHeader.getFields();
 			System.out.println(fields);
 		});
@@ -71,7 +70,6 @@ class Http3HeaderEncoderDecoderTest {
 						.toCharArray());
 		Http3HeaderDecoder decoder = new Http3HeaderDecoder();
 		decoder.decode(0, bytes).forEach(outputHeader -> {
-
 			if (outputHeader.isRequest()) {
 
 				MetaData.Request request = (MetaData.Request) outputHeader;
@@ -79,12 +77,10 @@ class Http3HeaderEncoderDecoderTest {
 						request.getHttpVersion());
 				System.out.printf("host: %s%n", request.getURI().getHost());
 				request.getFields().forEach(field -> {
-
 					System.out.printf("%s: %s%n", field.getName(), field.getValue());
 				});
 			}
 		});
 		assertThat(decoder.getInstructions().length).isEqualTo(0);
 	}
-
 }

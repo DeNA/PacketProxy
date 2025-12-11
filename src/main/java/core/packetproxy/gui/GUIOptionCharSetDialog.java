@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Container;
@@ -194,6 +195,7 @@ public class GUIOptionCharSetDialog extends JDialog {
 			}
 		});
 	}
+
 	class CharSetsTableModel extends DefaultTableModel {
 
 		public CharSetsTableModel(Object[][] data, Object[] columnNames) {
@@ -238,6 +240,5 @@ public class GUIOptionCharSetDialog extends JDialog {
 			}
 			return ret;
 		}
-
 	}
 }
