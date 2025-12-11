@@ -27,7 +27,6 @@ public class I18nString {
 	public static Locale currentLocale = null;
 
 	static {
-
 		currentLocale = Locale.getDefault();
 		if (currentLocale == Locale.JAPAN) {
 
@@ -73,5 +72,4 @@ public class I18nString {
 		}
 		return message;
 	}
-
 }

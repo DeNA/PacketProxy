@@ -40,9 +40,7 @@ public class RttEstimator {
 		this.conn = conn;
 	}
 
-	/**
-	 * ref: https://www.rfc-editor.org/rfc/rfc9002.html#section-a.7
-	 */
+	/** ref: https://www.rfc-editor.org/rfc/rfc9002.html#section-a.7 */
 	public void updateRtt(Instant timeSent, long ackDelay) {
 
 		Instant timeReceived = Instant.now();

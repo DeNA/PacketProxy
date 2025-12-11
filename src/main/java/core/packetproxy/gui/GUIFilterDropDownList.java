@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.err;
 import static packetproxy.util.Logging.errWithStackTrace;
 

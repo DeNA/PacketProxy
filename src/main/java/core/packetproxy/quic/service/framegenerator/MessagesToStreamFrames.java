@@ -35,7 +35,8 @@ public class MessagesToStreamFrames {
 	public synchronized void put(QuicMessage msg) {
 		StreamId streamId = msg.getStreamId();
 
-		if (streamId.isBidirectional()) { /* bi-directional stream */
+		if (streamId.isBidirectional()) {
+			/* bi-directional stream */
 
 			byte[] data = msg.getData();
 			int remaining = data.length;
@@ -50,7 +51,8 @@ public class MessagesToStreamFrames {
 				subOffset += subLength;
 			}
 
-		} else { /* uni-directional stream */
+		} else {
+			/* uni-directional stream */
 
 			Long offsetObj = this.continuousStreamMap.get(streamId);
 			long offset = 0;
@@ -74,13 +76,10 @@ public class MessagesToStreamFrames {
 		}
 	}
 
-	/**
-	 * get and remove all StreamFrames
-	 */
+	/** get and remove all StreamFrames */
 	public synchronized Frames get() {
 		Frames frames = Frames.of(this.frameList);
 		this.frameList.clear();
 		return frames;
 	}
-
 }

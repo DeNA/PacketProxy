@@ -27,6 +27,7 @@ public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataCh
 
 	private RawTextPane raw_text;
 	private JsonSyntaxHighlighter jsonHighlighter;
+
 	@Override
 	public JTextPane getTextPane() {
 		return raw_text;
@@ -94,5 +95,4 @@ public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataCh
 			jsonHighlighter.applyHighlightingIfJson();
 		});
 	}
-
 }

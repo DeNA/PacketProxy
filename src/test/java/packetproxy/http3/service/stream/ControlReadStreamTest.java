@@ -31,5 +31,4 @@ class ControlReadStreamTest {
 		stream.write(QuicMessage.of(StreamId.of(0x2), new byte[]{0x00, 0x04, 0x0})); // 0x40 0x00 は最小のSettingsFrame
 		assertThat(stream.readAllBytes()).isEqualTo(Hex.decodeHex("0400".toCharArray()));
 	}
-
 }

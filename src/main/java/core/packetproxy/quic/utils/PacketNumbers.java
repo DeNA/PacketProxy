@@ -58,5 +58,4 @@ public class PacketNumbers {
 		return String.format("PacketNumbers([%s])", this.packetNumberList.stream()
 				.map(pn -> String.valueOf(pn.getNumber())).collect(Collectors.joining(",")));
 	}
-
 }

@@ -96,5 +96,4 @@ public class Pto {
 		}
 		return ImmutablePair.of(ptoTimeout, ptoPnSpaceType);
 	}
-
 }

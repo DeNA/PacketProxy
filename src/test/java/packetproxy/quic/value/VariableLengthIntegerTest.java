@@ -93,5 +93,4 @@ class VariableLengthIntegerTest {
 				.getValue()); /* 3684f228323451e8 */
 		System.out.printf("%x\n", VariableLengthInteger.parse(Hex.decodeHex("00".toCharArray())).getValue()); /* 0 */
 	}
-
 }

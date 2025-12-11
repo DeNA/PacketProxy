@@ -26,6 +26,7 @@ public class Setting {
 	public static Setting generateWithDefaultValue() {
 		return Setting.builder().build();
 	}
+
 	public static class SettingBuilder {
 
 		long qpackMaxTableCapacity = SettingParam.QpackMaxTableCapacity.defaultValue;

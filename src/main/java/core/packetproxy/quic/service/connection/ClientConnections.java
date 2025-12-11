@@ -15,6 +15,7 @@
  */
 
 package packetproxy.quic.service.connection;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.net.DatagramPacket;
@@ -61,9 +62,7 @@ public class ClientConnections {
 		}
 	}
 
-	/**
-	 * Blocking until accepting UDP packet.
-	 */
+	/** Blocking until accepting UDP packet. */
 	public ClientConnection accept() throws Exception {
 		while (true) {
 
@@ -112,5 +111,4 @@ public class ClientConnections {
 		udpPacket.setData(ArrayUtils.subarray(udpPacket.getData(), 0, udpPacket.getLength()));
 		return udpPacket;
 	}
-
 }

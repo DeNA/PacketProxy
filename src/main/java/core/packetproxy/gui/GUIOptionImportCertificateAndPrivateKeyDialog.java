@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.CardLayout;
@@ -98,11 +99,9 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 		panel.add(buttons);
 
 		selectCancelButton.addActionListener(e -> {
-
 			dispose();
 		});
 		selectDoneButton.addActionListener(e -> {
-
 			if (selectPEMButton.isSelected())
 				cardLayout.show(cardPanel, "import pem panel");
 			else if (selectDERButton.isSelected())
@@ -143,7 +142,6 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 		JButton certificateChoosebutton = new JButton(I18nString.get("choose..."));
 		JFileChooser certificatePEMChooser = new JFileChooser();
 		certificateChoosebutton.addActionListener(arg0 -> {
-
 			try {
 
 				certificatePEMChooser.addChoosableFileFilter(
@@ -170,7 +168,6 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 		JButton privateKeyChoosebutton = new JButton(I18nString.get("choose..."));
 		JFileChooser privateKeyPEMChooser = new JFileChooser();
 		privateKeyChoosebutton.addActionListener(arg0 -> {
-
 			try {
 
 				privateKeyPEMChooser.addChoosableFileFilter(
@@ -200,13 +197,11 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 		panel.add(buttons);
 
 		pemCancelButton.addActionListener(arg0 -> {
-
 			certificatePEMPathField.setText("");
 			privateKeyPEMPathField.setText("");
 			cardLayout.show(cardPanel, "select panel");
 		});
 		pemChooseDoneButton.addActionListener(arg0 -> {
-
 			if (certificatePEMPathField.getText().isEmpty() || privateKeyPEMPathField.getText().isEmpty())
 				return;
 			try {
@@ -238,7 +233,6 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 		JButton certificateChoosebutton = new JButton(I18nString.get("choose..."));
 		JFileChooser certificateDERChooser = new JFileChooser();
 		certificateChoosebutton.addActionListener(arg0 -> {
-
 			try {
 
 				certificateDERChooser.addChoosableFileFilter(
@@ -265,7 +259,6 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 		JButton privateKeyChoosebutton = new JButton(I18nString.get("choose..."));
 		JFileChooser privateKeyDERChooser = new JFileChooser();
 		privateKeyChoosebutton.addActionListener(arg0 -> {
-
 			try {
 
 				privateKeyDERChooser.addChoosableFileFilter(
@@ -295,13 +288,11 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 		panel.add(buttons);
 
 		derCancelButton.addActionListener(arg0 -> {
-
 			certificateDERPathField.setText("");
 			privateKeyDERPathField.setText("");
 			cardLayout.show(cardPanel, "select panel");
 		});
 		derChooseDoneButton.addActionListener(arg0 -> {
-
 			if (certificateDERPathField.getText().isEmpty() || privateKeyDERPathField.getText().isEmpty())
 				return;
 			try {
@@ -333,7 +324,6 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 		JButton p12Choosebutton = new JButton(I18nString.get("choose..."));
 		JFileChooser p12Chooser = new JFileChooser();
 		p12Choosebutton.addActionListener(arg0 -> {
-
 			try {
 
 				p12Chooser.addChoosableFileFilter(
@@ -366,13 +356,11 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 		panel.add(buttons);
 
 		p12CancelButton.addActionListener(arg0 -> {
-
 			p12PathField.setText("");
 			p12PasswordField.setText("");
 			cardLayout.show(cardPanel, "select panel");
 		});
 		p12ChooseDoneButton.addActionListener(arg0 -> {
-
 			if (p12PathField.getText().isEmpty())
 				return;
 			try {

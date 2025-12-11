@@ -72,5 +72,4 @@ public class StopSendingFrame extends Frame {
 	public boolean isAckEliciting() {
 		return true;
 	}
-
 }

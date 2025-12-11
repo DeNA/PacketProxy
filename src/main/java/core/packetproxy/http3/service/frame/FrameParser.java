@@ -15,6 +15,7 @@
  */
 
 package packetproxy.http3.service.frame;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.common.collect.Sets;
@@ -39,7 +40,6 @@ public class FrameParser {
 	private static final Map<Long, Class<Frame>> frameMap = new HashMap<>();
 
 	static {
-
 		try {
 
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();

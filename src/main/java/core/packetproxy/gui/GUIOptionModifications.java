@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
@@ -48,7 +49,8 @@ public class GUIOptionModifications extends GUIOptionComponentBase<Modification>
 
 					int columnIndex = table.columnAtPoint(e.getPoint());
 					int rowIndex = table.rowAtPoint(e.getPoint());
-					if (columnIndex == 0) { /* check box area */
+					if (columnIndex == 0) {
+						/* check box area */
 
 						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 0);
 						Modification mod = getSelectedTableContent();

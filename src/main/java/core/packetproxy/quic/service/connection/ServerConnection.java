@@ -15,6 +15,7 @@
  */
 
 package packetproxy.quic.service.connection;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.net.DatagramPacket;
@@ -56,7 +57,6 @@ public class ServerConnection extends Connection {
 				DatagramPacket udpPacket = recvUdpPacket(); // Blocking here
 				awaitingReceivedPackets.put(udpPacket);
 				awaitingReceivedPackets.forEachAndRemovedIfReturnTrue(packet -> {
-
 					try {
 
 						serverPacketParser.parseOnePacket(packet);
@@ -92,5 +92,4 @@ public class ServerConnection extends Connection {
 	public String getName() {
 		return this.serverName;
 	}
-
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.http;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
@@ -319,7 +320,6 @@ public class Http {
 		byte[] cookedBody = rawBody;
 
 		{
-
 			String headerName = "Transfer-Encoding";
 			Optional<String> enc = header.getValue(headerName);
 
@@ -333,7 +333,6 @@ public class Http {
 		}
 
 		{
-
 			String headerName = "Content-Encoding";
 			Optional<String> enc = header.getValue(headerName);
 
@@ -369,7 +368,8 @@ public class Http {
 		if (version.equals("HTTP/2") || version.equals("HTTP/3")) {
 
 			return getURI(use_ssl);
-		} else { /* HTTP/1.1 */
+		} else {
+			/* HTTP/1.1 */
 
 			String query = (getQueryAsString() != null && getQueryAsString().length() > 0)
 					? "?" + getQueryAsString()
@@ -507,7 +507,8 @@ public class Http {
 
 						this.queryString = new QueryString(url.getQuery());
 					}
-				} else { /* normal */
+				} else {
+					/* normal */
 
 					URL url = new URL("http://example.com" + urlStr);
 					this.path = url.getPath();

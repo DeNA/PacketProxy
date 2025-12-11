@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import static packetproxy.model.PropertyChangeEventType.FILTERS;
 import static packetproxy.model.PropertyChangeEventType.PACKETS;
@@ -179,7 +180,6 @@ public class GUIHistory implements PropertyChangeListener {
 				try {
 
 					switch (e.getKeyCode()) {
-
 						case KeyEvent.VK_ENTER :
 							filter();
 							break;
@@ -245,7 +245,6 @@ public class GUIHistory implements PropertyChangeListener {
 						int width = gui_filter.getWidth();
 						int height = 0;
 						dlg = new GUIFilterDropDownList(owner, width, filter -> {
-
 							try {
 
 								gui_filter.setText(filter.getFilter());
@@ -447,7 +446,6 @@ public class GUIHistory implements PropertyChangeListener {
 					int mask_key = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 					int p;
 					switch (e.getKeyCode()) {
-
 						case KeyEvent.VK_J :
 							p = table.getSelectedRow() + 1;
 							p = p >= table.getRowCount() ? table.getRowCount() - 1 : p;
@@ -593,7 +591,6 @@ public class GUIHistory implements PropertyChangeListener {
 		if (dialogOnce) {
 
 			return;
-
 		}
 		dialogOnce = true;
 		JOptionPane.showMessageDialog(owner, "データベースのサイズが上限値(2GB)を越えそうです。Historyを保存してください。", "Warning",
@@ -645,7 +642,6 @@ public class GUIHistory implements PropertyChangeListener {
 
 	private void handlePacketsPropertyChange(PropertyChangeEvent evt) {
 		SwingUtilities.invokeLater(() -> {
-
 			try {
 
 				Object arg1 = evt.getNewValue();
@@ -691,7 +687,6 @@ public class GUIHistory implements PropertyChangeListener {
 
 	private void handleFiltersPropertyChange(PropertyChangeEvent evt) {
 		SwingUtilities.invokeLater(() -> {
-
 			try {
 
 				Object arg1 = evt.getNewValue();
@@ -711,7 +706,6 @@ public class GUIHistory implements PropertyChangeListener {
 
 	private void handleDatabaseMessagePropertyChange(PropertyChangeEvent evt) {
 		SwingUtilities.invokeLater(() -> {
-
 			try {
 
 				Object arg1 = evt.getNewValue();
@@ -728,7 +722,6 @@ public class GUIHistory implements PropertyChangeListener {
 
 	public void updateRequestOne(int id) throws Exception {
 		synchronized (update_packet_ids) {
-
 			update_packet_ids.add(id);
 		}
 		updateRequest(false);
@@ -746,7 +739,6 @@ public class GUIHistory implements PropertyChangeListener {
 			protected Packet doInBackground() throws Exception {
 				HashSet<Integer> update_targets = new HashSet<Integer>();
 				synchronized (update_packet_ids) {
-
 					update_targets = (HashSet<Integer>) update_packet_ids.clone();
 					update_packet_ids.clear();
 				}
@@ -890,7 +882,6 @@ public class GUIHistory implements PropertyChangeListener {
 				return this;
 			}
 		}.set(this, packetList.size())).start();
-
 	}
 
 	private void updateOne(Packet packet) throws Exception {

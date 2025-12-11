@@ -42,5 +42,4 @@ public class PacketsController {
 		packets.create(packet);
 		packets.firePropertyChange();
 	}
-
 }

@@ -15,6 +15,7 @@
  */
 
 package packetproxy;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
@@ -87,7 +88,6 @@ public class PrivateDNSClient {
 	public static boolean dnsLoopingFromHostsLines(List<String> fileLines, String serverName) {
 		return fileLines.stream().map(line -> line.contains("#") ? line.substring(0, line.indexOf('#')) : line)
 				.filter(line -> line.contains(serverName)).anyMatch(line -> {
-
 					try {
 
 						String addr = line.split(" ")[0];

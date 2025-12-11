@@ -77,7 +77,6 @@ public class ProxyXmppSSLForward extends Proxy {
 		OutputStream sO = server.getOutputStream();
 
 		Thread clientT = new Thread(() -> {
-
 			try {
 
 				byte[] buff = new byte[4096];
@@ -106,7 +105,6 @@ public class ProxyXmppSSLForward extends Proxy {
 		});
 
 		Thread serverT = new Thread(() -> {
-
 			try {
 
 				byte[] buff = new byte[4096];

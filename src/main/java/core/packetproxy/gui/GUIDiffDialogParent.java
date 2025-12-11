@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Container;
@@ -39,7 +40,6 @@ public class GUIDiffDialogParent extends JDialog {
 		try {
 
 			switch (data_pane.getSelectedIndex()) {
-
 				case 0 :
 					raw_panel.update();
 					break;

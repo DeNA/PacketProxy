@@ -36,5 +36,4 @@ public class PreferredAddressParameter extends TransportParameter {
 	public byte[] getValue() {
 		return super.parameterValue;
 	}
-
 }

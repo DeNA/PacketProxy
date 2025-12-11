@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import static packetproxy.model.PropertyChangeEventType.EXTENSIONS;
 import static packetproxy.util.Logging.errWithStackTrace;
@@ -53,7 +54,6 @@ public class Extensions implements PropertyChangeListener {
 	private static Map<String, Class<?>> presetExtensions = new HashMap<>() {
 
 		{
-
 			put((new RandomnessExtension()).getName(), RandomnessExtension.class);
 			put((new SampleEncoders()).getName(), SampleEncoders.class);
 		}
@@ -276,7 +276,6 @@ public class Extensions implements PropertyChangeListener {
 		try {
 
 			switch (message) {
-
 				case PAUSE :
 					// TODO ロックを取る
 					break;

@@ -106,7 +106,6 @@ public class TruncatedPacketNumber {
 
 	private static long bytesToLong(byte[] bytes) {
 		switch (bytes.length) {
-
 			case 1 :
 				return bytes[0] & 0xff;
 			case 2 :

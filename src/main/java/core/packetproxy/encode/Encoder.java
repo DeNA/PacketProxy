@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.encode;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.ByteArrayOutputStream;
@@ -87,6 +88,7 @@ public abstract class Encoder {
 
 	protected ByteArrayOutputStream clientInputData = new ByteArrayOutputStream();
 	protected ByteArrayOutputStream serverInputData = new ByteArrayOutputStream();
+
 	/* 溜める */
 	public void clientRequestArrived(byte[] input_data) throws Exception {
 		clientInputData.write(input_data);
@@ -134,9 +136,7 @@ public abstract class Encoder {
 		return true;
 	}
 
-	/**
-	 * パケットのheadlineを返す。履歴ウィンドウで利用されます。 文字化けすると重たくなるのでデフォルトではASCIIで表示可能な部分のみ表示する
-	 */
+	/** パケットのheadlineを返す。履歴ウィンドウで利用されます。 文字化けすると重たくなるのでデフォルトではASCIIで表示可能な部分のみ表示する */
 	public String getSummarizedRequest(Packet packet) {
 		byte[] data = packet.getDecodedData();
 		byte[] prefix = ArrayUtils.subarray(data, 0, Math.min(100, data.length));
@@ -151,9 +151,7 @@ public abstract class Encoder {
 		return new String(prefix);
 	}
 
-	/**
-	 * 再送時のみ呼び出されます。encode関数が実行される前に実行されます。
-	 */
+	/** 再送時のみ呼び出されます。encode関数が実行される前に実行されます。 */
 	public byte[] procBeforeResendClientRequest(Packet packet) throws Exception {
 		return packet.getModifiedData();
 	}
@@ -162,9 +160,7 @@ public abstract class Encoder {
 		return packet.getModifiedData();
 	}
 
-	/**
-	 * client_packet, server_packetは変更禁止、読み込みのみで使う事
-	 */
+	/** client_packet, server_packetは変更禁止、読み込みのみで使う事 */
 	public byte[] decodeServerResponse(Packet client_packet, Packet server_packet) throws Exception {
 		return decodeServerResponse(server_packet);
 	}
@@ -189,9 +185,7 @@ public abstract class Encoder {
 		return encodeClientRequest(client_packet.getModifiedData());
 	}
 
-	/**
-	 * PacketのContentTypeを返す
-	 */
+	/** PacketのContentTypeを返す */
 	public String getContentType(Packet client_packet, Packet server_packet) throws Exception {
 		return getContentType(server_packet.getDecodedData());
 	}
@@ -200,15 +194,11 @@ public abstract class Encoder {
 		return "";
 	}
 
-	/**
-	 * GroupId
-	 */
+	/** GroupId */
 	public void setGroupId(Packet packet) throws Exception {
 	}
 
-	/**
-	 * Flow Controls
-	 */
+	/** Flow Controls */
 	public void putToClientFlowControlledQueue(byte[] output_data) throws Exception {
 		clientOutputForFlowControl.write(output_data);
 		clientOutputForFlowControl.flush();

@@ -55,7 +55,6 @@ public class InterceptController {
 
 	public void disableInterceptMode(byte[] data) {
 		synchronized (lock) {
-
 			forward = true;
 			forward_multiple = false;
 			intercepted_data = data;
@@ -66,7 +65,6 @@ public class InterceptController {
 
 	public void forward(byte[] data) {
 		synchronized (lock) {
-
 			forward = true;
 			forward_multiple = false;
 			intercepted_data = data;
@@ -76,7 +74,6 @@ public class InterceptController {
 
 	public void forward_multiple(byte[] data) {
 		synchronized (lock) {
-
 			forward = true;
 			forward_multiple = true;
 			intercepted_data = data;
@@ -86,7 +83,6 @@ public class InterceptController {
 
 	public void drop() {
 		synchronized (lock) {
-
 			forward = false;
 			forward_multiple = false;
 			intercepted_data = null;
@@ -124,7 +120,6 @@ public class InterceptController {
 			}
 
 			synchronized (lock) {
-
 				interceptModel.setData(data, client_packet, server_packet);
 				lock.wait();
 				interceptModel.clearData();

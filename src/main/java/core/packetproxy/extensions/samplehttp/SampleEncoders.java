@@ -37,7 +37,6 @@ public class SampleEncoders extends Extension {
 		return new HashMap<String, Class<?>>() {
 
 			{
-
 				put("SampleHTTP from extension", SampleHTTP.class);
 			}
 		};

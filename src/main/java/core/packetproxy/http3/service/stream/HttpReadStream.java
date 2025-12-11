@@ -82,5 +82,4 @@ public class HttpReadStream extends Stream implements ReadStream {
 	public boolean isEmpty() {
 		return this.headers.size() == 0;
 	}
-
 }

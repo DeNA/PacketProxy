@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+
 import static packetproxy.model.PropertyChangeEventType.RESOLUTIONS_UPDATED;
 import static packetproxy.util.Logging.errWithStackTrace;
 
@@ -72,7 +73,6 @@ public class Resolutions implements PropertyChangeListener {
 			fileLines = Files.readAllLines(Paths.get("/etc/hosts"));
 		}
 		fileLines.stream().forEach(line -> {
-
 			if (!(line.startsWith("#"))) {
 
 				try {
@@ -189,7 +189,6 @@ public class Resolutions implements PropertyChangeListener {
 		try {
 
 			switch (message) {
-
 				case PAUSE :
 					// TODO ロックを取る
 					break;

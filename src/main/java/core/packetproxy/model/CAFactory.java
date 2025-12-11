@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+
 import static java.util.Comparator.comparing;
 import static packetproxy.util.Logging.errWithStackTrace;
 
@@ -53,7 +54,6 @@ public class CAFactory {
 	private static final List<CA> ca_list = new ArrayList<>();
 
 	static {
-
 		try {
 
 			JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -61,8 +61,8 @@ public class CAFactory {
 			Set<JavaFileObject.Kind> kind = new HashSet<JavaFileObject.Kind>() {
 
 				private static final long serialVersionUID = 1L;
-				{
 
+				{
 					add(JavaFileObject.Kind.CLASS);
 				}
 			};
@@ -84,6 +84,7 @@ public class CAFactory {
 			errWithStackTrace(e);
 		}
 	}
+
 	public static Optional<CA> findByUTF8Name(String name) {
 		return ca_list.stream().filter(ca -> ca.getUTF8Name().equalsIgnoreCase(name)).findFirst();
 	}

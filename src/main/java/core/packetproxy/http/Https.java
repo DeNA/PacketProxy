@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.http;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.re2j.Matcher;
@@ -93,7 +94,6 @@ public class Https {
 		clientKeyManagers = ClientKeyManager.getKeyManagers(server);
 		SSLSocket[] serverSSLSocket = new SSLSocket[1];
 		clientSSLSocket.setHandshakeApplicationProtocolSelector((clientSocketParam, clientProtocols) -> {
-
 			try {
 
 				Socket serverSocket;

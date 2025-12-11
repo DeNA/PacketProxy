@@ -47,7 +47,6 @@ public class FlowControl {
 
 	public void appendWindowSize(int appendWindowSize) {
 		synchronized (queue) {
-
 			windowSize += appendWindowSize;
 		}
 	}
@@ -66,7 +65,6 @@ public class FlowControl {
 
 	public void enqueue(Frame frame) throws Exception {
 		synchronized (queue) {
-
 			queue.write(frame.getPayload());
 			queue.flush();
 			if ((frame.getFlags() & DataFrame.FLAG_END_STREAM) > 0) {
@@ -177,9 +175,7 @@ public class FlowControl {
 
 	public int size() {
 		synchronized (queue) {
-
 			return queue.size();
 		}
 	}
-
 }

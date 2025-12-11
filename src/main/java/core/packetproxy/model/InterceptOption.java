@@ -27,33 +27,44 @@ import packetproxy.common.Utils;
 public class InterceptOption {
 
 	public static final int ALL_SERVER = -1;
+
 	public static enum Type {
 		REQUEST,
 		/* TODO HOST, URL,*/ };
+
 	public static enum Direction {
 		REQUEST, RESPONSE, ALL_THE_OTHER_REQUESTS, ALL_THE_OTHER_RESPONSES
 	}; // 両方同じルールで捕まえたい事はないのでALLは無し
+
 	public static enum Relationship {
 		IS_INTERCEPTED_IF_IT_MATCHES, IS_INTERCEPTED_IF_REQUEST_WAS_INTERCEPTED, IS_NOT_INTERCEPTED_IF_IT_MATCHES, ARE_INTERCEPTED, ARE_NOT_INTERCEPTED
 	};
+
 	public static enum Method {
 		SIMPLE, REGEX, BINARY, UNDEFINED
 	};
 
 	@DatabaseField(generatedId = true)
 	private int id;
+
 	@DatabaseField
 	private Boolean enabled;
+
 	@DatabaseField(uniqueCombo = true)
 	private Direction direction;
+
 	@DatabaseField(uniqueCombo = true)
 	private Type type;
+
 	@DatabaseField(uniqueCombo = true)
 	private Relationship relationship;
+
 	@DatabaseField(uniqueCombo = true)
 	private Method method;
+
 	@DatabaseField(uniqueCombo = true)
 	private String pattern;
+
 	@DatabaseField(uniqueCombo = true)
 	private int server_id;
 
@@ -126,7 +137,6 @@ public class InterceptOption {
 
 	public static String getDirectionAsString(Direction direction) {
 		switch (direction) {
-
 			case REQUEST :
 				return "Request";
 			case RESPONSE :
@@ -181,7 +191,6 @@ public class InterceptOption {
 
 	public static String getRelationshipAsString(Relationship relationship) {
 		switch (relationship) {
-
 			case IS_INTERCEPTED_IF_IT_MATCHES :
 				return "is intercepted if it matches";
 			case IS_INTERCEPTED_IF_REQUEST_WAS_INTERCEPTED :
@@ -211,7 +220,6 @@ public class InterceptOption {
 
 	public String getMethodAsString() {
 		switch (this.method) {
-
 			case SIMPLE :
 				return "SIMPLE";
 			case REGEX :

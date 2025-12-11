@@ -122,28 +122,28 @@ public class CryptUtils {
 	}
 
 	/*
-	 * //TODO delete
-	 public static String encryptCBCISO10126(byte [] key, byte [] iv, byte [] input) throws Exception {
-	 Cipher cipher = Cipher.getInstance("AES/CBC/ISO10126Padding");
-	 if( iv != null) {
-	 System.out.println("not null");
-	 }else{
-	 iv = cipher.getIV();
-	 }
-	 IvParameterSpec ivSpec = new IvParameterSpec(iv);
-	 System.out.println("ivSpec="+ivSpec);
-	 SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
-	 System.out.println("keySpec="+keySpec);
-	 cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
-	 byte[] encrypted = cipher.doFinal(input);
-	 byte[] result = new byte[iv.length+encrypted.length];
-	 System.arraycopy(iv, 0, result, 0, iv.length);
-	 System.out.println("iv="+toHex(iv));
-	 System.arraycopy(encrypted, 0, result, iv.length, encrypted.length);
+	* //TODO delete
+	public static String encryptCBCISO10126(byte [] key, byte [] iv, byte [] input) throws Exception {
+	Cipher cipher = Cipher.getInstance("AES/CBC/ISO10126Padding");
+	if( iv != null) {
+	System.out.println("not null");
+	}else{
+	iv = cipher.getIV();
+	}
+	IvParameterSpec ivSpec = new IvParameterSpec(iv);
+	System.out.println("ivSpec="+ivSpec);
+	SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+	System.out.println("keySpec="+keySpec);
+	cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
+	byte[] encrypted = cipher.doFinal(input);
+	byte[] result = new byte[iv.length+encrypted.length];
+	System.arraycopy(iv, 0, result, 0, iv.length);
+	System.out.println("iv="+toHex(iv));
+	System.arraycopy(encrypted, 0, result, iv.length, encrypted.length);
 	
-	 return toHex(result);
-	 }
-	 */
+	return toHex(result);
+	}
+	*/
 
 	// flexible about padding
 	public static String encryptCBC(String padding, byte[] key, byte[] iv, byte[] input) throws Exception {
@@ -218,41 +218,40 @@ public class CryptUtils {
 		cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
 		// System.out.println(new String(input));
 		return new String(cipher.doFinal(cipherByte), "UTF-8");
-
 	}
 
 	/*TODO delete
-	  public static String AES(String encrypt_decrypt, String mode, String padding, byte[] key, byte[] iv, byte[] cipherText) throws Exception {
-	  String result = "";
-	  if (encrypt_decrypt == "encrypt") {
-	  if (mode == "ECB") {
-	  if (padding.length() != 0) {
-	  result = encryptECB(padding,key,cipherText);
-	  }
-	  }
+	public static String AES(String encrypt_decrypt, String mode, String padding, byte[] key, byte[] iv, byte[] cipherText) throws Exception {
+	String result = "";
+	if (encrypt_decrypt == "encrypt") {
+	if (mode == "ECB") {
+	if (padding.length() != 0) {
+	result = encryptECB(padding,key,cipherText);
+	}
+	}
 	
-	  if (mode == "CBC") {
-	  if (padding.length() != 0) {
-	  result = encryptCBC(padding,key,iv,cipherText);
-	  }
-	  }
+	if (mode == "CBC") {
+	if (padding.length() != 0) {
+	result = encryptCBC(padding,key,iv,cipherText);
+	}
+	}
 	
-	  } else if (encrypt_decrypt == "decrypt") {
-	  if (mode == "ECB") {
-	  if (padding.length() != 0) {
-	  result = new String(decrypt(padding,key,cipherText));
-	  }
-	  }
+	} else if (encrypt_decrypt == "decrypt") {
+	if (mode == "ECB") {
+	if (padding.length() != 0) {
+	result = new String(decrypt(padding,key,cipherText));
+	}
+	}
 	
-	  if (mode == "CBC") {
-	  if (padding.length() != 0) {
-	  result = decryptCBC(padding,key,cipherText);
-	  }
-	  }
-	  }
+	if (mode == "CBC") {
+	if (padding.length() != 0) {
+	result = decryptCBC(padding,key,cipherText);
+	}
+	}
+	}
 	
-	  return result;
-	  }
+	return result;
+	}
 	
 	
 	*/
@@ -278,7 +277,7 @@ public class CryptUtils {
 	*/
 
 	/*
-	   　　　　//TODO delete
+	 　　　　//TODO delete
 	//decrypt logic
 	public static String decryptAES(String mode, String padding, byte[] key, byte[] cipherText) throws Exception {
 	String result = "";
@@ -321,5 +320,4 @@ public class CryptUtils {
 		}
 		return strbuf.toString();
 	}
-
 }

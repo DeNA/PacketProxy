@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import static packetproxy.model.PropertyChangeEventType.INTERCEPT_OPTIONS;
 import static packetproxy.util.Logging.errWithStackTrace;
@@ -212,7 +213,6 @@ public class InterceptOptions implements PropertyChangeListener {
 			if (intercept.isDirection(InterceptOption.Direction.REQUEST)) {
 
 				switch (intercept.getRelationship()) {
-
 					case IS_INTERCEPTED_IF_IT_MATCHES :
 						if (intercept.match(client_packet, null)) {
 
@@ -231,7 +231,6 @@ public class InterceptOptions implements PropertyChangeListener {
 			} else if (intercept.isDirection(Direction.ALL_THE_OTHER_REQUESTS)) {
 
 				switch (intercept.getRelationship()) {
-
 					case ARE_INTERCEPTED :
 						return true;
 					case ARE_NOT_INTERCEPTED :
@@ -250,7 +249,6 @@ public class InterceptOptions implements PropertyChangeListener {
 			if (intercept.getDirection() == InterceptOption.Direction.RESPONSE) {
 
 				switch (intercept.getRelationship()) {
-
 					case IS_INTERCEPTED_IF_IT_MATCHES :
 						if (intercept.match(client_packet, server_packet)) {
 
@@ -276,7 +274,6 @@ public class InterceptOptions implements PropertyChangeListener {
 			} else if (intercept.isDirection(Direction.ALL_THE_OTHER_RESPONSES)) {
 
 				switch (intercept.getRelationship()) {
-
 					case ARE_INTERCEPTED :
 						return true;
 					case ARE_NOT_INTERCEPTED :
@@ -308,7 +305,6 @@ public class InterceptOptions implements PropertyChangeListener {
 		try {
 
 			switch (message) {
-
 				case PAUSE :
 					// TODO ロックを取る
 					break;

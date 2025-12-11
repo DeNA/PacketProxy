@@ -36,5 +36,4 @@ public class ExpGreaseQuicBitParameter extends TransportParameter {
 	public ExpGreaseQuicBitParameter() {
 		super(ID, 0, new byte[0]);
 	}
-
 }

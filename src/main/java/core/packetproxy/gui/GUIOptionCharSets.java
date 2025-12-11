@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.event.ActionEvent;
@@ -47,7 +48,8 @@ public class GUIOptionCharSets extends GUIOptionComponentBase<CharSet> {
 
 					int columnIndex = table.columnAtPoint(e.getPoint());
 					int rowIndex = table.rowAtPoint(e.getPoint());
-					if (columnIndex == 4) { /* Spoof DNS area */
+					if (columnIndex == 4) {
+						/* Spoof DNS area */
 
 						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 4);
 						CharSet charset = getSelectedTableContent();

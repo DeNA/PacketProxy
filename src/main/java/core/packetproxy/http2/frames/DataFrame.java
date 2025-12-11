@@ -58,7 +58,6 @@ public class DataFrame extends Frame {
 		super.extra = new byte[]{};
 		super.type = TYPE;
 		super.length = payload.length;
-
 	}
 
 	private void parsePayload() throws Exception {
@@ -90,5 +89,4 @@ public class DataFrame extends Frame {
 	public String toString() {
 		return super.toString();
 	}
-
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
@@ -29,13 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import javax.net.ssl.SNIServerName;
 import org.apache.commons.lang3.ArrayUtils;
-import packetproxy.common.EndpointFactory;
-import packetproxy.common.I18nString;
-import packetproxy.common.SSLCapabilities;
-import packetproxy.common.SSLExplorer;
-import packetproxy.common.SSLSocketEndpoint;
-import packetproxy.common.SocketEndpoint;
-import packetproxy.common.WrapEndpoint;
+import packetproxy.common.*;
 import packetproxy.encode.EncodeHTTPBase;
 import packetproxy.encode.Encoder;
 import packetproxy.model.ListenPort;
@@ -44,7 +39,6 @@ import packetproxy.model.Server;
 import packetproxy.model.Servers;
 
 public class ProxySSLTransparent extends Proxy {
-
 	private ListenPort listen_info;
 	private ServerSocket listen_socket;
 
@@ -61,9 +55,7 @@ public class ProxySSLTransparent extends Proxy {
 	public void run() {
 		List<Socket> clients = new ArrayList<Socket>();
 		while (!listen_socket.isClosed()) {
-
 			try {
-
 				Socket client = listen_socket.accept();
 				clients.add(client);
 				log("[ProxySSLTransparent]: accept");
@@ -74,9 +66,7 @@ public class ProxySSLTransparent extends Proxy {
 			}
 		}
 		for (Socket sc : clients) {
-
 			try {
-
 				sc.close();
 			} catch (Exception e) {
 
@@ -160,7 +150,6 @@ public class ProxySSLTransparent extends Proxy {
 			Server server = Servers.getInstance().queryByHostNameAndPort(serverName, proxyPort);
 			SSLSocketEndpoint server_e = new SSLSocketEndpoint(serverAddr, serverName, null);
 			createConnection(wep_e, server_e, server);
-
 		} else {
 
 			for (SNIServerName serverE : serverNames) {

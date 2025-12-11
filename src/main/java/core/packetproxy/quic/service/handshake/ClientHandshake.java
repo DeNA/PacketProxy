@@ -180,5 +180,4 @@ public class ClientHandshake implements Handshake {
 			return false;
 		}
 	}
-
 }

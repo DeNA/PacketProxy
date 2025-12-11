@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 package packetproxy;
-import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.File;
 import java.io.InputStream;
 import java.sql.SQLException;
-import javax.swing.JOptionPane;
+import javax.swing.*;
 import org.apache.commons.io.IOUtils;
 import packetproxy.common.ClientKeyManager;
 import packetproxy.common.I18nString;
@@ -27,13 +26,17 @@ import packetproxy.common.Utils;
 import packetproxy.gui.GUIMain;
 import packetproxy.gui.Splash;
 import packetproxy.model.Database;
+import packetproxy.util.Logging;
 
 public class PacketProxy {
+	public GUIMain gui;
+	public ListenPortManager listenPortManager;
+
+	public PacketProxy() throws Exception {
+	}
 
 	public static void main(String[] args) {
-
-		if (Utils.supportedJava() == false) {
-
+		if (!Utils.supportedJava()) {
 			JOptionPane.showMessageDialog(null, I18nString.get("PacketProxy can be executed with JDK17 or later"),
 					I18nString.get("Error"), JOptionPane.ERROR_MESSAGE);
 			return;
@@ -43,44 +46,30 @@ public class PacketProxy {
 		splash.show();
 
 		while (true) {
-
 			try {
-
 				PacketProxy proxy = new PacketProxy();
 				proxy.start();
 			} catch (SQLException e) {
-
 				int option = JOptionPane.showConfirmDialog(null,
 						I18nString.get("Database read error.\nDelete the database and reboot?"),
 						I18nString.get("Database error"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 				if (option == JOptionPane.YES_OPTION) {
-
 					try {
-
 						File resource = new File((Database.getInstance()).getDatabasePath().toString());
 						if (resource.exists()) {
-
 							resource.delete();
 						}
 					} catch (Exception e2) {
-
-						errWithStackTrace(e2);
+						Logging.errWithStackTrace(e2);
 					}
 					continue;
 				}
 			} catch (Exception e) {
-
-				errWithStackTrace(e);
+				Logging.errWithStackTrace(e);
 			}
 			break;
 		}
 		splash.close();
-	}
-
-	public GUIMain gui;
-	public ListenPortManager listenPortManager;
-
-	public PacketProxy() throws Exception {
 	}
 
 	public void start() throws Exception {
@@ -96,7 +85,6 @@ public class PacketProxy {
 		String version = "1.0.0";
 		InputStream versionStream = getClass().getResourceAsStream("/version");
 		if (versionStream != null) {
-
 			version = IOUtils.toString(versionStream);
 		}
 		gui = GUIMain.getInstance(String.format("PacketProxy %s", version));

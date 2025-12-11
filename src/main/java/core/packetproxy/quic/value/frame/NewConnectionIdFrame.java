@@ -85,5 +85,4 @@ public class NewConnectionIdFrame extends Frame {
 	public boolean isAckEliciting() {
 		return true;
 	}
-
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.controller;
+
 import static packetproxy.util.Logging.err;
 import static packetproxy.util.Logging.errWithStackTrace;
 
@@ -49,23 +50,17 @@ public class ResendController {
 	private ResendController() throws Exception {
 	}
 
-	/**
-	 * レスポンスを受け取って処理する必要がないとき用
-	 */
+	/** レスポンスを受け取って処理する必要がないとき用 */
 	public void resend(OneShotPacket oneshot) throws Exception {
 		resend(oneshot, 1);
 	}
 
-	/**
-	 * レスポンスを受け取って処理する必要がないとき用
-	 */
+	/** レスポンスを受け取って処理する必要がないとき用 */
 	public void resend(OneShotPacket oneshot, int count) throws Exception {
 		resend(oneshot, count, false);
 	}
 
-	/**
-	 * レスポンスを受け取って処理する必要がないとき用
-	 */
+	/** レスポンスを受け取って処理する必要がないとき用 */
 	public void resend(OneShotPacket oneshot, int count, boolean wait) throws Exception {
 		SwingWorker<Object, OneShotPacket> worker;
 		worker = new ResendWorker(oneshot, count);
@@ -123,7 +118,6 @@ public class ResendController {
 					for (int i = 0; i < this.count; i++) {
 
 						DataToBeSend sendData = new DataToBeSend(this.oneshot, result -> {
-
 							publish(result);
 						});
 						list.add(sendData);
@@ -133,7 +127,6 @@ public class ResendController {
 					for (OneShotPacket os : this.oneshots) {
 
 						DataToBeSend sendData = new DataToBeSend(os, result -> {
-
 							publish(result);
 						});
 						list.add(sendData);
@@ -145,7 +138,6 @@ public class ResendController {
 				}
 
 				list.stream().filter(o -> o.isDirectSend()).forEach(sendData -> {
-
 					try {
 
 						sendData.send();
@@ -155,7 +147,6 @@ public class ResendController {
 					}
 				});
 				list.stream().filter(o -> !o.isDirectSend()).parallel().forEach(sendData -> {
-
 					try {
 
 						sendData.send();
@@ -283,5 +274,4 @@ public class ResendController {
 			}
 		}
 	}
-
 }

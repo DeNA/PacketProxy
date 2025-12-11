@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+
 import java.util.EventListener;
 
 public interface DiffEventListener extends EventListener {

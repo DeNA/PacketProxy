@@ -31,6 +31,7 @@ public class PaddingFrame extends Frame {
 	public static List<Byte> supportedTypes() {
 		return ImmutableList.of(TYPE);
 	}
+
 	long length;
 
 	public static PaddingFrame parse(byte[] bytes) {
@@ -61,5 +62,4 @@ public class PaddingFrame extends Frame {
 	public boolean isAckEliciting() {
 		return false;
 	}
-
 }

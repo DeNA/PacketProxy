@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Color;
@@ -50,12 +51,14 @@ public class GUIFilterConfig {
 	private ProjectTableModel project_model;
 	private JTable table;
 	private JComponent jcomponent;
+
 	// private JTextField sort_field;
 	// TableRowSorter<ProjectTableModel> sorter;
 
 	public class ProjectTableModel extends DefaultTableModel {
 
 		private static final long serialVersionUID = 1L;
+
 		ProjectTableModel(String[] columnNames, int rowNum) {
 			super(columnNames, rowNum);
 		}
@@ -65,6 +68,7 @@ public class GUIFilterConfig {
 			return getValueAt(0, column).getClass();
 		}
 	}
+
 	public GUIFilterConfig(JFrame owner) throws Exception {
 		this.owner = owner;
 		jcomponent = createComponent();
@@ -118,6 +122,7 @@ public class GUIFilterConfig {
 		project_model = new ProjectTableModel(menu, 0) {
 
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;

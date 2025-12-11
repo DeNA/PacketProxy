@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Color;
@@ -77,5 +78,4 @@ public class GUIOptionHttp {
 		panel.setMaximumSize(new Dimension(Short.MAX_VALUE, panel.getMaximumSize().height));
 		return panel;
 	}
-
 }

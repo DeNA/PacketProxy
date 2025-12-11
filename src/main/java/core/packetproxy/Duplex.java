@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.ByteArrayOutputStream;
@@ -24,53 +25,8 @@ import java.util.EventListener;
 import javax.swing.event.EventListenerList;
 
 public abstract class Duplex {
-
 	protected EventListenerList duplexEventListenerList = new EventListenerList();
 	private boolean flag_event_listener;
-
-	public interface DuplexEventListener extends EventListener {
-
-		int onClientPacketReceived(byte[] data) throws Exception;
-
-		int onServerPacketReceived(byte[] data) throws Exception;
-
-		void onClientChunkArrived(byte[] data) throws Exception;
-
-		void onServerChunkArrived(byte[] data) throws Exception;
-
-		byte[] onClientChunkPassThrough() throws Exception;
-
-		byte[] onServerChunkPassThrough() throws Exception;
-
-		byte[] onClientChunkAvailable() throws Exception;
-
-		byte[] onServerChunkAvailable() throws Exception;
-
-		byte[] onClientChunkReceived(byte[] data) throws Exception;
-
-		byte[] onServerChunkReceived(byte[] data) throws Exception;
-
-		byte[] onClientChunkSend(byte[] data) throws Exception;
-
-		byte[] onServerChunkSend(byte[] data) throws Exception;
-
-		byte[] onClientChunkSendForced(byte[] data) throws Exception;
-
-		byte[] onServerChunkSendForced(byte[] data) throws Exception;
-
-		void onClientChunkFlowControl(byte[] data) throws Exception;
-
-		void onServerChunkFlowControl(byte[] data) throws Exception;
-
-		void closeClientChunkFlowControl() throws Exception;
-
-		void closeServerChunkFlowControl() throws Exception;
-
-		InputStream getClientChunkFlowControlSink() throws Exception;
-
-		InputStream getServerChunkFlowControlSink() throws Exception;
-	}
-
 	private int PIPE_SIZE = 65536;
 	private PipedOutputStream clientOutputForFlowControl;
 	private PipedInputStream clientInputForFlowControl;
@@ -394,4 +350,45 @@ public abstract class Duplex {
 		return false;
 	}
 
+	public interface DuplexEventListener extends EventListener {
+		int onClientPacketReceived(byte[] data) throws Exception;
+
+		int onServerPacketReceived(byte[] data) throws Exception;
+
+		void onClientChunkArrived(byte[] data) throws Exception;
+
+		void onServerChunkArrived(byte[] data) throws Exception;
+
+		byte[] onClientChunkPassThrough() throws Exception;
+
+		byte[] onServerChunkPassThrough() throws Exception;
+
+		byte[] onClientChunkAvailable() throws Exception;
+
+		byte[] onServerChunkAvailable() throws Exception;
+
+		byte[] onClientChunkReceived(byte[] data) throws Exception;
+
+		byte[] onServerChunkReceived(byte[] data) throws Exception;
+
+		byte[] onClientChunkSend(byte[] data) throws Exception;
+
+		byte[] onServerChunkSend(byte[] data) throws Exception;
+
+		byte[] onClientChunkSendForced(byte[] data) throws Exception;
+
+		byte[] onServerChunkSendForced(byte[] data) throws Exception;
+
+		void onClientChunkFlowControl(byte[] data) throws Exception;
+
+		void onServerChunkFlowControl(byte[] data) throws Exception;
+
+		void closeClientChunkFlowControl() throws Exception;
+
+		void closeServerChunkFlowControl() throws Exception;
+
+		InputStream getClientChunkFlowControlSink() throws Exception;
+
+		InputStream getServerChunkFlowControlSink() throws Exception;
+	}
 }

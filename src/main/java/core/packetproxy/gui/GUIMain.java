@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.*;
@@ -75,7 +76,6 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 
 	private String getPaneString(Panes num) {
 		switch (num) {
-
 			case HISTORY :
 				return "History";
 			case INTERCEPT :
@@ -184,9 +184,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		addDockIconForMac();
 	}
 
-	/**
-	 * Windowsにアイコンを表示する
-	 */
+	/** Windowsにアイコンを表示する */
 	private void setIconForWindows() throws Exception {
 		if (!PacketProxyUtility.getInstance().isWindows()) {
 
@@ -196,9 +194,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		setIconImage(icon.getImage());
 	}
 
-	/**
-	 * MacのDock上でにPacketProxyアイコンを表示する
-	 */
+	/** MacのDock上でにPacketProxyアイコンを表示する */
 	private void addDockIconForMac() throws Exception {
 		if (!PacketProxyUtility.getInstance().isMac()) {
 
@@ -208,9 +204,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		Taskbar.getTaskbar().setIconImage(icon.getImage());
 	}
 
-	/**
-	 * JTextPane上でCommand+Cとかでコピペをできるようにする
-	 */
+	/** JTextPane上でCommand+Cとかでコピペをできるようにする */
 	private void addShortcutForMac() {
 		if (!PacketProxyUtility.getInstance().isMac()) {
 
@@ -283,9 +277,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		});
 	}
 
-	/**
-	 * Macでフルスクリーン表示できるようにする
-	 */
+	/** Macでフルスクリーン表示できるようにする */
 	private void enableFullScreenForMac(Window window) throws Exception {
 		if (!PacketProxyUtility.getInstance().isMac()) {
 

@@ -24,5 +24,4 @@ public class MaxIdleTimeoutParameter extends TransportParameter {
 		super(ID, VariableLengthInteger.of(value).getBytes().length, VariableLengthInteger.of(value).getBytes());
 		this.value = value;
 	}
-
 }

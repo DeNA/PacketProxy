@@ -52,5 +52,4 @@ public class StreamId {
 	public String toString() {
 		return String.format("StreamId(%x)", id);
 	}
-
 }

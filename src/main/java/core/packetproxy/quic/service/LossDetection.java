@@ -123,19 +123,22 @@ public class LossDetection {
 			// this.conn.getRole(),
 			// ptoPnSpaceType.toString()));
 
-			if (this.conn.getHandshakeState().isConfirmed()) { /* 現在は ApplicationData ステート */
+			if (this.conn.getHandshakeState().isConfirmed()) {
+				/* 現在は ApplicationData ステート */
 
 				if (ptoPnSpaceType == PnSpaceApplicationData) {
 
 					this.conn.getPnSpace(ptoPnSpaceType).addSendFrame(PingFrame.generate());
 				}
-			} else if (this.conn.getHandshakeState().isAckReceived()) { /* 現在は Handshake ステート */
+			} else if (this.conn.getHandshakeState().isAckReceived()) {
+				/* 現在は Handshake ステート */
 
 				if (ptoPnSpaceType == PnSpaceHandshake) {
 
 					this.conn.getPnSpace(ptoPnSpaceType).addSendFrame(PingFrame.generate());
 				}
-			} else { /* 現在は Initial ステート */
+			} else {
+				/* 現在は Initial ステート */
 
 				// if (ptoPnSpaceType == PnSpaceInitial) {
 				// this.conn.getPnSpace(ptoPnSpaceType).addSendFrame(PingFrame.generate());
@@ -145,5 +148,4 @@ public class LossDetection {
 		this.conn.getPto().incrementPtoCount();
 		setLossDetectionTimer();
 	}
-
 }

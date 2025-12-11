@@ -23,6 +23,7 @@ public class CharSet {
 
 	@DatabaseField(generatedId = true)
 	private int id;
+
 	@DatabaseField(uniqueCombo = true)
 	private String charsetname;
 

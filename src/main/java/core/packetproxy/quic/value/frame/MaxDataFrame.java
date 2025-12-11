@@ -58,5 +58,4 @@ public class MaxDataFrame extends Frame {
 	public boolean isAckEliciting() {
 		return true;
 	}
-
 }

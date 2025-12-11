@@ -57,11 +57,9 @@ public class QpackReadStream extends Stream implements ReadStream {
 	public synchronized byte[] readAllBytes() {
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		this.frames.forEach(rethrow(frame -> {
-
 			bytes.write(frame.getBytes());
 		}));
 		this.frames.clear();
 		return bytes.toByteArray();
 	}
-
 }

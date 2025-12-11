@@ -1,4 +1,5 @@
 package packetproxy.extensions.randomness.test;
+
 // source code is from: NIST SP 800-22 rev1-a
 
 // https://www.nist.gov/disclaimer
@@ -60,7 +61,6 @@ public class RankTest extends RandomnessTest {
 				}
 				SimpleSVD<SimpleMatrix> svd = mat.svd();
 				switch (svd.rank()) {
-
 					case 32 :
 						F32++;
 						break;

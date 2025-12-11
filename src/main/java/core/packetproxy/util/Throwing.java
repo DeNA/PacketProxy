@@ -30,5 +30,4 @@ public class Throwing {
 	public static <E extends Throwable> void sneakyThrow(@Nonnull Throwable ex) throws E {
 		throw (E) ex;
 	}
-
 }

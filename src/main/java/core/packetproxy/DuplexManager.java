@@ -62,5 +62,4 @@ public class DuplexManager {
 	public boolean has(int hash) {
 		return (duplex_list.get(hash) == null) ? false : true;
 	}
-
 }

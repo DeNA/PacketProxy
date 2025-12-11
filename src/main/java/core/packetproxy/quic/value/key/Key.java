@@ -103,5 +103,4 @@ public class Key {
 		return String.format("Key(secret=%s, key=%s, iv=%s, hp=%s)", Hex.encodeHexString(this.secret),
 				Hex.encodeHexString(this.key), Hex.encodeHexString(this.iv), Hex.encodeHexString(this.hp));
 	}
-
 }

@@ -26,6 +26,7 @@ public class ListenPort {
 	public enum Protocol {
 		TCP, UDP
 	}
+
 	public enum TYPE {
 		HTTP_PROXY, FORWARDER, SSL_FORWARDER, UDP_FORWARDER, SSL_TRANSPARENT_PROXY, HTTP_TRANSPARENT_PROXY, XMPP_SSL_FORWARDER, QUIC_FORWARDER, QUIC_TRANSPARENT_PROXY;
 
@@ -47,16 +48,21 @@ public class ListenPort {
 
 	@DatabaseField(generatedId = true)
 	private int id;
+
 	@DatabaseField
 	private Boolean enabled;
 	@DatabaseField
 	private String ca_name;
+
 	@DatabaseField(uniqueCombo = true)
 	private int port;
+
 	@DatabaseField(uniqueCombo = true)
 	private TYPE type;
+
 	@DatabaseField(uniqueCombo = true)
 	private int server_id;
+
 	private Protocol protocol = null;
 
 	public ListenPort() {

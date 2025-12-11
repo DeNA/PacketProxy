@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Component;
@@ -89,13 +90,11 @@ public class GUIBulkSender {
 
 	private JComponent createSendPanel() throws Exception {
 		sendData = new GUIBulkSenderData(owner, GUIBulkSenderData.Type.CLIENT, data -> {
-
 			OneShotPacket pkt = sendPackets.get(selectedSendPacketId);
 			if (pkt != null)
 				pkt.setData(data);
 		});
 		sendTable = new GUIBulkSenderTable(GUIBulkSenderTable.Type.CLIENT, oneshotId -> {
-
 			selectedSendPacketId = oneshotId;
 			OneShotPacket pkt = sendPackets.get(oneshotId);
 			if (pkt != null)
@@ -173,10 +172,8 @@ public class GUIBulkSender {
 														Packets.getInstance().update(packet);
 														// pickup regex value
 														regexParams.stream().filter(v -> {
-
 															return v.getPacketId() == idx;
 														}).forEach(v -> {
-
 															regexParams.get(regexParams.indexOf(v)).setValue(oneshot);
 														});
 														latch.countDown();
@@ -244,13 +241,11 @@ public class GUIBulkSender {
 
 	private JComponent createRecvPanel() throws Exception {
 		recvData = new GUIBulkSenderData(owner, GUIBulkSenderData.Type.SERVER, data -> {
-
 			OneShotPacket pkt = recvPackets.get(selectedRecvPacketId);
 			if (pkt != null)
 				pkt.setData(data);
 		});
 		recvTable = new GUIBulkSenderTable(GUIBulkSenderTable.Type.SERVER, oneshotId -> {
-
 			selectedRecvPacketId = oneshotId;
 			OneShotPacket pkt = recvPackets.get(oneshotId);
 			if (pkt != null)
@@ -262,5 +257,4 @@ public class GUIBulkSender {
 		split_panel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		return split_panel;
 	}
-
 }

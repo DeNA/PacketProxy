@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.*;
@@ -92,7 +93,6 @@ public class GUIVulCheckTab {
 	private JComponent createSendPanel() throws Exception {
 		sendData = new TabSet(true, false);
 		sendTable = new GUIVulCheckSendTable(generatorName -> { // onSelected
-
 			try {
 
 				if (!selectedGeneratorName.isEmpty() && !selectedGeneratorName.equals(generatorName)) {
@@ -116,7 +116,6 @@ public class GUIVulCheckTab {
 
 			}
 		}, generatorName -> { // onEnabled
-
 			try {
 
 				manager.setEnabled(generatorName, true);
@@ -132,7 +131,6 @@ public class GUIVulCheckTab {
 				return false;
 			}
 		}, generatorName -> { // onDisabled
-
 			try {
 
 				manager.setEnabled(generatorName, false);
@@ -210,7 +208,6 @@ public class GUIVulCheckTab {
 					for (VulCheckPattern pattern : manager.getAllEnabledVulCheckPattern()) {
 
 						future = future.thenApplyAsync(arg -> {
-
 							try {
 
 								Date sentTime = new Date();
@@ -243,7 +240,6 @@ public class GUIVulCheckTab {
 							return arg;
 						});
 						future = future.thenApplyAsync(arg -> {
-
 							try {
 
 								Thread.sleep(100); // wait 0.1 sec before sending next packet
@@ -282,7 +278,6 @@ public class GUIVulCheckTab {
 	private JComponent createRecvPanel() throws Exception {
 		recvData = new TabSet(true, false);
 		recvTable = new GUIVulCheckRecvTable(oneshotId -> {
-
 			selectedRecvPacketId = oneshotId;
 			OneShotPacket pkt = recvPackets.get(oneshotId);
 			if (pkt != null)
@@ -295,5 +290,4 @@ public class GUIVulCheckTab {
 		split_panel.setDividerLocation(200);
 		return split_panel;
 	}
-
 }

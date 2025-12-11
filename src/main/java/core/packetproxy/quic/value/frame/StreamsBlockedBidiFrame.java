@@ -55,5 +55,4 @@ public class StreamsBlockedBidiFrame extends Frame {
 	public boolean isAckEliciting() {
 		return true;
 	}
-
 }

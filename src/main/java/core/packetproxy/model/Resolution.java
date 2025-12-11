@@ -23,10 +23,13 @@ public class Resolution {
 
 	@DatabaseField(generatedId = true)
 	private int id;
+
 	@DatabaseField(uniqueCombo = true)
 	private String ip;
+
 	@DatabaseField(uniqueCombo = true)
 	private String hostname;
+
 	@DatabaseField
 	private boolean enabled;
 	@DatabaseField

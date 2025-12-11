@@ -15,6 +15,7 @@
  */
 
 package packetproxy.quic.service.connection;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.net.DatagramPacket;
@@ -45,20 +46,15 @@ public class ClientConnection extends Connection implements Endpoint {
 		super.start();
 	}
 
-	/**
-	 * ClientHello内部のSNIフィールドを取得する (Blocking)
-	 */
+	/** ClientHello内部のSNIフィールドを取得する (Blocking) */
 	public String getSNI() throws Exception {
 		return this.handshake.getSNI();
 	}
 
-	/**
-	 * クライアントからの受信パケット -> 処理 -> パケットキュー
-	 */
+	/** クライアントからの受信パケット -> 処理 -> パケットキュー */
 	public void recvUdpPacket(DatagramPacket udpPacket) {
 		awaitingReceivedPackets.put(udpPacket);
 		awaitingReceivedPackets.forEachAndRemovedIfReturnTrue(packet -> {
-
 			try {
 
 				clientPacketParser.parseOnePacket(packet);

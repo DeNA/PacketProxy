@@ -29,5 +29,4 @@ public class EncodeFirestore extends EncodeHTTPStreamingResponse {
 	public EncodeFirestore(String ALPN) throws Exception {
 		super(ALPN);
 	}
-
 }

@@ -18,6 +18,7 @@ package packetproxy.common;
 public class Parameter {
 
 	protected String name, value;
+
 	public Parameter(String s) {
 		String[] nameAndValue = s.split("=");
 		name = nameAndValue[0];

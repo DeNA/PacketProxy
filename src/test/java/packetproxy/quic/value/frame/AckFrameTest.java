@@ -72,5 +72,4 @@ class AckFrameTest {
 		AckFrame ackFrame2 = AckFrame.parse(test2);
 		assertThat(ackFrame1).isEqualTo(ackFrame2);
 	}
-
 }

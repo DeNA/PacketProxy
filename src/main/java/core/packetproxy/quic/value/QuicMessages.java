@@ -118,7 +118,6 @@ public final class QuicMessages {
 	public byte[] getBytes() {
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		this.messages.forEach(rethrow(msg -> {
-
 			bytes.write(msg.getBytes());
 		}));
 		return bytes.toByteArray();
@@ -147,5 +146,4 @@ public final class QuicMessages {
 				.collect(Collectors.toList());
 		return new QuicMessages(msgs);
 	}
-
 }

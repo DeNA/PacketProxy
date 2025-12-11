@@ -25,6 +25,7 @@ import javax.swing.text.View;
 public class CustomParagraphView extends ParagraphView {
 
 	private static final int MAX_VIEW_SIZE = 100;
+
 	public CustomParagraphView(Element elem) {
 		super(elem);
 		strategy = new CustomFlowStrategy();
@@ -41,5 +42,4 @@ public class CustomParagraphView extends ParagraphView {
 			return res;
 		}
 	}
-
 }

@@ -206,5 +206,4 @@ public class EncodeHTTPWebSocket extends Encoder {
 	public byte[] encodeWebsocketResponse(byte[] input) throws Exception {
 		return input;
 	}
-
 }

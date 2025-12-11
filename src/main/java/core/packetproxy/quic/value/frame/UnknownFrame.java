@@ -55,5 +55,4 @@ public class UnknownFrame extends Frame {
 	public String toString() {
 		return String.format("Unknown(type=%02x)", this.type);
 	}
-
 }

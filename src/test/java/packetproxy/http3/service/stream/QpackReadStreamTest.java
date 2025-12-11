@@ -38,9 +38,7 @@ class QpackReadStreamTest {
 	void streamTypeが異なるものがwriteされたら例外が起きること() throws Exception {
 		QpackReadStream stream = new QpackReadStream(StreamId.of(0xa), Stream.StreamType.QpackEncoderStreamType);
 		assertThatThrownBy(() -> {
-
 			stream.write(QuicMessage.of(StreamId.of(0xa), Hex.decodeHex("03112233".toCharArray())));
 		}).isInstanceOf(Exception.class);
 	}
-
 }

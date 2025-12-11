@@ -22,9 +22,11 @@ import java.util.Map;
 public class SettingsFrame extends Frame {
 
 	protected static Type TYPE = Type.SETTINGS;
+
 	public static enum SettingsFrameType {
 		RESERVED, SETTINGS_HEADER_TABLE_SIZE, SETTINGS_ENABLE_PUSH, SETTINGS_MAX_CONCURRENT_STREAMS, SETTINGS_INITIAL_WINDOW_SIZE, SETTINGS_MAX_FRAME_SIZE, SETTINGS_MAX_HEADER_LIST_SIZE,
 	};
+
 	private static int[] defaultValues = new int[]{0, 4096, 1, 10, 65535, 16884, 65536,};
 
 	private Map<SettingsFrameType, Integer> values = new HashMap<>();

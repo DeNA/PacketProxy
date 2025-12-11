@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.event.ActionEvent;
@@ -48,7 +49,8 @@ public class GUIOptionResolutions extends GUIOptionComponentBase<Resolution> {
 
 					int columnIndex = table.columnAtPoint(e.getPoint());
 					int rowIndex = table.rowAtPoint(e.getPoint());
-					if (columnIndex == 2) { /* Override area */
+					if (columnIndex == 2) {
+						/* Override area */
 
 						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 2);
 						Resolution resolution = getSelectedTableContent();

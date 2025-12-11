@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.util;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
@@ -286,5 +287,4 @@ public class CharSetUtility {
 		}
 		return ret;
 	}
-
 }

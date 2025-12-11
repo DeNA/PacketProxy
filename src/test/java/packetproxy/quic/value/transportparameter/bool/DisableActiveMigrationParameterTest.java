@@ -10,5 +10,4 @@ class DisableActiveMigrationParameterTest {
 		DisableActiveMigrationParameter param = new DisableActiveMigrationParameter();
 		System.out.println(Hex.encodeHexString(param.getBytes()));
 	}
-
 }

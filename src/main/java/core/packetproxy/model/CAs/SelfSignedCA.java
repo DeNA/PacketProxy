@@ -41,5 +41,4 @@ public class SelfSignedCA extends CA {
 	public String toString() {
 		return "SelfSignedCA [name=" + name + ", desc=" + desc + "]";
 	}
-
 }

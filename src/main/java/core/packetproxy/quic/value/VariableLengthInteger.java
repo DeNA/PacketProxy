@@ -62,7 +62,6 @@ public class VariableLengthInteger {
 
 	private static int estimateLength(byte byte0) {
 		switch (byte0 & 0xc0) {
-
 			case 0x00 :
 				return 1;
 			case 0x40 :
@@ -99,7 +98,6 @@ public class VariableLengthInteger {
 		int len = estimateLength(this.value);
 		ByteBuffer buf = ByteBuffer.allocate(len);
 		switch (len) {
-
 			case 1 :
 				buf.put((byte) this.value);
 				break;
@@ -115,5 +113,4 @@ public class VariableLengthInteger {
 		}
 		return buf.array();
 	}
-
 }

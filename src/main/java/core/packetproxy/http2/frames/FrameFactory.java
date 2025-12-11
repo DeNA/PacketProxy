@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.http2.frames;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
@@ -37,7 +38,6 @@ public class FrameFactory {
 	private static Map<Type, Class<?>> frameList;
 
 	static {
-
 		try {
 
 			frameList = new HashMap<Type, Class<?>>();
@@ -115,5 +115,4 @@ public class FrameFactory {
 
 	private FrameFactory() {
 	}
-
 }

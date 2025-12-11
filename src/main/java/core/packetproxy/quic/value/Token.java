@@ -42,5 +42,4 @@ public class Token {
 	public String toString() {
 		return String.format("Token([%s])", Hex.encodeHexString(this.token));
 	}
-
 }

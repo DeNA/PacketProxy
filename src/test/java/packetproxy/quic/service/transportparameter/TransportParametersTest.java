@@ -34,5 +34,4 @@ class TransportParametersTest {
 		assertEquals(2097152, params.getInitMaxStreamDataBidiLocal());
 		assertEquals(1048576, params.getInitMaxData());
 	}
-
 }

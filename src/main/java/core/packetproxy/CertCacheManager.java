@@ -49,7 +49,6 @@ public class CertCacheManager {
 
 	public KeyStore getKeyStore(String commonName, String[] domainNames, CA ca) throws Exception {
 		synchronized (instance) {
-
 			String key = commonName;
 			key += Arrays.stream(domainNames).collect(Collectors.joining());
 			key += ca.getName();
@@ -63,5 +62,4 @@ public class CertCacheManager {
 			return ks;
 		}
 	}
-
 }

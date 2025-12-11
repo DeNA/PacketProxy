@@ -3,6 +3,7 @@
  *
  ************************************************************/
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.BorderLayout;
@@ -110,7 +111,6 @@ public class JFontChooser extends JComponent {
 			fontFamilyTextField.getDocument()
 					.addDocumentListener(new ListSearchTextFieldDocumentHandler(getFontFamilyList()));
 			fontFamilyTextField.setFont(DEFAULT_FONT);
-
 		}
 		return fontFamilyTextField;
 	}
@@ -288,7 +288,6 @@ public class JFontChooser extends JComponent {
 		public void keyPressed(KeyEvent e) {
 			int i = targetList.getSelectedIndex();
 			switch (e.getKeyCode()) {
-
 				case KeyEvent.VK_UP :
 					i = targetList.getSelectedIndex() - 1;
 					if (i < 0) {
@@ -480,7 +479,6 @@ public class JFontChooser extends JComponent {
 
 			fontNamePanel.add(label, BorderLayout.NORTH);
 			fontNamePanel.add(p, BorderLayout.CENTER);
-
 		}
 		return fontNamePanel;
 	}

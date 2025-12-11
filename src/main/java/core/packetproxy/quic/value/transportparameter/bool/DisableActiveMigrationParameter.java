@@ -36,5 +36,4 @@ public class DisableActiveMigrationParameter extends TransportParameter {
 	public DisableActiveMigrationParameter() {
 		super(ID, 0, new byte[0]);
 	}
-
 }

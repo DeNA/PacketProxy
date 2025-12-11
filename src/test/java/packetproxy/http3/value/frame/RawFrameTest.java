@@ -29,5 +29,4 @@ class RawFrameTest {
 		RawFrame rawFrame = RawFrame.of(VariableLengthInteger.of(1).getBytes());
 		assertThat(rawFrame.getBytes()).isEqualTo(Hex.decodeHex("01".toCharArray()));
 	}
-
 }

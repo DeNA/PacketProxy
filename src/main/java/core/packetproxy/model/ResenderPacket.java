@@ -10,14 +10,19 @@ public class ResenderPacket {
 
 	@DatabaseField(generatedId = true)
 	private int id;
+
 	@DatabaseField(uniqueCombo = true)
 	private int resends_index; // 上側のタブの番号
+
 	@DatabaseField(uniqueCombo = true)
 	private int resend_index; // 下側のタブの番号
+
 	@DatabaseField(dataType = DataType.ENUM_STRING, uniqueCombo = true)
 	private Packet.Direction direction;
+
 	@DatabaseField(dataType = DataType.BYTE_ARRAY)
 	private byte[] data;
+
 	@DatabaseField
 	private int listen_port;
 	@DatabaseField

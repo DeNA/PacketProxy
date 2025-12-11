@@ -149,6 +149,7 @@ public class FrameManager {
 	}
 
 	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
 	public void putToFlowControlledQueue(byte[] frameData) throws Exception {
 		baos.write(frameData);
 		baos.flush();

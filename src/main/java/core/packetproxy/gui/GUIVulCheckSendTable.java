@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.*;
@@ -51,6 +52,7 @@ public class GUIVulCheckSendTable {
 		tableModel = new OptionTableModel(columnNames, 0) {
 
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
@@ -60,6 +62,7 @@ public class GUIVulCheckSendTable {
 		table = new JTable(tableModel) {
 
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Component prepareRenderer(TableCellRenderer tcr, int row, int column) {
 				Component c = super.prepareRenderer(tcr, row, column);
@@ -125,7 +128,8 @@ public class GUIVulCheckSendTable {
 					String generatorName = getSelectedGeneratorName();
 					int columnIndex = table.columnAtPoint(e.getPoint());
 					int rowIndex = table.rowAtPoint(e.getPoint());
-					if (columnIndex == 0) { /* check box area */
+					if (columnIndex == 0) {
+						/* check box area */
 
 						boolean enable_checkbox = (Boolean) table.getValueAt(rowIndex, 0);
 						if (enable_checkbox) {

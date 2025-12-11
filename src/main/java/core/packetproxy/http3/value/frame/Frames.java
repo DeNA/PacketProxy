@@ -85,5 +85,4 @@ public class Frames {
 	public List<Frame> toList() {
 		return (ArrayList<Frame>) this.frames.clone();
 	}
-
 }

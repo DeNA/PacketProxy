@@ -30,9 +30,7 @@ public class QpackTest {
 		ByteBufferPool.Lease lease = new ByteBufferPool.Lease(bufferPool);
 
 		QpackEncoder encoder = new QpackEncoder(instructions -> {
-
 			instructions.forEach(i -> {
-
 				i.encode(lease);
 			});
 		}, 100);
@@ -52,11 +50,9 @@ public class QpackTest {
 
 		ByteArrayOutputStream encoderInsts = new ByteArrayOutputStream();
 		lease.getByteBuffers().forEach(rethrow(inst -> {
-
 			encoderInsts.write(SimpleBytes.parse(inst, inst.remaining()).getBytes());
 		}));
 		System.out.println("send: QpackEncoder Instructions: " + Hex.encodeHexString(encoderInsts.toByteArray()));
-
 	}
 
 	@Test
@@ -69,12 +65,10 @@ public class QpackTest {
 		ByteBufferPool.Lease lease2 = new ByteBufferPool.Lease(bufferPool2);
 
 		QpackEncoder encoder = new QpackEncoder(instructions -> {
-
 			instructions.forEach(i -> i.encode(lease));
 		}, 100);
 
 		QpackDecoder decoder = new QpackDecoder(instructions -> {
-
 			instructions.forEach(i -> i.encode(lease2));
 		}, 100);
 		encoder.setCapacity(100);
@@ -90,7 +84,6 @@ public class QpackTest {
 
 		ByteArrayOutputStream encoderInsts = new ByteArrayOutputStream();
 		lease.getByteBuffers().forEach(rethrow(inst -> {
-
 			encoderInsts.write(SimpleBytes.parse(inst, inst.remaining()).getBytes());
 		}));
 		System.out.println("send: QpackEncoder Instructions: " + Hex.encodeHexString(encoderInsts.toByteArray()));
@@ -99,13 +92,11 @@ public class QpackTest {
 		/* processing by Decoder */
 		decoder.parseInstructions(ByteBuffer.wrap(encoderInsts.toByteArray()));
 		decoder.decode(0, ByteBuffer.wrap(HeadersBytes), (streamId, metadata) -> {
-
 			System.out.println("streamId: " + streamId + ", meta: " + metadata);
 			assertThat(httpFields.asImmutable()).isEqualTo(metadata.getFields());
 		});
 		ByteArrayOutputStream decoderInsts = new ByteArrayOutputStream();
 		lease2.getByteBuffers().forEach(rethrow(inst -> {
-
 			decoderInsts.write(SimpleBytes.parse(inst, inst.remaining()).getBytes());
 		}));
 		System.out.println("resp: QpackDecoder Instructions: " + Hex.encodeHexString(decoderInsts.toByteArray()));
@@ -126,13 +117,11 @@ public class QpackTest {
 		List<HeaderField> fields = header.getFields();
 		HttpFields.Mutable jettyHttpFields = HttpFields.build();
 		fields.forEach(field -> {
-
 			jettyHttpFields.add(field.getName(), field.getValue());
 		});
 		MetaData md = new MetaData.Request(http.getMethod(), HttpURI.from("https://localhost/"), HttpVersion.HTTP_3,
 				jettyHttpFields);
 
 		System.out.println(md);
-
 	}
 }

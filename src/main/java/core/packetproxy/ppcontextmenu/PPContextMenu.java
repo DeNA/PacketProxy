@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.ppcontextmenu;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 

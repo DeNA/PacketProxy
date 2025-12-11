@@ -71,7 +71,6 @@ public class Http3 {
 		if (this.clientEncoder == null) {
 
 			this.clientStreamsReader.getSetting().ifPresent(setting -> {
-
 				this.clientEncoder = new Http3HeaderEncoder(setting.getQpackMaxTableCapacity());
 			});
 		}
@@ -93,7 +92,6 @@ public class Http3 {
 		ByteArrayOutputStream http = new ByteArrayOutputStream();
 		this.clientDecoder.decode(httpRaw.getStreamId().getId(), httpRaw.getEncodedHeader())
 				.forEach(rethrow(metaData -> {
-
 					MetaData.Request req = (MetaData.Request) metaData;
 					String method = req.getMethod();
 					HttpURI uri = req.getURI();
@@ -104,7 +102,6 @@ public class Http3 {
 
 					http.write(String.format("%s %s%s HTTP/3\r\n", method, path, queryStr).getBytes());
 					req.getFields().forEach(rethrow(field -> {
-
 						http.write(String.format("%s: %s\r\n", field.getName(), field.getValue()).getBytes());
 					}));
 					http.write(String.format("x-packetproxy-http3-host: %s\r\n", authority).getBytes());
@@ -120,13 +117,11 @@ public class Http3 {
 		ByteArrayOutputStream http = new ByteArrayOutputStream();
 		this.serverDecoder.decode(httpRaw.getStreamId().getId(), httpRaw.getEncodedHeader())
 				.forEach(rethrow(metaData -> {
-
 					MetaData.Response res = (MetaData.Response) metaData;
 					http.write(
 							String.format("HTTP/3 %d %s\r\n", res.getStatus(), HttpStatus.getMessage(res.getStatus()))
 									.getBytes());
 					res.getFields().forEach(rethrow(field -> {
-
 						http.write(String.format("%s: %s\r\n", field.getName(), field.getValue()).getBytes());
 					}));
 				}));
@@ -209,7 +204,6 @@ public class Http3 {
 	public byte[] clientRequestAvailable() throws Exception {
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		this.clientStreamsReader.readHttpRaw().ifPresent(rethrow(httpRaw -> {
-
 			bytes.write(generateReqHttp(httpRaw));
 		}));
 		return bytes.toByteArray();
@@ -234,7 +228,6 @@ public class Http3 {
 		if (this.serverSetting == null) {
 
 			this.serverStreamsReader.getSetting().ifPresent(setting -> {
-
 				this.serverSetting = setting;
 			});
 		}
@@ -251,7 +244,6 @@ public class Http3 {
 	public byte[] serverResponseAvailable() throws Exception {
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		this.serverStreamsReader.readHttpRaw().ifPresent(rethrow(httpRaw -> {
-
 			bytes.write(generateResHttp(httpRaw));
 		}));
 		return bytes.toByteArray();
@@ -287,5 +279,4 @@ public class Http3 {
 			}
 		}
 	}
-
 }

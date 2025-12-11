@@ -112,7 +112,6 @@ public class HTTPSRecordTest {
 	void unknownKey() {
 		String str = "1 . sport=8443";
 		assertThrows(TextParseException.class, () -> {
-
 			SVCBRecordTest.stringToWire(str);
 		});
 	}

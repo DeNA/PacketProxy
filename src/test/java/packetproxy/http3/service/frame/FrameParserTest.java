@@ -59,10 +59,8 @@ class FrameParserTest {
 						.toCharArray());
 		ByteArrayOutputStream framesBuffer = new ByteArrayOutputStream();
 		FrameParser.parse(ByteBuffer.wrap(test)).forEach(rethrow(frame -> {
-
 			framesBuffer.write(frame.getBytes());
 		}));
 		assertThat(test).isEqualTo(framesBuffer.toByteArray());
 	}
-
 }

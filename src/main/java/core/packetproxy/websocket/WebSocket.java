@@ -43,7 +43,6 @@ public class WebSocket {
 	public byte[] passThroughFrame() throws Exception {
 		ByteArrayOutputStream passBytes = new ByteArrayOutputStream();
 		this.frames = this.frames.stream().filter(rethrowP(frame -> {
-
 			if (frame.getOpcode() != OpCode.Text && frame.getOpcode() != OpCode.Binary) {
 
 				passBytes.write(frame.getBytes());
@@ -63,5 +62,4 @@ public class WebSocket {
 		}
 		return frame.getPayload();
 	}
-
 }

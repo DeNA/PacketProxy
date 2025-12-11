@@ -124,7 +124,6 @@ public class WrapEditorKit extends StyledEditorKit {
 
 		public float getMinimumSpan(int axis) {
 			switch (axis) {
-
 				case View.X_AXIS :
 					return 0;
 				case View.Y_AXIS :
@@ -134,5 +133,4 @@ public class WrapEditorKit extends StyledEditorKit {
 			}
 		}
 	}
-
 }

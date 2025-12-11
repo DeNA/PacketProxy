@@ -1,4 +1,5 @@
 package packetproxy.gui;
+
 import static packetproxy.model.PropertyChangeEventType.CONFIGS;
 import static packetproxy.util.Logging.errWithStackTrace;
 
@@ -40,7 +41,6 @@ public class GUIOptionHubServer implements PropertyChangeListener {
 	private JCheckBox createCheckBox() {
 		checkBox = new JCheckBox(I18nString.get("Enabled"));
 		checkBox.addActionListener(event -> {
-
 			try {
 
 				if (checkBox.isSelected()) {

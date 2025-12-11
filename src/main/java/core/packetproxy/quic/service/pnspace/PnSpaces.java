@@ -66,23 +66,17 @@ public class PnSpaces {
 		}
 	}
 
-	/**
-	 * 送信するパケットをキューに入れる
-	 */
+	/** 送信するパケットをキューに入れる */
 	public void addSendPackets(List<QuicPacketBuilder> packets) {
 		packets.forEach(rethrow(this.sendPacketDeque::put));
 	}
 
-	/**
-	 * 送信するパケットをキューに入れる (優先度高）
-	 */
+	/** 送信するパケットをキューに入れる (優先度高） */
 	public void addSendPacketsFirst(QuicPacketBuilder packet) {
 		this.sendPacketDeque.addFirst(packet);
 	}
 
-	/**
-	 * 送信するパケットをキューから取得する (Blocking)
-	 */
+	/** 送信するパケットをキューから取得する (Blocking) */
 	@SneakyThrows
 	public List<QuicPacket> pollSendPackets() {
 		QuicPacketBuilder builder = this.sendPacketDeque.take(); /* Blocking */
@@ -115,5 +109,4 @@ public class PnSpaces {
 	public boolean hasAnyAckElicitingPacket() {
 		return Arrays.stream(this.pnSpaces).anyMatch(PnSpace::hasAnyAckElicitingPacket);
 	}
-
 }

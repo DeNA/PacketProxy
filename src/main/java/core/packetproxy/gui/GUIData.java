@@ -111,7 +111,7 @@ public class GUIData {
 					int id = GUIHistory.getInstance().getSelectedPacketId();
 					Packet packet = Packets.getInstance().query(id);
 					Http http = Http.create(tabs.getRaw().getData());
-					String body = new String(http.getBody(), "UTF-8");// http.getURL(packet.getServerPort());
+					String body = new String(http.getBody(), "UTF-8"); // http.getURL(packet.getServerPort());
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(body);
 					clipboard.setContents(selection, selection);

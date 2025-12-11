@@ -55,5 +55,4 @@ public class GRPCTest {
 		List<Map<String, Object>> json = JSON.decode(JSON.encode(messages));
 		assertTrue(data.equals(GRPCMessage.encodeTextMessages(json)));
 	}
-
 }

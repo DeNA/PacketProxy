@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy;
+
 import static packetproxy.util.Logging.err;
 import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
@@ -149,7 +150,6 @@ public class PrivateDNS {
 
 	public void start(DNSSpoofingIPGetter dnsSpoofingIPGetter) {
 		synchronized (lock) {
-
 			if (dns == null) {
 
 				try {
@@ -172,7 +172,6 @@ public class PrivateDNS {
 
 	public void stop() {
 		synchronized (lock) {
-
 			if (dns != null) {
 
 				dns.finish();
@@ -368,7 +367,6 @@ public class PrivateDNS {
 						err("[DNS Query] Unknown Error: '%s' [%s]", queryHostName, queryRecTypeName);
 						jnamed jn = new jnamed();
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
-
 					}
 					sendPacket = new DatagramPacket(res, res.length, cAddr, cPort);
 					soc.send(sendPacket);
@@ -412,6 +410,5 @@ public class PrivateDNS {
 			}
 			return false;
 		}
-
 	}
 }

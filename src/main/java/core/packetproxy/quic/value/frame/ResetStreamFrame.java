@@ -76,5 +76,4 @@ public class ResetStreamFrame extends Frame {
 	public boolean isAckEliciting() {
 		return true;
 	}
-
 }

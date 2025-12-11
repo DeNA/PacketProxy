@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+
 import static packetproxy.util.Logging.err;
 import static packetproxy.util.Logging.errWithStackTrace;
 
@@ -32,12 +33,16 @@ public class Server {
 
 	@DatabaseField(generatedId = true)
 	private int id;
+
 	@DatabaseField(uniqueCombo = true)
 	private String ip;
+
 	@DatabaseField(uniqueCombo = true)
 	private int port;
+
 	@DatabaseField(uniqueCombo = true)
 	private String encoder;
+
 	@DatabaseField
 	private boolean use_ssl;
 	@DatabaseField

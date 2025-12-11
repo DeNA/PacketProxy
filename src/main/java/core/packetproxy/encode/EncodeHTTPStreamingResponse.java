@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.encode;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.InputStream;
@@ -27,6 +28,7 @@ public class EncodeHTTPStreamingResponse extends Encoder {
 	public enum HTTPVersion {
 		HTTP1, HTTP2
 	}
+
 	private HTTPVersion httpVersion;
 	private Http1StreamingResponse http1StreamingResponse;
 	private Http2StreamingResponse http2StreamingResponse;
@@ -302,5 +304,4 @@ public class EncodeHTTPStreamingResponse extends Encoder {
 	public int checkDelimiter(byte[] input_data) throws Exception {
 		return input_data.length;
 	}
-
 }

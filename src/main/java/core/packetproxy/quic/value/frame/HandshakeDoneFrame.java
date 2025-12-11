@@ -51,5 +51,4 @@ public class HandshakeDoneFrame extends Frame {
 	public boolean isAckEliciting() {
 		return true;
 	}
-
 }

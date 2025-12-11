@@ -26,26 +26,30 @@ import java.util.regex.Pattern;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 
-/**
- * Certificate Model for Client Certificate Authentication
- */
+/** Certificate Model for Client Certificate Authentication */
 @DatabaseTable(tableName = "clientCertificates")
 public class ClientCertificate {
 
 	@DatabaseField(generatedId = true)
 	private int id;
+
 	@DatabaseField
 	private Boolean enabled;
+
 	@DatabaseField(uniqueCombo = true)
 	private Type type;
+
 	@DatabaseField(uniqueCombo = true)
 	private int serverId;
+
 	@DatabaseField
 	private String subject;
 	@DatabaseField
 	private String issuer;
+
 	@DatabaseField(uniqueCombo = true)
 	private String path;
+
 	@DatabaseField
 	private String storePassword;
 	@DatabaseField
@@ -145,7 +149,6 @@ public class ClientCertificate {
 	}
 
 	public enum Type {
-
 		P12("PKCS12"), JKS("JKS"),
 		// BKS("BKS"),
 		;

@@ -217,5 +217,4 @@ public class Frame {
 	public String toString() {
 		return String.format("length=%d, type=%s, flags=0x%x, streamId=%d", length, type.name(), flags, streamId);
 	}
-
 }

@@ -51,5 +51,4 @@ public class HttpWriteStreams implements WriteStream {
 		httpRaws.clear();
 		return msgs;
 	}
-
 }

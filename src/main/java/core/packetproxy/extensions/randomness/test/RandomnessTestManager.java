@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.extensions.randomness.test;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.util.ArrayList;

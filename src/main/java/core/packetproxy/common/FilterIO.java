@@ -1,4 +1,5 @@
 package packetproxy.common;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import com.google.gson.Gson;
@@ -19,7 +20,6 @@ public class FilterIO {
 	}
 
 	public FilterIO() {
-
 	}
 
 	public String getOptions() throws Exception {

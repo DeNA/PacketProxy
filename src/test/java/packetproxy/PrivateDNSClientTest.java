@@ -78,5 +78,4 @@ class PrivateDNSClientTest {
 		lines.add(" # 3.3.3.3 aaa ccc.example.com");
 		assertFalse(PrivateDNSClient.dnsLoopingFromHostsLines(lines, "aaa.example.com"));
 	}
-
 }

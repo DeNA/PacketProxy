@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.http;
+
 import static packetproxy.util.Logging.err;
 import static packetproxy.util.Logging.errWithStackTrace;
 
@@ -51,5 +52,4 @@ public class HeaderField {
 	public String toString() {
 		return name + ": " + value;
 	}
-
 }

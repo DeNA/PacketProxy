@@ -45,5 +45,4 @@ class ConnectionIdTest {
 		ConnectionId connId2 = ConnectionId.generateRandom();
 		assertNotEquals(connId1, connId2);
 	}
-
 }

@@ -19,24 +19,14 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import packetproxy.common.CryptUtils;
-import packetproxy.common.Endpoint;
-import packetproxy.common.EndpointFactory;
-import packetproxy.common.SSLSocketEndpoint;
-import packetproxy.common.UniqueID;
+import packetproxy.common.*;
 import packetproxy.controller.InterceptController;
 import packetproxy.encode.Encoder;
 import packetproxy.http.Http;
 import packetproxy.http.HttpsProxySocketEndpoint;
-import packetproxy.model.Modifications;
-import packetproxy.model.OneShotPacket;
-import packetproxy.model.Packet;
-import packetproxy.model.Packets;
-import packetproxy.model.Server;
-import packetproxy.model.Servers;
+import packetproxy.model.*;
 
 public class DuplexFactory {
-
 	// 1MB以上のパケットは最後のタイミングだけHistoryに記録する、それ未満はパケットが更新されるたびにHistoryを更新する
 	static final int SKIP_LENGTH = 1 * 1024 * 1024;
 	// 10MB以上のパケットはHistoryには記録しない
@@ -70,18 +60,14 @@ public class DuplexFactory {
 		final boolean use_ssl;
 
 		if (server_endpoint instanceof SSLSocketEndpoint) {
-
 			use_ssl = true;
 		} else if (server_endpoint instanceof HttpsProxySocketEndpoint) {
-
 			use_ssl = true;
 		} else {
-
 			use_ssl = false;
 		}
 
 		duplex.addDuplexEventListener(new Duplex.DuplexEventListener() {
-
 			private Packets packets = Packets.getInstance();
 			private Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name, ALPN);
 			private Modifications mods = Modifications.getInstance();
@@ -133,7 +119,8 @@ public class DuplexFactory {
 
 					packets.update(client_packet);
 				}
-				if (intercepted_data.length == 0) { /* drop */
+				if (intercepted_data.length == 0) {
+					/* drop */
 
 					client_packet.setModified();
 					packets.update(client_packet);
@@ -191,7 +178,8 @@ public class DuplexFactory {
 
 					packets.update(server_packet);
 				}
-				if (intercepted_data.length == 0) { /* drop */
+				if (intercepted_data.length == 0) {
+					/* drop */
 
 					server_packet.setModified();
 					packets.update(server_packet);
@@ -404,7 +392,8 @@ public class DuplexFactory {
 				}
 				server_packet.setModifiedData(decoded_data);
 				packets.update(server_packet);
-				if (decoded_data.length == 0) { /* drop */
+				if (decoded_data.length == 0) {
+					/* drop */
 
 					server_packet.setModified();
 					packets.update(server_packet);
@@ -750,7 +739,8 @@ public class DuplexFactory {
 				}
 				server_packet.setModifiedData(decoded_data);
 				packets.update(server_packet);
-				if (decoded_data.length == 0) { /* drop */
+				if (decoded_data.length == 0) {
+					/* drop */
 
 					server_packet.setModified();
 					packets.update(server_packet);

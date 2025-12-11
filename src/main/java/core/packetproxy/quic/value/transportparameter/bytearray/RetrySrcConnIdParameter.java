@@ -40,5 +40,4 @@ public class RetrySrcConnIdParameter extends TransportParameter {
 	public byte[] getValue() {
 		return super.parameterValue;
 	}
-
 }

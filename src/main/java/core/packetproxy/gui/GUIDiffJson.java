@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.event.ActionEvent;
@@ -27,6 +28,7 @@ import packetproxy.util.PacketProxyUtility;
 public class GUIDiffJson extends GUIDiffBase {
 
 	protected JCheckBox jcCh;
+
 	@Override
 	protected DiffSet sortUniq(DiffSet ds) {
 		String strOrig = sortUniq(new String(ds.getOriginal()));

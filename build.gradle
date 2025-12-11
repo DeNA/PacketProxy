@@ -108,6 +108,7 @@ spotless {
     target '**/*.java'
     targetExclude 'src/main/java/core/org/**/*.java'
 
+    googleJavaFormat()
     cleanthat()
     importOrder()
     removeUnusedImports()

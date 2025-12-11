@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.gui;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.*;
@@ -43,6 +44,7 @@ public class GUIVulCheckRecvTable {
 		tableModel = new OptionTableModel(columnNames, 0) {
 
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
@@ -52,6 +54,7 @@ public class GUIVulCheckRecvTable {
 		table = new JTable(tableModel) {
 
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Component prepareRenderer(TableCellRenderer tcr, int row, int column) {
 				Component c = super.prepareRenderer(tcr, row, column);

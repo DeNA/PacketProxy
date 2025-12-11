@@ -46,5 +46,4 @@ class CryptoFrameTest {
 		CryptoFrame cryptoFrame2 = CryptoFrame.parse(data2);
 		assertThat(cryptoFrame1).isEqualTo(cryptoFrame2);
 	}
-
 }

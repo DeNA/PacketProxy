@@ -35,5 +35,4 @@ public class Constants {
 	public static final long kGranularity = 1; // 1ms
 	public static final float kTimeThreshold = 9f / 8f;
 	public static final long kPacketThreshold = 3;
-
 }

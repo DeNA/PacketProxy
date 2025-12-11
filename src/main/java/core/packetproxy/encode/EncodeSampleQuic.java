@@ -96,5 +96,4 @@ public class EncodeSampleQuic extends Encoder {
 	public String getSummarizedRequest(Packet packet) {
 		return this.getSummary(packet);
 	}
-
 }

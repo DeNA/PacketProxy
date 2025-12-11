@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.model;
+
 import static packetproxy.model.PropertyChangeEventType.CLIENT_CERTIFICATES;
 import static packetproxy.model.PropertyChangeEventType.DATABASE_MESSAGE;
 import static packetproxy.util.Logging.errWithStackTrace;
@@ -27,9 +28,7 @@ import javax.swing.JOptionPane;
 import packetproxy.common.ClientKeyManager;
 import packetproxy.model.Database.DatabaseMessage;
 
-/**
- * DAO for ClientCertificate
- */
+/** DAO for ClientCertificate */
 public class ClientCertificates implements PropertyChangeListener {
 
 	private static ClientCertificates instance;
@@ -86,7 +85,6 @@ public class ClientCertificates implements PropertyChangeListener {
 		try {
 
 			switch (message) {
-
 				case PAUSE :
 					// TODO ロックを取る
 					break;

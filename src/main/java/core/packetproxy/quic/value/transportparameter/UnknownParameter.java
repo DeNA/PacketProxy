@@ -39,5 +39,4 @@ public class UnknownParameter extends TransportParameter {
 	public byte[] getValue() {
 		return super.parameterValue;
 	}
-
 }

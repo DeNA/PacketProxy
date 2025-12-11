@@ -130,5 +130,4 @@ public class AckFrameGenerator {
 
 		return new AckRange(gap, range);
 	}
-
 }

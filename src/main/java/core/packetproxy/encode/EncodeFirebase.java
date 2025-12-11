@@ -41,7 +41,6 @@ public class EncodeFirebase extends EncodeHTTPWebSocket {
 
 			String action = "UNKNOWN";
 			switch (a) {
-
 				case "n" :
 					action = "DELETE";
 					break;
@@ -92,5 +91,4 @@ public class EncodeFirebase extends EncodeHTTPWebSocket {
 			return data;
 		}
 	}
-
 }

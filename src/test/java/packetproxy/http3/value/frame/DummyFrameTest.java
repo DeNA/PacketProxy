@@ -34,5 +34,4 @@ class DummyFrameTest {
 		DummyFrame dummy = DummyFrame.of(0x2);
 		assertThat(dummy.getBytes()).isEqualTo(Hex.decodeHex("3302".toCharArray()));
 	}
-
 }

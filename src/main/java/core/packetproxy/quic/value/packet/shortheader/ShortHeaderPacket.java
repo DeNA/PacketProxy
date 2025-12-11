@@ -1,4 +1,5 @@
 package packetproxy.quic.value.packet.shortheader;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.nio.ByteBuffer;

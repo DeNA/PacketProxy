@@ -335,5 +335,4 @@ public class JsonSyntaxHighlighter {
 			currentOffset += line.length() + 1;
 		}
 	}
-
 }

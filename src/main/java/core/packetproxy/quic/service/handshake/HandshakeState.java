@@ -51,5 +51,4 @@ public class HandshakeState {
 	public boolean isConfirmed() {
 		return this.state.ordinal() >= State.Confirmed.ordinal();
 	}
-
 }

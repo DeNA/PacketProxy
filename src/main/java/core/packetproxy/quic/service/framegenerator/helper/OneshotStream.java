@@ -26,7 +26,7 @@ import packetproxy.quic.value.frame.StreamFrame;
 
 public class OneshotStream {
 
-	private final Map<Long/*offset*/, StreamFrame> frameMap = new HashMap<>();
+	private final Map<Long /*offset*/, StreamFrame> frameMap = new HashMap<>();
 	private final StreamId streamId;
 	private boolean lastFrameReceived = false;
 	private boolean alreadyResultReturned = false;

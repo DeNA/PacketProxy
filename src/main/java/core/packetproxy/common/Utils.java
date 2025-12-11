@@ -62,9 +62,7 @@ public class Utils {
 		return -1;
 	}
 
-	/**
-	 * OSの名前を返す
-	 */
+	/** OSの名前を返す */
 	public enum Platform {
 		WINDOWS, MAC, LINUX
 	};
@@ -83,9 +81,7 @@ public class Utils {
 		}
 	}
 
-	/**
-	 * OS判定用
-	 */
+	/** OS判定用 */
 	public static boolean isWindows() {
 		return checkOS() == Platform.WINDOWS;
 	}
@@ -94,9 +90,7 @@ public class Utils {
 		return checkOS() == Platform.MAC;
 	}
 
-	/**
-	 * ExecuteExe関数で利用される。Macの場合monoを追加する
-	 */
+	/** ExecuteExe関数で利用される。Macの場合monoを追加する */
 	private static String[] addMonoPath(String... args) {
 		List<String> cmd_array = new ArrayList<String>();
 		Utils.Platform os = Utils.checkOS();
@@ -315,5 +309,4 @@ public class Utils {
 		String version = System.getProperty("java.version");
 		return version.matches("1\\.8\\..*");
 	}
-
 }

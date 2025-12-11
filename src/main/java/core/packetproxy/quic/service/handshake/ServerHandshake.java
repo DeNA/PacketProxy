@@ -82,7 +82,6 @@ public class ServerHandshake implements Handshake {
 			ClientHello ch = (ClientHello) message;
 			ch.getExtensions().stream().filter(ext -> ext instanceof ServerNameExtension).findFirst()
 					.ifPresent(rethrow(ext -> {
-
 						ServerNameExtension serverNameExtension = (ServerNameExtension) ext;
 						sniName = Optional.of(serverNameExtension.getHostName());
 					}));
@@ -91,7 +90,6 @@ public class ServerHandshake implements Handshake {
 				throw new Exception("Error: SNI name was not found in TLS ClientHello HandShake message");
 			}
 			sniName.ifPresent(rethrow(sni -> {
-
 				this.startHandshake(sni);
 				this.sniQueue.put(sni);
 				this.engine.received((ClientHello) message, ProtectionKeysType.None);

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy.util;
+
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.io.UnsupportedEncodingException;

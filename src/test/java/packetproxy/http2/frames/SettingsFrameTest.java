@@ -26,5 +26,4 @@ public class SettingsFrameTest {
 		SettingsFrame sf = new SettingsFrame(data);
 		System.out.println(sf);
 	}
-
 }

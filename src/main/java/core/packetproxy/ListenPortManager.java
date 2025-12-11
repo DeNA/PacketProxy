@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package packetproxy;
+
 import static packetproxy.model.PropertyChangeEventType.LISTEN_PORTS;
 import static packetproxy.model.PropertyChangeEventType.SERVERS;
 import static packetproxy.util.Logging.err;
@@ -124,7 +125,6 @@ public class ListenPortManager implements PropertyChangeListener {
 			try {
 
 				synchronized (listen_map) {
-
 					stopIfRunning();
 					startIfStateChanged();
 				}
@@ -137,7 +137,6 @@ public class ListenPortManager implements PropertyChangeListener {
 			try {
 
 				synchronized (listen_map) {
-
 					restartAffectedForwarders();
 				}
 			} catch (Exception e) {

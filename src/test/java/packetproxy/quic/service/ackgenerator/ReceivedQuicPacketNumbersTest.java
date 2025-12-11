@@ -110,5 +110,4 @@ class ReceivedQuicPacketNumbersTest {
 		assertEquals(3, receivedPacketNumbers.getSmallestOfRange(3, 3));
 		assertEquals(2, receivedPacketNumbers.getSmallestOfRange(2, 2));
 	}
-
 }
