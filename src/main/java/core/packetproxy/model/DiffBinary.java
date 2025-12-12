@@ -17,11 +17,12 @@ package packetproxy.model;
 
 import static packetproxy.util.Logging.errWithStackTrace;
 
+import com.github.difflib.DiffUtils;
+import com.github.difflib.patch.AbstractDelta;
+import com.github.difflib.patch.Chunk;
+import com.github.difflib.patch.DeltaType;
+import com.github.difflib.patch.Patch;
 import com.google.common.primitives.Bytes;
-import difflib.Chunk;
-import difflib.Delta;
-import difflib.DiffUtils;
-import difflib.Patch;
 import java.util.List;
 
 public class DiffBinary extends DiffBase {
@@ -70,24 +71,24 @@ public class DiffBinary extends DiffBase {
 			List<Byte> listOrig = Bytes.asList(set.getOriginal());
 			List<Byte> listTarg = Bytes.asList(set.getTarget());
 
-			Patch diff = DiffUtils.diff(listOrig, listTarg);
+			Patch<Byte> diff = DiffUtils.diff(listOrig, listTarg);
 
-			List<Delta> deltas = diff.getDeltas();
-			for (Delta delta : deltas) {
+			List<AbstractDelta<Byte>> deltas = diff.getDeltas();
+			for (AbstractDelta<Byte> delta : deltas) {
 
-				Chunk chunkOrig = delta.getOriginal();
-				Chunk chunkTarg = delta.getRevised();
-				if (delta.getType() == Delta.TYPE.CHANGE) {
+				Chunk<Byte> chunkOrig = delta.getSource();
+				Chunk<Byte> chunkTarg = delta.getTarget();
+				if (delta.getType() == DeltaType.CHANGE) {
 
 					original_event.foundChgDelta(chunkPositionPerByte(listOrig, chunkOrig),
 							chunkLengthPerByte(chunkOrig));
 					target_event.foundChgDelta(chunkPositionPerByte(listTarg, chunkTarg),
 							chunkLengthPerByte(chunkTarg));
-				} else if (delta.getType() == Delta.TYPE.INSERT) {
+				} else if (delta.getType() == DeltaType.INSERT) {
 
 					target_event.foundInsDelta(chunkPositionPerByte(listTarg, chunkTarg),
 							chunkLengthPerByte(chunkTarg));
-				} else if (delta.getType() == Delta.TYPE.DELETE) {
+				} else if (delta.getType() == DeltaType.DELETE) {
 
 					original_event.foundDelDelta(chunkPositionPerByte(listOrig, chunkOrig),
 							chunkLengthPerByte(chunkOrig));

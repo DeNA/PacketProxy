@@ -17,10 +17,11 @@ package packetproxy.model;
 
 import static packetproxy.util.Logging.errWithStackTrace;
 
-import difflib.Chunk;
-import difflib.Delta;
-import difflib.DiffUtils;
-import difflib.Patch;
+import com.github.difflib.DiffUtils;
+import com.github.difflib.patch.AbstractDelta;
+import com.github.difflib.patch.Chunk;
+import com.github.difflib.patch.DeltaType;
+import com.github.difflib.patch.Patch;
 import java.util.Arrays;
 import java.util.List;
 
@@ -70,24 +71,24 @@ public class DiffJson extends DiffBase {
 			List<String> listOrig = Arrays.asList(new String(set.getOriginal()).split(""));
 			List<String> listTarg = Arrays.asList(new String(set.getTarget()).split(""));
 
-			Patch diff = DiffUtils.diff(listOrig, listTarg);
+			Patch<String> diff = DiffUtils.diff(listOrig, listTarg);
 
-			List<Delta> deltas = diff.getDeltas();
-			for (Delta delta : deltas) {
+			List<AbstractDelta<String>> deltas = diff.getDeltas();
+			for (AbstractDelta<String> delta : deltas) {
 
-				Chunk chunkOrig = delta.getOriginal();
-				Chunk chunkTarg = delta.getRevised();
-				if (delta.getType() == Delta.TYPE.CHANGE) {
+				Chunk<String> chunkOrig = delta.getSource();
+				Chunk<String> chunkTarg = delta.getTarget();
+				if (delta.getType() == DeltaType.CHANGE) {
 
 					original_event.foundChgDelta(chunkPositionPerCharacter(listOrig, chunkOrig),
 							chunkLengthPerCharacter(chunkOrig));
 					target_event.foundChgDelta(chunkPositionPerCharacter(listTarg, chunkTarg),
 							chunkLengthPerCharacter(chunkTarg));
-				} else if (delta.getType() == Delta.TYPE.INSERT) {
+				} else if (delta.getType() == DeltaType.INSERT) {
 
 					target_event.foundInsDelta(chunkPositionPerCharacter(listTarg, chunkTarg),
 							chunkLengthPerCharacter(chunkTarg));
-				} else if (delta.getType() == Delta.TYPE.DELETE) {
+				} else if (delta.getType() == DeltaType.DELETE) {
 
 					original_event.foundDelDelta(chunkPositionPerCharacter(listOrig, chunkOrig),
 							chunkLengthPerCharacter(chunkOrig));
@@ -106,24 +107,24 @@ public class DiffJson extends DiffBase {
 			List<String> listOrig = Arrays.asList(new String(set.getOriginal()).split("\n"));
 			List<String> listTarg = Arrays.asList(new String(set.getTarget()).split("\n"));
 
-			Patch diff = DiffUtils.diff(listOrig, listTarg);
+			Patch<String> diff = DiffUtils.diff(listOrig, listTarg);
 
-			List<Delta> deltas = diff.getDeltas();
-			for (Delta delta : deltas) {
+			List<AbstractDelta<String>> deltas = diff.getDeltas();
+			for (AbstractDelta<String> delta : deltas) {
 
-				Chunk chunkOrig = delta.getOriginal();
-				Chunk chunkTarg = delta.getRevised();
-				if (delta.getType() == Delta.TYPE.CHANGE) {
+				Chunk<String> chunkOrig = delta.getSource();
+				Chunk<String> chunkTarg = delta.getTarget();
+				if (delta.getType() == DeltaType.CHANGE) {
 
 					original_event.foundChgDelta(chunkPositionPerLine(listOrig, chunkOrig),
 							chunkLengthPerLine(chunkOrig));
 					target_event.foundChgDelta(chunkPositionPerLine(listTarg, chunkTarg),
 							chunkLengthPerLine(chunkTarg));
-				} else if (delta.getType() == Delta.TYPE.INSERT) {
+				} else if (delta.getType() == DeltaType.INSERT) {
 
 					target_event.foundInsDelta(chunkPositionPerLine(listTarg, chunkTarg),
 							chunkLengthPerLine(chunkTarg));
-				} else if (delta.getType() == Delta.TYPE.DELETE) {
+				} else if (delta.getType() == DeltaType.DELETE) {
 
 					original_event.foundDelDelta(chunkPositionPerLine(listOrig, chunkOrig),
 							chunkLengthPerLine(chunkOrig));

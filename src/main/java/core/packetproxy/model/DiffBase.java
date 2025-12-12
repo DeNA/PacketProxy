@@ -15,7 +15,7 @@
  */
 package packetproxy.model;
 
-import difflib.Chunk;
+import com.github.difflib.patch.Chunk;
 import java.util.List;
 import javax.swing.event.EventListenerList;
 
