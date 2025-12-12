@@ -36,7 +36,11 @@ public class Http3HeaderDecoder {
 	final QpackDecoder decoder;
 
 	public Http3HeaderDecoder() {
-		this.decoder = new QpackDecoder(instructions -> instructions.forEach(i -> i.encode(this.lease)), 1024 * 1024);
+		this.decoder = new QpackDecoder(instructions -> instructions.forEach(i -> i.encode(this.lease)));
+		this.decoder.setMaxHeadersSize(1024 * 1024);
+		this.decoder.setMaxTableCapacity(1024 * 1024);
+		this.decoder.setMaxBlockedStreams(256);
+		this.decoder.setBeginNanoTimeSupplier(System::nanoTime);
 	}
 
 	/** デコーダに命令を入力する Note: デコーダの内部状態が変化します */
@@ -55,8 +59,10 @@ public class Http3HeaderDecoder {
 	/** エンコードされたヘッダをデコードする Note: デコーダの内部状態が変化します */
 	public List<MetaData> decode(long streamId, byte[] headerEncoded) throws QpackException {
 		List<MetaData> metaDataList = new ArrayList<>();
-		this.decoder.decode(streamId, ByteBuffer.wrap(headerEncoded), (sid, metadata) -> {
-			metaDataList.add(metadata);
+		this.decoder.decode(streamId, ByteBuffer.wrap(headerEncoded), (sid, metadata, wasBlocked) -> {
+			if (metadata != null) {
+				metaDataList.add(metadata);
+			}
 		});
 		return metaDataList;
 	}

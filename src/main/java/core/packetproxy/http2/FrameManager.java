@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.LongSupplier;
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jetty.http2.hpack.HpackDecoder;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
@@ -29,7 +30,7 @@ import packetproxy.http2.frames.SettingsFrame.SettingsFrameType;
 
 public class FrameManager {
 
-	private HpackEncoder hpackEncoder = new HpackEncoder(4096, 65536);
+	private HpackEncoder hpackEncoder = new HpackEncoder();
 	private HpackDecoder hpackDecoder;
 	private List<Frame> headersDataFrames = new LinkedList<>();
 	private List<Frame> controlFrames = new LinkedList<>();
@@ -40,6 +41,12 @@ public class FrameManager {
 
 	public FrameManager() throws Exception {
 		flowControlManager = new FlowControlManager();
+		initializeHpackEncoder(4096, 65536);
+	}
+
+	private void initializeHpackEncoder(int tableCapacity, int maxTableCapacity) {
+		hpackEncoder.setMaxTableCapacity(maxTableCapacity);
+		hpackEncoder.setTableCapacity(tableCapacity);
 	}
 
 	public HpackDecoder getHpackDecoder() {
@@ -87,7 +94,11 @@ public class FrameManager {
 
 				int header_table_size = settingsFrame.get(SettingsFrameType.SETTINGS_HEADER_TABLE_SIZE);
 				int header_list_size = settingsFrame.get(SettingsFrameType.SETTINGS_MAX_HEADER_LIST_SIZE);
-				hpackDecoder = new HpackDecoder(header_table_size, header_list_size);
+				LongSupplier nanoSupplier = System::nanoTime;
+				hpackDecoder = new HpackDecoder(header_list_size, nanoSupplier);
+				hpackDecoder.setMaxTableCapacity(header_table_size);
+				hpackDecoder.setMaxHeaderListSize(header_list_size);
+				initializeHpackEncoder(header_table_size, header_table_size);
 				flag_receive_peer_settings = true;
 				if (flag_send_end_settings == false && flag_send_settings == true) {
 

@@ -29,12 +29,9 @@ public class QpackTest {
 		ByteBufferPool bufferPool = new MappedByteBufferPool();
 		ByteBufferPool.Lease lease = new ByteBufferPool.Lease(bufferPool);
 
-		QpackEncoder encoder = new QpackEncoder(instructions -> {
-			instructions.forEach(i -> {
-				i.encode(lease);
-			});
-		}, 100);
-		encoder.setCapacity(100);
+		QpackEncoder encoder = new QpackEncoder(instructions -> instructions.forEach(i -> i.encode(lease)));
+		encoder.setMaxTableCapacity(4096);
+		encoder.setTableCapacity(4096);
 
 		HttpFields httpFields = HttpFields.build().add("hoge", "fuga");
 
@@ -64,14 +61,15 @@ public class QpackTest {
 		ByteBufferPool bufferPool2 = new MappedByteBufferPool();
 		ByteBufferPool.Lease lease2 = new ByteBufferPool.Lease(bufferPool2);
 
-		QpackEncoder encoder = new QpackEncoder(instructions -> {
-			instructions.forEach(i -> i.encode(lease));
-		}, 100);
+		QpackEncoder encoder = new QpackEncoder(instructions -> instructions.forEach(i -> i.encode(lease)));
+		encoder.setMaxTableCapacity(4096);
+		encoder.setTableCapacity(4096);
 
-		QpackDecoder decoder = new QpackDecoder(instructions -> {
-			instructions.forEach(i -> i.encode(lease2));
-		}, 100);
-		encoder.setCapacity(100);
+		QpackDecoder decoder = new QpackDecoder(instructions -> instructions.forEach(i -> i.encode(lease2)));
+		decoder.setMaxHeadersSize(1024 * 1024);
+		decoder.setMaxTableCapacity(4096);
+		decoder.setMaxBlockedStreams(256);
+		decoder.setBeginNanoTimeSupplier(System::nanoTime);
 
 		/* input data */
 		HttpFields httpFields = HttpFields.build().add("hoge", "fuga");
@@ -91,10 +89,13 @@ public class QpackTest {
 
 		/* processing by Decoder */
 		decoder.parseInstructions(ByteBuffer.wrap(encoderInsts.toByteArray()));
-		decoder.decode(0, ByteBuffer.wrap(HeadersBytes), (streamId, metadata) -> {
-			System.out.println("streamId: " + streamId + ", meta: " + metadata);
-			assertThat(httpFields.asImmutable()).isEqualTo(metadata.getFields());
+		boolean decoded = decoder.decode(0, ByteBuffer.wrap(HeadersBytes), (streamId, metadata, wasBlocked) -> {
+			if (metadata != null) {
+				System.out.println("streamId: " + streamId + ", meta: " + metadata);
+				assertThat(httpFields.asImmutable()).isEqualTo(metadata.getFields());
+			}
 		});
+		assertThat(decoded).isTrue();
 		ByteArrayOutputStream decoderInsts = new ByteArrayOutputStream();
 		lease2.getByteBuffers().forEach(rethrow(inst -> {
 			decoderInsts.write(SimpleBytes.parse(inst, inst.remaining()).getBytes());

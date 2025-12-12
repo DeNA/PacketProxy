@@ -34,8 +34,9 @@ public class Http3HeaderEncoder {
 	final QpackEncoder encoder;
 
 	public Http3HeaderEncoder(long capacity) {
-		this.encoder = new QpackEncoder(instructions -> instructions.forEach(i -> i.encode(this.lease)), 1024 * 1024);
-		this.encoder.setCapacity((int) capacity);
+		this.encoder = new QpackEncoder(instructions -> instructions.forEach(i -> i.encode(this.lease)));
+		this.encoder.setMaxTableCapacity((int) capacity);
+		this.encoder.setTableCapacity((int) capacity);
 	}
 
 	/** エンコーダに命令を入力する Note: エンコーダの内部状態が変化します */
