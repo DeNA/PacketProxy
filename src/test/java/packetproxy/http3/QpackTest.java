@@ -30,8 +30,8 @@ public class QpackTest {
 		ByteBufferPool.Lease lease = new ByteBufferPool.Lease(bufferPool);
 
 		QpackEncoder encoder = new QpackEncoder(instructions -> instructions.forEach(i -> i.encode(lease)));
-		encoder.setMaxTableCapacity(4096);
-		encoder.setTableCapacity(4096);
+		encoder.setMaxTableCapacity(100);
+		encoder.setTableCapacity(100);
 
 		HttpFields httpFields = HttpFields.build().add("hoge", "fuga");
 
@@ -62,12 +62,12 @@ public class QpackTest {
 		ByteBufferPool.Lease lease2 = new ByteBufferPool.Lease(bufferPool2);
 
 		QpackEncoder encoder = new QpackEncoder(instructions -> instructions.forEach(i -> i.encode(lease)));
-		encoder.setMaxTableCapacity(4096);
-		encoder.setTableCapacity(4096);
+		encoder.setMaxTableCapacity(100);
+		encoder.setTableCapacity(100);
 
 		QpackDecoder decoder = new QpackDecoder(instructions -> instructions.forEach(i -> i.encode(lease2)));
 		decoder.setMaxHeadersSize(1024 * 1024);
-		decoder.setMaxTableCapacity(4096);
+		decoder.setMaxTableCapacity(100);
 		decoder.setBeginNanoTimeSupplier(System::nanoTime);
 
 		/* input data */
