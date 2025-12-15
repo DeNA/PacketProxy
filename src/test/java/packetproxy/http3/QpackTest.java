@@ -68,7 +68,6 @@ public class QpackTest {
 		QpackDecoder decoder = new QpackDecoder(instructions -> instructions.forEach(i -> i.encode(lease2)));
 		decoder.setMaxHeadersSize(1024 * 1024);
 		decoder.setMaxTableCapacity(4096);
-		decoder.setMaxBlockedStreams(256);
 		decoder.setBeginNanoTimeSupplier(System::nanoTime);
 
 		/* input data */

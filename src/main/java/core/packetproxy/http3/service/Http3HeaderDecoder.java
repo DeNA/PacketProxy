@@ -39,7 +39,6 @@ public class Http3HeaderDecoder {
 		this.decoder = new QpackDecoder(instructions -> instructions.forEach(i -> i.encode(this.lease)));
 		this.decoder.setMaxHeadersSize(1024 * 1024);
 		this.decoder.setMaxTableCapacity(1024 * 1024);
-		this.decoder.setMaxBlockedStreams(256);
 		this.decoder.setBeginNanoTimeSupplier(System::nanoTime);
 	}
 
