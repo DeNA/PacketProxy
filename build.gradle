@@ -264,7 +264,6 @@ sourceSets {
 }
 
 jmh {
-  jmhVersion = '1.37'
   fork = 2
 }
 
