@@ -21,7 +21,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.LongSupplier;
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jetty.http2.hpack.HpackDecoder;
 import org.eclipse.jetty.http2.hpack.HpackEncoder;
@@ -90,8 +89,7 @@ public class FrameManager {
 
 				int header_table_size = settingsFrame.get(SettingsFrameType.SETTINGS_HEADER_TABLE_SIZE);
 				int header_list_size = settingsFrame.get(SettingsFrameType.SETTINGS_MAX_HEADER_LIST_SIZE);
-				LongSupplier nanoSupplier = System::nanoTime;
-				hpackDecoder = new HpackDecoder(header_list_size, nanoSupplier);
+				hpackDecoder = new HpackDecoder(header_list_size, System::nanoTime);
 				hpackDecoder.setMaxTableCapacity(header_table_size);
 				hpackDecoder.setMaxHeaderListSize(header_list_size);
 				flag_receive_peer_settings = true;
