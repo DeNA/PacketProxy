@@ -23,6 +23,8 @@ import static packetproxy.util.Logging.log;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.logger.Level;
+import com.j256.ormlite.logger.Logger;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.support.DatabaseConnection;
 import com.j256.ormlite.table.TableUtils;
@@ -73,7 +75,7 @@ public class Database {
 			}
 		}
 
-		System.setProperty("com.j256.ormlite.logger.level", "ERROR");
+		Logger.setGlobalLogLevel(Level.ERROR);
 		source = new JdbcConnectionSource(getDatabaseURL());
 		DatabaseConnection conn = source.getReadWriteConnection(null);
 		conn.executeStatement("pragma auto_vacuum = full", DatabaseConnection.DEFAULT_RESULT_FLAGS);
