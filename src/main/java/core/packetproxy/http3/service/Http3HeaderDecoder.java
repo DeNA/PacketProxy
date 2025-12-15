@@ -59,9 +59,7 @@ public class Http3HeaderDecoder {
 	public List<MetaData> decode(long streamId, byte[] headerEncoded) throws QpackException {
 		List<MetaData> metaDataList = new ArrayList<>();
 		this.decoder.decode(streamId, ByteBuffer.wrap(headerEncoded), (sid, metadata, wasBlocked) -> {
-			if (metadata != null) {
-				metaDataList.add(metadata);
-			}
+			metaDataList.add(metadata);
 		});
 		return metaDataList;
 	}

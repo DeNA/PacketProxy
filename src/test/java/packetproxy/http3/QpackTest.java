@@ -89,10 +89,8 @@ public class QpackTest {
 		/* processing by Decoder */
 		decoder.parseInstructions(ByteBuffer.wrap(encoderInsts.toByteArray()));
 		boolean decoded = decoder.decode(0, ByteBuffer.wrap(HeadersBytes), (streamId, metadata, wasBlocked) -> {
-			if (metadata != null) {
-				System.out.println("streamId: " + streamId + ", meta: " + metadata);
-				assertThat(httpFields.asImmutable()).isEqualTo(metadata.getFields());
-			}
+			System.out.println("streamId: " + streamId + ", meta: " + metadata);
+			assertThat(httpFields.asImmutable()).isEqualTo(metadata.getFields());
 		});
 		assertThat(decoded).isTrue();
 		ByteArrayOutputStream decoderInsts = new ByteArrayOutputStream();
