@@ -98,7 +98,6 @@ public class FrameManager {
 				hpackDecoder = new HpackDecoder(header_list_size, nanoSupplier);
 				hpackDecoder.setMaxTableCapacity(header_table_size);
 				hpackDecoder.setMaxHeaderListSize(header_list_size);
-				initializeHpackEncoder(header_table_size, header_table_size);
 				flag_receive_peer_settings = true;
 				if (flag_send_end_settings == false && flag_send_settings == true) {
 
