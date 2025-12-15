@@ -41,12 +41,8 @@ public class FrameManager {
 
 	public FrameManager() throws Exception {
 		flowControlManager = new FlowControlManager();
-		initializeHpackEncoder(4096, 65536);
-	}
-
-	private void initializeHpackEncoder(int tableCapacity, int maxTableCapacity) {
-		hpackEncoder.setMaxTableCapacity(maxTableCapacity);
-		hpackEncoder.setTableCapacity(tableCapacity);
+		hpackEncoder.setMaxTableCapacity(65536);
+		hpackEncoder.setTableCapacity(4096);
 	}
 
 	public HpackDecoder getHpackDecoder() {
