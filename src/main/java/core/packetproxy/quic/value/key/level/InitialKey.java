@@ -16,7 +16,7 @@
 
 package packetproxy.quic.value.key.level;
 
-import at.favre.lib.crypto.HKDF;
+import at.favre.lib.hkdf.HKDF;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import packetproxy.quic.utils.Constants;
