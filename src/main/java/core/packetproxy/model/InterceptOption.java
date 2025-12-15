@@ -28,19 +28,19 @@ public class InterceptOption {
 
 	public static final int ALL_SERVER = -1;
 
-	public static enum Type {
+	public enum Type {
 		REQUEST,
 		/* TODO HOST, URL,*/ };
 
-	public static enum Direction {
+	public enum Direction {
 		REQUEST, RESPONSE, ALL_THE_OTHER_REQUESTS, ALL_THE_OTHER_RESPONSES
 	}; // 両方同じルールで捕まえたい事はないのでALLは無し
 
-	public static enum Relationship {
+	public enum Relationship {
 		IS_INTERCEPTED_IF_IT_MATCHES, IS_INTERCEPTED_IF_REQUEST_WAS_INTERCEPTED, IS_NOT_INTERCEPTED_IF_IT_MATCHES, ARE_INTERCEPTED, ARE_NOT_INTERCEPTED
 	};
 
-	public static enum Method {
+	public enum Method {
 		SIMPLE, REGEX, BINARY, UNDEFINED
 	};
 
