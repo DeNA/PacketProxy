@@ -30,8 +30,8 @@ dependencies {
   annotationProcessor 'org.projectlombok:lombok:1.18.42'
   testCompileOnly 'org.projectlombok:lombok:1.18.42'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
-  compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
-  testCompileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+  compileOnly 'org.jspecify:jspecify:0.3.0'
+  testCompileOnly 'org.jspecify:jspecify:0.3.0'
 
   testImplementation 'org.junit.jupiter:junit-jupiter:6.1.0-M1'
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher:6.1.0-M1'
