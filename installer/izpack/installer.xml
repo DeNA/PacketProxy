@@ -1,4 +1,3 @@
-
 <izpack:installation version="5.0"
                      xmlns:izpack="http://izpack.org/schema/installation"
                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -9,7 +8,7 @@
         <appversion>1.0</appversion>
         <appsubpath>packetproxy</appsubpath>
         <javaversion>1.6</javaversion>
-	<uninstaller path="$INSTALL_PATH/share/packetproxy" name="PacketProxyUninstaller.jar" write="yes" os="linux"/>
+    <uninstaller path="$INSTALL_PATH/share/packetproxy" name="PacketProxyUninstaller.jar" write="yes" os="linux"/>
         <uninstaller path="$INSTALL_PATH/PacketProxyUninstaller/" name="uninstaller.jar" write="yes" os="mac"/>
     </info>
 
@@ -63,9 +62,9 @@
             <fileset dir="./" targetdir="${INSTALL_PATH}" override="true"/>
             <executable targetfile="$INSTALL_PATH/PacketProxy.app/Contents/MacOS/PacketProxyLauncher.sh" os="mac" stage="never" failure="warn" keep="true"/>
             <executable targetfile="$INSTALL_PATH/PacketProxy.exe" os="windows" stage="never" failure="warn" keep="true"/>
-	    <executable targetfile="$INSTALL_PATH/bin/packetproxy" os="linux" stage="never" failure="warn" keep="true"/>
+        <executable targetfile="$INSTALL_PATH/bin/packetproxy" os="linux" stage="never" failure="warn" keep="true"/>
             <executable os="linux" stage="never" failure="warn" keep="true">
-		<fileset targetdir="$INSTALL_PATH/share/packetproxy/OpenJDK17/bin" includes="*" />
+        <fileset targetdir="$INSTALL_PATH/share/packetproxy/OpenJDK17/bin" includes="*" />
             </executable>
         </pack>
     </packs>

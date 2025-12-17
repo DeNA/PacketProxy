@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>                                                                                                                                                    
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <profiles version="18">
 <profile kind="CodeFormatterProfile" name="Custom" version="18">
     <setting id="org.eclipse.jdt.core.formatter.comment.format_block_comments" value="false"/>
