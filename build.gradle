@@ -108,12 +108,8 @@ spotless {
     target '**/*.java'
     targetExclude 'src/main/java/core/org/**/*.java'
 
-    googleJavaFormat()
     cleanthat()
-    importOrder()
-    removeUnusedImports()
-    trimTrailingWhitespace()
-    endWithNewline()
+    googleJavaFormat()
 
     eclipse().configFile('eclipse-format-settings.xml')
 
@@ -124,7 +120,7 @@ spotless {
     target '**/*.gradle'
 
     greclipse()
-    indentWithSpaces(2)
+    leadingTabsToSpaces(2)
     trimTrailingWhitespace()
     endWithNewline()
   }

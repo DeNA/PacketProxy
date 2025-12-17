@@ -67,7 +67,8 @@ public class ProxyFactory {
 			listen_socket.setReuseAddress(true);
 			proxy = new ProxyXmppSSLForward(listen_socket, listen_info);
 
-		} else { /* FORWARDER */
+		} else {
+			/* FORWARDER */
 
 			ServerSocket listen_socket = new ServerSocket(listen_info.getPort());
 			listen_socket.setReuseAddress(true);
