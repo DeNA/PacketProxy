@@ -23,7 +23,7 @@ public class SettingsFrame extends Frame {
 
 	protected static Type TYPE = Type.SETTINGS;
 
-	public static enum SettingsFrameType {
+	public enum SettingsFrameType {
 		RESERVED, SETTINGS_HEADER_TABLE_SIZE, SETTINGS_ENABLE_PUSH, SETTINGS_MAX_CONCURRENT_STREAMS, SETTINGS_INITIAL_WINDOW_SIZE, SETTINGS_MAX_FRAME_SIZE, SETTINGS_MAX_HEADER_LIST_SIZE,
 	};
 

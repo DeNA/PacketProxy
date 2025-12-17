@@ -29,12 +29,9 @@ public class QpackTest {
 		ByteBufferPool bufferPool = new MappedByteBufferPool();
 		ByteBufferPool.Lease lease = new ByteBufferPool.Lease(bufferPool);
 
-		QpackEncoder encoder = new QpackEncoder(instructions -> {
-			instructions.forEach(i -> {
-				i.encode(lease);
-			});
-		}, 100);
-		encoder.setCapacity(100);
+		QpackEncoder encoder = new QpackEncoder(instructions -> instructions.forEach(i -> i.encode(lease)));
+		encoder.setMaxTableCapacity(100);
+		encoder.setTableCapacity(100);
 
 		HttpFields httpFields = HttpFields.build().add("hoge", "fuga");
 
@@ -64,14 +61,14 @@ public class QpackTest {
 		ByteBufferPool bufferPool2 = new MappedByteBufferPool();
 		ByteBufferPool.Lease lease2 = new ByteBufferPool.Lease(bufferPool2);
 
-		QpackEncoder encoder = new QpackEncoder(instructions -> {
-			instructions.forEach(i -> i.encode(lease));
-		}, 100);
+		QpackEncoder encoder = new QpackEncoder(instructions -> instructions.forEach(i -> i.encode(lease)));
+		encoder.setMaxTableCapacity(100);
+		encoder.setTableCapacity(100);
 
-		QpackDecoder decoder = new QpackDecoder(instructions -> {
-			instructions.forEach(i -> i.encode(lease2));
-		}, 100);
-		encoder.setCapacity(100);
+		QpackDecoder decoder = new QpackDecoder(instructions -> instructions.forEach(i -> i.encode(lease2)));
+		decoder.setMaxHeadersSize(1024 * 1024);
+		decoder.setMaxTableCapacity(100);
+		decoder.setBeginNanoTimeSupplier(System::nanoTime);
 
 		/* input data */
 		HttpFields httpFields = HttpFields.build().add("hoge", "fuga");
@@ -91,7 +88,7 @@ public class QpackTest {
 
 		/* processing by Decoder */
 		decoder.parseInstructions(ByteBuffer.wrap(encoderInsts.toByteArray()));
-		decoder.decode(0, ByteBuffer.wrap(HeadersBytes), (streamId, metadata) -> {
+		decoder.decode(0, ByteBuffer.wrap(HeadersBytes), (streamId, metadata, wasBlocked) -> {
 			System.out.println("streamId: " + streamId + ", meta: " + metadata);
 			assertThat(httpFields.asImmutable()).isEqualTo(metadata.getFields());
 		});

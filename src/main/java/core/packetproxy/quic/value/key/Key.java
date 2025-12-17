@@ -16,7 +16,7 @@
 
 package packetproxy.quic.value.key;
 
-import at.favre.lib.crypto.HKDF;
+import at.favre.lib.hkdf.HKDF;
 import java.nio.ByteBuffer;
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;

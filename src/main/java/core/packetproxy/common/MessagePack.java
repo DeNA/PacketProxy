@@ -37,7 +37,7 @@ public class MessagePack {
 	// 元々のMessagePackの型情報を保持する
 	public static class Key {
 
-		public static enum Type {
+		public enum Type {
 			Integer, UnsignedInteger, Float, Boolean, RawString, RawBinary, Map, Array, Extension, Nil, None;
 
 			public static Type fromString(String str) {

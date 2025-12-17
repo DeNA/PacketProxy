@@ -23,7 +23,8 @@ import static packetproxy.util.Logging.log;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
-import com.j256.ormlite.logger.LocalLog;
+import com.j256.ormlite.logger.Level;
+import com.j256.ormlite.logger.Logger;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.support.DatabaseConnection;
 import com.j256.ormlite.table.TableUtils;
@@ -74,9 +75,9 @@ public class Database {
 			}
 		}
 
-		System.setProperty(LocalLog.LOCAL_LOG_LEVEL_PROPERTY, "error");
+		Logger.setGlobalLogLevel(Level.ERROR);
 		source = new JdbcConnectionSource(getDatabaseURL());
-		DatabaseConnection conn = source.getReadWriteConnection();
+		DatabaseConnection conn = source.getReadWriteConnection(null);
 		conn.executeStatement("pragma auto_vacuum = full", DatabaseConnection.DEFAULT_RESULT_FLAGS);
 	}
 
@@ -121,7 +122,7 @@ public class Database {
 		Path src = Paths.get(instance.databasePath.getParent().toAbsolutePath().toString() + "/tmp.sqlite3");
 		Path dst = instance.databasePath.toAbsolutePath();
 		firePropertyChange(DatabaseMessage.DISCONNECT_NOW);
-		DatabaseConnection conn = source.getReadWriteConnection();
+		DatabaseConnection conn = source.getReadWriteConnection(null);
 		conn.close();
 		Files.move(dst, src, StandardCopyOption.REPLACE_EXISTING);
 
@@ -175,7 +176,7 @@ public class Database {
 		try {
 
 			ConnectionSource source = new JdbcConnectionSource("jdbc:sqlite:" + srcDBPath);
-			DatabaseConnection conn = source.getReadWriteConnection();
+			DatabaseConnection conn = source.getReadWriteConnection(null);
 			conn.executeStatement("attach database '" + dstDBPath.toAbsolutePath() + "' as 'dstDB'",
 					DatabaseConnection.DEFAULT_RESULT_FLAGS);
 			conn.executeStatement("attach database '" + srcDBPath.toAbsolutePath() + "' as 'srcDB'",
@@ -260,7 +261,7 @@ public class Database {
 		Path dest = FileSystems.getDefault().getPath(path);
 		Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
 		JdbcConnectionSource new_db = new JdbcConnectionSource("jdbc:sqlite:" + dest);
-		DatabaseConnection conn = new_db.getReadWriteConnection();
+		DatabaseConnection conn = new_db.getReadWriteConnection(null);
 		conn.executeStatement("delete from packets", DatabaseConnection.DEFAULT_RESULT_FLAGS);
 		conn.close();
 		new_db.close();

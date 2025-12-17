@@ -37,7 +37,7 @@ public class Protobuf3 {
 
 	public static class Key {
 
-		public static enum Type {
+		public enum Type {
 			Variant, Bit64, LengthDelimited, StartGroup, EndGroup, Bit32, None, Reserved
 		}
 

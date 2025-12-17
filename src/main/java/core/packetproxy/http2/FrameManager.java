@@ -29,7 +29,7 @@ import packetproxy.http2.frames.SettingsFrame.SettingsFrameType;
 
 public class FrameManager {
 
-	private HpackEncoder hpackEncoder = new HpackEncoder(4096, 65536);
+	private HpackEncoder hpackEncoder = new HpackEncoder();
 	private HpackDecoder hpackDecoder;
 	private List<Frame> headersDataFrames = new LinkedList<>();
 	private List<Frame> controlFrames = new LinkedList<>();
@@ -40,6 +40,8 @@ public class FrameManager {
 
 	public FrameManager() throws Exception {
 		flowControlManager = new FlowControlManager();
+		hpackEncoder.setMaxTableCapacity(65536);
+		hpackEncoder.setTableCapacity(4096);
 	}
 
 	public HpackDecoder getHpackDecoder() {
@@ -87,7 +89,9 @@ public class FrameManager {
 
 				int header_table_size = settingsFrame.get(SettingsFrameType.SETTINGS_HEADER_TABLE_SIZE);
 				int header_list_size = settingsFrame.get(SettingsFrameType.SETTINGS_MAX_HEADER_LIST_SIZE);
-				hpackDecoder = new HpackDecoder(header_table_size, header_list_size);
+				hpackDecoder = new HpackDecoder(header_list_size, System::nanoTime);
+				hpackDecoder.setMaxTableCapacity(header_table_size);
+				hpackDecoder.setMaxHeaderListSize(header_list_size);
 				flag_receive_peer_settings = true;
 				if (flag_send_end_settings == false && flag_send_settings == true) {
 
