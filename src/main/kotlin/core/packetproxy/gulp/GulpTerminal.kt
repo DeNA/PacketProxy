@@ -24,6 +24,7 @@ import org.jline.terminal.TerminalBuilder
 import packetproxy.cli.CLIModeHandler
 import packetproxy.cli.EncodeModeHandler
 import packetproxy.common.ConfigIO
+import packetproxy.common.I18nString
 import packetproxy.common.Utils
 import packetproxy.util.Logging
 
@@ -83,7 +84,6 @@ object GulpTerminal {
           break
         } catch (e: Exception) {
           Logging.errWithStackTrace(e)
-          e.printStackTrace()
         }
       }
     } finally {
@@ -108,11 +108,11 @@ object GulpTerminal {
 
           "status" -> println("稼働中 (Port: 8080)")
           "help" -> println("使えるコマンド: exit, status, monitor")
-          else -> println("不明なコマンド: $line")
+          else -> println(I18nString.get("command not defined: %s", parsed.raw))
         }
       } catch (e: Exception) {
         // Scannerのエラー（EOFなど）: 終了
-        println("\n終了します。")
+        println("\nexit")
         return
       }
     }

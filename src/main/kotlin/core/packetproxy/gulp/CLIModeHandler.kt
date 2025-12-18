@@ -17,6 +17,7 @@ package packetproxy.cli
 
 import org.jline.builtins.Completers.TreeCompleter
 import org.jline.builtins.Completers.TreeCompleter.node
+import packetproxy.common.I18nString
 import packetproxy.gulp.ParsedCommand
 
 /** CLIモードのハンドラーインターフェース 各モード（encode/decode）で異なるコマンド処理と補完を提供 */
@@ -65,7 +66,8 @@ abstract class CLIModeHandler {
       }
 
       else -> {
-        if (!extensionCommand(parsed)) println("command not defined: ${parsed.raw}")
+        if (!extensionCommand(parsed))
+          println(I18nString.get("command not defined: %s", parsed.raw))
         this
       }
     }
