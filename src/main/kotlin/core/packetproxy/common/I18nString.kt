@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 DeNA Co., Ltd.
+ * Copyright 2025 DeNA Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,63 +13,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy.common;
+package packetproxy.common
 
-import static packetproxy.util.Logging.err;
+import java.util.*
+import java.util.regex.Pattern
+import packetproxy.util.Logging.err
 
-import java.util.Locale;
-import java.util.ResourceBundle;
-import java.util.regex.Pattern;
+object I18nString {
+  var bundle: ResourceBundle? = null
+  var locale: Locale? = null
 
-public class I18nString {
+  init {
+    locale = Locale.getDefault()
+    if (locale === Locale.JAPAN) {
+      bundle = ResourceBundle.getBundle("strings")
+    }
+  }
 
-	public static ResourceBundle bundle = null;
-	public static Locale currentLocale = null;
+  private fun normalize(message: String): String {
+    return message
+      .replace(' ', '_')
+      .replace('=', '_')
+      .replace(":".toRegex(), "\\:")
+      .replace(Pattern.quote("(").toRegex(), "\\(")
+      .replace(Pattern.quote(")").toRegex(), "\\)")
+  }
 
-	static {
-		currentLocale = Locale.getDefault();
-		if (currentLocale == Locale.JAPAN) {
+  @JvmStatic
+  fun get(message: String, vararg args: Any?): String {
+    val localed = I18nString.get(message)
+    try {
+      return String.format(localed, *args)
+    } catch (e: Exception) {
+      return String.format(message, *args)
+    }
+  }
 
-			bundle = ResourceBundle.getBundle("strings");
-		}
-	}
-
-	private static String normalize(String message) {
-		return message.replace(' ', '_').replace('=', '_').replaceAll(":", "\\:").replaceAll(Pattern.quote("("), "\\(")
-				.replaceAll(Pattern.quote(")"), "\\)");
-	}
-
-	public static Locale getLocale() {
-		return currentLocale;
-	}
-
-	public static String get(String message, Object... args) {
-		String localed = get(message);
-		try {
-
-			return String.format(localed, args);
-		} catch (Exception e) {
-
-			return String.format(message, args);
-		}
-	}
-
-	public static String get(String message) {
-		if (currentLocale == Locale.JAPAN) {
-
-			try {
-
-				String localeMsg = bundle.getString(normalize(message));
-				return localeMsg.length() > 0 ? localeMsg : message;
-			} catch (java.util.MissingResourceException e) {
-
-				return message;
-			} catch (Exception e) {
-
-				err("[Error] can't read resource: %s", message);
-				return message;
-			}
-		}
-		return message;
-	}
+  @JvmStatic
+  fun get(message: String): String {
+    if (locale === Locale.JAPAN) {
+      try {
+        val localeMsg = bundle!!.getString(normalize(message))
+        return if (localeMsg.length > 0) localeMsg else message
+      } catch (e: MissingResourceException) {
+        return message
+      } catch (e: Exception) {
+        err("[Error] can't read resource: %s", message)
+        return message
+      }
+    }
+    return message
+  }
 }
