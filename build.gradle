@@ -1,5 +1,5 @@
+import com.bmuschko.gradle.izpack.CreateInstallerTask
 import org.apache.tools.ant.taskdefs.condition.Os
-import com.bmuschko.gradle.izpack.*
 import org.gradle.plugins.ide.eclipse.model.AccessRule
 
 buildscript {
@@ -17,15 +17,15 @@ plugins {
   id 'com.github.jk1.dependency-license-report' version '2.5'
   id "de.undercouch.download" version "5.6.0"
   id "com.diffplug.spotless" version "7.1.0"
+  id 'org.jetbrains.kotlin.jvm' version '2.2.21'
 }
 
 repositories {
   mavenCentral()
-  maven { url 'https://jitpack.io' }
+  maven { url = 'https://jitpack.io' }
 }
 
 dependencies {
-
   compileOnly 'org.projectlombok:lombok:1.18.42'
   annotationProcessor 'org.projectlombok:lombok:1.18.42'
   testCompileOnly 'org.projectlombok:lombok:1.18.42'
@@ -46,8 +46,11 @@ dependencies {
   implementation 'com.j256.ormlite:ormlite-core:4.48'
   implementation 'com.j256.ormlite:ormlite-jdbc:4.48'
   implementation 'com.google.protobuf:protobuf-java:4.31.1'
-  implementation 'org.slf4j:slf4j-api:1.7.14'
+  implementation 'org.slf4j:slf4j-api:2.0.9'
   implementation 'org.slf4j:slf4j-log4j12:1.7.25'
+  implementation 'org.jline:jline:3.25.1'
+  implementation 'org.jline:jline-terminal-jansi:3.25.1'
+  implementation 'ch.qos.logback:logback-classic:1.4.14'
   implementation 'com.googlecode.java-diff-utils:diffutils:1.2.1'
   implementation 'com.google.re2j:re2j:1.1'
   implementation 'com.github.mobius-software-ltd:mqtt-parser:parser-1.0.3'
@@ -72,6 +75,7 @@ dependencies {
   implementation 'com.github.luben:zstd-jni:1.5.6-3'
   implementation 'org.brotli:dec:0.1.2'
   implementation files('libs/agent15.jar')
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
   izpack 'org.codehaus.izpack:izpack-dist:5.1.3'
 
@@ -116,6 +120,14 @@ spotless {
     formatAnnotations()
   }
 
+  kotlin {
+    target '**/*.kt'
+
+    ktfmt().googleStyle()
+    trimTrailingWhitespace()
+    endWithNewline()
+  }
+
   groovy {
     target '**/*.gradle'
 
@@ -133,14 +145,14 @@ spotless {
 }
 
 application {
-  mainClass = "packetproxy/PacketProxy"
+  mainClass = "packetproxy.PacketProxy"
 }
 
 def shell(String command) {
   ["sh", "-c", command].execute().waitForProcessOutput(System.out, System.err)
 }
 
-def gitVersion = "git describe --tags --abbrev=0".execute().text.replace("\n","")
+def gitVersion = "git describe --tags --abbrev=0".execute().text.replace("\n", "")
 new File("${projectDir}/src/main/resources/version").text = gitVersion
 
 project.ext {
@@ -265,13 +277,13 @@ jar {
     serviceDir.deleteDir()
     serviceDir.mkdirs()
     for (file in configurations.runtimeClasspath) {
-      zipTree(file).matching{ include 'META-INF/services/*' }.each { f ->
+      zipTree(file).matching { include 'META-INF/services/*' }.each { f ->
         new File(serviceDir, f.name) << f.getText("UTF-8") << "\n"
       }
     }
   }
   manifest {
-    attributes (
+    attributes(
         "Main-Class": "packetproxy/PacketProxy",
         "Class-Path": configurations.runtimeClasspath.collect { it.getName() }.join(' ')
         )
@@ -433,7 +445,7 @@ task preIzpack {
   }
 }
 
-task izpackWin64 (type: CreateInstallerTask, dependsOn: [
+task izpackWin64(type: CreateInstallerTask, dependsOn: [
   'createWin64Target',
   'preIzpack'
 ]) {
@@ -446,7 +458,7 @@ task izpackWin64 (type: CreateInstallerTask, dependsOn: [
     'app.version': gitVersion, 'app.subpath': "PacketProxy-${gitVersion}"]
 }
 
-task izpackLinux (type: CreateInstallerTask, dependsOn: [
+task izpackLinux(type: CreateInstallerTask, dependsOn: [
   'createLinuxTarget',
   'preIzpack'
 ]) {
