@@ -176,7 +176,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 
 		UIManager.getLookAndFeelDefaults().put("defaultFont", FontManager.getInstance().getUIFont());
 		// OptionPaneのロケール
-		JOptionPane.setDefaultLocale(I18nString.getLocale());
+		JOptionPane.setDefaultLocale(I18nString.locale);
 
 		setIconForWindows();
 		addShortcutForWindows();

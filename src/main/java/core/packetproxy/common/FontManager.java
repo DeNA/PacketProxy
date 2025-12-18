@@ -76,7 +76,7 @@ public class FontManager {
 			os = "Mac";
 		}
 		String lang = "en";
-		if (I18nString.getLocale().getLanguage().equals("ja")) {
+		if (I18nString.locale.getLanguage().equals("ja")) {
 
 			lang = "ja";
 		}
