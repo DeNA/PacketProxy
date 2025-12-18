@@ -23,6 +23,9 @@ import ch.qos.logback.core.ConsoleAppender
 import ch.qos.logback.core.FileAppender
 import java.io.File
 import java.io.IOException
+import java.io.RandomAccessFile
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -34,11 +37,18 @@ object Logging {
   private val dtf: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
   private val guiLog: GUILog = GUILog.getInstance()
   private val logger = LoggerFactory.getLogger("")
-  private var isCLI: Boolean = false
+  private var isGulp: Boolean = false
 
-  const val FILE_PATH = "logs/cli.log"
+  // log出力先のファイルの絶対PATH
+  private val logFilePath by lazy {
+    val projectRoot = System.getProperty("app.home") ?: "."
+    val logDir = File(projectRoot, "logs")
+    if (!logDir.exists()) logDir.mkdirs()
+    "${logDir.absolutePath}/gulp.log"
+  }
+
   private val logFile by lazy {
-    val logFile = File(FILE_PATH)
+    val logFile = File(logFilePath)
     if (!logFile.exists()) throw IOException("not found: ${logFile.absolutePath}")
     logFile
   }
@@ -52,8 +62,8 @@ object Logging {
   }
 
   @JvmStatic
-  fun init(isCLI: Boolean) {
-    this.isCLI = isCLI
+  fun init(isGulp: Boolean) {
+    this.isGulp = isGulp
     val context = LoggerFactory.getILoggerFactory() as LoggerContext
 
     context.reset()
@@ -66,11 +76,11 @@ object Logging {
       }
 
     val appender =
-      if (isCLI) {
+      if (isGulp) {
         FileAppender<ILoggingEvent>().apply {
           this.context = context
           name = "FILE"
-          file = FILE_PATH
+          file = logFilePath
           isAppend = false
           this.encoder = encoder
           start()
@@ -95,7 +105,7 @@ object Logging {
     val fs = formatString(format, *args)
 
     logger.info(fs)
-    if (!isCLI) guiLog.append(fs)
+    if (!isGulp) guiLog.append(fs)
   }
 
   @JvmStatic
@@ -104,7 +114,7 @@ object Logging {
     val fs = formatString(format, *args)
 
     logger.error(fs)
-    if (!isCLI) guiLog.appendErr(fs)
+    if (!isGulp) guiLog.appendErr(fs)
   }
 
   @JvmStatic
@@ -115,5 +125,55 @@ object Logging {
     for (element in stackTrace) {
       err(element.toString())
     }
+  }
+
+  /** CLIモードでのlogの継続出力を行う */
+  fun startTailLog() {
+    if (tailThread != null || !isGulp) return
+
+    tailThread = Thread {
+      val raf = RandomAccessFile(logFile, "r")
+      try {
+        // ファイルの末尾から開始
+        raf.seek(raf.length())
+
+        while (keepTailing.get()) {
+          val currentLength = logFile.length()
+          val buffer = ByteArray(8192)
+          var bytesRead: Int
+
+          while (raf.filePointer < currentLength) {
+            bytesRead =
+              raf.read(buffer, 0, minOf(buffer.size, (currentLength - raf.filePointer).toInt()))
+
+            if (bytesRead > 0) {
+              print(String(buffer, 0, bytesRead, StandardCharsets.UTF_8))
+            }
+          }
+
+          try {
+            Thread.sleep(100)
+          } catch (e: InterruptedException) {}
+        }
+      } finally {
+        raf.close()
+      }
+    }
+
+    keepTailing.set(true)
+    tailThread!!.isDaemon = true
+    tailThread!!.start()
+  }
+
+  fun stopTailLog() {
+    keepTailing.set(false)
+    tailThread?.interrupt()
+    tailThread = null
+  }
+
+  fun printLog(lineCount: Int) {
+    val lines = Files.readAllLines(logFile.toPath(), StandardCharsets.UTF_8)
+    val startIndex = maxOf(0, lines.size - lineCount)
+    lines.subList(startIndex, lines.size).forEach { println(it) }
   }
 }
