@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -e
+
+# Description:
+#   A packet normalization proxy designed for integration with other tools.
+
+# Options:
+#   log   Launch directly in log streaming mode.
+#         Useful for observing traffic in real-time.
+#         (Note: In this mode, Ctrl+C terminates the application.)
+
+# Default Behavior:
+#   If no arguments are provided, the tool starts in an interactive shell mode.
+
+readonly PROJECT_ROOT=$(cd $(dirname "$0") && pwd)
+readonly TARGET_BIN="$PROJECT_ROOT/build/install/PacketProxy/bin/PacketProxy"
+
+PRE_EXEC_SCRIPT="$1"
+case "$1" in
+"") ;;       # default
+/* | ./*) ;; # shebang
+*) PRE_EXEC_SCRIPT="$(find "$PROJECT_ROOT/scripts" -type f -name "$1.pp")" ;;
+esac
+
+"$PROJECT_ROOT/gradlew" -p "$PROJECT_ROOT" installDist --quiet
+
+test -f "$TARGET_BIN"
+if test -n "$PRE_EXEC_SCRIPT"; then
+    test -f "$PRE_EXEC_SCRIPT"
+fi
+
+export JAVA_OPTS="-Dapp.home=$PROJECT_ROOT"
+exec "$TARGET_BIN" --settings-json="$SETTINGS_JSON" --gulp="$PRE_EXEC_SCRIPT"
