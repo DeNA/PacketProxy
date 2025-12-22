@@ -45,8 +45,7 @@ abstract class CLIModeHandler {
   /**
    * コマンドを処理
    *
-   * @param cmd コマンド文字列
-   * @param args コマンド引数List
+   * @param parsed コマンド
    * @return つづくコマンドを処理するべきmode
    */
   fun handleCommand(parsed: ParsedCommand): CLIModeHandler {

@@ -76,6 +76,7 @@ dependencies {
   implementation 'org.brotli:dec:0.1.2'
   implementation files('libs/agent15.jar')
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1"
 
   izpack 'org.codehaus.izpack:izpack-dist:5.1.3'
 
