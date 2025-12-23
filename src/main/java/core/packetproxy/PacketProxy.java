@@ -43,7 +43,7 @@ public class PacketProxy {
 		if (gulpMode != null) {
 			String settingsJson = getOption("--settings-json", args);
 			Logging.log("Gulp Mode: " + settingsJson);
-			GulpTerminal.run(settingsJson);
+			GulpTerminal.run(settingsJson, gulpMode);
 			System.exit(0);
 		}
 

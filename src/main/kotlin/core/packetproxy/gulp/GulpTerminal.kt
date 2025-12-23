@@ -20,50 +20,52 @@ import org.jline.reader.EndOfFileException
 import org.jline.reader.UserInterruptException
 import packetproxy.common.ConfigIO
 import packetproxy.common.Utils
+import packetproxy.gulp.input.ChainedSource
 import packetproxy.gulp.input.LineSource
+import packetproxy.gulp.input.ScriptSource
 import packetproxy.gulp.input.TerminalFactory
 import packetproxy.util.Logging
 
 object GulpTerminal {
   @JvmStatic
-  @JvmOverloads
-  fun run(settingJsonPath: String? = null) {
+  fun run(settingJsonPath: String?, scriptFilePath: String) {
     // 設定ファイルを読み込む（ListenPortManager初期化後）
     loadSettingsFromJson(settingJsonPath)
 
     val cmdCtx = CommandContext()
     val terminal = TerminalFactory.create(cmdCtx)
-    terminal.start()
 
-    try {
-      // exitされるまでコマンド入力に対応する
-      // つづくコマンドを処理するべきmodeが変わった場合は補完内容なども切り替える
-      while (true) {
-        try {
-          val line = terminal.readLine()
-          val parsed = CommandParser.parse(line) ?: continue
-          when (parsed.cmd) {
-            "" -> continue
-            "exit" -> break
+    ChainedSource.push(terminal)
+    ChainedSource.push(ScriptSource(scriptFilePath))
+    ChainedSource.open()
 
-            "l",
-            "log" -> handleLogCommand(terminal, parsed.args)
+    // exitされるまでコマンド入力に対応する
+    // つづくコマンドを処理するべきmodeが変わった場合は補完内容なども切り替える
+    while (true) {
+      try {
+        val line = ChainedSource.readLine() ?: break
+        val parsed = CommandParser.parse(line) ?: continue
 
-            else -> cmdCtx.currentHandler = cmdCtx.currentHandler.handleCommand(parsed)
-          }
-        } catch (e: UserInterruptException) {
-          // Ctrl + C: 継続、改行
-          continue
-        } catch (e: EndOfFileException) {
-          // Ctrl + D: 終了
-          println("${cmdCtx.currentHandler.prompts}exit")
-          break
-        } catch (e: Exception) {
-          Logging.errWithStackTrace(e)
+        if (parsed.raw.startsWith("#")) continue
+        when (parsed.cmd) {
+          "" -> continue
+          "exit" -> break
+
+          "l",
+          "log" -> handleLogCommand(terminal, parsed.args)
+
+          else -> cmdCtx.currentHandler = cmdCtx.currentHandler.handleCommand(parsed)
         }
+      } catch (e: UserInterruptException) {
+        // Ctrl + C: 継続、改行
+        continue
+      } catch (e: EndOfFileException) {
+        // Ctrl + D: 終了
+        println("${cmdCtx.currentHandler.prompts}exit")
+        break
+      } catch (e: Exception) {
+        Logging.errWithStackTrace(e)
       }
-    } finally {
-      terminal.close()
     }
   }
 
