@@ -21,8 +21,8 @@ import packetproxy.gulp.CommandContext
 class FallBackTerminalSource(
   private val cmdCtx: CommandContext,
   private val scanner: java.util.Scanner,
-) : LineSource {
-  override fun open() {
+) : LineSource() {
+  override fun execOpen() {
     println("=== Fallback CLI Mode ===")
   }
 

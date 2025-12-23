@@ -24,8 +24,8 @@ class TerminalSource(
   private val cmdCtx: CommandContext,
   private val terminal: Terminal,
   private val reader: LineReader,
-) : LineSource {
-  override fun open() {
+) : LineSource() {
+  override fun execOpen() {
     println("=== CLI Mode ===")
   }
 

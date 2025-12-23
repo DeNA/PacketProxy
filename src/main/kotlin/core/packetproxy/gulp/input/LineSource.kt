@@ -15,10 +15,18 @@
  */
 package packetproxy.gulp.input
 
-interface LineSource {
-  fun open()
+abstract class LineSource {
+  private var isOpened: Boolean = false
 
-  fun readLine(): String?
+  fun open() {
+    if (isOpened) return
+    execOpen()
+    isOpened = true
+  }
 
-  fun close()
+  protected abstract fun execOpen()
+
+  abstract fun readLine(): String?
+
+  abstract fun close()
 }

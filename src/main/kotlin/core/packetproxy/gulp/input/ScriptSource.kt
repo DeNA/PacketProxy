@@ -4,7 +4,7 @@ import java.io.File
 import java.io.RandomAccessFile
 
 /** 指定されたファイルの内容を1行ずつ読み取りを実行する */
-class ScriptSource(private val filePath: String) : LineSource {
+class ScriptSource(private val filePath: String) : LineSource() {
   private val sourceFile: File = File(filePath)
   private val raf: RandomAccessFile?
 
@@ -26,7 +26,7 @@ class ScriptSource(private val filePath: String) : LineSource {
       }
   }
 
-  override fun open() {}
+  override fun execOpen() {}
 
   // ファイルが読み取り可能な場合のみ読み取りを実行し、それ以外の場合は常にnullを返す
   override fun readLine(): String? {
