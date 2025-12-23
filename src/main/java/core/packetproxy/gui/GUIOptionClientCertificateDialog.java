@@ -29,14 +29,12 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import packetproxy.common.I18nString;
 import packetproxy.model.ClientCertificate;
 import packetproxy.model.ClientCertificates;
@@ -54,7 +52,7 @@ public class GUIOptionClientCertificateDialog extends JDialog {
 
 	private JComboBox<String> certificateTypeCombo = new JComboBox<String>();
 	private JTextField certificatePathField = new JTextField();
-	private JFileChooser certFilePath = new JFileChooser();
+	private NativeFileChooser certFilePath = new NativeFileChooser();
 	private JPasswordField storePasswordField = new JPasswordField();
 	private JPasswordField keyPasswordField = new JPasswordField();
 	private JComboBox<String> serverCombo = new JComboBox<String>();
@@ -119,22 +117,24 @@ public class GUIOptionClientCertificateDialog extends JDialog {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 
 				String t = (String) e.getItem();
-				certFilePath.resetChoosableFileFilters();
+				certFilePath = new NativeFileChooser();
+				certFilePath.setAcceptAllFileFilterUsed(false);
 				switch (ClientCertificate.Type.getTypeFromText(t)) {
 					case JKS :
 						certFilePath.addChoosableFileFilter(
-								new FileNameExtensionFilter(I18nString.get("Client Certificate file (*.jks)"), "jks"));
+								I18nString.get("Client Certificate file (*.jks)"), "jks");
 						break;
 					case P12 :
-						certFilePath.addChoosableFileFilter(new FileNameExtensionFilter(
-								I18nString.get("Client Certificate file (*.p12, *.pfx)"), "p12", "pfx"));
+						certFilePath.addChoosableFileFilter(
+								I18nString.get("Client Certificate file (*.p12, *.pfx)"), "p12", "pfx");
 						break;
 					default :
 				}
 			}
 		});
 		certFilePath.addChoosableFileFilter(
-				new FileNameExtensionFilter(I18nString.get("Client Certificate file (*.p12, *.pfx)"), "p12", "pfx"));
+				I18nString.get("Client Certificate file (*.p12, *.pfx)"), "p12", "pfx");
+		certFilePath.setAcceptAllFileFilterUsed(false);
 
 		return label_and_object(I18nString.get("Type of certificate file:"), certificateTypeCombo);
 	}
@@ -147,12 +147,13 @@ public class GUIOptionClientCertificateDialog extends JDialog {
 		button.addActionListener(arg0 -> {
 			try {
 
-				certFilePath.setAcceptAllFileFilterUsed(false);
-				certFilePath.showOpenDialog(panel);
-				File file = certFilePath.getSelectedFile();
-				if (file != null) {
+				int selected = certFilePath.showOpenDialog(owner);
+				if (selected == NativeFileChooser.APPROVE_OPTION) {
+					File file = certFilePath.getSelectedFile();
+					if (file != null) {
 
-					certificatePathField.setText(file.getPath());
+						certificatePathField.setText(file.getPath());
+					}
 				}
 			} catch (Exception e) {
 

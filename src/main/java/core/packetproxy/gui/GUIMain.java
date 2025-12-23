@@ -26,6 +26,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.*;
 import javax.swing.UIManager.LookAndFeelInfo;
+import com.formdev.flatlaf.FlatIntelliJLaf;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Keymap;
@@ -161,12 +162,16 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 			System.setProperty("swing.aatext", "true");
 		}
 
-		for (LookAndFeelInfo clInfo : UIManager.getInstalledLookAndFeels()) {
-
-			if ("Nimbus".equals(clInfo.getName())) {
-
-				UIManager.setLookAndFeel(clInfo.getClassName());
-				break;
+		// FlatLaf Modern Light Theme (IntelliJ)
+		try {
+			FlatIntelliJLaf.setup();
+		} catch (Exception e) {
+			// Fallback to Nimbus if FlatLaf fails
+			for (LookAndFeelInfo clInfo : UIManager.getInstalledLookAndFeels()) {
+				if ("Nimbus".equals(clInfo.getName())) {
+					UIManager.setLookAndFeel(clInfo.getClassName());
+					break;
+				}
 			}
 		}
 
@@ -290,7 +295,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6939001
 	private void setInterceptHighLight() {
 		JLabel label = new JLabel(tabbedpane.getTitleAt(1));
-		label.setForeground(Color.ORANGE);
+		label.setForeground(new Color(255, 180, 0)); // Bright orange for dark theme
 		tabbedpane.setTabComponentAt(1, label);
 		tabbedpane.revalidate();
 		tabbedpane.repaint();
@@ -298,7 +303,8 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 
 	private void setInterceptDownLight() {
 		JLabel label = new JLabel(tabbedpane.getTitleAt(1));
-		label.setForeground(Color.BLACK);
+		// Use default foreground color from Look and Feel
+		label.setForeground(UIManager.getColor("TabbedPane.foreground"));
 		tabbedpane.setTabComponentAt(1, label);
 		tabbedpane.revalidate();
 		tabbedpane.repaint();
