@@ -22,7 +22,7 @@ object ChainedSource {
 
   // 最初のLineSourceのみpopでopenできないため個別に実行する
   fun open() {
-    sources.last().open()
+    sources.lastOrNull()?.open()
   }
 
   fun push(source: LineSource) {
@@ -35,7 +35,7 @@ object ChainedSource {
       val line = sources.last().readLine()
       if (line != null) return line
 
-      pop()
+      this.pop()
     }
 
     return null
@@ -45,6 +45,6 @@ object ChainedSource {
   private fun pop() {
     sources.last().close()
     sources.removeLast()
-    sources.last().open()
+    this.open()
   }
 }
