@@ -46,7 +46,6 @@ object GulpTerminal {
         val line = ChainedSource.readLine() ?: break
         val parsed = CommandParser.parse(line) ?: continue
 
-        if (parsed.raw.startsWith("#")) continue
         when (parsed.cmd) {
           "" -> continue
           "exit" -> break
