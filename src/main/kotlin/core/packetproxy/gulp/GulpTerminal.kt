@@ -17,15 +17,11 @@ package packetproxy.gulp
 
 import kotlin.math.abs
 import org.jline.reader.EndOfFileException
-import org.jline.reader.LineReader
-import org.jline.reader.LineReaderBuilder
 import org.jline.reader.UserInterruptException
-import org.jline.terminal.TerminalBuilder
-import packetproxy.cli.CLIModeHandler
-import packetproxy.cli.EncodeModeHandler
 import packetproxy.common.ConfigIO
-import packetproxy.common.I18nString
 import packetproxy.common.Utils
+import packetproxy.gulp.input.LineSource
+import packetproxy.gulp.input.TerminalFactory
 import packetproxy.util.Logging
 
 object GulpTerminal {
@@ -35,52 +31,32 @@ object GulpTerminal {
     // 設定ファイルを読み込む（ListenPortManager初期化後）
     loadSettingsFromJson(settingJsonPath)
 
-    val terminal =
-      try {
-        TerminalBuilder.builder().system(true).build()
-      } catch (e: Exception) {
-        fallbackInput(e, "Terminal")
-        return
-      }
+    val cmdCtx = CommandContext()
+    val terminal = TerminalFactory.create(cmdCtx)
+    terminal.start()
 
-    // 主な利用用途としてscannerのEncodeを想定しているため、起動時のモードはEncodeModeが良い
-    var currentHandler: CLIModeHandler = EncodeModeHandler
-    val dynamicCompleter = DynamicCompleter(currentHandler)
-    val reader =
-      try {
-        LineReaderBuilder.builder().terminal(terminal).completer(dynamicCompleter).build()
-      } catch (e: Exception) {
-        terminal.close()
-        fallbackInput(e, "LineReader")
-        return
-      }
-
-    println("=== CLI Mode ===")
     try {
       // exitされるまでコマンド入力に対応する
       // つづくコマンドを処理するべきmodeが変わった場合は補完内容なども切り替える
       while (true) {
         try {
-          val line = reader.readLine(currentHandler.prompts)
+          val line = terminal.readLine()
           val parsed = CommandParser.parse(line) ?: continue
           when (parsed.cmd) {
             "" -> continue
             "exit" -> break
 
             "l",
-            "log" -> handleLogCommand(reader, parsed.args)
+            "log" -> handleLogCommand(terminal, parsed.args)
 
-            else -> {
-              currentHandler = currentHandler.handleCommand(parsed)
-              dynamicCompleter.updateHandler(currentHandler)
-            }
+            else -> cmdCtx.currentHandler = cmdCtx.currentHandler.handleCommand(parsed)
           }
         } catch (e: UserInterruptException) {
           // Ctrl + C: 継続、改行
           continue
         } catch (e: EndOfFileException) {
           // Ctrl + D: 終了
-          println("${currentHandler.prompts}exit")
+          println("${cmdCtx.currentHandler.prompts}exit")
           break
         } catch (e: Exception) {
           Logging.errWithStackTrace(e)
@@ -88,33 +64,6 @@ object GulpTerminal {
       }
     } finally {
       terminal.close()
-    }
-  }
-
-  // フォールバック用の簡易入力処理
-  private fun fallbackInput(e: Exception, msg: String) {
-    Logging.log("$msg の初期化に失敗しました。フォールバックモードに移行します: ${e.message}")
-    println("=== Fallback CLI Mode ===")
-
-    val scanner = java.util.Scanner(System.`in`)
-    while (true) {
-      try {
-        print("> ")
-        val line = scanner.nextLine()
-        val parsed = CommandParser.parse(line) ?: continue
-        when (parsed.cmd) {
-          "" -> continue
-          "exit" -> return
-
-          "status" -> println("稼働中 (Port: 8080)")
-          "help" -> println("使えるコマンド: exit, status, monitor")
-          else -> println(I18nString.get("command not defined: %s", parsed.raw))
-        }
-      } catch (e: Exception) {
-        // Scannerのエラー（EOFなど）: 終了
-        println("\nexit")
-        return
-      }
     }
   }
 
@@ -139,7 +88,7 @@ object GulpTerminal {
   }
 
   /** readerを渡したいのでCLIModeHandlerでは処理しない */
-  private fun handleLogCommand(reader: LineReader, args: List<String>) {
+  private fun handleLogCommand(terminal: LineSource, args: List<String>) {
     val lineCount = abs(args.firstOrNull()?.toIntOrNull() ?: 0)
 
     // 引数で数値が指定された場合は末尾からその行数分出力して終了
@@ -153,7 +102,7 @@ object GulpTerminal {
       // 最初に末尾30行分出力してしまう
       Logging.printLog(30)
       Logging.startTailLog()
-      while (true) reader.readLine()
+      while (true) terminal.readLine()
     } catch (e: Exception) {
       when (e) {
         is UserInterruptException,
