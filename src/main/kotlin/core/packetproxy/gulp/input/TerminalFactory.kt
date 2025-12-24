@@ -16,6 +16,7 @@
 package packetproxy.gulp.input
 
 import org.jline.reader.LineReaderBuilder
+import org.jline.terminal.Terminal
 import org.jline.terminal.TerminalBuilder
 import packetproxy.gulp.CommandContext
 import packetproxy.gulp.DynamicCompleter
@@ -25,6 +26,9 @@ object TerminalFactory {
   fun create(cmdCtx: CommandContext): LineSource {
     return try {
       val terminal = TerminalBuilder.builder().system(true).build()
+
+      // コマンド実行中にSIGINTを受け取った際はコマンドの停止を行う
+      terminal.handle(Terminal.Signal.INT) { _ -> cmdCtx.cancelJob() }
 
       val dynamicCompleter = DynamicCompleter(cmdCtx)
       val reader =

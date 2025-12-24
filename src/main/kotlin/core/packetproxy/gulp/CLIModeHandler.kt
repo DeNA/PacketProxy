@@ -50,7 +50,7 @@ abstract class CLIModeHandler {
    *
    * @param parsed コマンド
    */
-  fun handleCommand(parsed: ParsedCommand) {
+  suspend fun handleCommand(parsed: ParsedCommand) {
     when (parsed.cmd) {
       "help" -> println(getHelpMessage())
 

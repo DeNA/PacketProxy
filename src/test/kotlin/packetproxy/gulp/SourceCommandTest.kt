@@ -28,7 +28,6 @@ import packetproxy.gulp.input.LineSource
 import packetproxy.gulp.input.ScriptSource
 
 class SourceCommandTest {
-
   @TempDir lateinit var tempDir: Path
 
   @BeforeEach
@@ -146,7 +145,7 @@ class SourceCommandTest {
   }
 
   @Test
-  fun 指定されたファイル内に新たにsourceコマンドが記載されていた場合に正しく実行できること() {
+  suspend fun 指定されたファイル内に新たにsourceコマンドが記載されていた場合に正しく実行できること() {
     // ネストしたスクリプトファイルを作成
     val innerScriptFile = tempDir.resolve("inner_script.pp").toFile()
     innerScriptFile.writeText(
@@ -210,7 +209,7 @@ class SourceCommandTest {
   }
 
   @Test
-  fun sourceした中でexitが実行されていれば全体でexitできること() {
+  suspend fun sourceした中でexitが実行されていれば全体でexitできること() {
     // ネストしたスクリプトファイルを作成
     val layer2ScriptFile = tempDir.resolve("layer_2.pp").toFile()
     layer2ScriptFile.writeText(
