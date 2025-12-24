@@ -185,8 +185,8 @@ class SourceCommandTest {
 
       when (parsed.cmd) {
         "" -> continue
-        "source",
-        "." -> {
+        ".",
+        "source" -> {
           // sourceコマンドを検出したら、CLIModeHandlerのhandleCommandを呼び出して
           // 新しいScriptSourceをChainedSourceにプッシュ
           handler.handleCommand(parsed)
@@ -300,13 +300,15 @@ class SourceCommandTest {
   }
 
   @Test
-  fun コメント行が含まれるファイルを正しく読み取れること() {
+  fun コメントが含まれるファイルを正しく読み取れること() {
     val scriptFile = tempDir.resolve("comment_script.pp").toFile()
     scriptFile.writeText(
       """
       |command1 # comment
-      |# comment
+      |# co mm  en t!
       |command2
+      |# source ${scriptFile.absolutePath}
+      |command3
       """
         .trimMargin()
     )
@@ -323,10 +325,51 @@ class SourceCommandTest {
     source.close()
 
     // ファイルから読み取られた行（コメント処理前）
-    assertThat(lines).containsExactly("command1 # comment", "# comment", "command2")
+    assertThat(lines)
+      .containsExactly(
+        "command1 # comment",
+        "# co mm  en t!",
+        "command2",
+        "# source ${scriptFile.absolutePath}",
+        "command3",
+      )
 
     // CommandParserでパースすると、コメントが削除されることを確認
     val parsedCommands = lines.mapNotNull { CommandParser.parse(it ?: "") }
-    assertThat(parsedCommands.map { it.cmd }).containsExactly("command1", "command2")
+    assertThat(parsedCommands.map { it.cmd }).containsExactly("command1", "command2", "command3")
+  }
+
+  @Test
+  fun 非asciiのコメントが含まれるファイルを正しく読み取れること() {
+    val scriptFile = tempDir.resolve("comment_script.pp").toFile()
+    scriptFile.writeText(
+      """
+      |command1 # コメント
+      | # コメント
+      |command2
+      |#これは、　コメントです！
+      |command3
+      """
+        .trimMargin()
+    )
+
+    val source = ScriptSource(scriptFile.absolutePath)
+    source.open()
+
+    val lines = mutableListOf<String?>()
+    while (true) {
+      val line = source.readLine() ?: break
+      lines.add(line)
+    }
+
+    source.close()
+
+    // ファイルから読み取られた行（コメント処理前）
+    assertThat(lines)
+      .containsExactly("command1 # コメント", " # コメント", "command2", "#これは、　コメントです！", "command3")
+
+    // CommandParserでパースすると、コメントが削除されることを確認
+    val parsedCommands = lines.mapNotNull { CommandParser.parse(it ?: "") }
+    assertThat(parsedCommands.map { it.cmd }).containsExactly("command1", "command2", "command3")
   }
 }

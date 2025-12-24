@@ -21,10 +21,10 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.ConsoleAppender
 import ch.qos.logback.core.FileAppender
+import core.packetproxy.util.readUtf8Line
 import java.io.File
 import java.io.IOException
 import java.io.RandomAccessFile
-import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -141,15 +141,9 @@ object Logging {
 
   /** raf.seekされた箇所から末尾までを出力する */
   private fun printRemaining(raf: RandomAccessFile) {
-    val buffer = ByteArray(8192)
     val initialLength = logFile.length()
     while (raf.filePointer < initialLength) {
-      val bytesRead =
-        raf.read(buffer, 0, minOf(buffer.size, (initialLength - raf.filePointer).toInt()))
-
-      if (bytesRead > 0) {
-        print(String(buffer, 0, bytesRead, StandardCharsets.UTF_8))
-      }
+      println(raf.readUtf8Line())
     }
   }
 }

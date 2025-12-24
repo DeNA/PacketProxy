@@ -1,5 +1,6 @@
 package packetproxy.gulp.input
 
+import core.packetproxy.util.readUtf8Line
 import java.io.File
 import java.io.RandomAccessFile
 
@@ -32,7 +33,7 @@ class ScriptSource(private val filePath: String) : LineSource() {
   override fun readLine(): String? {
     return if (isReadable && raf != null) {
       try {
-        raf.readLine()
+        raf.readUtf8Line()
       } catch (e: Exception) {
         null
       }
