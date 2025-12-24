@@ -15,6 +15,7 @@
  */
 package packetproxy.cli
 
+import core.packetproxy.gulp.command.LogCommand
 import org.jline.builtins.Completers.TreeCompleter
 import org.jline.builtins.Completers.TreeCompleter.node
 import packetproxy.common.I18nString
@@ -56,6 +57,9 @@ abstract class CLIModeHandler {
 
       ".",
       "source" -> ChainedSource.push(ScriptSource(parsed.args.firstOrNull() ?: ""))
+
+      "l",
+      "log" -> LogCommand(parsed)
 
       else -> extensionCommand(parsed)
     }
