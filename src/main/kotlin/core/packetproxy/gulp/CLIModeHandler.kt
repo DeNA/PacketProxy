@@ -49,39 +49,25 @@ abstract class CLIModeHandler {
    * コマンドを処理
    *
    * @param parsed コマンド
-   * @return つづくコマンドを処理するべきmode
    */
-  fun handleCommand(parsed: ParsedCommand): CLIModeHandler {
-    return when (parsed.cmd) {
-      "s",
-      "switch" -> switchCommand()
+  fun handleCommand(parsed: ParsedCommand) {
+    when (parsed.cmd) {
+      "help" -> println(getHelpMessage())
 
-      "d",
-      "decode" -> DecodeModeHandler
+      ".",
+      "source" -> ChainedSource.push(ScriptSource(parsed.args.firstOrNull() ?: ""))
 
-      "e",
-      "encode" -> EncodeModeHandler
-
-      else -> {
-        when (parsed.cmd) {
-          "help" -> println(getHelpMessage())
-
-          ".",
-          "source" -> ChainedSource.push(ScriptSource(parsed.args.firstOrNull() ?: ""))
-
-          else -> {
-            if (!extensionCommand(parsed))
-              println(I18nString.get("command not defined: %s", parsed.raw))
-          }
-        }
-        this
-      }
+      else -> extensionCommand(parsed)
     }
   }
 
-  protected abstract fun switchCommand(): CLIModeHandler
+  protected fun commandNotDefined(parsed: ParsedCommand) {
+    println(I18nString.get("command not defined: %s", parsed.raw))
+  }
 
-  protected abstract fun extensionCommand(parsed: ParsedCommand): Boolean
+  abstract fun getOppositeMode(): CLIModeHandler
+
+  protected abstract fun extensionCommand(parsed: ParsedCommand)
 
   fun getHelpMessage(): String {
     return """共通コマンド：

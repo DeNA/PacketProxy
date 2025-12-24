@@ -18,6 +18,8 @@ package packetproxy.gulp
 import kotlin.math.abs
 import org.jline.reader.EndOfFileException
 import org.jline.reader.UserInterruptException
+import packetproxy.cli.DecodeModeHandler
+import packetproxy.cli.EncodeModeHandler
 import packetproxy.common.ConfigIO
 import packetproxy.common.Utils
 import packetproxy.gulp.input.ChainedSource
@@ -50,10 +52,19 @@ object GulpTerminal {
           "" -> continue
           "exit" -> break
 
+          "s",
+          "switch" -> cmdCtx.currentHandler = cmdCtx.currentHandler.getOppositeMode()
+
+          "e",
+          "encode" -> cmdCtx.currentHandler = EncodeModeHandler
+
+          "d",
+          "decode" -> cmdCtx.currentHandler = DecodeModeHandler
+
           "l",
           "log" -> handleLogCommand(terminal, parsed.args)
 
-          else -> cmdCtx.currentHandler = cmdCtx.currentHandler.handleCommand(parsed)
+          else -> cmdCtx.currentHandler.handleCommand(parsed)
         }
       } catch (e: UserInterruptException) {
         // Ctrl + C: 継続、改行

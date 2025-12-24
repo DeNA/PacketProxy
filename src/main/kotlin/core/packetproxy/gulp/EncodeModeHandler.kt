@@ -35,18 +35,15 @@ object EncodeModeHandler : CLIModeHandler() {
     )
   }
 
-  override fun switchCommand(): CLIModeHandler {
+  override fun getOppositeMode(): CLIModeHandler {
     return DecodeModeHandler
   }
 
-  override fun extensionCommand(parsed: ParsedCommand): Boolean {
-    return when (parsed.cmd) {
-      "status" -> {
-        println("Encode Mode !")
-        true
-      }
+  override fun extensionCommand(parsed: ParsedCommand) {
+    when (parsed.cmd) {
+      "status" -> println("Encode Mode !")
 
-      else -> false
+      else -> commandNotDefined(parsed)
     }
   }
 
