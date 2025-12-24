@@ -15,14 +15,13 @@
  */
 package packetproxy.gulp
 
+import core.packetproxy.gulp.command.SourceCommand
 import java.nio.file.Path
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import packetproxy.cli.CLIModeHandler
-import packetproxy.cli.EncodeModeHandler
 import packetproxy.gulp.input.ChainedSource
 import packetproxy.gulp.input.LineSource
 import packetproxy.gulp.input.ScriptSource
@@ -175,8 +174,6 @@ class SourceCommandTest {
     ChainedSource.push(outerScriptSource)
     ChainedSource.open()
 
-    // CLIModeHandlerをシミュレートして、sourceコマンドを処理
-    val handler: CLIModeHandler = EncodeModeHandler
     val commands = mutableListOf<String>()
 
     while (true) {
@@ -186,15 +183,9 @@ class SourceCommandTest {
       when (parsed.cmd) {
         "" -> continue
         ".",
-        "source" -> {
-          // sourceコマンドを検出したら、CLIModeHandlerのhandleCommandを呼び出して
-          // 新しいScriptSourceをChainedSourceにプッシュ
-          handler.handleCommand(parsed)
-        }
+        "source" -> SourceCommand(parsed)
 
-        else -> {
-          commands.add(parsed.cmd)
-        }
+        else -> commands.add(parsed.cmd)
       }
     }
 
@@ -250,8 +241,6 @@ class SourceCommandTest {
     ChainedSource.push(layer0ScriptSource)
     ChainedSource.open()
 
-    // CLIModeHandlerをシミュレートして、sourceコマンドを処理
-    val handler: CLIModeHandler = EncodeModeHandler
     val commands = mutableListOf<String>()
 
     while (true) {
@@ -261,17 +250,10 @@ class SourceCommandTest {
       when (parsed.cmd) {
         "" -> continue
         "exit" -> break
-
         ".",
-        "source" -> {
-          // sourceコマンドを検出したら、CLIModeHandlerのhandleCommandを呼び出して
-          // 新しいScriptSourceをChainedSourceにプッシュ
-          handler.handleCommand(parsed)
-        }
+        "source" -> SourceCommand(parsed)
 
-        else -> {
-          commands.add(parsed.cmd)
-        }
+        else -> commands.add(parsed.cmd)
       }
     }
 

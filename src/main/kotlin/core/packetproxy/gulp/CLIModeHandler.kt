@@ -16,12 +16,11 @@
 package packetproxy.cli
 
 import core.packetproxy.gulp.command.LogCommand
+import core.packetproxy.gulp.command.SourceCommand
 import org.jline.builtins.Completers.TreeCompleter
 import org.jline.builtins.Completers.TreeCompleter.node
 import packetproxy.common.I18nString
 import packetproxy.gulp.ParsedCommand
-import packetproxy.gulp.input.ChainedSource
-import packetproxy.gulp.input.ScriptSource
 
 /** CLIモードのハンドラーインターフェース 各モード（encode/decode）で異なるコマンド処理と補完を提供 */
 abstract class CLIModeHandler {
@@ -56,7 +55,7 @@ abstract class CLIModeHandler {
       "help" -> println(getHelpMessage())
 
       ".",
-      "source" -> ChainedSource.push(ScriptSource(parsed.args.firstOrNull() ?: ""))
+      "source" -> SourceCommand(parsed)
 
       "l",
       "log" -> LogCommand(parsed)
