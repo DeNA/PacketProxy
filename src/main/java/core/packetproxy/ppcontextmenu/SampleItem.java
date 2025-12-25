@@ -16,12 +16,11 @@
 package packetproxy.ppcontextmenu;
 
 import java.io.File;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.io.FileUtils;
 import packetproxy.gui.GUIPacket;
+import packetproxy.gui.NativeFileChooser;
 
 public class SampleItem extends PPContextMenu {
 
@@ -32,15 +31,18 @@ public class SampleItem extends PPContextMenu {
 
 	@Override
 	public void action() throws Exception {
-		JFileChooser saveFile = new JFileChooser("packet.dat");
+		NativeFileChooser saveFile = new NativeFileChooser();
 		saveFile.setAcceptAllFileFilterUsed(false);
-		saveFile.addChoosableFileFilter(new FileNameExtensionFilter("データファイル (.dat)", "dat"));
-		saveFile.showSaveDialog((JFrame) this.dependentData.get("main_frame"));
-		File file = saveFile.getSelectedFile();
-		GUIPacket gui_packet = (GUIPacket) this.dependentData.get("gui_packet");
-		byte[] data = gui_packet.getPacket().getReceivedData();
-		FileUtils.writeByteArrayToFile(file, data);
-		JOptionPane.showMessageDialog((JFrame) this.dependentData.get("main_frame"),
-				String.format("%sに保存しました！", file.getPath()));
+		saveFile.addChoosableFileFilter("データファイル (.dat)", "dat");
+		JFrame mainFrame = (JFrame) this.dependentData.get("main_frame");
+		int selected = saveFile.showSaveDialog(mainFrame);
+		if (selected == NativeFileChooser.APPROVE_OPTION) {
+			File file = saveFile.getSelectedFile();
+			GUIPacket gui_packet = (GUIPacket) this.dependentData.get("gui_packet");
+			byte[] data = gui_packet.getPacket().getReceivedData();
+			FileUtils.writeByteArrayToFile(file, data);
+			JOptionPane.showMessageDialog(mainFrame,
+					String.format("%sに保存しました！", file.getPath()));
+		}
 	}
 }

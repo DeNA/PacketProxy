@@ -18,15 +18,15 @@ package packetproxy.gui;
 import java.io.File;
 import java.util.EventListener;
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class WriteFileChooserWrapper {
 
 	private static int EVENTLISTENER_IS_ALREADY_EXISTS = -1;
 	private static int EVENTLISTENER_IS_ADDED = -1;
-	private JFileChooser fileChooser;
+	private NativeFileChooser fileChooser;
 	private JFrame owner;
 	private String fileExtension;
+	private String currentDirectory;
 	protected FileChooserListener listener = null;
 
 	public WriteFileChooserWrapper(JFrame owner, String fileExtension) {
@@ -40,48 +40,16 @@ public class WriteFileChooserWrapper {
 	private void setFileChooser(JFrame owner, String fileExtension, String currentDirectory) {
 		this.owner = owner;
 		this.fileExtension = fileExtension;
+		this.currentDirectory = currentDirectory;
 
-		fileChooser = new JFileChooser() {
-
-			@Override
-			public void approveSelection() {
-				File f = getSelectedFile();
-				File file;
-				if (f.getName().matches(".+\\." + fileExtension)) {
-
-					file = f;
-				} else {
-
-					file = new File(f.getAbsolutePath() + "." + fileExtension);
-				}
-				if (file.exists() && getDialogType() == SAVE_DIALOG) {
-
-					int result = JOptionPane.showConfirmDialog(this, "ファイルが既に存在しますが上書きしますか？", "Existing file",
-							JOptionPane.YES_NO_CANCEL_OPTION);
-					switch (result) {
-						case JOptionPane.YES_OPTION :
-							super.approveSelection();
-							return;
-						case JOptionPane.NO_OPTION :
-							return;
-						case JOptionPane.CLOSED_OPTION :
-							return;
-						case JOptionPane.CANCEL_OPTION :
-							cancelSelection();
-							return;
-					}
-				}
-				super.approveSelection();
-			}
-		};
-		fileChooser.setCurrentDirectory(new File(currentDirectory));
-		fileChooser.setFileFilter(new FileNameExtensionFilter("*." + fileExtension, fileExtension));
-		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		fileChooser = new NativeFileChooser(currentDirectory);
+		fileChooser.addChoosableFileFilter("*." + fileExtension, fileExtension);
+		fileChooser.setAcceptAllFileFilterUsed(false);
 	}
 
 	public void showSaveDialog() {
-		int selected = fileChooser.showSaveDialog(SwingUtilities.getRoot(owner));
-		if (selected == JFileChooser.APPROVE_OPTION) {
+		int selected = fileChooser.showSaveDialog(owner);
+		if (selected == NativeFileChooser.APPROVE_OPTION) {
 
 			File file = fileChooser.getSelectedFile();
 			if (null != listener) {
@@ -94,16 +62,33 @@ public class WriteFileChooserWrapper {
 
 					filePath = file.getAbsolutePath() + "." + fileExtension;
 				}
-				listener.onApproved(new File(filePath), fileExtension);
+
+				File finalFile = new File(filePath);
+				if (finalFile.exists()) {
+					int result = JOptionPane.showConfirmDialog(owner, "ファイルが既に存在しますが上書きしますか？", "Existing file",
+							JOptionPane.YES_NO_CANCEL_OPTION);
+					switch (result) {
+						case JOptionPane.YES_OPTION:
+							listener.onApproved(finalFile, fileExtension);
+							return;
+						case JOptionPane.NO_OPTION:
+						case JOptionPane.CLOSED_OPTION:
+							return;
+						case JOptionPane.CANCEL_OPTION:
+							listener.onCanceled();
+							return;
+					}
+				}
+				listener.onApproved(finalFile, fileExtension);
 			}
-		} else if (selected == JFileChooser.CANCEL_OPTION) {
+		} else if (selected == NativeFileChooser.CANCEL_OPTION) {
 
 			if (null != listener) {
 
 				listener.onCanceled();
 			}
 
-		} else if (selected == JFileChooser.ERROR_OPTION) {
+		} else if (selected == NativeFileChooser.ERROR_OPTION) {
 
 			if (null != listener) {
 
