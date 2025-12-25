@@ -170,121 +170,141 @@ public class NativeFileChooser {
     }
 
     private int showNativeOpenDialog(Component parent) {
-        Frame frame = getFrame(parent);
-        FileDialog dialog = new FileDialog(frame, dialogTitle != null ? dialogTitle : "Open", FileDialog.LOAD);
-        
-        if (currentDirectory != null) {
-            dialog.setDirectory(currentDirectory.getAbsolutePath());
-        }
+        try {
+            Frame frame = getFrame(parent);
+            FileDialog dialog = new FileDialog(frame, dialogTitle != null ? dialogTitle : "Open", FileDialog.LOAD);
+            
+            if (currentDirectory != null) {
+                dialog.setDirectory(currentDirectory.getAbsolutePath());
+            }
 
-        // Use FilenameFilter for filtering files by extension
-        // Note: setFile() should NOT be used for filtering as it sets the filename field, not the filter
-        FilenameFilter filter = createFilenameFilter();
-        if (filter != null && !acceptAllFileFilterUsed) {
-            dialog.setFilenameFilter(filter);
-        }
+            // Use FilenameFilter for filtering files by extension
+            // Note: setFile() should NOT be used for filtering as it sets the filename field, not the filter
+            FilenameFilter filter = createFilenameFilter();
+            if (filter != null && !acceptAllFileFilterUsed) {
+                dialog.setFilenameFilter(filter);
+            }
 
-        dialog.setVisible(true);
+            dialog.setVisible(true);
 
-        String file = dialog.getFile();
-        String directory = dialog.getDirectory();
-        
-        if (file != null && directory != null) {
-            selectedFile = new File(directory, file);
-            return APPROVE_OPTION;
+            String file = dialog.getFile();
+            String directory = dialog.getDirectory();
+            
+            if (file != null && directory != null) {
+                selectedFile = new File(directory, file);
+                return APPROVE_OPTION;
+            }
+            
+            return CANCEL_OPTION;
+        } catch (Exception e) {
+            return ERROR_OPTION;
         }
-        
-        return CANCEL_OPTION;
     }
 
     private int showNativeSaveDialog(Component parent) {
-        Frame frame = getFrame(parent);
-        FileDialog dialog = new FileDialog(frame, dialogTitle != null ? dialogTitle : "Save", FileDialog.SAVE);
-        
-        if (currentDirectory != null) {
-            dialog.setDirectory(currentDirectory.getAbsolutePath());
-        }
+        try {
+            Frame frame = getFrame(parent);
+            FileDialog dialog = new FileDialog(frame, dialogTitle != null ? dialogTitle : "Save", FileDialog.SAVE);
+            
+            if (currentDirectory != null) {
+                dialog.setDirectory(currentDirectory.getAbsolutePath());
+            }
 
-        if (selectedFile != null) {
-            dialog.setFile(selectedFile.getName());
-        }
+            if (selectedFile != null) {
+                dialog.setFile(selectedFile.getName());
+            }
 
-        dialog.setVisible(true);
+            dialog.setVisible(true);
 
-        String file = dialog.getFile();
-        String directory = dialog.getDirectory();
-        
-        if (file != null && directory != null) {
-            selectedFile = new File(directory, file);
-            return APPROVE_OPTION;
+            String file = dialog.getFile();
+            String directory = dialog.getDirectory();
+            
+            if (file != null && directory != null) {
+                selectedFile = new File(directory, file);
+                return APPROVE_OPTION;
+            }
+            
+            return CANCEL_OPTION;
+        } catch (Exception e) {
+            return ERROR_OPTION;
         }
-        
-        return CANCEL_OPTION;
     }
 
     private int showSwingOpenDialog(Component parent) {
-        JFileChooser chooser = new JFileChooser();
-        
-        if (currentDirectory != null) {
-            chooser.setCurrentDirectory(currentDirectory);
-        }
-        
-        if (dialogTitle != null) {
-            chooser.setDialogTitle(dialogTitle);
-        }
-
-        chooser.setAcceptAllFileFilterUsed(acceptAllFileFilterUsed);
-        
-        for (FilterEntry entry : fileFilters) {
-            if (entry.extensions.length > 0) {
-                chooser.addChoosableFileFilter(new FileNameExtensionFilter(entry.description, entry.extensions));
+        try {
+            JFileChooser chooser = new JFileChooser();
+            
+            if (currentDirectory != null) {
+                chooser.setCurrentDirectory(currentDirectory);
             }
-        }
+            
+            if (dialogTitle != null) {
+                chooser.setDialogTitle(dialogTitle);
+            }
 
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        
-        int result = chooser.showOpenDialog(parent);
-        
-        if (result == JFileChooser.APPROVE_OPTION) {
-            selectedFile = chooser.getSelectedFile();
-            return APPROVE_OPTION;
+            chooser.setAcceptAllFileFilterUsed(acceptAllFileFilterUsed);
+            
+            for (FilterEntry entry : fileFilters) {
+                if (entry.extensions.length > 0) {
+                    chooser.addChoosableFileFilter(new FileNameExtensionFilter(entry.description, entry.extensions));
+                }
+            }
+
+            chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            
+            int result = chooser.showOpenDialog(parent);
+            
+            if (result == JFileChooser.APPROVE_OPTION) {
+                selectedFile = chooser.getSelectedFile();
+                return APPROVE_OPTION;
+            } else if (result == JFileChooser.ERROR_OPTION) {
+                return ERROR_OPTION;
+            }
+            
+            return CANCEL_OPTION;
+        } catch (Exception e) {
+            return ERROR_OPTION;
         }
-        
-        return CANCEL_OPTION;
     }
 
     private int showSwingSaveDialog(Component parent) {
-        JFileChooser chooser = new JFileChooser();
-        
-        if (currentDirectory != null) {
-            chooser.setCurrentDirectory(currentDirectory);
-        }
-        
-        if (dialogTitle != null) {
-            chooser.setDialogTitle(dialogTitle);
-        }
-
-        if (selectedFile != null) {
-            chooser.setSelectedFile(selectedFile);
-        }
-
-        chooser.setAcceptAllFileFilterUsed(acceptAllFileFilterUsed);
-        
-        for (FilterEntry entry : fileFilters) {
-            if (entry.extensions.length > 0) {
-                chooser.addChoosableFileFilter(new FileNameExtensionFilter(entry.description, entry.extensions));
+        try {
+            JFileChooser chooser = new JFileChooser();
+            
+            if (currentDirectory != null) {
+                chooser.setCurrentDirectory(currentDirectory);
             }
-        }
+            
+            if (dialogTitle != null) {
+                chooser.setDialogTitle(dialogTitle);
+            }
 
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        
-        int result = chooser.showSaveDialog(parent);
-        
-        if (result == JFileChooser.APPROVE_OPTION) {
-            selectedFile = chooser.getSelectedFile();
-            return APPROVE_OPTION;
+            if (selectedFile != null) {
+                chooser.setSelectedFile(selectedFile);
+            }
+
+            chooser.setAcceptAllFileFilterUsed(acceptAllFileFilterUsed);
+            
+            for (FilterEntry entry : fileFilters) {
+                if (entry.extensions.length > 0) {
+                    chooser.addChoosableFileFilter(new FileNameExtensionFilter(entry.description, entry.extensions));
+                }
+            }
+
+            chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            
+            int result = chooser.showSaveDialog(parent);
+            
+            if (result == JFileChooser.APPROVE_OPTION) {
+                selectedFile = chooser.getSelectedFile();
+                return APPROVE_OPTION;
+            } else if (result == JFileChooser.ERROR_OPTION) {
+                return ERROR_OPTION;
+            }
+            
+            return CANCEL_OPTION;
+        } catch (Exception e) {
+            return ERROR_OPTION;
         }
-        
-        return CANCEL_OPTION;
     }
 }
