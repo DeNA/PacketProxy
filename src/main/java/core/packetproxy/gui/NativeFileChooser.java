@@ -37,10 +37,23 @@ public class NativeFileChooser {
     public static final int CANCEL_OPTION = JFileChooser.CANCEL_OPTION;
     public static final int ERROR_OPTION = JFileChooser.ERROR_OPTION;
 
+    /**
+     * Internal class to store file filter description and extensions together.
+     */
+    private static class FilterEntry {
+        final String description;
+        final String[] extensions;
+
+        FilterEntry(String description, String[] extensions) {
+            this.description = description;
+            this.extensions = extensions;
+        }
+    }
+
     private File selectedFile;
     private File currentDirectory;
     private String dialogTitle;
-    private List<String[]> fileFilters = new ArrayList<>();
+    private List<FilterEntry> fileFilters = new ArrayList<>();
     private boolean acceptAllFileFilterUsed = true;
 
     public NativeFileChooser() {
@@ -65,11 +78,11 @@ public class NativeFileChooser {
 
     /**
      * Add a file filter with description and extensions.
-     * @param description The description (e.g., "*.sqlite3")
+     * @param description The description (e.g., "*.sqlite3", "Client Certificate file (*.jks)")
      * @param extensions The file extensions without dots (e.g., "sqlite3", "json")
      */
     public void addChoosableFileFilter(String description, String... extensions) {
-        fileFilters.add(extensions);
+        fileFilters.add(new FilterEntry(description, extensions));
     }
 
     /**
@@ -77,14 +90,14 @@ public class NativeFileChooser {
      */
     public void setFileFilter(FileNameExtensionFilter filter) {
         fileFilters.clear();
-        fileFilters.add(filter.getExtensions());
+        fileFilters.add(new FilterEntry(filter.getDescription(), filter.getExtensions()));
     }
 
     /**
      * Add file filter using FileNameExtensionFilter for compatibility.
      */
     public void addChoosableFileFilter(FileNameExtensionFilter filter) {
-        fileFilters.add(filter.getExtensions());
+        fileFilters.add(new FilterEntry(filter.getDescription(), filter.getExtensions()));
     }
 
     public File getSelectedFile() {
@@ -137,8 +150,8 @@ public class NativeFileChooser {
                 return true;
             }
             String lowerName = name.toLowerCase();
-            for (String[] extensions : fileFilters) {
-                for (String ext : extensions) {
+            for (FilterEntry entry : fileFilters) {
+                for (String ext : entry.extensions) {
                     if (lowerName.endsWith("." + ext.toLowerCase())) {
                         return true;
                     }
@@ -156,23 +169,11 @@ public class NativeFileChooser {
             dialog.setDirectory(currentDirectory.getAbsolutePath());
         }
 
+        // Use FilenameFilter for filtering files by extension
+        // Note: setFile() should NOT be used for filtering as it sets the filename field, not the filter
         FilenameFilter filter = createFilenameFilter();
         if (filter != null && !acceptAllFileFilterUsed) {
             dialog.setFilenameFilter(filter);
-        }
-
-        // On Mac, we can set allowed file types for better native integration
-        if (!fileFilters.isEmpty()) {
-            StringBuilder allowedExtensions = new StringBuilder();
-            for (String[] extensions : fileFilters) {
-                for (String ext : extensions) {
-                    if (allowedExtensions.length() > 0) {
-                        allowedExtensions.append(";");
-                    }
-                    allowedExtensions.append("*.").append(ext);
-                }
-            }
-            dialog.setFile(allowedExtensions.toString());
         }
 
         dialog.setVisible(true);
@@ -226,11 +227,9 @@ public class NativeFileChooser {
 
         chooser.setAcceptAllFileFilterUsed(acceptAllFileFilterUsed);
         
-        for (String[] extensions : fileFilters) {
-            if (extensions.length > 0) {
-                StringBuilder desc = new StringBuilder("*.");
-                desc.append(String.join(", *.", extensions));
-                chooser.addChoosableFileFilter(new FileNameExtensionFilter(desc.toString(), extensions));
+        for (FilterEntry entry : fileFilters) {
+            if (entry.extensions.length > 0) {
+                chooser.addChoosableFileFilter(new FileNameExtensionFilter(entry.description, entry.extensions));
             }
         }
 
@@ -263,11 +262,9 @@ public class NativeFileChooser {
 
         chooser.setAcceptAllFileFilterUsed(acceptAllFileFilterUsed);
         
-        for (String[] extensions : fileFilters) {
-            if (extensions.length > 0) {
-                StringBuilder desc = new StringBuilder("*.");
-                desc.append(String.join(", *.", extensions));
-                chooser.addChoosableFileFilter(new FileNameExtensionFilter(desc.toString(), extensions));
+        for (FilterEntry entry : fileFilters) {
+            if (entry.extensions.length > 0) {
+                chooser.addChoosableFileFilter(new FileNameExtensionFilter(entry.description, entry.extensions));
             }
         }
 
