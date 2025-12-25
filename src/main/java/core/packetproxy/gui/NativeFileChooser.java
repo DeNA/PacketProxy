@@ -178,10 +178,15 @@ public class NativeFileChooser {
                 dialog.setDirectory(currentDirectory.getAbsolutePath());
             }
 
-            // Use FilenameFilter for filtering files by extension
-            // Note: setFile() should NOT be used for filtering as it sets the filename field, not the filter
             FilenameFilter filter = createFilenameFilter();
-            if (filter != null && !acceptAllFileFilterUsed) {
+            if (filter != null && !acceptAllFileFilterUsed && !fileFilters.isEmpty()) {
+                FilterEntry firstFilter = fileFilters.get(0);
+                if (firstFilter.extensions.length > 0) {
+                    // Build pattern like "*.json" or "*.sqlite3"
+                    String pattern = "*." + firstFilter.extensions[0];
+                    dialog.setFile(pattern);
+                }
+                // Also set FilenameFilter as a fallback
                 dialog.setFilenameFilter(filter);
             }
 
@@ -192,6 +197,22 @@ public class NativeFileChooser {
             
             if (file != null && directory != null) {
                 selectedFile = new File(directory, file);
+                if (filter != null && !acceptAllFileFilterUsed) {
+                    String fileName = selectedFile.getName().toLowerCase();
+                    boolean matches = false;
+                    for (FilterEntry entry : fileFilters) {
+                        for (String ext : entry.extensions) {
+                            if (fileName.endsWith("." + ext.toLowerCase())) {
+                                matches = true;
+                                break;
+                            }
+                        }
+                        if (matches) break;
+                    }
+                    if (!matches) {
+                        return CANCEL_OPTION;
+                    }
+                }
                 return APPROVE_OPTION;
             }
             
