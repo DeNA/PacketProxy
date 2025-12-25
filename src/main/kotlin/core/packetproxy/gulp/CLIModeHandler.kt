@@ -19,6 +19,8 @@ import org.jline.builtins.Completers.TreeCompleter
 import org.jline.builtins.Completers.TreeCompleter.node
 import packetproxy.common.I18nString
 import packetproxy.gulp.ParsedCommand
+import packetproxy.gulp.input.ChainedSource
+import packetproxy.gulp.input.ScriptSource
 
 /** CLIモードのハンドラーインターフェース 各モード（encode/decode）で異なるコマンド処理と補完を提供 */
 abstract class CLIModeHandler {
@@ -31,6 +33,7 @@ abstract class CLIModeHandler {
         node("decode"),
         node("encode"),
         node("log"),
+        node("source"),
         node("help"),
       ) + extensionNodes()
     TreeCompleter(*mergedNodes.toTypedArray())
@@ -45,8 +48,7 @@ abstract class CLIModeHandler {
   /**
    * コマンドを処理
    *
-   * @param cmd コマンド文字列
-   * @param args コマンド引数List
+   * @param parsed コマンド
    * @return つづくコマンドを処理するべきmode
    */
   fun handleCommand(parsed: ParsedCommand): CLIModeHandler {
@@ -60,14 +62,18 @@ abstract class CLIModeHandler {
       "e",
       "encode" -> EncodeModeHandler
 
-      "help" -> {
-        println(getHelpMessage())
-        this
-      }
-
       else -> {
-        if (!extensionCommand(parsed))
-          println(I18nString.get("command not defined: %s", parsed.raw))
+        when (parsed.cmd) {
+          "help" -> println(getHelpMessage())
+
+          ".",
+          "source" -> ChainedSource.push(ScriptSource(parsed.args.firstOrNull() ?: ""))
+
+          else -> {
+            if (!extensionCommand(parsed))
+              println(I18nString.get("command not defined: %s", parsed.raw))
+          }
+        }
         this
       }
     }

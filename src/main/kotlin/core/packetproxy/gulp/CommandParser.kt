@@ -32,10 +32,13 @@ object CommandParser {
   private val regex = Regex("""[^\s"]+|"([^"]*)"""")
 
   fun parse(line: String): ParsedCommand? {
+    // #以降をコメントとして削除する
+    val processedLine = line.split("#").first()
+
     // マッチした部分を全てリストへ
     val tokens =
       regex
-        .findAll(line.trim())
+        .findAll(processedLine)
         .map { matchResult ->
           // クォートの中身(groupValues[1])があればそれを、なければ全体(groupValues[0])を使う
           matchResult.groupValues[1].ifEmpty { matchResult.groupValues[0] }
