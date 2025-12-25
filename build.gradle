@@ -33,6 +33,7 @@ dependencies {
 
   testImplementation 'org.junit.jupiter:junit-jupiter:6.0.0'
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+  testRuntimeOnly 'org.jetbrains.kotlin:kotlin-reflect:2.2.21'
   testImplementation 'org.assertj:assertj-core:3.23.1'
   testImplementation 'org.mockito:mockito-core:4.7.0'
   testImplementation 'org.projectlombok:lombok:1.18.42'

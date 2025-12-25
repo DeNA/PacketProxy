@@ -15,20 +15,18 @@
  */
 package packetproxy.gulp
 
+import core.packetproxy.gulp.command.SourceCommand
 import java.nio.file.Path
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import packetproxy.cli.CLIModeHandler
-import packetproxy.cli.EncodeModeHandler
 import packetproxy.gulp.input.ChainedSource
 import packetproxy.gulp.input.LineSource
 import packetproxy.gulp.input.ScriptSource
 
 class SourceCommandTest {
-
   @TempDir lateinit var tempDir: Path
 
   @BeforeEach
@@ -146,7 +144,7 @@ class SourceCommandTest {
   }
 
   @Test
-  fun 指定されたファイル内に新たにsourceコマンドが記載されていた場合に正しく実行できること() {
+  suspend fun 指定されたファイル内に新たにsourceコマンドが記載されていた場合に正しく実行できること() {
     // ネストしたスクリプトファイルを作成
     val innerScriptFile = tempDir.resolve("inner_script.pp").toFile()
     innerScriptFile.writeText(
@@ -176,8 +174,6 @@ class SourceCommandTest {
     ChainedSource.push(outerScriptSource)
     ChainedSource.open()
 
-    // CLIModeHandlerをシミュレートして、sourceコマンドを処理
-    val handler: CLIModeHandler = EncodeModeHandler
     val commands = mutableListOf<String>()
 
     while (true) {
@@ -186,16 +182,10 @@ class SourceCommandTest {
 
       when (parsed.cmd) {
         "" -> continue
-        "source",
-        "." -> {
-          // sourceコマンドを検出したら、CLIModeHandlerのhandleCommandを呼び出して
-          // 新しいScriptSourceをChainedSourceにプッシュ
-          handler.handleCommand(parsed)
-        }
+        ".",
+        "source" -> SourceCommand(parsed)
 
-        else -> {
-          commands.add(parsed.cmd)
-        }
+        else -> commands.add(parsed.cmd)
       }
     }
 
@@ -210,7 +200,7 @@ class SourceCommandTest {
   }
 
   @Test
-  fun sourceした中でexitが実行されていれば全体でexitできること() {
+  suspend fun sourceした中でexitが実行されていれば全体でexitできること() {
     // ネストしたスクリプトファイルを作成
     val layer2ScriptFile = tempDir.resolve("layer_2.pp").toFile()
     layer2ScriptFile.writeText(
@@ -251,8 +241,6 @@ class SourceCommandTest {
     ChainedSource.push(layer0ScriptSource)
     ChainedSource.open()
 
-    // CLIModeHandlerをシミュレートして、sourceコマンドを処理
-    val handler: CLIModeHandler = EncodeModeHandler
     val commands = mutableListOf<String>()
 
     while (true) {
@@ -262,17 +250,10 @@ class SourceCommandTest {
       when (parsed.cmd) {
         "" -> continue
         "exit" -> break
-
         ".",
-        "source" -> {
-          // sourceコマンドを検出したら、CLIModeHandlerのhandleCommandを呼び出して
-          // 新しいScriptSourceをChainedSourceにプッシュ
-          handler.handleCommand(parsed)
-        }
+        "source" -> SourceCommand(parsed)
 
-        else -> {
-          commands.add(parsed.cmd)
-        }
+        else -> commands.add(parsed.cmd)
       }
     }
 
@@ -301,13 +282,15 @@ class SourceCommandTest {
   }
 
   @Test
-  fun コメント行が含まれるファイルを正しく読み取れること() {
+  fun コメントが含まれるファイルを正しく読み取れること() {
     val scriptFile = tempDir.resolve("comment_script.pp").toFile()
     scriptFile.writeText(
       """
       |command1 # comment
-      |# comment
+      |# co mm  en t!
       |command2
+      |# source ${scriptFile.absolutePath}
+      |command3
       """
         .trimMargin()
     )
@@ -324,10 +307,51 @@ class SourceCommandTest {
     source.close()
 
     // ファイルから読み取られた行（コメント処理前）
-    assertThat(lines).containsExactly("command1 # comment", "# comment", "command2")
+    assertThat(lines)
+      .containsExactly(
+        "command1 # comment",
+        "# co mm  en t!",
+        "command2",
+        "# source ${scriptFile.absolutePath}",
+        "command3",
+      )
 
     // CommandParserでパースすると、コメントが削除されることを確認
     val parsedCommands = lines.mapNotNull { CommandParser.parse(it ?: "") }
-    assertThat(parsedCommands.map { it.cmd }).containsExactly("command1", "command2")
+    assertThat(parsedCommands.map { it.cmd }).containsExactly("command1", "command2", "command3")
+  }
+
+  @Test
+  fun 非asciiのコメントが含まれるファイルを正しく読み取れること() {
+    val scriptFile = tempDir.resolve("comment_script.pp").toFile()
+    scriptFile.writeText(
+      """
+      |command1 # コメント
+      | # コメント
+      |command2
+      |#これは、　コメントです！
+      |command3
+      """
+        .trimMargin()
+    )
+
+    val source = ScriptSource(scriptFile.absolutePath)
+    source.open()
+
+    val lines = mutableListOf<String?>()
+    while (true) {
+      val line = source.readLine() ?: break
+      lines.add(line)
+    }
+
+    source.close()
+
+    // ファイルから読み取られた行（コメント処理前）
+    assertThat(lines)
+      .containsExactly("command1 # コメント", " # コメント", "command2", "#これは、　コメントです！", "command3")
+
+    // CommandParserでパースすると、コメントが削除されることを確認
+    val parsedCommands = lines.mapNotNull { CommandParser.parse(it ?: "") }
+    assertThat(parsedCommands.map { it.cmd }).containsExactly("command1", "command2", "command3")
   }
 }

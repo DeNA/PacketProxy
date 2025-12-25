@@ -15,13 +15,14 @@
  */
 package packetproxy.gulp
 
-import kotlin.math.abs
+import kotlinx.coroutines.*
 import org.jline.reader.EndOfFileException
 import org.jline.reader.UserInterruptException
+import packetproxy.cli.DecodeModeHandler
+import packetproxy.cli.EncodeModeHandler
 import packetproxy.common.ConfigIO
 import packetproxy.common.Utils
 import packetproxy.gulp.input.ChainedSource
-import packetproxy.gulp.input.LineSource
 import packetproxy.gulp.input.ScriptSource
 import packetproxy.gulp.input.TerminalFactory
 import packetproxy.util.Logging
@@ -39,31 +40,55 @@ object GulpTerminal {
     ChainedSource.push(ScriptSource(scriptFilePath))
     ChainedSource.open()
 
-    // exitされるまでコマンド入力に対応する
-    // つづくコマンドを処理するべきmodeが変わった場合は補完内容なども切り替える
-    while (true) {
-      try {
-        val line = ChainedSource.readLine() ?: break
+    runBlocking {
+      while (isActive) {
+        /** コマンド入力受付。Ctrl+C: continue 改行して次の入力受付を開始する Ctrl+D: break Terminalを閉じる */
+        val line =
+          try {
+            withContext(Dispatchers.IO) { ChainedSource.readLine() } ?: break
+          } catch (e: Exception) {
+            when (e) {
+              is UserInterruptException -> {} // Ctrl+C
+              is EndOfFileException -> {
+                println("${cmdCtx.currentHandler.prompts}exit")
+                break
+              } // Ctrl+D
+              else -> Logging.errWithStackTrace(e)
+            }
+            continue
+          }
+
         val parsed = CommandParser.parse(line) ?: continue
 
+        /** コマンド実行。実行用の新しいコルーチンをlaunchしJobとして保持する。Ctrl+C: コマンドの実行を中断する */
         when (parsed.cmd) {
           "" -> continue
           "exit" -> break
 
-          "l",
-          "log" -> handleLogCommand(terminal, parsed.args)
+          "s",
+          "switch" -> cmdCtx.currentHandler = cmdCtx.currentHandler.getOppositeMode()
 
-          else -> cmdCtx.currentHandler = cmdCtx.currentHandler.handleCommand(parsed)
+          "e",
+          "encode" -> cmdCtx.currentHandler = EncodeModeHandler
+
+          "d",
+          "decode" -> cmdCtx.currentHandler = DecodeModeHandler
+
+          else -> {
+            cmdCtx.executionJob = launch {
+              try {
+                cmdCtx.currentHandler.handleCommand(parsed)
+              } catch (e: Exception) {
+                when (e) {
+                  is CancellationException -> println() // Ctrl+Cによってcancel()が実行された結果throwされるもの
+                  else -> Logging.errWithStackTrace(e)
+                }
+              }
+            }
+
+            cmdCtx.executionJob?.join()
+          }
         }
-      } catch (e: UserInterruptException) {
-        // Ctrl + C: 継続、改行
-        continue
-      } catch (e: EndOfFileException) {
-        // Ctrl + D: 終了
-        println("${cmdCtx.currentHandler.prompts}exit")
-        break
-      } catch (e: Exception) {
-        Logging.errWithStackTrace(e)
       }
     }
   }
@@ -85,34 +110,6 @@ object GulpTerminal {
     } catch (e: Exception) {
       Logging.err("設定ファイルの読み込みに失敗しました: ${e.message}", e)
       Logging.errWithStackTrace(e)
-    }
-  }
-
-  /** readerを渡したいのでCLIModeHandlerでは処理しない */
-  private fun handleLogCommand(terminal: LineSource, args: List<String>) {
-    val lineCount = abs(args.firstOrNull()?.toIntOrNull() ?: 0)
-
-    // 引数で数値が指定された場合は末尾からその行数分出力して終了
-    if (lineCount != 0) {
-      Logging.printLog(lineCount)
-      return
-    }
-
-    // 引数に数値が指定されなかった場合は継続出力を行う(Ctrl + C/D で終了)
-    try {
-      // 最初に末尾30行分出力してしまう
-      Logging.printLog(30)
-      Logging.startTailLog()
-      while (true) terminal.readLine()
-    } catch (e: Exception) {
-      when (e) {
-        is UserInterruptException,
-        is EndOfFileException -> {}
-
-        else -> Logging.errWithStackTrace(e)
-      }
-    } finally {
-      Logging.stopTailLog()
     }
   }
 }

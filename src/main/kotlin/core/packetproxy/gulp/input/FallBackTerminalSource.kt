@@ -17,7 +17,10 @@ package packetproxy.gulp.input
 
 import packetproxy.gulp.CommandContext
 
-/** デフォルトのターミナルの起動に失敗した際のフォールバック用ターミナル 最低限の機能のみを提供 */
+/**
+ * デフォルトのターミナルの起動に失敗した際のフォールバック用ターミナル 最低限の機能のみを提供 Ctrl
+ * Cによる改行やコマンドの中断が不可能だが、多くの場合はデフォルトのターミナルを使用可能だと思われるため許容
+ */
 class FallBackTerminalSource(
   private val cmdCtx: CommandContext,
   private val scanner: java.util.Scanner,
