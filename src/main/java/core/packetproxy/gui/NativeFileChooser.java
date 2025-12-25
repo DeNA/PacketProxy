@@ -134,7 +134,15 @@ public class NativeFileChooser {
         }
     }
 
+    /**
+     * Get the Frame ancestor of the given component.
+     * @param parent The component to find the Frame ancestor for
+     * @return The Frame ancestor, or null if parent is null or no Frame ancestor exists
+     */
     private Frame getFrame(Component parent) {
+        if (parent == null) {
+            return null;
+        }
         if (parent instanceof Frame) {
             return (Frame) parent;
         }
