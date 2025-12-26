@@ -17,14 +17,17 @@ package packetproxy.gui;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.UIManager;
 
 public class CloseButtonTabbedPane extends JTabbedPane {
 
@@ -36,6 +39,7 @@ public class CloseButtonTabbedPane extends JTabbedPane {
 		super();
 		icon = new ImageIcon(getClass().getResource("/gui/close.png"));
 		icon_mouseovered = new ImageIcon(getClass().getResource("/gui/close_mouseovered.png"));
+		UIManager.put("TabbedPane.tabInsets", new Insets(0, 7, 0, 7));
 	}
 
 	@Override
@@ -43,6 +47,7 @@ public class CloseButtonTabbedPane extends JTabbedPane {
 		JPanel main_panel = new JPanel();
 		main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.X_AXIS));
 		main_panel.setOpaque(false);
+		main_panel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
 		JLabel label = new JLabel(title);
 		JButton button = new JButton(icon);
 		button.setPreferredSize(new Dimension(icon.getIconWidth() + 1, icon.getIconHeight() + 1));
@@ -66,6 +71,8 @@ public class CloseButtonTabbedPane extends JTabbedPane {
 			}
 		});
 		main_panel.add(label);
+		// 数字とバツボタンの間に余白を追加
+		main_panel.add(Box.createHorizontalStrut(7));
 		main_panel.add(button);
 		super.addTab(null, content);
 		setTabComponentAt(getTabCount() - 1, main_panel);

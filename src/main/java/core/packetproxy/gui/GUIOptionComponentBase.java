@@ -18,6 +18,7 @@ package packetproxy.gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import javax.swing.BorderFactory;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.beans.PropertyChangeEvent;
@@ -30,8 +31,10 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.RowFilter;
+import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableRowSorter;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
@@ -73,6 +76,7 @@ public abstract class GUIOptionComponentBase<T> implements PropertyChangeListene
 
 			table.getColumn(menu[i]).setPreferredWidth(menuWidth[i]);
 		}
+		setHeaderStyle(table, menu.length);
 		((JComponent) table.getDefaultRenderer(Boolean.class)).setOpaque(true);
 		table.addMouseListener(tableAction);
 		table.setRowHeight(FontManager.getInstance().getUIFontHeight(table));
@@ -146,6 +150,7 @@ public abstract class GUIOptionComponentBase<T> implements PropertyChangeListene
 
 			table.getColumn(menu[i]).setPreferredWidth(menuWidth[i]);
 		}
+		setHeaderStyle(table, menu.length);
 		((JComponent) table.getDefaultRenderer(Boolean.class)).setOpaque(true);
 		table.addMouseListener(tableAction);
 		table.setRowHeight(FontManager.getInstance().getUIFontHeight(table));
@@ -172,6 +177,25 @@ public abstract class GUIOptionComponentBase<T> implements PropertyChangeListene
 		panel.setBackground(Color.WHITE);
 		panel.setMaximumSize(new Dimension(Short.MAX_VALUE, panel.getMinimumSize().height));
 		return panel;
+	}
+
+	private void setHeaderStyle(JTable table, int columnCount) {
+		DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer() {
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value,
+					boolean isSelected, boolean hasFocus, int row, int column) {
+				Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+				setBorder(BorderFactory.createCompoundBorder(
+						BorderFactory.createMatteBorder(0, 0, 1, 1, Color.LIGHT_GRAY),
+						BorderFactory.createEmptyBorder(2, 5, 2, 5)
+				));
+				return c;
+			}
+		};
+		headerRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+		for (int i = 0; i < columnCount; i++) {
+			table.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
+		}
 	}
 
 	private JPanel createTableButton(ActionListener addAction, ActionListener editAction, ActionListener removeAction) {

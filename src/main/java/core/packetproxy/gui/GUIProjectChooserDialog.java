@@ -32,7 +32,6 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -43,7 +42,6 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import packetproxy.common.I18nString;
 
 public class GUIProjectChooserDialog {
@@ -375,11 +373,11 @@ public class GUIProjectChooserDialog {
 	}
 
 	private boolean openByFileChooser(Component parent) throws Exception {
-		var filechooser = new JFileChooser();
-		filechooser.setFileFilter(new FileNameExtensionFilter("*.sqlite3", "sqlite3"));
-		filechooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		var filechooser = new NativeFileChooser();
+		filechooser.addChoosableFileFilter("*.sqlite3", "sqlite3");
+		filechooser.setAcceptAllFileFilterUsed(false);
 		var ok = filechooser.showOpenDialog(parent);
-		if (ok != JFileChooser.APPROVE_OPTION) {
+		if (ok != NativeFileChooser.APPROVE_OPTION) {
 			return false;
 		}
 		var file = filechooser.getSelectedFile();

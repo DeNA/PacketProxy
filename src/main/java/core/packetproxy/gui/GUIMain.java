@@ -26,6 +26,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.*;
 import javax.swing.UIManager.LookAndFeelInfo;
+import com.formdev.flatlaf.FlatIntelliJLaf;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Keymap;
@@ -117,6 +118,15 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 			gui_log = GUILog.getInstance();
 
 			tabbedpane = new JTabbedPane();
+
+			// タブの高さを数値で強制指定
+			UIManager.put("TabbedPane.tabHeight", 22);
+			// フォーカスが当たった時の枠線の太さを0にする
+			UIManager.put("TabbedPane.focusWidth", 0);
+			UIManager.put("TabbedPane.innerBorderInsets", new Insets(0, 0, 0, 0));
+			UIManager.put("TabbedPane.tabInsets", new Insets(0, 10, 0, 10));
+
+			SwingUtilities.updateComponentTreeUI(tabbedpane);
 			tabbedpane.addTab(getPaneString(Panes.HISTORY), gui_history.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.INTERCEPT), gui_intercept.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.RESENDER), gui_resender.createPanel());
@@ -161,12 +171,16 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 			System.setProperty("swing.aatext", "true");
 		}
 
-		for (LookAndFeelInfo clInfo : UIManager.getInstalledLookAndFeels()) {
-
-			if ("Nimbus".equals(clInfo.getName())) {
-
-				UIManager.setLookAndFeel(clInfo.getClassName());
-				break;
+		// FlatLaf Modern Light Theme (IntelliJ)
+		try {
+			FlatIntelliJLaf.setup();
+		} catch (Exception e) {
+			// Fallback to Nimbus if FlatLaf fails
+			for (LookAndFeelInfo clInfo : UIManager.getInstalledLookAndFeels()) {
+				if ("Nimbus".equals(clInfo.getName())) {
+					UIManager.setLookAndFeel(clInfo.getClassName());
+					break;
+				}
 			}
 		}
 
@@ -177,6 +191,9 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		UIManager.getLookAndFeelDefaults().put("defaultFont", FontManager.getInstance().getUIFont());
 		// OptionPaneのロケール
 		JOptionPane.setDefaultLocale(I18nString.locale);
+
+		// スクロールバーの幅を太くする
+		UIManager.put("ScrollBar.width", 15);
 
 		setIconForWindows();
 		addShortcutForWindows();
@@ -290,7 +307,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6939001
 	private void setInterceptHighLight() {
 		JLabel label = new JLabel(tabbedpane.getTitleAt(1));
-		label.setForeground(Color.ORANGE);
+		label.setForeground(new Color(255, 180, 0)); // Bright orange for dark theme
 		tabbedpane.setTabComponentAt(1, label);
 		tabbedpane.revalidate();
 		tabbedpane.repaint();
@@ -298,7 +315,8 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 
 	private void setInterceptDownLight() {
 		JLabel label = new JLabel(tabbedpane.getTitleAt(1));
-		label.setForeground(Color.BLACK);
+		// Use default foreground color from Look and Feel
+		label.setForeground(UIManager.getColor("TabbedPane.foreground"));
 		tabbedpane.setTabComponentAt(1, label);
 		tabbedpane.revalidate();
 		tabbedpane.repaint();
