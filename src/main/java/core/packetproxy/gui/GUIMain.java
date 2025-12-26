@@ -192,6 +192,9 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		// OptionPaneのロケール
 		JOptionPane.setDefaultLocale(I18nString.getLocale());
 
+		// スクロールバーの幅を太くする
+		UIManager.put("ScrollBar.width", 15);
+
 		setIconForWindows();
 		addShortcutForWindows();
 		addShortcutForMac();
