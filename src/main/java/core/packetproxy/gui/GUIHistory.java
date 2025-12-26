@@ -420,7 +420,7 @@ public class GUIHistory implements PropertyChangeListener {
 					boolean isSelected, boolean hasFocus, int row, int column) {
 				Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 				setBorder(BorderFactory.createCompoundBorder(
-						BorderFactory.createMatteBorder(0, 0, 1, 1, Color.GRAY),
+						BorderFactory.createMatteBorder(0, 0, 1, 1, Color.LIGHT_GRAY),
 						BorderFactory.createEmptyBorder(2, 5, 2, 5)  // top, left, bottom, right padding
 				));
 				return c;
