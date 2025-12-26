@@ -118,7 +118,14 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 			gui_log = GUILog.getInstance();
 
 			tabbedpane = new JTabbedPane();
-			UIManager.put("TabbedPane.tabInsets", new Insets(1, 10, 1, 10));
+
+			// タブの高さを数値で強制指定
+			UIManager.put("TabbedPane.tabHeight", 22);
+			// フォーカスが当たった時の枠線の太さを0にする
+			UIManager.put("TabbedPane.focusWidth", 0);
+			UIManager.put("TabbedPane.innerBorderInsets", new Insets(0, 0, 0, 0));
+			UIManager.put("TabbedPane.tabInsets", new Insets(0, 10, 0, 10));
+
 			SwingUtilities.updateComponentTreeUI(tabbedpane);
 			tabbedpane.addTab(getPaneString(Panes.HISTORY), gui_history.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.INTERCEPT), gui_intercept.createPanel());
