@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -61,11 +62,13 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
@@ -409,6 +412,23 @@ public class GUIHistory implements PropertyChangeListener {
 		for (int i = 0; i < columnNames.length; i++) {
 
 			table.getColumn(columnNames[i]).setPreferredWidth(columnWidth[i]);
+		}
+		// Set header alignment to left with border and padding
+		DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer() {
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value,
+					boolean isSelected, boolean hasFocus, int row, int column) {
+				Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+				setBorder(BorderFactory.createCompoundBorder(
+						BorderFactory.createMatteBorder(0, 0, 1, 1, Color.LIGHT_GRAY),
+						BorderFactory.createEmptyBorder(2, 5, 2, 5)  // top, left, bottom, right padding
+				));
+				return c;
+			}
+		};
+		headerRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+		for (int i = 0; i < columnNames.length; i++) {
+			table.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
 		}
 		((JComponent) table.getDefaultRenderer(Boolean.class)).setOpaque(true);
 		table.getSelectionModel().addListSelectionListener(new javax.swing.event.ListSelectionListener() {

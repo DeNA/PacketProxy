@@ -79,7 +79,11 @@ public class GUIOption {
 
 	private JComponent createSeparator() {
 		JSeparator line = new JSeparator();
-		line.setMaximumSize(new Dimension(Short.MAX_VALUE, line.getMinimumSize().height));
+		line.setForeground(Color.LIGHT_GRAY);
+		line.setBackground(Color.LIGHT_GRAY);
+		line.setOpaque(true);
+		line.setPreferredSize(new Dimension(0, 1));
+		line.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
 		return line;
 	}
 

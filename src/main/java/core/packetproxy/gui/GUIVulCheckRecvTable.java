@@ -23,6 +23,7 @@ import java.awt.event.KeyEvent;
 import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.OptionTableModel;
@@ -83,8 +84,22 @@ public class GUIVulCheckRecvTable {
 		((JComponent) table.getDefaultRenderer(Boolean.class)).setOpaque(true);
 		table.setAutoCreateRowSorter(true);
 
+		// Set header alignment to left with border and padding
+		DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer() {
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value,
+					boolean isSelected, boolean hasFocus, int row, int column) {
+				Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+				setBorder(BorderFactory.createCompoundBorder(
+						BorderFactory.createMatteBorder(0, 0, 1, 1, Color.LIGHT_GRAY),
+						BorderFactory.createEmptyBorder(2, 5, 2, 5)  // top, left, bottom, right padding
+				));
+				return c;
+			}
+		};
+		headerRenderer.setHorizontalAlignment(SwingConstants.LEFT);
 		for (int i = 0; i < columnNames.length; i++) {
-
+			table.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
 			table.getColumn(columnNames[i]).setPreferredWidth(columnWidth[i]);
 		}
 
