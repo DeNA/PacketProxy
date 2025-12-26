@@ -207,7 +207,10 @@ public class GUIHistory implements PropertyChangeListener {
 		});
 
 		JButton filterConfigAdd = new JButton(new ImageIcon(getClass().getResource("/gui/plus.png")));
-		filterConfigAdd.setMaximumSize(new Dimension(15, gui_filter.getMaximumSize().height));
+		int buttonWidth = 35; // ボタンの横幅を広げる
+		filterConfigAdd.setPreferredSize(new Dimension(buttonWidth, gui_filter.getMaximumSize().height));
+		filterConfigAdd.setMaximumSize(new Dimension(buttonWidth, gui_filter.getMaximumSize().height));
+		filterConfigAdd.setMinimumSize(new Dimension(buttonWidth, gui_filter.getMaximumSize().height));
 		filterConfigAdd.setBackground(filterConfigAdd.getBackground());
 		filterConfigAdd.addActionListener(new ActionListener() {
 
@@ -225,8 +228,9 @@ public class GUIHistory implements PropertyChangeListener {
 		});
 
 		JToggleButton filterDropDown = new JToggleButton(new ImageIcon(getClass().getResource("/gui/arrow.png")));
-		filterDropDown.setMaximumSize(
-				new Dimension(filterConfigAdd.getMaximumSize().width, gui_filter.getMaximumSize().height));
+		filterDropDown.setPreferredSize(new Dimension(buttonWidth, gui_filter.getMaximumSize().height));
+		filterDropDown.setMaximumSize(new Dimension(buttonWidth, gui_filter.getMaximumSize().height));
+		filterDropDown.setMinimumSize(new Dimension(buttonWidth, gui_filter.getMaximumSize().height));
 		filterDropDown.setBackground(filterDropDown.getBackground());
 		filterDropDown.addMouseListener(new MouseAdapter() {
 
@@ -274,8 +278,9 @@ public class GUIHistory implements PropertyChangeListener {
 
 		ImageIcon icon = new ImageIcon(getClass().getResource("/gui/config.png"));
 		JButton filterConfig = new JButton(icon);
-		filterConfig.setMaximumSize(
-				new Dimension(filterConfigAdd.getMaximumSize().width, gui_filter.getMaximumSize().height));
+		filterConfig.setPreferredSize(new Dimension(buttonWidth, gui_filter.getMaximumSize().height));
+		filterConfig.setMaximumSize(new Dimension(buttonWidth, gui_filter.getMaximumSize().height));
+		filterConfig.setMinimumSize(new Dimension(buttonWidth, gui_filter.getMaximumSize().height));
 		filterConfig.setBackground(filterConfig.getBackground());
 		filterConfig.addActionListener(new ActionListener() {
 
