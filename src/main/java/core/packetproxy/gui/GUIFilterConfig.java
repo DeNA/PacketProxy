@@ -25,15 +25,12 @@ import java.io.File;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.SwingUtilities;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -262,12 +259,12 @@ public class GUIFilterConfig {
 			public void mouseClicked(MouseEvent e) {
 				try {
 
-					JFileChooser filechooser = new JFileChooser();
+					NativeFileChooser filechooser = new NativeFileChooser();
 					filechooser.setCurrentDirectory(new File(defaultDir));
-					filechooser.setFileFilter(new FileNameExtensionFilter("*.json", "json"));
-					filechooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-					int selected = filechooser.showOpenDialog(SwingUtilities.getRoot(owner));
-					if (selected == JFileChooser.APPROVE_OPTION) {
+					filechooser.addChoosableFileFilter("*.json", "json");
+					filechooser.setAcceptAllFileFilterUsed(false);
+					int selected = filechooser.showOpenDialog(owner);
+					if (selected == NativeFileChooser.APPROVE_OPTION) {
 
 						File file = filechooser.getSelectedFile();
 						byte[] jbytes = Utils.readfile(file.getAbsolutePath());

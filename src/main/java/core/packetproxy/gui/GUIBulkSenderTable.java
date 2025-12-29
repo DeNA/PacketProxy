@@ -34,9 +34,12 @@ import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.BorderFactory;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import packetproxy.common.Utils;
 import packetproxy.model.OneShotPacket;
@@ -130,6 +133,23 @@ public class GUIBulkSenderTable {
 		for (int i = 0; i < columnNames.length; i++) {
 
 			table.getColumn(columnNames[i]).setPreferredWidth(columnWidth[i]);
+		}
+		// Set header style with left alignment, border, and padding
+		DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer() {
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value,
+					boolean isSelected, boolean hasFocus, int row, int column) {
+				Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+				setBorder(BorderFactory.createCompoundBorder(
+						BorderFactory.createMatteBorder(0, 0, 1, 1, Color.LIGHT_GRAY),
+						BorderFactory.createEmptyBorder(2, 5, 2, 5)
+				));
+				return c;
+			}
+		};
+		headerRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+		for (int i = 0; i < columnNames.length; i++) {
+			table.getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
 		}
 
 		table.addKeyListener(new KeyAdapter() {
