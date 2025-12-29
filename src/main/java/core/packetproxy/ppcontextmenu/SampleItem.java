@@ -41,8 +41,7 @@ public class SampleItem extends PPContextMenu {
 			GUIPacket gui_packet = (GUIPacket) this.dependentData.get("gui_packet");
 			byte[] data = gui_packet.getPacket().getReceivedData();
 			FileUtils.writeByteArrayToFile(file, data);
-			JOptionPane.showMessageDialog(mainFrame,
-					String.format("%sに保存しました！", file.getPath()));
+			JOptionPane.showMessageDialog(mainFrame, String.format("%sに保存しました！", file.getPath()));
 		}
 	}
 }

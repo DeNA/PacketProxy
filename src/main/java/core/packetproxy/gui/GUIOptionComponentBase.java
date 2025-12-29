@@ -18,12 +18,12 @@ package packetproxy.gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import javax.swing.BorderFactory;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -182,13 +182,12 @@ public abstract class GUIOptionComponentBase<T> implements PropertyChangeListene
 	private void setHeaderStyle(JTable table, int columnCount) {
 		DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer() {
 			@Override
-			public Component getTableCellRendererComponent(JTable table, Object value,
-					boolean isSelected, boolean hasFocus, int row, int column) {
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+					boolean hasFocus, int row, int column) {
 				Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 				setBorder(BorderFactory.createCompoundBorder(
 						BorderFactory.createMatteBorder(0, 0, 1, 1, Color.LIGHT_GRAY),
-						BorderFactory.createEmptyBorder(2, 5, 2, 5)
-				));
+						BorderFactory.createEmptyBorder(2, 5, 2, 5)));
 				return c;
 			}
 		};

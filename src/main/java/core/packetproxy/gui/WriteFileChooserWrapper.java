@@ -68,13 +68,13 @@ public class WriteFileChooserWrapper {
 					int result = JOptionPane.showConfirmDialog(owner, "ファイルが既に存在しますが上書きしますか？", "Existing file",
 							JOptionPane.YES_NO_CANCEL_OPTION);
 					switch (result) {
-						case JOptionPane.YES_OPTION:
+						case JOptionPane.YES_OPTION :
 							listener.onApproved(finalFile, fileExtension);
 							return;
-						case JOptionPane.NO_OPTION:
-						case JOptionPane.CLOSED_OPTION:
+						case JOptionPane.NO_OPTION :
+						case JOptionPane.CLOSED_OPTION :
 							return;
-						case JOptionPane.CANCEL_OPTION:
+						case JOptionPane.CANCEL_OPTION :
 							listener.onCanceled();
 							return;
 					}

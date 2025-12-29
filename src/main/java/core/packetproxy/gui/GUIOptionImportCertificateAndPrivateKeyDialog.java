@@ -142,8 +142,8 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 			try {
 
 				NativeFileChooser certificatePEMChooser = new NativeFileChooser();
-				certificatePEMChooser.addChoosableFileFilter(
-						I18nString.get("Certificate file (*.crt, *.pem)"), "crt", "pem");
+				certificatePEMChooser.addChoosableFileFilter(I18nString.get("Certificate file (*.crt, *.pem)"), "crt",
+						"pem");
 				certificatePEMChooser.setAcceptAllFileFilterUsed(false);
 				int selected = certificatePEMChooser.showOpenDialog(panel);
 				if (selected == NativeFileChooser.APPROVE_OPTION) {
@@ -170,8 +170,8 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 			try {
 
 				NativeFileChooser privateKeyPEMChooser = new NativeFileChooser();
-				privateKeyPEMChooser.addChoosableFileFilter(
-						I18nString.get("Private Key file (*.key, *.pem)"), "key", "pem");
+				privateKeyPEMChooser.addChoosableFileFilter(I18nString.get("Private Key file (*.key, *.pem)"), "key",
+						"pem");
 				privateKeyPEMChooser.setAcceptAllFileFilterUsed(false);
 				int selected = privateKeyPEMChooser.showOpenDialog(panel);
 				if (selected == NativeFileChooser.APPROVE_OPTION) {
@@ -237,8 +237,8 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 			try {
 
 				NativeFileChooser certificateDERChooser = new NativeFileChooser();
-				certificateDERChooser.addChoosableFileFilter(
-						I18nString.get("Certificate file (*.crt, *.der)"), "crt", "der");
+				certificateDERChooser.addChoosableFileFilter(I18nString.get("Certificate file (*.crt, *.der)"), "crt",
+						"der");
 				certificateDERChooser.setAcceptAllFileFilterUsed(false);
 				int selected = certificateDERChooser.showOpenDialog(panel);
 				if (selected == NativeFileChooser.APPROVE_OPTION) {
@@ -265,8 +265,8 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 			try {
 
 				NativeFileChooser privateKeyDERChooser = new NativeFileChooser();
-				privateKeyDERChooser.addChoosableFileFilter(
-						I18nString.get("Private Key file (*.key, *.der)"), "key", "der");
+				privateKeyDERChooser.addChoosableFileFilter(I18nString.get("Private Key file (*.key, *.der)"), "key",
+						"der");
 				privateKeyDERChooser.setAcceptAllFileFilterUsed(false);
 				int selected = privateKeyDERChooser.showOpenDialog(panel);
 				if (selected == NativeFileChooser.APPROVE_OPTION) {
@@ -332,8 +332,7 @@ public class GUIOptionImportCertificateAndPrivateKeyDialog extends JDialog {
 			try {
 
 				NativeFileChooser p12Chooser = new NativeFileChooser();
-				p12Chooser.addChoosableFileFilter(
-						I18nString.get("P12 file (*.p12, *.pfx)"), "p12", "pfx");
+				p12Chooser.addChoosableFileFilter(I18nString.get("P12 file (*.p12, *.pfx)"), "p12", "pfx");
 				p12Chooser.setAcceptAllFileFilterUsed(false);
 				int selected = p12Chooser.showOpenDialog(panel);
 				if (selected == NativeFileChooser.APPROVE_OPTION) {

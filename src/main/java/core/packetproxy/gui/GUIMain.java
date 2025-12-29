@@ -17,6 +17,7 @@ package packetproxy.gui;
 
 import static packetproxy.util.Logging.errWithStackTrace;
 
+import com.formdev.flatlaf.FlatIntelliJLaf;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -26,7 +27,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.*;
 import javax.swing.UIManager.LookAndFeelInfo;
-import com.formdev.flatlaf.FlatIntelliJLaf;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Keymap;

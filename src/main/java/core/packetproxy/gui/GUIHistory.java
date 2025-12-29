@@ -421,12 +421,12 @@ public class GUIHistory implements PropertyChangeListener {
 		// Set header alignment to left with border and padding
 		DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer() {
 			@Override
-			public Component getTableCellRendererComponent(JTable table, Object value,
-					boolean isSelected, boolean hasFocus, int row, int column) {
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+					boolean hasFocus, int row, int column) {
 				Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 				setBorder(BorderFactory.createCompoundBorder(
 						BorderFactory.createMatteBorder(0, 0, 1, 1, Color.LIGHT_GRAY),
-						BorderFactory.createEmptyBorder(2, 5, 2, 5)  // top, left, bottom, right padding
+						BorderFactory.createEmptyBorder(2, 5, 2, 5) // top, left, bottom, right padding
 				));
 				return c;
 			}

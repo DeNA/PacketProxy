@@ -121,19 +121,17 @@ public class GUIOptionClientCertificateDialog extends JDialog {
 				certFilePath.setAcceptAllFileFilterUsed(false);
 				switch (ClientCertificate.Type.getTypeFromText(t)) {
 					case JKS :
-						certFilePath.addChoosableFileFilter(
-								I18nString.get("Client Certificate file (*.jks)"), "jks");
+						certFilePath.addChoosableFileFilter(I18nString.get("Client Certificate file (*.jks)"), "jks");
 						break;
 					case P12 :
-						certFilePath.addChoosableFileFilter(
-								I18nString.get("Client Certificate file (*.p12, *.pfx)"), "p12", "pfx");
+						certFilePath.addChoosableFileFilter(I18nString.get("Client Certificate file (*.p12, *.pfx)"),
+								"p12", "pfx");
 						break;
 					default :
 				}
 			}
 		});
-		certFilePath.addChoosableFileFilter(
-				I18nString.get("Client Certificate file (*.p12, *.pfx)"), "p12", "pfx");
+		certFilePath.addChoosableFileFilter(I18nString.get("Client Certificate file (*.p12, *.pfx)"), "p12", "pfx");
 		certFilePath.setAcceptAllFileFilterUsed(false);
 
 		return label_and_object(I18nString.get("Type of certificate file:"), certificateTypeCombo);

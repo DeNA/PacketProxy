@@ -29,12 +29,12 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.BorderFactory;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
@@ -137,13 +137,12 @@ public class GUIBulkSenderTable {
 		// Set header style with left alignment, border, and padding
 		DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer() {
 			@Override
-			public Component getTableCellRendererComponent(JTable table, Object value,
-					boolean isSelected, boolean hasFocus, int row, int column) {
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+					boolean hasFocus, int row, int column) {
 				Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 				setBorder(BorderFactory.createCompoundBorder(
 						BorderFactory.createMatteBorder(0, 0, 1, 1, Color.LIGHT_GRAY),
-						BorderFactory.createEmptyBorder(2, 5, 2, 5)
-				));
+						BorderFactory.createEmptyBorder(2, 5, 2, 5)));
 				return c;
 			}
 		};
