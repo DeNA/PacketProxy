@@ -284,8 +284,6 @@ public class GUIOption {
 				"Import/Export configs by GET/POST http://localhost:32349/config with 'Authorization: [AccessToken]' header")));
 		panel.add(new GUIOptionHubServer(owner).createPanel());
 
-		panel.setMaximumSize(new Dimension(panel.getPreferredSize().width, panel.getMinimumSize().height));
-		panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, panel.getMinimumSize().height));
 		JScrollPane sc = new JScrollPane(panel);
 		sc.getVerticalScrollBar().setUnitIncrement(16);
 		return sc;
