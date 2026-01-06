@@ -85,6 +85,7 @@ public abstract class GUIOptionComponentBase<T> implements PropertyChangeListene
 		scrollpane1.setViewportView(table);
 		scrollpane1.setBackground(Color.WHITE);
 		scrollpane1.setMinimumSize(new Dimension(800, 150));
+		scrollpane1.setPreferredSize(new Dimension(800, 150));
 		scrollpane1.setMaximumSize(new Dimension(800, 150));
 		scrollpane1.setAlignmentY(Component.TOP_ALIGNMENT);
 
@@ -112,6 +113,7 @@ public abstract class GUIOptionComponentBase<T> implements PropertyChangeListene
 
 		HintTextField filterText = new HintTextField(I18nString.get("Incremental Search for Host"));
 		filterText.setMinimumSize(new Dimension(800, 30));
+		filterText.setPreferredSize(new Dimension(800, 30));
 		filterText.setMaximumSize(new Dimension(800, 30));
 
 		TableRowSorter<OptionTableModel> sorter = new TableRowSorter<OptionTableModel>(option_model);
@@ -162,6 +164,7 @@ public abstract class GUIOptionComponentBase<T> implements PropertyChangeListene
 		scrollpane1.setViewportView(table);
 		scrollpane1.setBackground(Color.WHITE);
 		scrollpane1.setMinimumSize(new Dimension(800, 150));
+		scrollpane1.setPreferredSize(new Dimension(800, 150));
 		scrollpane1.setMaximumSize(new Dimension(800, 150));
 		scrollpane1.setAlignmentY(Component.TOP_ALIGNMENT);
 
