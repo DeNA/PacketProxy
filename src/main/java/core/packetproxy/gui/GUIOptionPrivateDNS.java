@@ -33,8 +33,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -44,6 +46,12 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 import org.xbill.DNS.DNSSpoofingIPGetter;
 import packetproxy.PrivateDNS;
 import packetproxy.common.FontManager;
@@ -55,11 +63,20 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 
 	private PrivateDNS privateDNS;
 
+	private static final int MAX_PORT_DIGITS = 5;
+	private static final Color ERROR_COLOR = new Color(0xB0, 0x00, 0x20);
+	private static final Color ERROR_BACKGROUND_COLOR = new Color(0xFF, 0xCD, 0xD2);
+
 	private JCheckBox checkBox;
 	private JTextField textField;
 	private JTextField textField6;
 	private JRadioButton auto, manual;
 	private JComboBox<String> dnsInterface;
+	private JTextField dnsPortField;
+	private JButton dnsPortSetButton;
+	private JLabel dnsPortErrorLabel;
+	private Color dnsPortFieldDefaultBackgroundColor;
+	private DocumentListener dnsPortFieldDocumentListener;
 	private JPanel base;
 
 	public GUIOptionPrivateDNS() throws Exception {
@@ -118,6 +135,7 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.add(checkBox);
 		panel.add(createInterfaceSetting());
+		panel.add(createPortSetting());
 		panel.add(rewriteRule);
 		panel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -131,7 +149,7 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 
 		try {
 
-			dnsInterface = new JComboBox(getIntAddrs());
+			dnsInterface = new JComboBox<>(getIntAddrs());
 		} catch (Exception e) {
 
 			errWithStackTrace(e);
@@ -147,9 +165,184 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 		return panel;
 	}
 
+	private JComponent createPortSetting() {
+		var panel = new JPanel();
+		panel.setBackground(Color.WHITE);
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+		var portLabel = new JLabel(I18nString.get("Port"));
+		panel.add(createPortSettingRow(portLabel));
+		panel.add(createPortSettingMessageRow(portLabel));
+		panel.setMaximumSize(new Dimension(Short.MAX_VALUE, panel.getMaximumSize().height));
+
+		updatePortSetButtonEnabled();
+		return panel;
+	}
+
+	private JPanel createPortSettingRow(JLabel portLabel) {
+		var row = new JPanel();
+		row.setBackground(Color.WHITE);
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+
+		dnsPortField = createDnsPortField();
+		dnsPortSetButton = createDnsPortSetButton();
+
+		row.add(portLabel);
+		row.add(Box.createHorizontalStrut(4));
+		row.add(dnsPortField);
+		row.add(dnsPortSetButton);
+		row.add(new JLabel(I18nString.get("will be used for Binding Port")));
+		row.setMaximumSize(new Dimension(Short.MAX_VALUE, row.getMaximumSize().height));
+		return row;
+	}
+
+	private JPanel createPortSettingMessageRow(JLabel portLabel) {
+		dnsPortErrorLabel = new JLabel(" ");
+		dnsPortErrorLabel.setForeground(ERROR_COLOR);
+
+		var messageRow = new JPanel();
+		messageRow.setBackground(Color.WHITE);
+		messageRow.setLayout(new BoxLayout(messageRow, BoxLayout.X_AXIS));
+		messageRow.add(Box.createRigidArea(new Dimension(portLabel.getPreferredSize().width, 0)));
+		messageRow.add(Box.createHorizontalStrut(4));
+		messageRow.add(dnsPortErrorLabel);
+		messageRow.setMaximumSize(new Dimension(Short.MAX_VALUE, messageRow.getMaximumSize().height));
+		return messageRow;
+	}
+
+	private JTextField createDnsPortField() {
+		var field = new JTextField(Integer.toString(privateDNS.getConfiguredPort()));
+		field.setMaximumSize(new Dimension(100, field.getMinimumSize().height));
+
+		dnsPortFieldDefaultBackgroundColor = field.getBackground();
+		installDnsPortFieldDocumentFilter(field);
+		installDnsPortFieldDocumentListener(field);
+
+		return field;
+	}
+
+	private void installDnsPortFieldDocumentFilter(JTextField field) {
+		((AbstractDocument) field.getDocument()).setDocumentFilter(new DocumentFilter() {
+			@Override
+			public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
+					throws BadLocationException {
+				if (string == null) {
+					return;
+				}
+				int nextLength = fb.getDocument().getLength() + string.length();
+				if (isDigitsOnly(string) && nextLength <= MAX_PORT_DIGITS) {
+					super.insertString(fb, offset, string, attr);
+				}
+			}
+
+			@Override
+			public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
+					throws BadLocationException {
+				if (text == null) {
+					super.replace(fb, offset, length, text, attrs);
+					return;
+				}
+				int nextLength = fb.getDocument().getLength() - length + text.length();
+				if (isDigitsOnly(text) && nextLength <= MAX_PORT_DIGITS) {
+					super.replace(fb, offset, length, text, attrs);
+				}
+			}
+		});
+	}
+
+	private void installDnsPortFieldDocumentListener(JTextField field) {
+		dnsPortFieldDocumentListener = new DocumentListener() {
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				updatePortSetButtonEnabled();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				updatePortSetButtonEnabled();
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				updatePortSetButtonEnabled();
+			}
+		};
+		field.getDocument().addDocumentListener(dnsPortFieldDocumentListener);
+	}
+
+	private JButton createDnsPortSetButton() {
+		var button = new JButton(I18nString.get("Set"));
+		button.addActionListener(e -> {
+			Integer port = parsePortText(dnsPortField.getText());
+			if (port == null) {
+				return;
+			}
+			privateDNS.setPort(port, new DNSSpoofingIPGetter(this));
+		});
+		return button;
+	}
+
+	private boolean isDigitsOnly(String text) {
+		for (int i = 0; i < text.length(); i++) {
+			char c = text.charAt(i);
+			if (c < '0' || '9' < c) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	private void radioButtonChangeHandler(ActionEvent e) {
 		textField.setEnabled(manual.isSelected());
 		textField6.setEnabled(manual.isSelected());
+	}
+
+	private void updatePortSetButtonEnabled() {
+		if (dnsPortSetButton == null || dnsPortField == null) {
+			return;
+		}
+		Integer port = parsePortText(dnsPortField.getText());
+		if (port == null) {
+			dnsPortSetButton.setEnabled(false);
+			clearPortError();
+			return;
+		}
+		if (!privateDNS.isPortInRange(port)) {
+			dnsPortSetButton.setEnabled(false);
+			setPortError(I18nString.get("Port number must be between 1 and 65535"));
+			return;
+		}
+		clearPortError();
+		dnsPortSetButton.setEnabled(privateDNS.isPortChangeNeeded(port));
+	}
+
+	private void setPortError(String message) {
+		if (dnsPortErrorLabel != null) {
+			dnsPortErrorLabel.setText(message);
+		}
+		if (dnsPortField != null) {
+			dnsPortField.setOpaque(true);
+			dnsPortField.setBackground(ERROR_BACKGROUND_COLOR);
+		}
+	}
+
+	private void clearPortError() {
+		if (dnsPortErrorLabel != null) {
+			dnsPortErrorLabel.setText(" ");
+		}
+		if (dnsPortField != null) {
+			if (dnsPortFieldDefaultBackgroundColor != null) {
+				dnsPortField.setBackground(dnsPortFieldDefaultBackgroundColor);
+			}
+		}
+	}
+
+	private Integer parsePortText(String portText) {
+		try {
+			return Integer.parseInt(portText.trim());
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	public boolean isAutoSpoofing() {
@@ -227,11 +420,33 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 		try {
 
 			checkBox.setSelected(new ConfigBoolean("PrivateDNS").getState());
+			updateDnsPortFieldText(Integer.toString(privateDNS.getConfiguredPort()));
 			if (checkBox.isSelected())
 				privateDNS.start(new DNSSpoofingIPGetter(this));
 		} catch (Exception e) {
 
 			errWithStackTrace(e);
+		} finally {
+			updatePortSetButtonEnabled();
+		}
+	}
+
+	private void updateDnsPortFieldText(String text) {
+		if (dnsPortField == null) {
+			return;
+		}
+
+		if (dnsPortFieldDocumentListener != null) {
+			dnsPortField.getDocument().removeDocumentListener(dnsPortFieldDocumentListener);
+		}
+		try {
+			dnsPortField.setText(text);
+		} catch (Exception e) {
+			errWithStackTrace(e);
+		} finally {
+			if (dnsPortFieldDocumentListener != null) {
+				dnsPortField.getDocument().addDocumentListener(dnsPortFieldDocumentListener);
+			}
 		}
 	}
 

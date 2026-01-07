@@ -36,13 +36,14 @@ import org.apache.commons.net.util.SubnetUtils.SubnetInfo;
 import org.xbill.DNS.*;
 import org.xbill.DNS.Record;
 import packetproxy.model.ConfigBoolean;
+import packetproxy.model.ConfigInteger;
 import packetproxy.model.Server;
 import packetproxy.model.Servers;
 
 public class PrivateDNS {
 
 	static int BUFSIZE = 1024;
-	static int PORT = 53;
+	static int DEFAULT_PORT = 53;
 	static String dnsServer = "8.8.8.8";
 	private static PrivateDNS instance;
 	private ConfigBoolean state;
@@ -170,6 +171,79 @@ public class PrivateDNS {
 		}
 	}
 
+	public void restart(DNSSpoofingIPGetter dnsSpoofingIPGetter) {
+		synchronized (lock) {
+			if (dns != null) {
+
+				dns.finish();
+				dns = null;
+			}
+
+			try {
+
+				dns = new PrivateDNSImp(dnsSpoofingIPGetter);
+				if (dns.isRunning()) {
+
+					dns.start();
+					state.setState(true);
+				} else {
+
+					dns = null;
+					state.setState(false);
+				}
+			} catch (Exception e) {
+
+				errWithStackTrace(e);
+			}
+		}
+	}
+
+	public int getConfiguredPort() {
+		return getListenPort();
+	}
+
+	public boolean isPortChangeNeeded(int port) {
+		if (!isValidPort(port)) {
+			return false;
+		}
+		return port != getListenPort();
+	}
+
+	public boolean isPortInRange(int port) {
+		return isValidPort(port);
+	}
+
+	public void setPort(int port, DNSSpoofingIPGetter dnsSpoofingIPGetter) {
+		if (!isValidPort(port)) {
+			return;
+		}
+		synchronized (lock) {
+			try {
+				ConfigInteger portConfig = new ConfigInteger("PrivateDNSPort");
+				int currentPort = portConfig.getInteger();
+				if (currentPort != port) {
+					log("Private DNS port changed: %d -> %d", currentPort, port);
+					portConfig.setInteger(port);
+				}
+			} catch (Exception e) {
+				errWithStackTrace(e);
+				return;
+			}
+		}
+
+		if (dnsSpoofingIPGetter == null) {
+			return;
+		}
+
+		try {
+			if (isRunning()) {
+				restart(dnsSpoofingIPGetter);
+			}
+		} catch (Exception e) {
+			errWithStackTrace(e);
+		}
+	}
+
 	public void stop() {
 		synchronized (lock) {
 			if (dns != null) {
@@ -190,6 +264,7 @@ public class PrivateDNS {
 	private class PrivateDNSImp extends Thread {
 
 		private DNSSpoofingIPGetter spoofingIp;
+		private final int listenPort;
 
 		private InetAddress cAddr;
 		private int cPort;
@@ -203,15 +278,17 @@ public class PrivateDNS {
 		InetAddress s_sAddr;
 
 		public PrivateDNSImp(DNSSpoofingIPGetter dnsSpoofingIPGetter) throws Exception {
+			this.spoofingIp = dnsSpoofingIPGetter;
+			listenPort = getListenPort();
 			try {
 
-				this.spoofingIp = dnsSpoofingIPGetter;
-				soc = new DatagramSocket(PORT, InetAddress.getByName(spoofingIp.getInt()));
+				soc = new DatagramSocket(listenPort, InetAddress.getByName(spoofingIp.getInt()));
 				recvPacket = new DatagramPacket(buf, BUFSIZE);
 				sendPacket = null;
 			} catch (BindException e) {
 
-				err("cannot boot private DNS server (permission issue or already listened)");
+				err("cannot boot private DNS server (permission issue or already listened): addr=%s port=%d",
+						spoofingIp.getInt(), listenPort);
 				return;
 			}
 
@@ -236,7 +313,7 @@ public class PrivateDNS {
 		}
 
 		public void run() {
-			log("Private DNS Server started.");
+			log("Private DNS Server started. (addr=%s port=%d)", spoofingIp.getInt(), listenPort);
 			while (true) {
 
 				try {
@@ -257,7 +334,7 @@ public class PrivateDNS {
 
 						spoofingIpStrs = spoofAddrFactry.getSpoofAddr(cAddr);
 						spoofingIpStr = spoofingIpStrs.get(4);
-						spoofingIp6Str = spoofingIpStrs.get(6);;
+						spoofingIp6Str = spoofingIpStrs.get(6);
 					} else {
 
 						spoofingIpStr = spoofingIp.get();
@@ -371,7 +448,10 @@ public class PrivateDNS {
 					sendPacket = new DatagramPacket(res, res.length, cAddr, cPort);
 					soc.send(sendPacket);
 				} catch (SocketException e) {
-
+					if (soc == null || soc.isClosed()) {
+						finish();
+						return;
+					}
 					errWithStackTrace(e);
 					finish();
 					return;
@@ -410,5 +490,24 @@ public class PrivateDNS {
 			}
 			return false;
 		}
+	}
+
+	private int getListenPort() {
+		try {
+			ConfigInteger portConfig = new ConfigInteger("PrivateDNSPort");
+			int port = portConfig.getInteger();
+			if (isValidPort(port)) {
+				return port;
+			}
+			portConfig.setInteger(DEFAULT_PORT);
+			return DEFAULT_PORT;
+		} catch (Exception e) {
+			errWithStackTrace(e);
+			return DEFAULT_PORT;
+		}
+	}
+
+	private boolean isValidPort(int port) {
+		return 1 <= port && port <= 65535;
 	}
 }
