@@ -149,7 +149,7 @@ public class PrivateDNS {
 		return state.getState();
 	}
 
-	public void start(DNSSpoofingIPGetter dnsSpoofingIPGetter) {
+	public boolean start(DNSSpoofingIPGetter dnsSpoofingIPGetter) {
 		synchronized (lock) {
 			if (dns == null) {
 
@@ -162,16 +162,26 @@ public class PrivateDNS {
 						state.setState(true);
 					} else {
 
+						dns = null;
+						state.setState(false);
+						return false;
 					}
 				} catch (Exception e) {
 
 					errWithStackTrace(e);
+					dns = null;
+					try {
+						state.setState(false);
+					} catch (Exception ignored) {
+					}
+					return false;
 				}
 			}
 		}
+		return true;
 	}
 
-	public void restart(DNSSpoofingIPGetter dnsSpoofingIPGetter) {
+	public boolean restart(DNSSpoofingIPGetter dnsSpoofingIPGetter) {
 		synchronized (lock) {
 			if (dns != null) {
 
@@ -190,12 +200,20 @@ public class PrivateDNS {
 
 					dns = null;
 					state.setState(false);
+					return false;
 				}
 			} catch (Exception e) {
 
 				errWithStackTrace(e);
+				dns = null;
+				try {
+					state.setState(false);
+				} catch (Exception ignored) {
+				}
+				return false;
 			}
 		}
+		return true;
 	}
 
 	public int getConfiguredPort() {
@@ -236,8 +254,8 @@ public class PrivateDNS {
 		}
 
 		try {
-			if (isRunning()) {
-				restart(dnsSpoofingIPGetter);
+			if (isRunning() && !restart(dnsSpoofingIPGetter)) {
+				state.setState(false);
 			}
 		} catch (Exception e) {
 			errWithStackTrace(e);
