@@ -26,17 +26,17 @@ class FallBackTerminalSource(
   private val scanner: java.util.Scanner,
 ) : LineSource() {
   override fun execOpen() {
-    println("=== Fallback CLI Mode ===")
+    cmdCtx.println("=== Fallback CLI Mode ===")
   }
 
   override fun readLine(): String {
     try {
-      print(cmdCtx.currentHandler.prompts)
+      cmdCtx.print(cmdCtx.currentHandler.prompts)
       return scanner.nextLine()
     } catch (e: NoSuchElementException) {
       // FallbackTerminalでCtrl+Dが押下された場合に投げられる例外
       // DefaultTerminalでCtrl+Dが押下された場合と同じ例外に変換している
-      println() // 表記をDefaultTerminalと揃える
+      cmdCtx.println() // 表記をDefaultTerminalと揃える
       throw org.jline.reader.EndOfFileException("EOF from Standard Input")
     }
   }

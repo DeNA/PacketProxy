@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import packetproxy.gulp.input.ChainedSource
 import packetproxy.gulp.input.LineSource
+import packetproxy.gulp.output.BufferedOutput
 
 class TerminalCoroutinesTest {
   @TempDir lateinit var tempDir: Path
@@ -58,7 +59,7 @@ class TerminalCoroutinesTest {
     ChainedSource.push(mockTerminal)
     ChainedSource.open()
 
-    val cmdCtx = CommandContext()
+    val cmdCtx = CommandContext(BufferedOutput())
 
     // 長時間実行されるコマンドをシミュレート
     var commandStarted = false

@@ -13,27 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy.gulp.input
+package core.packetproxy.gulp.command
 
-import org.jline.reader.LineReader
-import org.jline.terminal.Terminal
 import packetproxy.gulp.CommandContext
+import packetproxy.gulp.ParsedCommand
 
-/** デフォルトのターミナル キー移動やコマンド補完に対応している */
-class TerminalSource(
-  private val cmdCtx: CommandContext,
-  private val terminal: Terminal,
-  private val reader: LineReader,
-) : LineSource() {
-  override fun execOpen() {
-    cmdCtx.println("=== CLI Mode ===")
-  }
-
-  override fun readLine(): String {
-    return reader.readLine(cmdCtx.currentHandler.prompts)
-  }
-
-  override fun close() {
-    terminal.close()
+/**
+ * echoコマンド: 引数をそのまま出力する
+ *
+ * 使用例:
+ * - echo Hello World -> "Hello World"
+ * - echo foo bar baz -> "foo bar baz"
+ *
+ * 内部連携の際はBufferedOutputを使用することで、 標準出力を汚さずに結果を取得できる。
+ */
+object EchoCommand : Command {
+  override suspend fun invoke(parsed: ParsedCommand, ctx: CommandContext) {
+    val message = parsed.args.joinToString(" ")
+    ctx.println(message)
   }
 }

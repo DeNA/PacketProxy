@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import javax.swing.*;
 import org.apache.commons.io.IOUtils;
-import packetproxy.common.ClientKeyManager;
 import packetproxy.common.I18nString;
 import packetproxy.common.Utils;
 import packetproxy.gui.GUIMain;
@@ -37,11 +36,21 @@ public class PacketProxy {
 	}
 
 	public static void main(String[] args) throws Exception {
+		// バイナリへの引数の解釈とセット
 		String gulpMode = getOption("--gulp", args);
-		Logging.init(gulpMode != null);
+		String settingsJson = getOption("--settings-json", args);
+		AppInitializer.setArgs(gulpMode != null, settingsJson);
+		AppInitializer.initCore();
 
 		if (gulpMode != null) {
-			String settingsJson = getOption("--settings-json", args);
+			try {
+				AppInitializer.initGulp();
+				AppInitializer.initComponents();
+			} catch (Exception e) {
+				Logging.errWithStackTrace(e);
+				System.exit(1);
+			}
+
 			Logging.log("Gulp Mode: " + settingsJson);
 			GulpTerminal.run(settingsJson, gulpMode);
 			System.exit(0);
@@ -106,11 +115,7 @@ public class PacketProxy {
 
 	public void start() throws Exception {
 		startGUI();
-		ClientKeyManager.initialize();
-		listenPortManager = ListenPortManager.getInstance();
-		// encoderのロードに1,2秒かかるのでここでロードをしておく（ここでしておかないと通信がacceptされたタイミングでロードする）
-		EncoderManager.getInstance();
-		VulCheckerManager.getInstance();
+		AppInitializer.initComponents();
 	}
 
 	private void startGUI() throws Exception {

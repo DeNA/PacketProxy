@@ -20,6 +20,7 @@ import org.fusesource.jansi.Ansi.Color.GREEN
 import org.jline.builtins.Completers.TreeCompleter
 import org.jline.builtins.Completers.TreeCompleter.node
 import org.jline.reader.impl.completer.StringsCompleter
+import packetproxy.gulp.CommandContext
 import packetproxy.gulp.ParsedCommand
 
 /** Encode Modeのハンドラー */
@@ -39,11 +40,11 @@ object EncodeModeHandler : CLIModeHandler() {
     return DecodeModeHandler
   }
 
-  override fun extensionCommand(parsed: ParsedCommand) {
+  override fun extensionCommand(parsed: ParsedCommand, ctx: CommandContext) {
     when (parsed.cmd) {
-      "status" -> println("Encode Mode !")
+      "status" -> ctx.println("Encode Mode !")
 
-      else -> commandNotDefined(parsed)
+      else -> commandNotDefined(parsed, ctx)
     }
   }
 

@@ -15,8 +15,9 @@
  */
 package core.packetproxy.gulp.command
 
+import packetproxy.gulp.CommandContext
 import packetproxy.gulp.ParsedCommand
 
 interface Command {
-  suspend operator fun invoke(parsed: ParsedCommand)
+  suspend operator fun invoke(parsed: ParsedCommand, ctx: CommandContext)
 }

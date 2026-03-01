@@ -15,11 +15,13 @@
  */
 package packetproxy.cli
 
+import core.packetproxy.gulp.command.EchoCommand
 import core.packetproxy.gulp.command.LogCommand
 import core.packetproxy.gulp.command.SourceCommand
 import org.jline.builtins.Completers.TreeCompleter
 import org.jline.builtins.Completers.TreeCompleter.node
 import packetproxy.common.I18nString
+import packetproxy.gulp.CommandContext
 import packetproxy.gulp.ParsedCommand
 
 /** CLIモードのハンドラーインターフェース 各モード（encode/decode）で異なるコマンド処理と補完を提供 */
@@ -32,6 +34,7 @@ abstract class CLIModeHandler {
         node("switch"),
         node("decode"),
         node("encode"),
+        node("echo"),
         node("log"),
         node("source"),
         node("help"),
@@ -49,33 +52,37 @@ abstract class CLIModeHandler {
    * コマンドを処理
    *
    * @param parsed コマンド
+   * @param ctx コマンドコンテキスト
    */
-  suspend fun handleCommand(parsed: ParsedCommand) {
+  suspend fun handleCommand(parsed: ParsedCommand, ctx: CommandContext) {
     when (parsed.cmd) {
-      "help" -> println(getHelpMessage())
+      "help" -> ctx.println(getHelpMessage())
 
       ".",
-      "source" -> SourceCommand(parsed)
+      "source" -> SourceCommand(parsed, ctx)
 
       "l",
-      "log" -> LogCommand(parsed)
+      "log" -> LogCommand(parsed, ctx)
 
-      else -> extensionCommand(parsed)
+      "echo" -> EchoCommand(parsed, ctx)
+
+      else -> extensionCommand(parsed, ctx)
     }
   }
 
-  protected fun commandNotDefined(parsed: ParsedCommand) {
-    println(I18nString.get("command not defined: %s", parsed.raw))
+  protected fun commandNotDefined(parsed: ParsedCommand, ctx: CommandContext) {
+    ctx.println(I18nString.get("command not defined: %s", parsed.raw))
   }
 
   abstract fun getOppositeMode(): CLIModeHandler
 
-  protected abstract fun extensionCommand(parsed: ParsedCommand)
+  protected abstract fun extensionCommand(parsed: ParsedCommand, ctx: CommandContext)
 
   fun getHelpMessage(): String {
     return """共通コマンド：
   exit                     - 終了
   help                     - ヘルプ
+  echo <args>              - 引数を出力
   l, log                   - ログ継続出力
   s, switch                - Mode切り替え
 

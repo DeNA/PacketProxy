@@ -30,9 +30,6 @@ import packetproxy.util.Logging
 object GulpTerminal {
   @JvmStatic
   fun run(settingJsonPath: String?, scriptFilePath: String) {
-    // 設定ファイルを読み込む（ListenPortManager初期化後）
-    loadSettingsFromJson(settingJsonPath)
-
     val cmdCtx = CommandContext()
     val terminal = TerminalFactory.create(cmdCtx)
 
@@ -50,7 +47,7 @@ object GulpTerminal {
             when (e) {
               is UserInterruptException -> {} // Ctrl+C
               is EndOfFileException -> {
-                println("${cmdCtx.currentHandler.prompts}exit")
+                cmdCtx.println("${cmdCtx.currentHandler.prompts}exit")
                 break
               } // Ctrl+D
               else -> Logging.errWithStackTrace(e)
@@ -77,10 +74,11 @@ object GulpTerminal {
           else -> {
             cmdCtx.executionJob = launch {
               try {
-                cmdCtx.currentHandler.handleCommand(parsed)
+                cmdCtx.currentHandler.handleCommand(parsed, cmdCtx)
               } catch (e: Exception) {
                 when (e) {
-                  is CancellationException -> println() // Ctrl+Cによってcancel()が実行された結果throwされるもの
+                  is CancellationException ->
+                    cmdCtx.println() // Ctrl+Cによってcancel()が実行された結果throwされるもの
                   else -> Logging.errWithStackTrace(e)
                 }
               }

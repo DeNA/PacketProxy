@@ -25,6 +25,7 @@ import org.junit.jupiter.api.io.TempDir
 import packetproxy.gulp.input.ChainedSource
 import packetproxy.gulp.input.LineSource
 import packetproxy.gulp.input.ScriptSource
+import packetproxy.gulp.output.BufferedOutput
 
 class SourceCommandTest {
   @TempDir lateinit var tempDir: Path
@@ -175,6 +176,7 @@ class SourceCommandTest {
     ChainedSource.open()
 
     val commands = mutableListOf<String>()
+    val ctx = CommandContext(BufferedOutput())
 
     while (true) {
       val line = ChainedSource.readLine() ?: break
@@ -183,7 +185,7 @@ class SourceCommandTest {
       when (parsed.cmd) {
         "" -> continue
         ".",
-        "source" -> SourceCommand(parsed)
+        "source" -> SourceCommand(parsed, ctx)
 
         else -> commands.add(parsed.cmd)
       }
@@ -242,6 +244,7 @@ class SourceCommandTest {
     ChainedSource.open()
 
     val commands = mutableListOf<String>()
+    val ctx = CommandContext(BufferedOutput())
 
     while (true) {
       val line = ChainedSource.readLine() ?: break
@@ -251,7 +254,7 @@ class SourceCommandTest {
         "" -> continue
         "exit" -> break
         ".",
-        "source" -> SourceCommand(parsed)
+        "source" -> SourceCommand(parsed, ctx)
 
         else -> commands.add(parsed.cmd)
       }

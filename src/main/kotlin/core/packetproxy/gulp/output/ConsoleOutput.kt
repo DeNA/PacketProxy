@@ -13,27 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy.gulp.input
+package packetproxy.gulp.output
 
-import org.jline.reader.LineReader
-import org.jline.terminal.Terminal
-import packetproxy.gulp.CommandContext
+/** 標準出力への出力実装（本番用） ANSIエスケープシーケンスによる色付けをサポート */
+object ConsoleOutput : CommandOutput {
+  override val style: OutputStyle = AnsiStyle
 
-/** デフォルトのターミナル キー移動やコマンド補完に対応している */
-class TerminalSource(
-  private val cmdCtx: CommandContext,
-  private val terminal: Terminal,
-  private val reader: LineReader,
-) : LineSource() {
-  override fun execOpen() {
-    cmdCtx.println("=== CLI Mode ===")
+  override fun println(text: String) {
+    kotlin.io.println(text)
   }
 
-  override fun readLine(): String {
-    return reader.readLine(cmdCtx.currentHandler.prompts)
+  override fun print(text: String) {
+    kotlin.io.print(text)
   }
 
-  override fun close() {
-    terminal.close()
+  override fun getOutput(): String = ""
+
+  override fun clear() {
+    // 標準出力はクリアできない
   }
 }

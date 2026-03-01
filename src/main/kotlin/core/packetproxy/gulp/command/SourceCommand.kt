@@ -15,12 +15,13 @@
  */
 package core.packetproxy.gulp.command
 
+import packetproxy.gulp.CommandContext
 import packetproxy.gulp.ParsedCommand
 import packetproxy.gulp.input.ChainedSource
 import packetproxy.gulp.input.ScriptSource
 
 object SourceCommand : Command {
-  override suspend fun invoke(parsed: ParsedCommand) {
+  override suspend fun invoke(parsed: ParsedCommand, ctx: CommandContext) {
     ChainedSource.push(ScriptSource(parsed.args.firstOrNull() ?: ""))
   }
 }
