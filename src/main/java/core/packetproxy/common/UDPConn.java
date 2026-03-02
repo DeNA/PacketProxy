@@ -27,12 +27,18 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 
 public class UDPConn {
 
-	private PipeEndpoint pipe;
-	private InetSocketAddress addr;
+	private final PipeEndpoint pipe;
+	private final InetSocketAddress addr;
+	private final RawEndpoint rawEndpoint;
+	private final RawEndpoint proxyRawEndpoint;
+	private volatile boolean closed;
 
 	public UDPConn(InetSocketAddress addr) throws Exception {
 		this.addr = addr;
 		this.pipe = new PipeEndpoint(addr);
+		this.rawEndpoint = this.pipe.getRawEndpoint();
+		this.proxyRawEndpoint = this.pipe.getProxyRawEndpoint();
+		this.closed = false;
 	}
 
 	public void put(byte[] data, int offset, int length) throws Exception {
@@ -43,7 +49,7 @@ public class UDPConn {
 	}
 
 	public void put(byte[] data) throws Exception {
-		OutputStream os = pipe.getRawEndpoint().getOutputStream();
+		OutputStream os = rawEndpoint.getOutputStream();
 		os.write(data);
 		os.flush();
 	}
@@ -53,20 +59,53 @@ public class UDPConn {
 		Callable<Void> recvTask = new Callable<Void>() {
 
 			public Void call() throws Exception {
-				while (true) {
+				while (!closed) {
 
-					InputStream is = pipe.getRawEndpoint().getInputStream();
+					InputStream is = rawEndpoint.getInputStream();
 					byte[] buf = new byte[4096];
 					int len = is.read(buf);
+					if (len < 0) {
+
+						return null;
+					}
 					DatagramPacket recvPacket = new DatagramPacket(buf, len, addr);
 					queue.put(recvPacket);
 				}
+				return null;
 			}
 		};
 		executor.submit(recvTask);
 	}
 
 	public Endpoint getEndpoint() throws Exception {
-		return pipe.getProxyRawEndpoint();
+		return proxyRawEndpoint;
+	}
+
+	public void close() throws Exception {
+		if (closed) {
+
+			return;
+		}
+		closed = true;
+		try {
+
+			rawEndpoint.getInputStream().close();
+		} catch (Exception ignored) {
+		}
+		try {
+
+			rawEndpoint.getOutputStream().close();
+		} catch (Exception ignored) {
+		}
+		try {
+
+			proxyRawEndpoint.getInputStream().close();
+		} catch (Exception ignored) {
+		}
+		try {
+
+			proxyRawEndpoint.getOutputStream().close();
+		} catch (Exception ignored) {
+		}
 	}
 }
