@@ -42,6 +42,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
@@ -384,10 +385,15 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 	private JCheckBox createCheckBox() {
 		checkBox = new JCheckBox(I18nString.get("Use private DNS server"));
 		checkBox.addActionListener(e -> {
-			if (checkBox.isSelected())
-				privateDNS.start(new DNSSpoofingIPGetter(this));
-			else
+			if (!checkBox.isSelected()) {
 				privateDNS.stop();
+				return;
+			}
+
+			if (!privateDNS.start(new DNSSpoofingIPGetter(this))) {
+				checkBox.setSelected(false);
+				showPrivateDnsStartErrorDialog();
+			}
 		});
 		checkBox.setMinimumSize(new Dimension(Short.MAX_VALUE, checkBox.getMaximumSize().height));
 		return checkBox;
@@ -428,8 +434,13 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 
 			checkBox.setSelected(new ConfigBoolean("PrivateDNS").getState());
 			updateDnsPortFieldText(Integer.toString(privateDNS.getConfiguredPort()));
-			if (checkBox.isSelected())
-				privateDNS.start(new DNSSpoofingIPGetter(this));
+			if (!checkBox.isSelected()) {
+				return;
+			}
+			if (!privateDNS.start(new DNSSpoofingIPGetter(this))) {
+				checkBox.setSelected(false);
+				showPrivateDnsStartErrorDialog();
+			}
 		} catch (Exception e) {
 
 			errWithStackTrace(e);
@@ -493,10 +504,18 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 			if (!privateDNS.isRunning()) {
 				return;
 			}
-			privateDNS.restart(new DNSSpoofingIPGetter(this));
+			if (!privateDNS.restart(new DNSSpoofingIPGetter(this))) {
+				checkBox.setSelected(false);
+				showPrivateDnsStartErrorDialog();
+			}
 		} catch (Exception e) {
 			errWithStackTrace(e);
 		}
+	}
+
+	private void showPrivateDnsStartErrorDialog() {
+		var message = I18nString.get("Failed to start private DNS server. Please check permissions and listen port.");
+		JOptionPane.showMessageDialog(base, message, I18nString.get("Error"), JOptionPane.ERROR_MESSAGE);
 	}
 
 	@Override
