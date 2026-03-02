@@ -26,16 +26,20 @@ import java.util.concurrent.Executors;
 
 public class UDPSocketEndpoint implements Endpoint {
 
-	private DatagramSocket socket;
-	private InetSocketAddress serverAddr;
-	private PipeEndpoint pipe;
-	private static int BUFSIZE = 4096;
+	private final DatagramSocket socket;
+	private final InetSocketAddress serverAddr;
+	private final PipeEndpoint pipe;
+	private static final int BUFSIZE = 4096;
+	private final ExecutorService executor;
+	private volatile boolean closed;
 
 	public UDPSocketEndpoint(InetSocketAddress addr) throws Exception {
 		socket = new DatagramSocket();
 		socket.connect(addr);
 		serverAddr = addr;
 		pipe = new PipeEndpoint(addr);
+		executor = Executors.newFixedThreadPool(2);
+		closed = false;
 		loop();
 	}
 
@@ -55,24 +59,28 @@ public class UDPSocketEndpoint implements Endpoint {
 	}
 
 	private void loop() {
-		ExecutorService executor = Executors.newFixedThreadPool(2);
 		Callable<Void> sendTask = new Callable<Void>() {
 
 			public Void call() throws Exception {
-				while (true) {
+				while (!closed) {
 
 					InputStream is = pipe.getRawEndpoint().getInputStream();
 					byte[] input_data = new byte[BUFSIZE];
 					int len = is.read(input_data);
+					if (len < 0) {
+
+						return null;
+					}
 					DatagramPacket sendPacket = new DatagramPacket(input_data, 0, len, serverAddr);
 					socket.send(sendPacket);
 				}
+				return null;
 			}
 		};
 		Callable<Void> recvTask = new Callable<Void>() {
 
 			public Void call() throws Exception {
-				while (true) {
+				while (!closed) {
 
 					byte[] buf = new byte[BUFSIZE];
 					DatagramPacket recvPacket = new DatagramPacket(buf, BUFSIZE);
@@ -81,10 +89,41 @@ public class UDPSocketEndpoint implements Endpoint {
 					os.write(recvPacket.getData(), 0, recvPacket.getLength());
 					os.flush();
 				}
+				return null;
 			}
 		};
 		executor.submit(sendTask);
 		executor.submit(recvTask);
+	}
+
+	public void close() {
+		if (closed) {
+
+			return;
+		}
+		closed = true;
+		socket.close();
+		executor.shutdownNow();
+		try {
+
+			pipe.getRawEndpoint().getInputStream().close();
+		} catch (Exception ignored) {
+		}
+		try {
+
+			pipe.getRawEndpoint().getOutputStream().close();
+		} catch (Exception ignored) {
+		}
+		try {
+
+			pipe.getProxyRawEndpoint().getInputStream().close();
+		} catch (Exception ignored) {
+		}
+		try {
+
+			pipe.getProxyRawEndpoint().getOutputStream().close();
+		} catch (Exception ignored) {
+		}
 	}
 
 	@Override
