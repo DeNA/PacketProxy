@@ -113,10 +113,17 @@ test {
   useJUnitPlatform()
 }
 
+def spotlessTarget = { String pattern ->
+  fileTree('.') {
+    include pattern
+    // dena/ は対象に含めたい
+    exclude 'bin/**', 'build/**', '.gradle/**', 'src/main/java/core/org/**', 'denaN/**', 'denaL/**'
+  }
+}
+
 spotless {
   java {
-    target '**/*.java'
-    targetExclude 'src/main/java/core/org/**/*.java'
+    target spotlessTarget('**/*.java')
 
     cleanthat()
     googleJavaFormat()
@@ -127,7 +134,7 @@ spotless {
   }
 
   kotlin {
-    target '**/*.kt'
+    target spotlessTarget('**/*.kt')
 
     ktfmt().googleStyle()
     trimTrailingWhitespace()
@@ -135,7 +142,7 @@ spotless {
   }
 
   groovy {
-    target '**/*.gradle'
+    target spotlessTarget('**/*.gradle')
 
     greclipse()
     leadingTabsToSpaces(2)
@@ -144,7 +151,7 @@ spotless {
   }
 
   flexmark {
-    target '**/*.md'
+    target spotlessTarget('**/*.md')
 
     flexmark()
   }
