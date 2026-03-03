@@ -85,15 +85,8 @@ dependencies {
 
   izpack 'org.codehaus.izpack:izpack-dist:5.1.3'
 
-  // load additional dena modules if it exists
-  ['dena/', 'denaN/', 'denaL/'].each { def dir ->
-    def libs = file(dir + 'libraries.gradle')
-    if (libs.exists()) {
-      Eval.me(libs.text).each { def lib ->
-        implementation lib
-      }
-    }
-  }
+  // load additional Internal modules if it exists
+  eachInternalEntry('libraries.gradle') { dir, lib -> implementation lib }
 }
 
 licenseReport {
@@ -113,10 +106,44 @@ test {
   useJUnitPlatform()
 }
 
+/**
+ * 内部ディレクトリ配下に存在する filename の内容を Eval.me で評価し、
+ * 各エントリと元ディレクトリを action(dir, entry) の形で渡す汎用イテレータ
+ */
+def eachInternalEntry(String filename, Closure action) {
+  ['dena/', 'denaN/', 'denaL/'].each { def dir ->
+    def f = file(dir + filename)
+    if (f.exists()) {
+      Eval.me(f.text).each { action(dir, it) }
+    }
+  }
+}
+
+/**
+ * 内部ディレクトリ配下に存在する filename の内容を Eval.me で評価し、
+ * 実在するソースディレクトリパスの一覧を返す
+ */
+def collectInternalSrcDirs(String filename) {
+  def result = []
+  eachInternalEntry(filename) { dir, src ->
+    if (file(dir + src).exists()) {
+      result << dir + src
+    }
+  }
+  return result
+}
+
+def spotlessTarget = { String pattern ->
+  fileTree('.') {
+    include pattern
+    // dena/ は対象に含めたい
+    exclude 'bin/**', 'build/**', '.gradle/**', 'src/main/java/core/org/**', 'denaN/**', 'denaL/**'
+  }
+}
+
 spotless {
   java {
-    target '**/*.java'
-    targetExclude 'src/main/java/core/org/**/*.java'
+    target spotlessTarget('**/*.java')
 
     cleanthat()
     googleJavaFormat()
@@ -127,7 +154,7 @@ spotless {
   }
 
   kotlin {
-    target '**/*.kt'
+    target spotlessTarget('**/*.kt')
 
     ktfmt().googleStyle()
     trimTrailingWhitespace()
@@ -135,7 +162,7 @@ spotless {
   }
 
   groovy {
-    target '**/*.gradle'
+    target spotlessTarget('**/*.gradle')
 
     greclipse()
     leadingTabsToSpaces(2)
@@ -144,7 +171,7 @@ spotless {
   }
 
   flexmark {
-    target '**/*.md'
+    target spotlessTarget('**/*.md')
 
     flexmark()
   }
@@ -222,55 +249,18 @@ eclipse {
 sourceSets {
   main {
     java {
-      def list = ['src/main/java/core']
-
-      // load additional dena sources if it exists
-      ['dena/', 'denaN/', 'denaL/'].each { def dir ->
-        def srcs = file(dir + 'sources.gradle')
-        if (srcs.exists()) {
-          Eval.me(srcs.text).each { def src ->
-            if (file(dir + src).exists()) {
-              list << dir + src
-            }
-          }
-        }
-      }
-      srcDirs = list
+      srcDirs = ['src/main/java/core'] + collectInternalSrcDirs('sources.gradle')
     }
     resources {
-      def list = ['src/main/resources']
-      // load additional dena resources if it exists
-      ['dena/', 'denaN/', 'denaL/'].each { def dir ->
-        def srcs = file(dir + 'resources.gradle')
-        if (srcs.exists()) {
-          Eval.me(srcs.text).each { def src ->
-            if (file(dir + src).exists()) {
-              list << dir + src
-            }
-          }
-        }
-      }
-      srcDirs = list
+      srcDirs = ['src/main/resources'] + collectInternalSrcDirs('resources.gradle')
     }
   }
   test {
     java {
-      def list = [
+      srcDirs = [
         'src/test/java',
         'src/test/kotlin'
-      ]
-      // load additional dena tests if it exists
-      ['dena/', 'denaN/', 'denaL/'].each { def dir ->
-        def srcs = file(dir + 'tests.gradle')
-        if (srcs.exists()) {
-          Eval.me(srcs.text).each { def src ->
-            if (file(dir + src).exists()) {
-              list << dir + src
-            }
-          }
-        }
-      }
-      srcDirs = list
+      ] + collectInternalSrcDirs('tests.gradle')
     }
   }
 }
