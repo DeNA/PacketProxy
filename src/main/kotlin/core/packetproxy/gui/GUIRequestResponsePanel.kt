@@ -162,6 +162,7 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
       tabs.addTab("Modified", modifiedPanel.createTabsPanel())
       tabs.addTab("Encoded (Sent Packet)", sentPanel.createTabsPanel())
       tabs.addTab("All", createAllPanel())
+      tabs.selectedIndex = TabType.DECODED.index
 
       panel.add(tabs, BorderLayout.CENTER)
     }
