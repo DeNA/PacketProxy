@@ -23,6 +23,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.util.function.Supplier;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
@@ -75,9 +76,24 @@ public class GUIData {
 	int origIndex;
 	Color origColor;
 	private JComboBox charSetCombo = new JComboBox(charSetUtility.getAvailableCharSetList().toArray());
+	private Supplier<byte[]> dataProvider = null;
+	private Supplier<byte[]> bodyDataProvider = null;
+	private Supplier<byte[]> responseDataProvider = null;
 
 	public GUIData(JFrame owner) {
 		this.owner = owner;
+	}
+
+	public void setDataProvider(Supplier<byte[]> provider) {
+		this.dataProvider = provider;
+	}
+
+	public void setBodyDataProvider(Supplier<byte[]> provider) {
+		this.bodyDataProvider = provider;
+	}
+
+	public void setResponseDataProvider(Supplier<byte[]> provider) {
+		this.responseDataProvider = provider;
 	}
 
 	public JComponent createPanel() throws Exception {
@@ -160,6 +176,19 @@ public class GUIData {
 		}
 	}
 
+	private byte[] getActiveData() {
+		if (dataProvider != null) {
+			return dataProvider.get();
+		}
+		int index = tabs.getSelectedIndex();
+		if (index == 0) {
+			return tabs.getRaw().getData();
+		} else if (index == 1) {
+			return tabs.getBinary().getData();
+		}
+		return null;
+	}
+
 	private void initButtons() throws Exception {
 		copy_url_body_button = new JButton("copy Method+URL+Body");
 		copy_url_body_button.addActionListener(new ActionListener() {
@@ -168,9 +197,12 @@ public class GUIData {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 
+					byte[] data = getActiveData();
+					if (data == null || data.length == 0)
+						return;
 					int id = GUIHistory.getInstance().getSelectedPacketId();
 					Packet packet = Packets.getInstance().query(id);
-					Http http = Http.create(tabs.getRaw().getData());
+					Http http = Http.create(data);
 					String copyData = http.getMethod() + "\t" + http.getURL(packet.getServerPort(), packet.getUseSSL())
 							+ "\t" + new String(http.getBody(), "UTF-8");
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -190,10 +222,11 @@ public class GUIData {
 			public void actionPerformed(ActionEvent e) {
 				try {
 
-					int id = GUIHistory.getInstance().getSelectedPacketId();
-					Packet packet = Packets.getInstance().query(id);
-					Http http = Http.create(tabs.getRaw().getData());
-					String body = new String(http.getBody(), "UTF-8"); // http.getURL(packet.getServerPort());
+				byte[] data = resolveDataForCopyBody();
+				if (data == null || data.length == 0)
+					return;
+				Http http = Http.create(data);
+				String body = new String(http.getBody(), "UTF-8");
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(body);
 					clipboard.setContents(selection, selection);
@@ -212,9 +245,12 @@ public class GUIData {
 			public void actionPerformed(ActionEvent e) {
 				try {
 
+					byte[] data = getActiveData();
+					if (data == null || data.length == 0)
+						return;
 					int id = GUIHistory.getInstance().getSelectedPacketId();
 					Packet packet = Packets.getInstance().query(id);
-					Http http = Http.create(tabs.getRaw().getData());
+					Http http = Http.create(data);
 					String url = http.getURL(packet.getServerPort(), packet.getUseSSL());
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(url);
@@ -235,15 +271,8 @@ public class GUIData {
 			public void actionPerformed(ActionEvent e) {
 				try {
 
-					byte[] data = null;
-					int index = tabs.getSelectedIndex();
-					if (index == 0) {
-
-						data = tabs.getRaw().getData();
-					} else if (index == 1) {
-						data = tabs.getBinary().getData();
-					}
-					if (data != null) {
+					byte[] data = getActiveData();
+					if (data != null && data.length > 0) {
 
 						int id = GUIHistory.getInstance().getSelectedPacketId();
 						Packet packet = Packets.getInstance().query(id);
@@ -268,15 +297,8 @@ public class GUIData {
 			public void actionPerformed(ActionEvent e) {
 				try {
 
-					byte[] data = null;
-					int index = tabs.getSelectedIndex();
-					if (index == 0) {
-
-						data = tabs.getRaw().getData();
-					} else if (index == 1) {
-						data = tabs.getBinary().getData();
-					}
-					if (data != null) {
+					byte[] data = getActiveData();
+					if (data != null && data.length > 0) {
 
 						int id = GUIHistory.getInstance().getSelectedPacketId();
 						Packet packet = Packets.getInstance().query(id);
@@ -298,14 +320,8 @@ public class GUIData {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					byte[] data = null;
-					int index = tabs.getSelectedIndex();
-					if (index == 0) {
-						data = tabs.getRaw().getData();
-					} else if (index == 1) {
-						data = tabs.getBinary().getData();
-					}
-					if (data != null) {
+					byte[] data = getActiveData();
+					if (data != null && data.length > 0) {
 						int id = GUIHistory.getInstance().getSelectedPacketId();
 						Packet packet = Packets.getInstance().query(id);
 						new SinglePacketAttackController(packet.getOneShotPacket(data)).attack(20);
@@ -327,15 +343,8 @@ public class GUIData {
 			public void actionPerformed(ActionEvent actionEvent) {
 				try {
 
-					byte[] data = null;
-					int index = tabs.getSelectedIndex();
-					if (index == 0) {
-
-						data = tabs.getRaw().getData();
-					} else if (index == 1) {
-						data = tabs.getBinary().getData();
-					}
-					if (data != null) {
+					byte[] data = getActiveData();
+					if (data != null && data.length > 0) {
 
 						int id = GUIHistory.getInstance().getSelectedPacketId();
 						Packet packet = Packets.getInstance().query(id);
@@ -534,6 +543,26 @@ public class GUIData {
 			errWithStackTrace(e);
 		}
 		return new byte[]{};
+	}
+
+	/**
+	 * マージ行（Request+Response両方ある行）の場合はどちらのBodyをコピーするか
+	 * ユーザに選択させる。単一パケット行の場合はRequestデータをそのまま返す。 ダイアログでキャンセルされた場合は null を返す。
+	 */
+	private byte[] resolveDataForCopyBody() throws Exception {
+		if (!GUIHistory.getInstance().isSelectedRowMerged()) {
+			return bodyDataProvider != null ? bodyDataProvider.get() : getActiveData();
+		}
+		// macOS の JOptionPane はボタンを右から左に描画するため、
+		// 視覚的に左から「Request | Response」の順にするには逆順で定義する。
+		String[] options = {"Response", "Request"};
+		int choice = JOptionPane.showOptionDialog(owner, "Which body do you want to copy?",
+				"Select Copy Target", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, null);
+		if (choice == JOptionPane.CLOSED_OPTION)
+			return null;
+		if (choice == 0)
+			return responseDataProvider != null ? responseDataProvider.get() : null;
+		return bodyDataProvider != null ? bodyDataProvider.get() : getActiveData();
 	}
 
 	/**

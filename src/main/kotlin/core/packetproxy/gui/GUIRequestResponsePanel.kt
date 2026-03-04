@@ -15,11 +15,15 @@
  */
 package packetproxy.gui
 
+import java.awt.AWTEvent
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Color
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.GridLayout
+import java.awt.Toolkit
+import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JComponent
@@ -30,6 +34,7 @@ import javax.swing.JScrollPane
 import javax.swing.JSplitPane
 import javax.swing.JTabbedPane
 import javax.swing.ScrollPaneConstants
+import javax.swing.SwingUtilities
 import javax.swing.border.TitledBorder
 import javax.swing.event.ChangeListener
 import packetproxy.common.I18nString
@@ -90,6 +95,9 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
   private var showingSinglePacket: Packet? = null
   private var currentView: ViewType = ViewType.SPLIT
 
+  // Copy Body のデータ取得元（最後にクリックされたペイン）。null のときは requestPane を使う
+  private var activePaneForBody: PacketDetailPane? = null
+
   @Throws(Exception::class)
   fun createPanel(): JComponent {
     cardLayout = CardLayout()
@@ -118,12 +126,34 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     buttonCardLayout = CardLayout()
     buttonPanel = JPanel(buttonCardLayout)
     buttonPanel.add(requestPane.receivedPanel.createButtonPanel(), ViewType.SPLIT.name)
+    // ボタンが現在アクティブな外側タブ（Decoded/Modified等）のデータを読むようにサプライヤを注入する
+    requestPane.receivedPanel.setDataProvider { requestPane.getActiveData() }
     buttonPanel.add(singlePane.receivedPanel.createButtonPanel(), ViewType.SINGLE.name)
+    singlePane.receivedPanel.setDataProvider { singlePane.getActiveData() }
+
+    requestPane.receivedPanel.setBodyDataProvider { getBodyData() }
+    requestPane.receivedPanel.setResponseDataProvider { responsePane.getActiveData() }
+
+    registerBodyFocusTracker()
 
     val wrapper = JPanel(BorderLayout())
     wrapper.add(mainPanel, BorderLayout.CENTER)
     wrapper.add(buttonPanel, BorderLayout.SOUTH)
     return wrapper
+  }
+
+  private fun getBodyData(): ByteArray = (activePaneForBody ?: requestPane).getActiveData()
+
+  private fun registerBodyFocusTracker() {
+    Toolkit.getDefaultToolkit().addAWTEventListener({ event ->
+      if (event is MouseEvent && event.id == MouseEvent.MOUSE_PRESSED) {
+        val source = event.source as? Component ?: return@addAWTEventListener
+        when {
+          SwingUtilities.isDescendingFrom(source, requestPane.panel) -> activePaneForBody = requestPane
+          SwingUtilities.isDescendingFrom(source, responsePane.panel) -> activePaneForBody = responsePane
+        }
+      }
+    }, AWTEvent.MOUSE_EVENT_MASK)
   }
 
   private inner class PacketDetailPane(
@@ -218,6 +248,17 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
       return decodedTabs.getData()
     }
 
+    fun getActiveData(): ByteArray {
+      return when (TabType.fromIndex(tabs.selectedIndex)) {
+        TabType.RECEIVED -> receivedPanel.getData()
+        TabType.DECODED -> decodedTabs.getData()
+        TabType.MODIFIED -> modifiedPanel.getData()
+        TabType.ENCODED -> sentPanel.getData()
+        TabType.ALL -> decodedTabs.getData()
+        null -> EMPTY_DATA
+      }
+    }
+
     private fun createAllPanel(): JComponent {
       val panel = JPanel()
       panel.layout = GridLayout(ALL_PANEL_ROWS, ALL_PANEL_COLUMNS)
@@ -262,6 +303,7 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
 
   /** 単一パケット表示モード用：パケットを設定 Streaming通信で使用 */
   fun setSinglePacket(packet: Packet) {
+    activePaneForBody = null
     showingSinglePacket = packet
     switchToSingleView()
     updateSinglePacketPanel()
@@ -269,6 +311,7 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
 
   /** リクエスト/レスポンス分割表示モード用：両方のパケットを設定 HTTP通信で使用 */
   fun setPackets(requestPacket: Packet, responsePacket: Packet?) {
+    activePaneForBody = null
     showingRequestPacket = requestPacket
     showingResponsePacket = responsePacket
     switchToSplitView()
