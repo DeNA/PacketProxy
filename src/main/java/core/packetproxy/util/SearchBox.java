@@ -32,6 +32,8 @@ import packetproxy.common.Range;
 @SuppressWarnings("serial")
 public class SearchBox extends JPanel {
 
+	private static final int MAX_TEXT_LENGTH_FOR_HIGHLIGHTING = 1_000_000;
+
 	private JTextPane baseText;
 	private Range emphasisArea = null;
 	private JTextField search_text;
@@ -138,7 +140,7 @@ public class SearchBox extends JPanel {
 		javax.swing.text.StyledDocument document = baseText.getStyledDocument();
 		String str = baseText.getText();
 		String search_string = search_text.getText();
-		if (str.length() > 1000000) {
+		if (str.length() > MAX_TEXT_LENGTH_FOR_HIGHLIGHTING) {
 
 			// Logging.err("[Warning] coloringSearchText: too long string. Skipping
 			// Highlight");
@@ -200,7 +202,7 @@ public class SearchBox extends JPanel {
 	public void coloringHTTPText() {
 		javax.swing.text.StyledDocument document = baseText.getStyledDocument();
 		String str = baseText.getText();
-		if (str.length() > 1000000) {
+		if (str.length() > MAX_TEXT_LENGTH_FOR_HIGHLIGHTING) {
 
 			// Logging.err("[Warning] coloringHTTPText: too long string. Skipping
 			// Highlight");

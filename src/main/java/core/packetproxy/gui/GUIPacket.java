@@ -15,39 +15,17 @@
  */
 package packetproxy.gui;
 
-import static packetproxy.util.Logging.errWithStackTrace;
-
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JTabbedPane;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import packetproxy.model.Packet;
 
 public class GUIPacket {
 
 	private static GUIPacket instance;
 	private JFrame owner;
-	private GUIDataAll all_panel;
-	private JTabbedPane packet_pane;
-	private GUIData received_panel;
-	private GUIData decoded_panel;
-	private GUIData modified_panel;
-	private GUIData sent_panel;
+	private GUIRequestResponsePanel request_response_panel;
 	private Packet showing_packet;
-
-	// public static void main(String args[])
-	// {
-	// try {
-	// GUIPacket gui = new GUIPacket();
-	// String s = "ABgNBHJfb2sAAAJhbANtc2cAB4NoAmEMYQANCg0KeyJlbXB0eSI6N30=";
-	// byte[] data = Base64.getDecoder().decode(s.getBytes());
-	// byte[] result = gui.prettyFormatJSONInRawData(data, "hoge");
-	// Logging.log(new String(result));
-	// } catch (Exception e) {
-	// errWithStackTrace(e);
-	// }
-	// }
+	private Packet showing_response_packet;
 
 	public static GUIPacket getInstance() throws Exception {
 		if (instance == null) {
@@ -60,90 +38,91 @@ public class GUIPacket {
 	private GUIPacket() throws Exception {
 		this.owner = GUIHistory.getOwner();
 		this.showing_packet = null;
+		this.showing_response_packet = null;
 	}
 
 	public JComponent createPanel() throws Exception {
-		received_panel = new GUIData(this.owner);
-		decoded_panel = new GUIData(this.owner);
-		modified_panel = new GUIData(this.owner);
-		sent_panel = new GUIData(this.owner);
-		all_panel = new GUIDataAll();
-
-		packet_pane = new JTabbedPane();
-		packet_pane.addTab("Received Packet", received_panel.createPanel());
-		packet_pane.addTab("Decoded", decoded_panel.createPanel());
-		packet_pane.addTab("Modified", modified_panel.createPanel());
-		packet_pane.addTab("Encoded (Sent Packet)", sent_panel.createPanel());
-		packet_pane.addTab("All", all_panel.createPanel());
-		packet_pane.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				try {
-
-					update();
-				} catch (Exception e1) {
-
-					errWithStackTrace(e1);
-				}
-			}
-		});
-		packet_pane.setSelectedIndex(1); /* decoded */
-		return packet_pane;
+		request_response_panel = new GUIRequestResponsePanel(this.owner);
+		return request_response_panel.createPanel();
 	}
 
 	public byte[] getData() {
-		switch (packet_pane.getSelectedIndex()) {
-			case 0 :
-				return received_panel.getData();
-			case 1 :
-				return decoded_panel.getData();
-			case 2 :
-				return modified_panel.getData();
-			case 3 :
-				return sent_panel.getData();
-			default :
-				return modified_panel.getData();
-		}
+		return request_response_panel.getRequestData();
 	}
 
 	public void update() {
-		if (showing_packet == null) {
+		if (showing_packet == null && showing_response_packet == null) {
 
 			return;
 		}
-		switch (packet_pane.getSelectedIndex()) {
-			case 0 :
-				received_panel.setData(showing_packet.getReceivedData());
-				break;
-			case 1 :
-				decoded_panel.setData(showing_packet.getDecodedData());
-				break;
-			case 2 :
-				modified_panel.setData(showing_packet.getModifiedData());
-				break;
-			case 3 :
-				sent_panel.setData(showing_packet.getSentData());
-				break;
-			case 4 :
-				all_panel.setPacket(showing_packet);
-				break;
-			default :
-		}
+		request_response_panel.setRequestPacket(showing_packet);
+		request_response_panel.setResponsePacket(showing_response_packet);
 	}
 
 	public void setPacket(Packet packet) {
-		if (showing_packet != null && showing_packet.getId() == packet.getId()) {
+		setSinglePacket(packet, false);
+	}
 
+	/**
+	 * パケットを設定して表示を更新する
+	 *
+	 * @param packet
+	 *            表示するパケット
+	 * @param forceRefresh
+	 *            trueの場合、同じパケットIDでも強制的に再描画する
+	 */
+	public void setPacket(Packet packet, boolean forceRefresh) {
+		setSinglePacket(packet, forceRefresh);
+	}
+
+	public void setPackets(Packet requestPacket, Packet responsePacket) {
+		setPackets(requestPacket, responsePacket, false);
+	}
+
+	public void setPackets(Packet requestPacket, Packet responsePacket, boolean forceRefresh) {
+		if (!forceRefresh && isSameRequestResponse(requestPacket, responsePacket)) {
 			return;
-		} else {
-
-			showing_packet = packet;
 		}
-		update();
+		showing_packet = requestPacket;
+		showing_response_packet = responsePacket;
+		request_response_panel.setPackets(requestPacket, responsePacket);
+	}
+
+	public void setSinglePacket(Packet packet) {
+		setSinglePacket(packet, false);
+	}
+
+	public void setSinglePacket(Packet packet, boolean forceRefresh) {
+		if (!forceRefresh && isSameSinglePacket(packet)) {
+			return;
+		}
+		showing_packet = packet;
+		showing_response_packet = null;
+		request_response_panel.setSinglePacket(packet);
 	}
 
 	public Packet getPacket() {
 		return showing_packet;
+	}
+
+	public Packet getResponsePacket() {
+		return showing_response_packet;
+	}
+
+	private boolean isSameSinglePacket(Packet packet) {
+		return showing_packet != null && showing_response_packet == null && showing_packet.getId() == packet.getId();
+	}
+
+	private boolean isSameRequestResponse(Packet requestPacket, Packet responsePacket) {
+		if (showing_packet == null || requestPacket == null) {
+			return false;
+		}
+		if (showing_packet.getId() != requestPacket.getId()) {
+			return false;
+		}
+		if (showing_response_packet == null || responsePacket == null) {
+			return showing_response_packet == null && responsePacket == null;
+		}
+		return showing_response_packet.getId() == responsePacket.getId();
 	}
 }

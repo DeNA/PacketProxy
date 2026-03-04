@@ -86,17 +86,14 @@ public class DuplexFactory {
 
 			@Override
 			public byte[] onClientChunkReceived(byte[] data) throws Exception {
+				long initialGroupId = UniqueID.getInstance().createId();
 				client_packet = new Packet(0, client_addr, server_addr, server_endpoint.getName(), use_ssl,
-						encoder_name, ALPN, Packet.Direction.CLIENT, duplex.hashCode(),
-						UniqueID.getInstance().createId());
-				packets.update(client_packet);
+						encoder_name, ALPN, Packet.Direction.CLIENT, duplex.hashCode(), initialGroupId);
 				client_packet.setReceivedData(data);
-				if (data.length < SKIP_LENGTH) {
-
-					packets.update(client_packet);
-				}
 				byte[] decoded_data = encoder.decodeClientRequest(client_packet);
 				client_packet.setDecodedData(decoded_data);
+				// groupIdはencoder.setGroupId()で変更される可能性があるため、
+				// GUIHistoryへの通知（packets.update）はgroupId確定後に行う
 				encoder.setGroupId(client_packet); /* 実行するのはsetDecodedDataのあと */
 				if (data.length < SKIP_LENGTH) {
 
@@ -408,6 +405,7 @@ public class DuplexFactory {
 						oneshot.getUseSSL(), oneshot.getEncoder(), oneshot.getAlpn(), Packet.Direction.CLIENT,
 						duplex.hashCode(), UniqueID.getInstance().createId());
 				client_packet.setModified();
+				client_packet.setReceivedData(data);
 				client_packet.setDecodedData(data);
 				client_packet.setModifiedData(data);
 				if (data.length < SKIP_LENGTH) {

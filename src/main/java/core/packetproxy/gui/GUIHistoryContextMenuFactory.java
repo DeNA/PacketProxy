@@ -290,9 +290,17 @@ public class GUIHistoryContextMenuFactory {
 			try {
 				int[] selected_rows = table.getSelectedRows();
 				for (int i = 0; i < selected_rows.length; i++) {
-					Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
-					colorManager.clear(id);
-					packets.delete(packets.query(id));
+					int requestPacketId = (Integer) table.getValueAt(selected_rows[i], 0);
+					colorManager.clear(requestPacketId);
+
+					// マージされた行の場合、レスポンスパケットも一緒に削除する（DB残留を防ぐ）
+					int responsePacketId = context.getResponsePacketIdForRequest(requestPacketId);
+					if (responsePacketId != -1) {
+						colorManager.clear(responsePacketId);
+						packets.delete(packets.query(responsePacketId));
+					}
+
+					packets.delete(packets.query(requestPacketId));
 				}
 				context.updateAll();
 			} catch (Exception ex) {

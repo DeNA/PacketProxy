@@ -70,6 +70,7 @@ public class CloseButtonTabbedPane extends JTabbedPane {
 				button.setIcon(icon);
 			}
 		});
+		main_panel.add(javax.swing.Box.createHorizontalStrut(8));
 		main_panel.add(label);
 		// 数字とバツボタンの間に余白を追加
 		main_panel.add(Box.createHorizontalStrut(7));
