@@ -23,7 +23,6 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
-import java.util.function.Supplier;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
@@ -32,6 +31,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.function.Supplier;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -222,11 +222,11 @@ public class GUIData {
 			public void actionPerformed(ActionEvent e) {
 				try {
 
-				byte[] data = resolveDataForCopyBody();
-				if (data == null || data.length == 0)
-					return;
-				Http http = Http.create(data);
-				String body = new String(http.getBody(), "UTF-8");
+					byte[] data = resolveDataForCopyBody();
+					if (data == null || data.length == 0)
+						return;
+					Http http = Http.create(data);
+					String body = new String(http.getBody(), "UTF-8");
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 					StringSelection selection = new StringSelection(body);
 					clipboard.setContents(selection, selection);
@@ -556,8 +556,8 @@ public class GUIData {
 		// macOS の JOptionPane はボタンを右から左に描画するため、
 		// 視覚的に左から「Request | Response」の順にするには逆順で定義する。
 		String[] options = {"Response", "Request"};
-		int choice = JOptionPane.showOptionDialog(owner, "Which body do you want to copy?",
-				"Select Copy Target", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, null);
+		int choice = JOptionPane.showOptionDialog(owner, "Which body do you want to copy?", "Select Copy Target",
+				JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, null);
 		if (choice == JOptionPane.CLOSED_OPTION)
 			return null;
 		if (choice == 0)

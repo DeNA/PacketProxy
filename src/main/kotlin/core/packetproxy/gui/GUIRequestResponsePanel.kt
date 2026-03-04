@@ -145,15 +145,21 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
   private fun getBodyData(): ByteArray = (activePaneForBody ?: requestPane).getActiveData()
 
   private fun registerBodyFocusTracker() {
-    Toolkit.getDefaultToolkit().addAWTEventListener({ event ->
-      if (event is MouseEvent && event.id == MouseEvent.MOUSE_PRESSED) {
-        val source = event.source as? Component ?: return@addAWTEventListener
-        when {
-          SwingUtilities.isDescendingFrom(source, requestPane.panel) -> activePaneForBody = requestPane
-          SwingUtilities.isDescendingFrom(source, responsePane.panel) -> activePaneForBody = responsePane
-        }
-      }
-    }, AWTEvent.MOUSE_EVENT_MASK)
+    Toolkit.getDefaultToolkit()
+      .addAWTEventListener(
+        { event ->
+          if (event is MouseEvent && event.id == MouseEvent.MOUSE_PRESSED) {
+            val source = event.source as? Component ?: return@addAWTEventListener
+            when {
+              SwingUtilities.isDescendingFrom(source, requestPane.panel) ->
+                activePaneForBody = requestPane
+              SwingUtilities.isDescendingFrom(source, responsePane.panel) ->
+                activePaneForBody = responsePane
+            }
+          }
+        },
+        AWTEvent.MOUSE_EVENT_MASK,
+      )
   }
 
   private inner class PacketDetailPane(
