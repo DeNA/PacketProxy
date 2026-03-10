@@ -33,6 +33,7 @@ public class UDPSocketEndpoint implements Endpoint {
 
 	public UDPSocketEndpoint(InetSocketAddress addr) throws Exception {
 		socket = new DatagramSocket();
+		socket.connect(addr);
 		serverAddr = addr;
 		pipe = new PipeEndpoint(addr);
 		loop();
