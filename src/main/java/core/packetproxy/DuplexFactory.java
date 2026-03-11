@@ -107,8 +107,12 @@ public class DuplexFactory {
 				decoded_data = mods.replaceOnRequest(decoded_data, server, client_packet);
 
 				byte[] decoded_hash = CryptUtils.sha1(decoded_data);
-				byte[] intercepted_data = InterceptController.getInstance().received(decoded_data, server,
+
+				// TODO: InterceptController の receivedBlocking() はブロッキング互換ラッパーであり暫定対応。
+				// DuplexFactory を Kotlin 化する際は suspend fun received() に置き換えること。
+				byte[] intercepted_data = InterceptController.getInstance().receivedBlocking(decoded_data, server,
 						client_packet);
+
 				byte[] intercepted_hash = CryptUtils.sha1(intercepted_data);
 				client_packet.setModifiedData(intercepted_data);
 				if (intercepted_data.length > 0 && !Arrays.equals(decoded_hash, intercepted_hash)) {
@@ -166,8 +170,12 @@ public class DuplexFactory {
 				decoded_data = mods.replaceOnResponse(decoded_data, server, server_packet);
 
 				byte[] decoded_hash = CryptUtils.sha1(decoded_data);
-				byte[] intercepted_data = InterceptController.getInstance().received(decoded_data, server,
+
+				// TODO: InterceptController の receivedBlocking() はブロッキング互換ラッパーであり暫定対応。
+				// DuplexFactory を Kotlin 化する際は suspend fun received() に置き換えること。
+				byte[] intercepted_data = InterceptController.getInstance().receivedBlocking(decoded_data, server,
 						client_packet, server_packet);
+
 				byte[] intercepted_hash = CryptUtils.sha1(intercepted_data);
 				server_packet.setModifiedData(intercepted_data);
 				if (intercepted_data.length > 0 && !Arrays.equals(decoded_hash, intercepted_hash)) {
