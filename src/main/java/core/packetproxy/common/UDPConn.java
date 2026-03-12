@@ -28,8 +28,8 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 
 public class UDPConn {
 
-	private final PipeEndpoint pipe;
-	private final InetSocketAddress addr;
+	private PipeEndpoint pipe;
+	private InetSocketAddress addr;
 	private final RawEndpoint rawEndpoint;
 	private final RawEndpoint proxyRawEndpoint;
 	private final ExecutorService receiveExecutor;

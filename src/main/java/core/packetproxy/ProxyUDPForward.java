@@ -30,8 +30,8 @@ import packetproxy.model.ListenPort;
 public class ProxyUDPForward extends Proxy {
 
 	private static final int MAX_ACTIVE_CONNECTIONS = 256;
-	private final ListenPort listen_info;
-	private final UDPServerSocket listen_socket;
+	private ListenPort listen_info;
+	private UDPServerSocket listen_socket;
 	private final Map<InetSocketAddress, ActiveConnection> activeConnections = new LinkedHashMap<>();
 	private volatile boolean closed = false;
 

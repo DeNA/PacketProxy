@@ -26,10 +26,10 @@ import java.util.concurrent.Executors;
 
 public class UDPSocketEndpoint implements Endpoint {
 
-	private final DatagramSocket socket;
-	private final InetSocketAddress serverAddr;
-	private final PipeEndpoint pipe;
-	private static final int BUFSIZE = 4096;
+	private DatagramSocket socket;
+	private InetSocketAddress serverAddr;
+	private PipeEndpoint pipe;
+	private static int BUFSIZE = 4096;
 	private final ExecutorService executor;
 	private volatile boolean closed;
 
