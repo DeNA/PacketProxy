@@ -23,6 +23,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 
 public class UDPConn {
@@ -31,6 +32,8 @@ public class UDPConn {
 	private final InetSocketAddress addr;
 	private final RawEndpoint rawEndpoint;
 	private final RawEndpoint proxyRawEndpoint;
+	private final ExecutorService receiveExecutor;
+	private Future<Void> recvTaskFuture;
 	private volatile boolean closed;
 
 	public UDPConn(InetSocketAddress addr) throws Exception {
@@ -38,6 +41,8 @@ public class UDPConn {
 		this.pipe = new PipeEndpoint(addr);
 		this.rawEndpoint = this.pipe.getRawEndpoint();
 		this.proxyRawEndpoint = this.pipe.getProxyRawEndpoint();
+		this.receiveExecutor = Executors.newSingleThreadExecutor();
+		this.recvTaskFuture = null;
 		this.closed = false;
 	}
 
@@ -54,8 +59,11 @@ public class UDPConn {
 		os.flush();
 	}
 
-	public void getAutomatically(final BlockingQueue<DatagramPacket> queue) throws Exception {
-		ExecutorService executor = Executors.newSingleThreadExecutor();
+	public synchronized void getAutomatically(final BlockingQueue<DatagramPacket> queue) throws Exception {
+		if (recvTaskFuture != null) {
+
+			return;
+		}
 		Callable<Void> recvTask = new Callable<Void>() {
 
 			public Void call() throws Exception {
@@ -74,7 +82,7 @@ public class UDPConn {
 				return null;
 			}
 		};
-		executor.submit(recvTask);
+		recvTaskFuture = receiveExecutor.submit(recvTask);
 	}
 
 	public Endpoint getEndpoint() throws Exception {
@@ -87,6 +95,10 @@ public class UDPConn {
 			return;
 		}
 		closed = true;
+		if (recvTaskFuture != null) {
+
+			recvTaskFuture.cancel(true);
+		}
 		try {
 
 			rawEndpoint.getInputStream().close();
@@ -107,5 +119,6 @@ public class UDPConn {
 			proxyRawEndpoint.getOutputStream().close();
 		} catch (Exception ignored) {
 		}
+		receiveExecutor.shutdownNow();
 	}
 }
