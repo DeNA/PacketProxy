@@ -150,7 +150,8 @@ public class Packets implements PropertyChangeListener {
 	}
 
 	public List<Packet> queryAllIdsAndColors() throws Exception {
-		return dao.queryBuilder().selectColumns("id", "color").orderBy("id", true).query();
+		return dao.queryBuilder().selectColumns("id", "color", "direction", "group", "encoder_name").orderBy("id", true)
+				.query();
 	}
 
 	public List<Packet> queryRange(long offset, long limit) throws Exception {

@@ -313,6 +313,21 @@ public abstract class EncodeHTTPBase extends Encoder {
 		return http.getFirstHeader("Content-Type");
 	}
 
+	/**
+	 * レスポンスからContent-Typeを取得し、存在しない場合はリクエストのContent-Typeをフォールバックとして使用する。
+	 * gRPC等のプロトコルでは、レスポンスにContent-Typeが含まれないことがあるため、
+	 * リクエストのContent-Typeを使用することで、History一覧のType列に適切な値を表示する。
+	 */
+	@Override
+	public String getContentType(Packet client_packet, Packet server_packet) throws Exception {
+		String contentType = getContentType(server_packet.getDecodedData());
+		if (contentType.isEmpty() && client_packet != null && client_packet.getDecodedData().length > 0) {
+
+			contentType = getContentType(client_packet.getDecodedData());
+		}
+		return contentType;
+	}
+
 	@Override
 	public String getSummarizedResponse(Packet packet) {
 		String summary = "";
