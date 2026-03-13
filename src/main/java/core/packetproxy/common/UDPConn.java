@@ -55,11 +55,7 @@ public class UDPConn {
 		os.flush();
 	}
 
-	public synchronized void getAutomatically(final BlockingQueue<DatagramPacket> queue) throws Exception {
-		if (recvTaskFuture != null) {
-
-			return;
-		}
+	public void getAutomatically(final BlockingQueue<DatagramPacket> queue) throws Exception {
 		Callable<Void> recvTask = new Callable<Void>() {
 
 			public Void call() throws Exception {
