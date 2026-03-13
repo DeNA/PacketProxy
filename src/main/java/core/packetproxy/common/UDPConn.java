@@ -56,6 +56,10 @@ public class UDPConn {
 	}
 
 	public void getAutomatically(final BlockingQueue<DatagramPacket> queue) throws Exception {
+		if (closed) {
+
+			throw new IllegalStateException("UDPConn is already closed");
+		}
 		Callable<Void> recvTask = new Callable<Void>() {
 
 			public Void call() throws Exception {
