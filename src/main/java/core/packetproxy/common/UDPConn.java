@@ -23,16 +23,23 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 
 public class UDPConn {
 
 	private PipeEndpoint pipe;
 	private InetSocketAddress addr;
+	private final ExecutorService receiveExecutor;
+	private Future<Void> recvTaskFuture;
+	private volatile boolean closed;
 
 	public UDPConn(InetSocketAddress addr) throws Exception {
 		this.addr = addr;
 		this.pipe = new PipeEndpoint(addr);
+		this.receiveExecutor = Executors.newSingleThreadExecutor();
+		this.recvTaskFuture = null;
+		this.closed = false;
 	}
 
 	public void put(byte[] data, int offset, int length) throws Exception {
@@ -49,24 +56,57 @@ public class UDPConn {
 	}
 
 	public void getAutomatically(final BlockingQueue<DatagramPacket> queue) throws Exception {
-		ExecutorService executor = Executors.newSingleThreadExecutor();
+		if (closed) {
+
+			throw new IllegalStateException("UDPConn is already closed");
+		}
 		Callable<Void> recvTask = new Callable<Void>() {
 
 			public Void call() throws Exception {
-				while (true) {
+				while (!closed) {
 
 					InputStream is = pipe.getRawEndpoint().getInputStream();
 					byte[] buf = new byte[4096];
 					int len = is.read(buf);
+					if (len < 0) {
+
+						return null;
+					}
 					DatagramPacket recvPacket = new DatagramPacket(buf, len, addr);
 					queue.put(recvPacket);
 				}
+				return null;
 			}
 		};
-		executor.submit(recvTask);
+		recvTaskFuture = receiveExecutor.submit(recvTask);
 	}
 
 	public Endpoint getEndpoint() throws Exception {
 		return pipe.getProxyRawEndpoint();
+	}
+
+	public void close() throws Exception {
+		if (closed) {
+
+			return;
+		}
+		closed = true;
+		if (recvTaskFuture != null) {
+
+			recvTaskFuture.cancel(true);
+		}
+		closeQuietly(pipe.getRawEndpoint().getInputStream());
+		closeQuietly(pipe.getRawEndpoint().getOutputStream());
+		closeQuietly(pipe.getProxyRawEndpoint().getInputStream());
+		closeQuietly(pipe.getProxyRawEndpoint().getOutputStream());
+		receiveExecutor.shutdownNow();
+	}
+
+	private void closeQuietly(AutoCloseable closeable) {
+		try {
+
+			closeable.close();
+		} catch (Exception ignored) {
+		}
 	}
 }
