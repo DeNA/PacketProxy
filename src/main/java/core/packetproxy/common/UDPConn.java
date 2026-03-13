@@ -95,26 +95,18 @@ public class UDPConn {
 
 			recvTaskFuture.cancel(true);
 		}
-		try {
-
-			pipe.getRawEndpoint().getInputStream().close();
-		} catch (Exception ignored) {
-		}
-		try {
-
-			pipe.getRawEndpoint().getOutputStream().close();
-		} catch (Exception ignored) {
-		}
-		try {
-
-			pipe.getProxyRawEndpoint().getInputStream().close();
-		} catch (Exception ignored) {
-		}
-		try {
-
-			pipe.getProxyRawEndpoint().getOutputStream().close();
-		} catch (Exception ignored) {
-		}
+		closeQuietly(pipe.getRawEndpoint().getInputStream());
+		closeQuietly(pipe.getRawEndpoint().getOutputStream());
+		closeQuietly(pipe.getProxyRawEndpoint().getInputStream());
+		closeQuietly(pipe.getProxyRawEndpoint().getOutputStream());
 		receiveExecutor.shutdownNow();
+	}
+
+	private void closeQuietly(AutoCloseable closeable) {
+		try {
+
+			closeable.close();
+		} catch (Exception ignored) {
+		}
 	}
 }
