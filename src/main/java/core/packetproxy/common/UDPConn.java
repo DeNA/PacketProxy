@@ -30,8 +30,6 @@ public class UDPConn {
 
 	private PipeEndpoint pipe;
 	private InetSocketAddress addr;
-	private final RawEndpoint rawEndpoint;
-	private final RawEndpoint proxyRawEndpoint;
 	private final ExecutorService receiveExecutor;
 	private Future<Void> recvTaskFuture;
 	private volatile boolean closed;
@@ -39,8 +37,6 @@ public class UDPConn {
 	public UDPConn(InetSocketAddress addr) throws Exception {
 		this.addr = addr;
 		this.pipe = new PipeEndpoint(addr);
-		this.rawEndpoint = this.pipe.getRawEndpoint();
-		this.proxyRawEndpoint = this.pipe.getProxyRawEndpoint();
 		this.receiveExecutor = Executors.newSingleThreadExecutor();
 		this.recvTaskFuture = null;
 		this.closed = false;
@@ -54,7 +50,7 @@ public class UDPConn {
 	}
 
 	public void put(byte[] data) throws Exception {
-		OutputStream os = rawEndpoint.getOutputStream();
+		OutputStream os = pipe.getRawEndpoint().getOutputStream();
 		os.write(data);
 		os.flush();
 	}
@@ -69,7 +65,7 @@ public class UDPConn {
 			public Void call() throws Exception {
 				while (!closed) {
 
-					InputStream is = rawEndpoint.getInputStream();
+					InputStream is = pipe.getRawEndpoint().getInputStream();
 					byte[] buf = new byte[4096];
 					int len = is.read(buf);
 					if (len < 0) {
@@ -86,7 +82,7 @@ public class UDPConn {
 	}
 
 	public Endpoint getEndpoint() throws Exception {
-		return proxyRawEndpoint;
+		return pipe.getProxyRawEndpoint();
 	}
 
 	public void close() throws Exception {
@@ -101,22 +97,22 @@ public class UDPConn {
 		}
 		try {
 
-			rawEndpoint.getInputStream().close();
+			pipe.getRawEndpoint().getInputStream().close();
 		} catch (Exception ignored) {
 		}
 		try {
 
-			rawEndpoint.getOutputStream().close();
+			pipe.getRawEndpoint().getOutputStream().close();
 		} catch (Exception ignored) {
 		}
 		try {
 
-			proxyRawEndpoint.getInputStream().close();
+			pipe.getProxyRawEndpoint().getInputStream().close();
 		} catch (Exception ignored) {
 		}
 		try {
 
-			proxyRawEndpoint.getOutputStream().close();
+			pipe.getProxyRawEndpoint().getOutputStream().close();
 		} catch (Exception ignored) {
 		}
 		receiveExecutor.shutdownNow();
