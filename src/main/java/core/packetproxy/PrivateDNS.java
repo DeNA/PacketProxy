@@ -393,7 +393,7 @@ public class PrivateDNS {
 						} else if (queryRecType == Type.HTTPS) {
 
 							log("[DNS Query] '%s' [HTTPS]", queryHostName);
-							jnamed jn;
+							PrivateDnsResponseBuilder jn;
 							if (isTargetHost(queryHostName)) {
 
 								Name label = Name.fromString(queryHostName + ".");
@@ -402,12 +402,12 @@ public class PrivateDNS {
 								alpn.fromString("h1,h2,h3");
 								List<HTTPSRecord.ParameterBase> params = List.of(alpn);
 								HTTPSRecord record = new HTTPSRecord(label, DClass.IN, 300, 1, svcDomain, params);
-								jn = new jnamed(record);
+								jn = new PrivateDnsResponseBuilder(record);
 								log("Force to access '%s' with HTTP3", queryHostName);
 							} else {
 
 								Record[] records = PrivateDNSClient.getHTTPSRecord(queryHostName);
-								jn = new jnamed(records);
+								jn = new PrivateDnsResponseBuilder(records);
 							}
 							res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 							sendPacket = new DatagramPacket(res, res.length, cAddr, cPort);
@@ -442,25 +442,25 @@ public class PrivateDNS {
 								log("Replaced to %s", ip);
 							}
 						}
-						jnamed jn = new jnamed(ip);
+						PrivateDnsResponseBuilder jn = new PrivateDnsResponseBuilder(ip);
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 
 					} catch (UnknownHostException e) {
 
 						err("[DNS Query] Unknown Host: '%s' [%s]", queryHostName, queryRecTypeName);
-						jnamed jn = new jnamed();
+						PrivateDnsResponseBuilder jn = new PrivateDnsResponseBuilder();
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 
 					} catch (UnsupportedOperationException e) {
 
 						// Not implemented yet
-						jnamed jn = new jnamed();
+						PrivateDnsResponseBuilder jn = new PrivateDnsResponseBuilder();
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 
 					} catch (Exception e) {
 
 						err("[DNS Query] Unknown Error: '%s' [%s]", queryHostName, queryRecTypeName);
-						jnamed jn = new jnamed();
+						PrivateDnsResponseBuilder jn = new PrivateDnsResponseBuilder();
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 					}
 					sendPacket = new DatagramPacket(res, res.length, cAddr, cPort);

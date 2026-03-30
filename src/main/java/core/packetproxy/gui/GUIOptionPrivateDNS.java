@@ -54,7 +54,7 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
-import org.xbill.DNS.DNSSpoofingIPGetter;
+import packetproxy.DNSSpoofingIPGetter;
 import packetproxy.PrivateDNS;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;

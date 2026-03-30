@@ -79,6 +79,7 @@ dependencies {
   implementation 'org.apache.commons:commons-compress:1.28.0'
   implementation 'com.github.luben:zstd-jni:1.5.6-3'
   implementation 'org.brotli:dec:0.1.2'
+  implementation 'dnsjava:dnsjava:3.6.4'
   implementation files('libs/agent15.jar')
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1"
@@ -138,7 +139,7 @@ def spotlessTarget = { String pattern ->
   fileTree('.') {
     include pattern
     // dena/ は対象に含めたい
-    exclude 'bin/**', 'build/**', '.gradle/**', 'src/main/java/core/org/**', 'denaN/**', 'denaL/**'
+    exclude 'bin/**', 'build/**', '.gradle/**', 'denaN/**', 'denaL/**'
   }
 }
 

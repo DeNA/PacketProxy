@@ -18,8 +18,15 @@ package packetproxy;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.xbill.DNS.Name;
+import org.xbill.DNS.ResolverConfig;
+import org.xbill.DNS.config.InitializationException;
+import org.xbill.DNS.config.ResolverConfigProvider;
 
 class PrivateDNSClientTest {
 
@@ -77,5 +84,49 @@ class PrivateDNSClientTest {
 		lines.add("127.0.0.1 aaa ddd.example.com");
 		lines.add(" # 3.3.3.3 aaa ccc.example.com");
 		assertFalse(PrivateDNSClient.dnsLoopingFromHostsLines(lines, "aaa.example.com"));
+	}
+
+	@Test
+	public void システムDNS設定を再読込する() throws Exception {
+		var originalProviders = ResolverConfig.getConfigProviders();
+		var provider = new TestResolverConfigProvider("127.0.0.1");
+		try {
+			ResolverConfig.setConfigProviders(List.of(provider));
+			ResolverConfig.refresh();
+
+			provider.setServer("8.8.8.8");
+
+			assertEquals("8.8.8.8", PrivateDNSClient.getCurrentSystemDnsServerAddress());
+		} finally {
+			ResolverConfig.setConfigProviders(originalProviders);
+			ResolverConfig.refresh();
+		}
+	}
+
+	private static class TestResolverConfigProvider implements ResolverConfigProvider {
+
+		private List<InetSocketAddress> servers;
+
+		private TestResolverConfigProvider(String server) throws Exception {
+			setServer(server);
+		}
+
+		private void setServer(String server) throws Exception {
+			servers = List.of(new InetSocketAddress(InetAddress.getByName(server), 53));
+		}
+
+		@Override
+		public void initialize() throws InitializationException {
+		}
+
+		@Override
+		public List<InetSocketAddress> servers() {
+			return servers;
+		}
+
+		@Override
+		public List<Name> searchPaths() {
+			return List.of();
+		}
 	}
 }
