@@ -26,6 +26,9 @@ public class WebSocket {
 
 	LinkedList<WebSocketFrame> frames = new LinkedList<>();
 
+	/** Last opcode from {@link #frameAvailable()}; used when re-encoding the payload to a wire frame. */
+	private OpCode lastDequeuedOpCode = OpCode.Binary;
+
 	public static int checkDelimiter(byte[] data) {
 		return WebSocketFrame.checkDelimiter(data);
 	}
@@ -49,6 +52,12 @@ public class WebSocket {
 				// Logging.log("pass through: " + frame);
 				return false;
 			}
+			// Empty Text/Binary payloads bypass decode/encode so Simplex and intercept do not drop them.
+			if (frame.getPayload().length == 0) {
+
+				passBytes.write(frame.getBytes());
+				return false;
+			}
 			return true;
 		})).collect(Collectors.toCollection(LinkedList::new));
 		return passBytes.toByteArray();
@@ -60,6 +69,15 @@ public class WebSocket {
 
 			return null;
 		}
+		this.lastDequeuedOpCode = frame.getOpcode();
 		return frame.getPayload();
+	}
+
+	/**
+	 * Opcode of the frame most recently returned from {@link #frameAvailable()}.
+	 * Encode paths use this to preserve Text vs Binary when rebuilding WebSocket frames.
+	 */
+	public OpCode lastDequeuedOpCode() {
+		return lastDequeuedOpCode;
 	}
 }
