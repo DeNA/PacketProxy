@@ -120,9 +120,11 @@ public class SinglePacketAttackController {
 		Thread.sleep(sleepTimeMs);
 		sendPing();
 
+		final var allLastFramesData = new ByteArrayOutputStream();
 		for (final var request : requests) {
-			request.sendLastFrames();
+			allLastFramesData.write(request.getLastFramesData());
 		}
+		attackConnection.execFastSend(allLastFramesData.toByteArray());
 
 		for (var i = 0; i < requests.size(); i++) {
 			attackConnection.receive();
@@ -375,10 +377,8 @@ public class SinglePacketAttackController {
 			connection.execFastSend(firstFramesData);
 		}
 
-		private void sendLastFrames() throws Exception {
-			final var lastFramesData = FrameUtils.toByteArray(streamAttackFrames.lastFrames);
-
-			connection.execFastSend(lastFramesData);
+		private byte[] getLastFramesData() throws Exception {
+			return FrameUtils.toByteArray(streamAttackFrames.lastFrames);
 		}
 	}
 }
