@@ -15,9 +15,11 @@
  */
 package packetproxy.encode;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import packetproxy.http.Http;
+import packetproxy.http.HttpHeader;
 import packetproxy.model.Packet;
 import packetproxy.websocket.OpCode;
 import packetproxy.websocket.WebSocket;
@@ -73,6 +75,36 @@ public class EncodeHTTPWebSocket extends Encoder {
 
 			return Http.parseHttpDelimiter(input);
 		}
+	}
+
+	/**
+	 * Splits {@code 101 Switching Protocols} at the end of HTTP headers so the
+	 * first WebSocket frame is not consumed as an HTTP body (some servers set
+	 * Content-Length on 101 and append WebSocket bytes in the same TCP read).
+	 */
+	@Override
+	public int checkResponseDelimiter(byte[] input) throws Exception {
+		if (binary_start) {
+
+			return WebSocket.checkDelimiter(input);
+		}
+		int headerSize = HttpHeader.calcHeaderSize(input);
+		if (headerSize > 0 && isSwitchingProtocols101(input, headerSize)) {
+
+			return headerSize;
+		}
+		return Http.parseHttpDelimiter(input);
+	}
+
+	private static boolean isSwitchingProtocols101(byte[] data, int headerSize) {
+		int lineEnd = 0;
+		while (lineEnd < headerSize && lineEnd < data.length && data[lineEnd] != '\n') {
+
+			lineEnd++;
+		}
+		String firstLine = new String(data, 0, lineEnd, StandardCharsets.UTF_8).trim();
+		String[] parts = firstLine.split("\\s+");
+		return parts.length >= 2 && parts[0].startsWith("HTTP/") && "101".equals(parts[1]);
 	}
 
 	@Override
@@ -178,7 +210,8 @@ public class EncodeHTTPWebSocket extends Encoder {
 			// Restore empty payload when the user left the placeholder unchanged.
 			boolean emptyPlaceholder = isEmptyPlaceholder(input);
 			byte[] payload = emptyPlaceholder ? new byte[0] : encodeWebsocketResponse(input);
-			WebSocketFrame frame = WebSocketFrame.of(serverWebSocket.lastDequeuedOpCode(), payload, false);
+			WebSocketFrame frame = WebSocketFrame.of(serverWebSocket.lastDequeuedOpCode(), payload, false,
+					serverWebSocket.lastDequeuedFin());
 			return frame.getBytes();
 		} else {
 
@@ -211,7 +244,8 @@ public class EncodeHTTPWebSocket extends Encoder {
 			// Restore empty payload when the user left the placeholder unchanged.
 			boolean emptyPlaceholder = isEmptyPlaceholder(input);
 			byte[] payload = emptyPlaceholder ? new byte[0] : encodeWebsocketRequest(input);
-			WebSocketFrame frame = WebSocketFrame.of(clientWebSocket.lastDequeuedOpCode(), payload, true);
+			WebSocketFrame frame = WebSocketFrame.of(clientWebSocket.lastDequeuedOpCode(), payload, true,
+					clientWebSocket.lastDequeuedFin());
 			return frame.getBytes();
 		} else {
 
@@ -261,7 +295,7 @@ public class EncodeHTTPWebSocket extends Encoder {
 		// through HTTP.
 		if (isEmptyPlaceholder(data)) {
 
-			return summarizeWebSocketClientRequest(packet, data);
+			return summarizeWebSocketFromRaw(packet.getReceivedData(), data);
 		}
 		try {
 
@@ -275,18 +309,42 @@ public class EncodeHTTPWebSocket extends Encoder {
 			// Upgrade 後の decoded は HTTP メッセージではなく WebSocket の payload になる。
 			// そのため Http.create が失敗したら、HTTP ではなく WebSocket とみなして要約する。
 		}
-		return summarizeWebSocketClientRequest(packet, data);
+		return summarizeWebSocketFromRaw(packet.getReceivedData(), data);
 	}
 
-	private static String summarizeWebSocketClientRequest(Packet packet, byte[] decodedPayload) {
-		byte[] raw = packet.getReceivedData();
+	@Override
+	public String getSummarizedResponse(Packet packet) {
+		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) {
+
+			return "";
+		}
+		byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
+		if (isEmptyPlaceholder(data)) {
+
+			return summarizeWebSocketFromRaw(packet.getReceivedData(), data);
+		}
+		try {
+
+			Http http = Http.create(data);
+			String statusCode = http.getStatusCode();
+			if (statusCode != null && !statusCode.isEmpty()) {
+
+				return statusCode;
+			}
+		} catch (Exception ignored) {
+			// Upgrade 後の decoded は WebSocket payload のため Http として解釈できない。
+		}
+		return summarizeWebSocketFromRaw(packet.getReceivedData(), data);
+	}
+
+	private static String summarizeWebSocketFromRaw(byte[] raw, byte[] decodedPayload) {
 		if (raw.length == 0) {
 
 			return "WebSocket (" + payloadLengthForSummary(decodedPayload) + " bytes)";
 		}
 		try {
 
-			WebSocketFrame frame = WebSocketFrame.parse(raw);
+			WebSocketFrame frame = WebSocketFrame.parseSingleFrame(ByteBuffer.wrap(raw));
 			OpCode op = frame.getOpcode();
 			byte[] payload = frame.getPayload();
 			int n = payload == null ? 0 : payload.length;
@@ -294,19 +352,53 @@ public class EncodeHTTPWebSocket extends Encoder {
 
 				n = 0;
 			}
-			if (op == OpCode.Text) {
-
-				return "WebSocket Text (" + n + " bytes)";
-			}
-			if (op == OpCode.Binary) {
-
-				return "WebSocket Binary (" + n + " bytes)";
-			}
-			return "WebSocket (" + n + " bytes)";
+			return formatWebSocketSummary(op, frame.isFin(), n);
 		} catch (Exception e) {
 
 			return "WebSocket (" + payloadLengthForSummary(decodedPayload) + " bytes)";
 		}
+	}
+
+	private static String formatWebSocketSummary(OpCode op, boolean fin, int n) {
+		if (op == null) {
+
+			return "WebSocket (" + n + " bytes)";
+		}
+		if (op == OpCode.Text) {
+
+			return (fin ? "WebSocket Text" : "WebSocket Text fragment") + " (" + n + " bytes)";
+		}
+		if (op == OpCode.Binary) {
+
+			return (fin ? "WebSocket Binary" : "WebSocket Binary fragment") + " (" + n + " bytes)";
+		}
+		if (op == OpCode.Cont) {
+
+			return "WebSocket Continuation (" + n + " bytes)";
+		}
+		if (op == OpCode.Ping) {
+
+			return "WebSocket Ping (" + n + " bytes)";
+		}
+		if (op == OpCode.Pong) {
+
+			return "WebSocket Pong (" + n + " bytes)";
+		}
+		if (op == OpCode.Close) {
+
+			return "WebSocket Close (" + n + " bytes)";
+		}
+		if (op == OpCode.DataRsv1 || op == OpCode.DataRsv2 || op == OpCode.DataRsv3 || op == OpCode.DataRsv4
+				|| op == OpCode.DataRsv5) {
+
+			return "WebSocket Data(reserved) (" + n + " bytes)";
+		}
+		if (op == OpCode.CtrlRsv1 || op == OpCode.CtrlRsv2 || op == OpCode.CtrlRsv3 || op == OpCode.CtrlRsv4
+				|| op == OpCode.CtrlRsv5) {
+
+			return "WebSocket Ctrl(reserved) (" + n + " bytes)";
+		}
+		return "WebSocket (" + n + " bytes)";
 	}
 
 	private static int payloadLengthForSummary(byte[] decodedPayload) {

@@ -15,12 +15,8 @@
  */
 package packetproxy.websocket;
 
-import static packetproxy.util.Throwing.rethrowP;
-
-import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
-import java.util.stream.Collectors;
 
 public class WebSocket {
 
@@ -32,13 +28,19 @@ public class WebSocket {
 	 */
 	private OpCode lastDequeuedOpCode = OpCode.Binary;
 
+	/**
+	 * Last FIN bit from {@link #frameAvailable()}; continuation frames must be
+	 * re-emitted with FIN cleared.
+	 */
+	private boolean lastDequeuedFin = true;
+
 	public static int checkDelimiter(byte[] data) {
-		return WebSocketFrame.checkDelimiter(data);
+		return WebSocketFrame.checkSingleFrameDelimiter(data);
 	}
 
 	public void frameArrived(byte[] data) throws Exception {
 		ByteBuffer buffer = ByteBuffer.wrap(data);
-		WebSocketFrame frame = WebSocketFrame.parse(buffer);
+		WebSocketFrame frame = WebSocketFrame.parseSingleFrame(buffer);
 		frames.add(frame);
 		if (buffer.remaining() > 0) {
 
@@ -46,18 +48,17 @@ public class WebSocket {
 		}
 	}
 
-	public byte[] passThroughFrame() throws Exception {
-		ByteArrayOutputStream passBytes = new ByteArrayOutputStream();
-		this.frames = this.frames.stream().filter(rethrowP(frame -> {
-			if (frame.getOpcode() != OpCode.Text && frame.getOpcode() != OpCode.Binary) {
+	private static final byte[] NO_PASS_THROUGH = new byte[0];
 
-				passBytes.write(frame.getBytes());
-				// Logging.log("pass through: " + frame);
-				return false;
-			}
-			return true;
-		})).collect(Collectors.toCollection(LinkedList::new));
-		return passBytes.toByteArray();
+	/**
+	 * Control frames are no longer auto-forwarded here; each frame is surfaced
+	 * through {@link #frameAvailable()} so History/Intercept stay frame-accurate.
+	 * Returns an empty array (not {@code
+	 * null}) so callers/tests can assert pass-through size without special-casing
+	 * {@code null}.
+	 */
+	public byte[] passThroughFrame() throws Exception {
+		return NO_PASS_THROUGH;
 	}
 
 	public byte[] frameAvailable() throws Exception {
@@ -67,6 +68,7 @@ public class WebSocket {
 			return null;
 		}
 		this.lastDequeuedOpCode = frame.getOpcode();
+		this.lastDequeuedFin = frame.isFin();
 		byte[] payload = frame.getPayload();
 		return payload;
 	}
@@ -78,5 +80,12 @@ public class WebSocket {
 	 */
 	public OpCode lastDequeuedOpCode() {
 		return lastDequeuedOpCode;
+	}
+
+	/**
+	 * FIN bit of the frame most recently returned from {@link #frameAvailable()}.
+	 */
+	public boolean lastDequeuedFin() {
+		return lastDequeuedFin;
 	}
 }

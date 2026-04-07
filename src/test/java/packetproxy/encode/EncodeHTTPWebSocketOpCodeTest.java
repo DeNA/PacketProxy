@@ -17,7 +17,9 @@ package packetproxy.encode;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -67,6 +69,16 @@ public class EncodeHTTPWebSocketOpCodeTest {
 		return p;
 	}
 
+	private static Packet serverPacket(byte[] decoded, byte[] received) throws Exception {
+		InetSocketAddress client = new InetSocketAddress("127.0.0.1", 12345);
+		InetSocketAddress server = new InetSocketAddress("example.com", 80);
+		Packet p = new Packet(0, client, server, "example.com", false, "HTTP WebSocket", null, Packet.Direction.SERVER,
+				0, 0L);
+		p.setDecodedData(decoded);
+		p.setReceivedData(received);
+		return p;
+	}
+
 	@Test
 	public void getSummarizedRequest_httpHandshake_matchesHttpEncoderOneLine() throws Exception {
 		byte[] httpBytes = "GET /endpoint HTTP/1.1\r\nHost: example.com\r\n\r\n".getBytes(StandardCharsets.UTF_8);
@@ -103,6 +115,67 @@ public class EncodeHTTPWebSocketOpCodeTest {
 		EncodeHTTPWebSocket encoder = new EncodeHTTPWebSocket();
 		Packet packet = clientPacket(EncodeHTTPWebSocket.EMPTY_PAYLOAD_PLACEHOLDER, binaryFrameEmptyPayload());
 		assertEquals("WebSocket Binary (0 bytes)", encoder.getSummarizedRequest(packet));
+	}
+
+	@Test
+	public void checkResponseDelimiter_splits101HeadersFromFollowingWebSocketBytes() throws Exception {
+		byte[] headers = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\r\n"
+				.getBytes(StandardCharsets.UTF_8);
+		byte[] pingFrame = new byte[]{(byte) 0x89, 0x00};
+		byte[] combined = new byte[headers.length + pingFrame.length];
+		System.arraycopy(headers, 0, combined, 0, headers.length);
+		System.arraycopy(pingFrame, 0, combined, headers.length, pingFrame.length);
+		EncodeHTTPWebSocket encoder = new EncodeHTTPWebSocket();
+		assertEquals(headers.length, encoder.checkResponseDelimiter(combined));
+	}
+
+	@Test
+	public void getSummarizedResponse_httpStatusBeforeUpgrade() throws Exception {
+		byte[] httpBytes = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n".getBytes(StandardCharsets.UTF_8);
+		EncodeHTTPWebSocket encoder = new EncodeHTTPWebSocket();
+		Packet packet = serverPacket(httpBytes, httpBytes);
+		assertEquals("200", encoder.getSummarizedResponse(packet));
+	}
+
+	@Test
+	public void getSummarizedResponse_pingFrame_showsPing() throws Exception {
+		byte[] pingWire = new byte[]{(byte) 0x89, 0x0A, 'p', 'r', 'o', 'b', 'e', '-', 'p', 'i', 'n', 'g'};
+		byte[] decoded = "probe-ping".getBytes(StandardCharsets.UTF_8);
+		EncodeHTTPWebSocket encoder = new EncodeHTTPWebSocket();
+		Packet packet = serverPacket(decoded, pingWire);
+		assertEquals("WebSocket Ping (10 bytes)", encoder.getSummarizedResponse(packet));
+	}
+
+	@Test
+	public void frameArrived_textFragmentPingContinuation_queuesInOrder() throws Exception {
+		WebSocket ws = new WebSocket();
+		ws.frameArrived(new byte[]{0x01, 0x02, 'h', 'i'});
+		ws.frameArrived(new byte[]{(byte) 0x89, 0x01, 'x'});
+		ws.frameArrived(new byte[]{(byte) 0x80, 0x05, 't', 'h', 'e', 'r', 'e'});
+		assertArrayEquals(new byte[]{'h', 'i'}, ws.frameAvailable());
+		assertEquals(OpCode.Text, ws.lastDequeuedOpCode());
+		assertFalse(ws.lastDequeuedFin());
+		assertArrayEquals(new byte[]{'x'}, ws.frameAvailable());
+		assertEquals(OpCode.Ping, ws.lastDequeuedOpCode());
+		assertTrue(ws.lastDequeuedFin());
+		assertArrayEquals(new byte[]{'t', 'h', 'e', 'r', 'e'}, ws.frameAvailable());
+		assertEquals(OpCode.Cont, ws.lastDequeuedOpCode());
+		assertTrue(ws.lastDequeuedFin());
+	}
+
+	@Test
+	public void encodeServerResponsePreservesFinFalseForTextFragment() throws Exception {
+		TestEncoder encoder = new TestEncoder();
+		encoder.setBinaryStart(true);
+		byte[] frag = new byte[]{0x01, 0x02, 'h', 'i'};
+		encoder.serverWebSocket.frameArrived(frag);
+		encoder.serverWebSocket.passThroughFrame();
+		byte[] payload = encoder.serverResponseAvailable();
+		assertArrayEquals(new byte[]{'h', 'i'}, payload);
+		assertFalse(encoder.serverWebSocket.lastDequeuedFin());
+		byte[] decoded = encoder.decodeServerResponse(payload);
+		byte[] wire = encoder.encodeServerResponse(decoded);
+		assertEquals(0x01, wire[0] & 0xFF);
 	}
 
 	@Test
