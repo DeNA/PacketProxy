@@ -112,6 +112,8 @@ public class EncodeHTTPWebSocketOpCodeTest {
 		encoder.clientWebSocket.passThroughFrame();
 		byte[] payload = encoder.clientRequestAvailable();
 		assertNotNull(payload);
+		// Empty wire payload must become the placeholder so Simplex does not treat byte[0] as EOF.
+		assertArrayEquals(EncodeHTTPWebSocket.EMPTY_PAYLOAD_PLACEHOLDER, payload);
 		byte[] decoded = encoder.decodeClientRequest(payload);
 		byte[] wire = encoder.encodeClientRequest(decoded);
 		// Client frames are always masked (WebSocket spec), so the wire bytes differ
@@ -128,6 +130,7 @@ public class EncodeHTTPWebSocketOpCodeTest {
 		encoder.serverWebSocket.passThroughFrame();
 		byte[] payload = encoder.serverResponseAvailable();
 		assertNotNull(payload);
+		assertArrayEquals(EncodeHTTPWebSocket.EMPTY_PAYLOAD_PLACEHOLDER, payload);
 		byte[] decoded = encoder.decodeServerResponse(payload);
 		byte[] wire = encoder.encodeServerResponse(decoded);
 		// Server frames are unmasked, so the bytes match exactly.

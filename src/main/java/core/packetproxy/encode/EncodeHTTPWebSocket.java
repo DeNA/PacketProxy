@@ -121,7 +121,14 @@ public class EncodeHTTPWebSocket extends Encoder {
 	public byte[] clientRequestAvailable() throws Exception {
 		if (binary_start) {
 
-			return clientWebSocket.frameAvailable();
+			byte[] payload = clientWebSocket.frameAvailable();
+			// Simplex treats byte[0] from clientRequestAvailable as "no more chunks" (same as Encoder base).
+			// Map empty WebSocket payload to the placeholder so the duplex pipeline runs decode/intercept/send.
+			if (payload != null && payload.length == 0) {
+
+				return EMPTY_PAYLOAD_PLACEHOLDER;
+			}
+			return payload;
 		} else {
 
 			return super.clientRequestAvailable();
@@ -132,7 +139,12 @@ public class EncodeHTTPWebSocket extends Encoder {
 	public byte[] serverResponseAvailable() throws Exception {
 		if (binary_start) {
 
-			return serverWebSocket.frameAvailable();
+			byte[] payload = serverWebSocket.frameAvailable();
+			if (payload != null && payload.length == 0) {
+
+				return EMPTY_PAYLOAD_PLACEHOLDER;
+			}
+			return payload;
 		} else {
 
 			return super.serverResponseAvailable();
@@ -159,7 +171,8 @@ public class EncodeHTTPWebSocket extends Encoder {
 		if (binary_start) {
 
 			// Restore empty payload when the user left the placeholder unchanged.
-			byte[] payload = isEmptyPlaceholder(input) ? new byte[0] : encodeWebsocketResponse(input);
+			boolean emptyPlaceholder = isEmptyPlaceholder(input);
+			byte[] payload = emptyPlaceholder ? new byte[0] : encodeWebsocketResponse(input);
 			WebSocketFrame frame = WebSocketFrame.of(serverWebSocket.lastDequeuedOpCode(), payload, false);
 			return frame.getBytes();
 		} else {
@@ -191,7 +204,8 @@ public class EncodeHTTPWebSocket extends Encoder {
 		if (binary_start) {
 
 			// Restore empty payload when the user left the placeholder unchanged.
-			byte[] payload = isEmptyPlaceholder(input) ? new byte[0] : encodeWebsocketRequest(input);
+			boolean emptyPlaceholder = isEmptyPlaceholder(input);
+			byte[] payload = emptyPlaceholder ? new byte[0] : encodeWebsocketRequest(input);
 			WebSocketFrame frame = WebSocketFrame.of(clientWebSocket.lastDequeuedOpCode(), payload, true);
 			return frame.getBytes();
 		} else {

@@ -67,7 +67,8 @@ public class WebSocket {
 			return null;
 		}
 		this.lastDequeuedOpCode = frame.getOpcode();
-		return frame.getPayload();
+		byte[] payload = frame.getPayload();
+		return payload;
 	}
 
 	/**
