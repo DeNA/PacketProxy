@@ -15,11 +15,25 @@
  */
 package packetproxy.encode;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import packetproxy.http.Http;
 import packetproxy.websocket.WebSocket;
 import packetproxy.websocket.WebSocketFrame;
 
 public class EncodeHTTPWebSocket extends Encoder {
+
+	/**
+	 * Sentinel shown in History/Intercept for empty-payload WebSocket frames.
+	 * Encode path restores this to a zero-length payload so the wire frame stays
+	 * spec-compliant. If the user replaces this text in Intercept, the edited bytes
+	 * are sent as the actual payload.
+	 */
+	static final byte[] EMPTY_PAYLOAD_PLACEHOLDER = "(empty WebSocket frame)".getBytes(StandardCharsets.UTF_8);
+
+	private static boolean isEmptyPlaceholder(byte[] data) {
+		return Arrays.equals(data, EMPTY_PAYLOAD_PLACEHOLDER);
+	}
 
 	protected boolean binary_start = false;
 	WebSocket clientWebSocket = new WebSocket();
@@ -129,6 +143,9 @@ public class EncodeHTTPWebSocket extends Encoder {
 	public byte[] decodeServerResponse(byte[] input) throws Exception {
 		if (binary_start) {
 
+			if (input.length == 0) {
+				return EMPTY_PAYLOAD_PLACEHOLDER;
+			}
 			return decodeWebsocketResponse(input);
 		} else {
 
@@ -141,7 +158,8 @@ public class EncodeHTTPWebSocket extends Encoder {
 	public byte[] encodeServerResponse(byte[] input) throws Exception {
 		if (binary_start) {
 
-			byte[] payload = encodeWebsocketResponse(input);
+			// Restore empty payload when the user left the placeholder unchanged.
+			byte[] payload = isEmptyPlaceholder(input) ? new byte[0] : encodeWebsocketResponse(input);
 			WebSocketFrame frame = WebSocketFrame.of(serverWebSocket.lastDequeuedOpCode(), payload, false);
 			return frame.getBytes();
 		} else {
@@ -157,6 +175,9 @@ public class EncodeHTTPWebSocket extends Encoder {
 	public byte[] decodeClientRequest(byte[] input) throws Exception {
 		if (binary_start) {
 
+			if (input.length == 0) {
+				return EMPTY_PAYLOAD_PLACEHOLDER;
+			}
 			return decodeWebsocketRequest(input);
 		} else {
 
@@ -169,7 +190,8 @@ public class EncodeHTTPWebSocket extends Encoder {
 	public byte[] encodeClientRequest(byte[] input) throws Exception {
 		if (binary_start) {
 
-			byte[] payload = encodeWebsocketRequest(input);
+			// Restore empty payload when the user left the placeholder unchanged.
+			byte[] payload = isEmptyPlaceholder(input) ? new byte[0] : encodeWebsocketRequest(input);
 			WebSocketFrame frame = WebSocketFrame.of(clientWebSocket.lastDequeuedOpCode(), payload, true);
 			return frame.getBytes();
 		} else {

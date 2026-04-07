@@ -55,13 +55,6 @@ public class WebSocket {
 				// Logging.log("pass through: " + frame);
 				return false;
 			}
-			// Empty Text/Binary payloads bypass decode/encode so Simplex and intercept do
-			// not drop them.
-			if (frame.getPayload().length == 0) {
-
-				passBytes.write(frame.getBytes());
-				return false;
-			}
 			return true;
 		})).collect(Collectors.toCollection(LinkedList::new));
 		return passBytes.toByteArray();

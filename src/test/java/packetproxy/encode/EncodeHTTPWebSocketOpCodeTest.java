@@ -17,7 +17,7 @@ package packetproxy.encode;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
 import packetproxy.websocket.OpCode;
@@ -26,7 +26,8 @@ import packetproxy.websocket.WebSocketFrame;
 
 /**
  * Ensures Text vs Binary opcode is preserved across decode (frameAvailable) and
- * encode (getBytes).
+ * encode (getBytes), and that empty-payload frames flow through the normal
+ * decode/encode pipeline so they appear in History and can be intercepted.
  */
 public class EncodeHTTPWebSocketOpCodeTest {
 
@@ -70,19 +71,83 @@ public class EncodeHTTPWebSocketOpCodeTest {
 	}
 
 	@Test
-	public void emptyPayloadTextFrameIsPassedThrough() throws Exception {
+	public void emptyPayloadTextFrameQueuesForDecode() throws Exception {
 		WebSocket ws = new WebSocket();
 		ws.frameArrived(textFrameEmptyPayload());
-		assertArrayEquals(textFrameEmptyPayload(), ws.passThroughFrame());
-		assertNull(ws.frameAvailable());
+		// Empty Text/Binary frames must go through the decode/encode pipeline so
+		// History can record them and Intercept can edit them.
+		assertArrayEquals(new byte[0], ws.passThroughFrame());
+		assertArrayEquals(new byte[0], ws.frameAvailable());
 	}
 
 	@Test
-	public void emptyPayloadBinaryFrameIsPassedThrough() throws Exception {
+	public void emptyPayloadBinaryFrameQueuesForDecode() throws Exception {
 		WebSocket ws = new WebSocket();
 		ws.frameArrived(binaryFrameEmptyPayload());
-		assertArrayEquals(binaryFrameEmptyPayload(), ws.passThroughFrame());
-		assertNull(ws.frameAvailable());
+		assertArrayEquals(new byte[0], ws.passThroughFrame());
+		assertArrayEquals(new byte[0], ws.frameAvailable());
+	}
+
+	@Test
+	public void decodeClientRequestReturnsPlaceholderForEmptyPayload() throws Exception {
+		TestEncoder encoder = new TestEncoder();
+		encoder.setBinaryStart(true);
+		byte[] decoded = encoder.decodeClientRequest(new byte[0]);
+		assertArrayEquals(EncodeHTTPWebSocket.EMPTY_PAYLOAD_PLACEHOLDER, decoded);
+	}
+
+	@Test
+	public void decodeServerResponseReturnsPlaceholderForEmptyPayload() throws Exception {
+		TestEncoder encoder = new TestEncoder();
+		encoder.setBinaryStart(true);
+		byte[] decoded = encoder.decodeServerResponse(new byte[0]);
+		assertArrayEquals(EncodeHTTPWebSocket.EMPTY_PAYLOAD_PLACEHOLDER, decoded);
+	}
+
+	@Test
+	public void emptyPayloadClientRequestRoundTrip() throws Exception {
+		TestEncoder encoder = new TestEncoder();
+		encoder.setBinaryStart(true);
+		encoder.clientWebSocket.frameArrived(textFrameEmptyPayload());
+		encoder.clientWebSocket.passThroughFrame();
+		byte[] payload = encoder.clientRequestAvailable();
+		assertNotNull(payload);
+		byte[] decoded = encoder.decodeClientRequest(payload);
+		byte[] wire = encoder.encodeClientRequest(decoded);
+		// Client frames are always masked (WebSocket spec), so the wire bytes differ
+		// from the unmasked test frame. Verify the opcode and effective payload length.
+		assertEquals(FIN_TEXT, wire[0]);
+		assertEquals(0, wire[1] & 0x7F); // payload length bits must be 0
+	}
+
+	@Test
+	public void emptyPayloadServerResponseRoundTrip() throws Exception {
+		TestEncoder encoder = new TestEncoder();
+		encoder.setBinaryStart(true);
+		encoder.serverWebSocket.frameArrived(binaryFrameEmptyPayload());
+		encoder.serverWebSocket.passThroughFrame();
+		byte[] payload = encoder.serverResponseAvailable();
+		assertNotNull(payload);
+		byte[] decoded = encoder.decodeServerResponse(payload);
+		byte[] wire = encoder.encodeServerResponse(decoded);
+		// Server frames are unmasked, so the bytes match exactly.
+		assertArrayEquals(binaryFrameEmptyPayload(), wire);
+	}
+
+	@Test
+	public void editedPlaceholderClientRequestSendsNewContent() throws Exception {
+		TestEncoder encoder = new TestEncoder();
+		encoder.setBinaryStart(true);
+		encoder.clientWebSocket.frameArrived(textFrameEmptyPayload());
+		encoder.clientWebSocket.passThroughFrame();
+		encoder.clientRequestAvailable();
+		// Simulate user replacing the placeholder with new content in Intercept.
+		byte[] userEdited = "hello".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+		byte[] wire = encoder.encodeClientRequest(userEdited);
+		// First byte: FIN + opcode (Text frame).
+		assertEquals(FIN_TEXT, wire[0]);
+		// Payload length byte should be 5.
+		assertEquals((byte) (0x80 | 5), wire[1]);
 	}
 
 	@Test
