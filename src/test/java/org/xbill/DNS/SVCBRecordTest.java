@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -18,38 +17,38 @@ import org.junit.jupiter.api.Test;
 public class SVCBRecordTest {
 
 	@Test
-	void createParams() throws UnknownHostException {
+	void createParams() throws Exception {
 		List<Integer> mandatoryList = Arrays.asList(SVCBRecord.ALPN, SVCBRecord.IPV4HINT);
-		SVCBRecord.ParameterMandatory mandatory = new SVCBBase.ParameterMandatory(mandatoryList);
+		SVCBBase.ParameterMandatory mandatory = new SVCBBase.ParameterMandatory(mandatoryList);
 		assertEquals(SVCBRecord.MANDATORY, mandatory.getKey());
 		assertEquals(mandatoryList, mandatory.getValues());
 
 		List<String> alpnList = Arrays.asList("h2", "h3");
-		SVCBRecord.ParameterAlpn alpn = new SVCBRecord.ParameterAlpn(alpnList);
+		SVCBBase.ParameterAlpn alpn = new SVCBBase.ParameterAlpn(alpnList);
 		assertEquals(SVCBRecord.ALPN, alpn.getKey());
 		assertEquals(alpnList, alpn.getValues());
 
-		SVCBRecord.ParameterPort port = new SVCBBase.ParameterPort(8443);
+		SVCBBase.ParameterPort port = new SVCBBase.ParameterPort(8443);
 		assertEquals(SVCBRecord.PORT, port.getKey());
 		assertEquals(8443, port.getPort());
 
 		List<Inet4Address> ipv4List = Arrays.asList((Inet4Address) InetAddress.getByName("1.2.3.4"));
-		SVCBRecord.ParameterIpv4Hint ipv4hint = new SVCBRecord.ParameterIpv4Hint(ipv4List);
+		SVCBBase.ParameterIpv4Hint ipv4hint = new SVCBBase.ParameterIpv4Hint(ipv4List);
 		assertEquals(SVCBRecord.IPV4HINT, ipv4hint.getKey());
 		assertEquals(ipv4List, ipv4hint.getAddresses());
 
 		byte[] data = {'a', 'b', 'c'};
-		SVCBRecord.ParameterEchConfig echconfig = new SVCBRecord.ParameterEchConfig(data);
+		SVCBBase.ParameterEchConfig echconfig = new SVCBBase.ParameterEchConfig(data);
 		assertEquals(SVCBRecord.ECHCONFIG, echconfig.getKey());
 		assertEquals(data, echconfig.getData());
 
 		List<Inet6Address> ipv6List = Arrays.asList((Inet6Address) InetAddress.getByName("2001::1"));
-		SVCBRecord.ParameterIpv6Hint ipv6hint = new SVCBRecord.ParameterIpv6Hint(ipv6List);
+		SVCBBase.ParameterIpv6Hint ipv6hint = new SVCBBase.ParameterIpv6Hint(ipv6List);
 		assertEquals(SVCBRecord.IPV6HINT, ipv6hint.getKey());
 		assertEquals(ipv6List, ipv6hint.getAddresses());
 
 		byte[] value = {0, 1, 2, 3};
-		SVCBRecord.ParameterUnknown unknown = new SVCBRecord.ParameterUnknown(33, value);
+		SVCBBase.ParameterUnknown unknown = new SVCBBase.ParameterUnknown(33, value);
 		assertEquals(33, unknown.getKey());
 		assertEquals(value, unknown.getValue());
 	}
@@ -59,13 +58,13 @@ public class SVCBRecordTest {
 		Name label = Name.fromString("test.com.");
 		int svcPriority = 5;
 		Name svcDomain = Name.fromString("svc.test.com.");
-		SVCBRecord.ParameterMandatory mandatory = new SVCBRecord.ParameterMandatory();
+		SVCBBase.ParameterMandatory mandatory = new SVCBBase.ParameterMandatory();
 		mandatory.fromString("alpn");
-		SVCBRecord.ParameterAlpn alpn = new SVCBRecord.ParameterAlpn();
+		SVCBBase.ParameterAlpn alpn = new SVCBBase.ParameterAlpn();
 		alpn.fromString("h1,h2");
-		SVCBRecord.ParameterIpv4Hint ipv4 = new SVCBRecord.ParameterIpv4Hint();
+		SVCBBase.ParameterIpv4Hint ipv4 = new SVCBBase.ParameterIpv4Hint();
 		ipv4.fromString("1.2.3.4,5.6.7.8");
-		List<SVCBRecord.ParameterBase> params = Arrays.asList(mandatory, ipv4, alpn);
+		List<SVCBBase.ParameterBase> params = Arrays.asList(mandatory, ipv4, alpn);
 		SVCBRecord record = new SVCBRecord(label, DClass.IN, 300, svcPriority, svcDomain, params);
 
 		assertEquals(Type.SVCB, record.getType());
@@ -88,11 +87,11 @@ public class SVCBRecordTest {
 	void createRecordDuplicateParam() throws IOException {
 		Name label = Name.fromString("test.com.");
 		Name svcDomain = Name.fromString("svc.test.com.");
-		SVCBRecord.ParameterAlpn alpn = new SVCBRecord.ParameterAlpn();
+		SVCBBase.ParameterAlpn alpn = new SVCBBase.ParameterAlpn();
 		alpn.fromString("h1,h2");
-		SVCBRecord.ParameterIpv4Hint ipv4 = new SVCBRecord.ParameterIpv4Hint();
+		SVCBBase.ParameterIpv4Hint ipv4 = new SVCBBase.ParameterIpv4Hint();
 		ipv4.fromString("1.2.3.4,5.6.7.8");
-		List<SVCBRecord.ParameterBase> params = Arrays.asList(alpn, ipv4, alpn);
+		List<SVCBBase.ParameterBase> params = Arrays.asList(alpn, ipv4, alpn);
 		assertThrows(IllegalArgumentException.class, () -> {
 			new SVCBRecord(label, DClass.IN, 300, 5, svcDomain, params);
 		});
@@ -176,25 +175,25 @@ public class SVCBRecordTest {
 	@Test
 	void serviceModeEchConfig() throws IOException {
 		String str = "1 h3pool. echconfig=1234";
-		assertEquals(str, stringToWireToString(str));
+		assertEquals("1 h3pool. ech=1234", stringToWireToString(str));
 	}
 
 	@Test
 	void serviceModeEchConfigMulti() throws IOException {
 		String str = "1 h3pool. alpn=h2,h3 echconfig=1234";
-		assertEquals(str, stringToWireToString(str));
+		assertEquals("1 h3pool. alpn=h2,h3 ech=1234", stringToWireToString(str));
 	}
 
 	@Test
 	void serviceModeEchConfigOutOfOrder() throws IOException {
 		String str = "1 h3pool. echconfig=1234 alpn=h2,h3";
-		assertEquals("1 h3pool. alpn=h2,h3 echconfig=1234", stringToWireToString(str));
+		assertEquals("1 h3pool. alpn=h2,h3 ech=1234", stringToWireToString(str));
 	}
 
 	@Test
 	void serviceModeEchConfigQuoted() throws IOException {
 		String str = "1 h3pool. alpn=h2,h3 echconfig=\"1234\"";
-		assertEquals("1 h3pool. alpn=h2,h3 echconfig=1234", stringToWireToString(str));
+		assertEquals("1 h3pool. alpn=h2,h3 ech=1234", stringToWireToString(str));
 	}
 
 	@Test
@@ -292,11 +291,9 @@ public class SVCBRecordTest {
 	}
 
 	@Test
-	void serviceModeWithoutParameters() {
+	void serviceModeWithoutParameters() throws IOException {
 		String str = "1 aliasmode.example.com.";
-		assertThrows(TextParseException.class, () -> {
-			stringToWire(str);
-		});
+		assertEquals(str, stringToWireToString(str));
 	}
 
 	@Test
@@ -436,11 +433,9 @@ public class SVCBRecordTest {
 	}
 
 	@Test
-	void noParamValues() {
+	void noParamValues() throws IOException {
 		String str = "1 .";
-		assertThrows(TextParseException.class, () -> {
-			stringToWire(str);
-		});
+		assertEquals(str, stringToWireToString(str));
 	}
 
 	@Test

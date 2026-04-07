@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -18,38 +17,38 @@ import org.junit.jupiter.api.Test;
 public class HTTPSRecordTest {
 
 	@Test
-	void createParams() throws UnknownHostException {
+	void createParams() throws Exception {
 		List<Integer> mandatoryList = Arrays.asList(HTTPSRecord.ALPN, HTTPSRecord.IPV4HINT);
-		HTTPSRecord.ParameterMandatory mandatory = new HTTPSRecord.ParameterMandatory(mandatoryList);
+		SVCBBase.ParameterMandatory mandatory = new SVCBBase.ParameterMandatory(mandatoryList);
 		assertEquals(HTTPSRecord.MANDATORY, mandatory.getKey());
 		assertEquals(mandatoryList, mandatory.getValues());
 
 		List<String> alpnList = Arrays.asList("h2", "h3");
-		HTTPSRecord.ParameterAlpn alpn = new HTTPSRecord.ParameterAlpn(alpnList);
+		SVCBBase.ParameterAlpn alpn = new SVCBBase.ParameterAlpn(alpnList);
 		assertEquals(HTTPSRecord.ALPN, alpn.getKey());
 		assertEquals(alpnList, alpn.getValues());
 
-		HTTPSRecord.ParameterPort port = new HTTPSRecord.ParameterPort(8443);
+		SVCBBase.ParameterPort port = new SVCBBase.ParameterPort(8443);
 		assertEquals(HTTPSRecord.PORT, port.getKey());
 		assertEquals(8443, port.getPort());
 
 		List<Inet4Address> ipv4List = Arrays.asList((Inet4Address) InetAddress.getByName("1.2.3.4"));
-		HTTPSRecord.ParameterIpv4Hint ipv4hint = new HTTPSRecord.ParameterIpv4Hint(ipv4List);
+		SVCBBase.ParameterIpv4Hint ipv4hint = new SVCBBase.ParameterIpv4Hint(ipv4List);
 		assertEquals(HTTPSRecord.IPV4HINT, ipv4hint.getKey());
 		assertEquals(ipv4List, ipv4hint.getAddresses());
 
 		byte[] data = {'a', 'b', 'c'};
-		HTTPSRecord.ParameterEchConfig echconfig = new HTTPSRecord.ParameterEchConfig(data);
+		SVCBBase.ParameterEchConfig echconfig = new SVCBBase.ParameterEchConfig(data);
 		assertEquals(HTTPSRecord.ECHCONFIG, echconfig.getKey());
 		assertEquals(data, echconfig.getData());
 
 		List<Inet6Address> ipv6List = Arrays.asList((Inet6Address) InetAddress.getByName("2001::1"));
-		HTTPSRecord.ParameterIpv6Hint ipv6hint = new HTTPSRecord.ParameterIpv6Hint(ipv6List);
+		SVCBBase.ParameterIpv6Hint ipv6hint = new SVCBBase.ParameterIpv6Hint(ipv6List);
 		assertEquals(HTTPSRecord.IPV6HINT, ipv6hint.getKey());
 		assertEquals(ipv6List, ipv6hint.getAddresses());
 
 		byte[] value = {0, 1, 2, 3};
-		HTTPSRecord.ParameterUnknown unknown = new HTTPSRecord.ParameterUnknown(33, value);
+		SVCBBase.ParameterUnknown unknown = new SVCBBase.ParameterUnknown(33, value);
 		assertEquals(33, unknown.getKey());
 		assertEquals(value, unknown.getValue());
 	}
@@ -59,13 +58,13 @@ public class HTTPSRecordTest {
 		Name label = Name.fromString("test.com.");
 		int svcPriority = 5;
 		Name svcDomain = Name.fromString("svc.test.com.");
-		HTTPSRecord.ParameterMandatory mandatory = new HTTPSRecord.ParameterMandatory();
+		SVCBBase.ParameterMandatory mandatory = new SVCBBase.ParameterMandatory();
 		mandatory.fromString("alpn");
-		HTTPSRecord.ParameterAlpn alpn = new HTTPSRecord.ParameterAlpn();
+		SVCBBase.ParameterAlpn alpn = new SVCBBase.ParameterAlpn();
 		alpn.fromString("h1,h2");
-		HTTPSRecord.ParameterIpv4Hint ipv4 = new HTTPSRecord.ParameterIpv4Hint();
+		SVCBBase.ParameterIpv4Hint ipv4 = new SVCBBase.ParameterIpv4Hint();
 		ipv4.fromString("1.2.3.4,5.6.7.8");
-		List<HTTPSRecord.ParameterBase> params = Arrays.asList(mandatory, ipv4, alpn);
+		List<SVCBBase.ParameterBase> params = Arrays.asList(mandatory, ipv4, alpn);
 		HTTPSRecord record = new HTTPSRecord(label, DClass.IN, 300, svcPriority, svcDomain, params);
 
 		assertEquals(Type.HTTPS, record.getType());
@@ -105,7 +104,7 @@ public class HTTPSRecordTest {
 	@Test
 	void serviceModeEchConfigMulti() throws IOException {
 		String str = "1 h3pool. alpn=h2,h3 echconfig=1234";
-		assertEquals(str, SVCBRecordTest.stringToWireToString(str));
+		assertEquals("1 h3pool. alpn=h2,h3 ech=1234", SVCBRecordTest.stringToWireToString(str));
 	}
 
 	@Test

@@ -28,7 +28,7 @@ import org.xbill.DNS.AAAARecord;
 import org.xbill.DNS.Address;
 import org.xbill.DNS.Lookup;
 import org.xbill.DNS.Record;
-import org.xbill.DNS.SystemResolverConfig;
+import org.xbill.DNS.ResolverConfig;
 import org.xbill.DNS.TextParseException;
 import org.xbill.DNS.Type;
 import packetproxy.model.Resolution;
@@ -38,7 +38,6 @@ import packetproxy.util.PacketProxyUtility;
 public class PrivateDNSClient {
 
 	private static Resolutions resolutions;
-	private static PacketProxyUtility util;
 
 	private static boolean isLoopbackAddress(String addr) {
 		return addr.equals("127.0.0.1") || addr.equals("0:0:0:0:0:0:0:1") || addr.equals("::1");
@@ -53,6 +52,15 @@ public class PrivateDNSClient {
 		return dnsLoopDetectedInDnsServer() || dnsLoopDetectedInEtcHosts(serverName);
 	}
 
+	static String getCurrentSystemDnsServerAddress() {
+		ResolverConfig.refresh();
+		var resolverConfig = ResolverConfig.getCurrentConfig();
+		if (resolverConfig == null || resolverConfig.server() == null) {
+			return null;
+		}
+		return resolverConfig.server().getAddress().getHostAddress();
+	}
+
 	// システムのDNS設定が、PacketProxyのDNSサーバが設定されているときtrueになる
 	private static boolean dnsLoopDetectedInDnsServer() throws Exception {
 		if (!PrivateDNS.getInstance().isRunning()) {
@@ -61,8 +69,10 @@ public class PrivateDNSClient {
 		}
 
 		// current system dns server setting
-		SystemResolverConfig systemResolver = new SystemResolverConfig();
-		String dnsServer = systemResolver.server();
+		var dnsServer = getCurrentSystemDnsServerAddress();
+		if (dnsServer == null) {
+			return false;
+		}
 
 		if (isLoopbackAddress(dnsServer)) {
 
@@ -104,8 +114,7 @@ public class PrivateDNSClient {
 	}
 
 	public static InetAddress getByName(String serverName) throws Exception {
-		resolutions = resolutions.getInstance();
-		util = PacketProxyUtility.getInstance();
+		resolutions = Resolutions.getInstance();
 		List<Resolution> resolution_list = resolutions.queryEnabled();
 		for (Resolution resolution : resolution_list) {
 
