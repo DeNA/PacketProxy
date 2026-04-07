@@ -18,6 +18,8 @@ package packetproxy.encode;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import packetproxy.http.Http;
+import packetproxy.model.Packet;
+import packetproxy.websocket.OpCode;
 import packetproxy.websocket.WebSocket;
 import packetproxy.websocket.WebSocketFrame;
 
@@ -122,8 +124,11 @@ public class EncodeHTTPWebSocket extends Encoder {
 		if (binary_start) {
 
 			byte[] payload = clientWebSocket.frameAvailable();
-			// Simplex treats byte[0] from clientRequestAvailable as "no more chunks" (same as Encoder base).
-			// Map empty WebSocket payload to the placeholder so the duplex pipeline runs decode/intercept/send.
+			// Simplex treats byte[0] from clientRequestAvailable as "no more chunks" (same
+			// as Encoder
+			// base).
+			// Map empty WebSocket payload to the placeholder so the duplex pipeline runs
+			// decode/intercept/send.
 			if (payload != null && payload.length == 0) {
 
 				return EMPTY_PAYLOAD_PLACEHOLDER;
@@ -241,5 +246,74 @@ public class EncodeHTTPWebSocket extends Encoder {
 
 	public byte[] encodeWebsocketResponse(byte[] input) throws Exception {
 		return input;
+	}
+
+	@Override
+	public String getSummarizedRequest(Packet packet) {
+		if (packet.getDecodedData().length == 0 && packet.getModifiedData().length == 0) {
+
+			return "";
+		}
+		byte[] data = (packet.getDecodedData().length > 0) ? packet.getDecodedData() : packet.getModifiedData();
+		// Empty-payload frames use this sentinel in decoded data; Http.create() can
+		// still
+		// "parse" it into a bogus request line, so WebSocket summary must not go
+		// through HTTP.
+		if (isEmptyPlaceholder(data)) {
+
+			return summarizeWebSocketClientRequest(packet, data);
+		}
+		try {
+
+			Http http = Http.create(data);
+			String method = http.getMethod();
+			if (method != null && !method.isEmpty()) {
+
+				return http.getMethod() + " " + http.getURL(packet.getServerPort(), packet.getUseSSL());
+			}
+		} catch (Exception ignored) {
+			// Upgrade 後の decoded は HTTP メッセージではなく WebSocket の payload になる。
+			// そのため Http.create が失敗したら、HTTP ではなく WebSocket とみなして要約する。
+		}
+		return summarizeWebSocketClientRequest(packet, data);
+	}
+
+	private static String summarizeWebSocketClientRequest(Packet packet, byte[] decodedPayload) {
+		byte[] raw = packet.getReceivedData();
+		if (raw.length == 0) {
+
+			return "WebSocket (" + payloadLengthForSummary(decodedPayload) + " bytes)";
+		}
+		try {
+
+			WebSocketFrame frame = WebSocketFrame.parse(raw);
+			OpCode op = frame.getOpcode();
+			byte[] payload = frame.getPayload();
+			int n = payload == null ? 0 : payload.length;
+			if (isEmptyPlaceholder(decodedPayload)) {
+
+				n = 0;
+			}
+			if (op == OpCode.Text) {
+
+				return "WebSocket Text (" + n + " bytes)";
+			}
+			if (op == OpCode.Binary) {
+
+				return "WebSocket Binary (" + n + " bytes)";
+			}
+			return "WebSocket (" + n + " bytes)";
+		} catch (Exception e) {
+
+			return "WebSocket (" + payloadLengthForSummary(decodedPayload) + " bytes)";
+		}
+	}
+
+	private static int payloadLengthForSummary(byte[] decodedPayload) {
+		if (isEmptyPlaceholder(decodedPayload)) {
+
+			return 0;
+		}
+		return decodedPayload.length;
 	}
 }

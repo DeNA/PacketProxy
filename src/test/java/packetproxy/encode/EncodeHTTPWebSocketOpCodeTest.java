@@ -19,7 +19,10 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
+import packetproxy.model.Packet;
 import packetproxy.websocket.OpCode;
 import packetproxy.websocket.WebSocket;
 import packetproxy.websocket.WebSocketFrame;
@@ -52,6 +55,54 @@ public class EncodeHTTPWebSocketOpCodeTest {
 	/** Unmasked FIN+Binary frame, zero-length payload. */
 	private static byte[] binaryFrameEmptyPayload() {
 		return new byte[]{FIN_BINARY, 0x00};
+	}
+
+	private static Packet clientPacket(byte[] decoded, byte[] received) throws Exception {
+		InetSocketAddress client = new InetSocketAddress("127.0.0.1", 12345);
+		InetSocketAddress server = new InetSocketAddress("example.com", 80);
+		Packet p = new Packet(0, client, server, "example.com", false, "HTTP WebSocket", null, Packet.Direction.CLIENT,
+				0, 0L);
+		p.setDecodedData(decoded);
+		p.setReceivedData(received);
+		return p;
+	}
+
+	@Test
+	public void getSummarizedRequest_httpHandshake_matchesHttpEncoderOneLine() throws Exception {
+		byte[] httpBytes = "GET /endpoint HTTP/1.1\r\nHost: example.com\r\n\r\n".getBytes(StandardCharsets.UTF_8);
+		EncodeHTTPWebSocket encoder = new EncodeHTTPWebSocket();
+		Packet packet = clientPacket(httpBytes, httpBytes);
+		assertEquals("GET http://example.com/endpoint", encoder.getSummarizedRequest(packet));
+	}
+
+	@Test
+	public void getSummarizedRequest_textFrame_showsKindAndSize() throws Exception {
+		byte[] payload = "hello".getBytes(StandardCharsets.UTF_8);
+		EncodeHTTPWebSocket encoder = new EncodeHTTPWebSocket();
+		Packet packet = clientPacket(payload, textFrameHello());
+		assertEquals("WebSocket Text (5 bytes)", encoder.getSummarizedRequest(packet));
+	}
+
+	@Test
+	public void getSummarizedRequest_binaryFrame_showsKindAndSize() throws Exception {
+		byte[] payload = new byte[]{0x00};
+		EncodeHTTPWebSocket encoder = new EncodeHTTPWebSocket();
+		Packet packet = clientPacket(payload, binaryFrameOneByte());
+		assertEquals("WebSocket Binary (1 bytes)", encoder.getSummarizedRequest(packet));
+	}
+
+	@Test
+	public void getSummarizedRequest_emptyTextFrame_showsZeroBytes() throws Exception {
+		EncodeHTTPWebSocket encoder = new EncodeHTTPWebSocket();
+		Packet packet = clientPacket(EncodeHTTPWebSocket.EMPTY_PAYLOAD_PLACEHOLDER, textFrameEmptyPayload());
+		assertEquals("WebSocket Text (0 bytes)", encoder.getSummarizedRequest(packet));
+	}
+
+	@Test
+	public void getSummarizedRequest_emptyBinaryFrame_showsZeroBytes() throws Exception {
+		EncodeHTTPWebSocket encoder = new EncodeHTTPWebSocket();
+		Packet packet = clientPacket(EncodeHTTPWebSocket.EMPTY_PAYLOAD_PLACEHOLDER, binaryFrameEmptyPayload());
+		assertEquals("WebSocket Binary (0 bytes)", encoder.getSummarizedRequest(packet));
 	}
 
 	@Test
@@ -112,7 +163,8 @@ public class EncodeHTTPWebSocketOpCodeTest {
 		encoder.clientWebSocket.passThroughFrame();
 		byte[] payload = encoder.clientRequestAvailable();
 		assertNotNull(payload);
-		// Empty wire payload must become the placeholder so Simplex does not treat byte[0] as EOF.
+		// Empty wire payload must become the placeholder so Simplex does not treat
+		// byte[0] as EOF.
 		assertArrayEquals(EncodeHTTPWebSocket.EMPTY_PAYLOAD_PLACEHOLDER, payload);
 		byte[] decoded = encoder.decodeClientRequest(payload);
 		byte[] wire = encoder.encodeClientRequest(decoded);
