@@ -25,14 +25,20 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.nio.file.Path;
 import javax.swing.*;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Keymap;
+import org.apache.commons.io.FilenameUtils;
+import packetproxy.common.AppVersion;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
+import packetproxy.model.Database;
+import packetproxy.model.Database.DatabaseMessage;
 import packetproxy.model.InterceptModel;
+import packetproxy.model.PropertyChangeEventType;
 import packetproxy.util.PacketProxyUtility;
 
 public class GUIMain extends JFrame implements PropertyChangeListener {
@@ -50,23 +56,16 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 	private GUIVulCheckHelper gui_vulcheckhelper;
 	private GUILog gui_log;
 	private InterceptModel interceptModel;
+	private String version;
 
 	public enum Panes {
 		HISTORY, INTERCEPT, RESENDER, VULCHECKHELPER, BULKSENDER, EXTENSIONS, OPTIONS, LOG
 	};
 
-	public static GUIMain getInstance(String title) throws Exception {
-		if (instance == null) {
-
-			instance = new GUIMain(title);
-		}
-		return instance;
-	}
-
 	public static GUIMain getInstance() throws Exception {
 		if (instance == null) {
 
-			throw new Exception("GUIMain instance not found.");
+			instance = new GUIMain();
 		}
 		return instance;
 	}
@@ -97,13 +96,20 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		return null;
 	}
 
-	private GUIMain(String title) {
+	private GUIMain() {
 		try {
+			this.version = AppVersion.get();
 
 			setIcon();
 			gui_history = initProjectAndHistory();
 			setLookandFeel();
-			setTitle(title);
+
+			// Register for database events
+			Database.getInstance().addPropertyChangeListener(this);
+
+			// Set initial title with project name
+			updateTitle();
+
 			setBounds(10, 10, 1100, 850);
 			enableFullScreenForMac(this);
 
@@ -326,14 +332,64 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		tabbedpane.repaint();
 	}
 
+	private String getProjectDisplayName() {
+		try {
+			Database db = Database.getInstance();
+			Path dbPath = db.getDatabasePath();
+
+			if (dbPath == null) {
+				return "Unknown";
+			}
+
+			String fileName = dbPath.getFileName().toString();
+
+			// Handle default database
+			if (fileName.equals("resources.sqlite3")) {
+				return "Default";
+			}
+
+			// Handle temporary/loaded databases
+			if (fileName.equals("resources_temp.sqlite3")) {
+				return "Temporary";
+			}
+
+			// Handle temporary projects (format: packetproxy-yyyyMMdd-HHmmss.sqlite3)
+			if (fileName.startsWith("packetproxy-") && fileName.matches("packetproxy-\\d{8}-\\d{6}\\.sqlite3")) {
+				return "Temporary";
+			}
+
+			// Extract project name from filename (remove .sqlite3 extension)
+			return FilenameUtils.removeExtension(fileName);
+		} catch (Exception e) {
+			return "Unknown";
+		}
+	}
+
+	public void updateTitle() {
+		String projectName = getProjectDisplayName();
+		String titleText = String.format("PacketProxy %s - %s", version, projectName);
+		setTitle(titleText);
+	}
+
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
+		// Handle intercept model events
 		if (interceptModel.getData() == null) {
 
 			setInterceptDownLight();
 		} else {
 
 			setInterceptHighLight();
+		}
+
+		// Handle database reconnection events to update title
+		if (PropertyChangeEventType.DATABASE_MESSAGE.matches(evt)) {
+			if (evt.getNewValue() instanceof DatabaseMessage) {
+				DatabaseMessage msg = (DatabaseMessage) evt.getNewValue();
+				if (msg == DatabaseMessage.RECONNECT) {
+					SwingUtilities.invokeLater(this::updateTitle);
+				}
+			}
 		}
 	}
 }
