@@ -26,6 +26,12 @@ public class WebSocket {
 
 	LinkedList<WebSocketFrame> frames = new LinkedList<>();
 
+	/**
+	 * Last opcode from {@link #frameAvailable()}; used when re-encoding the payload
+	 * to a wire frame.
+	 */
+	private OpCode lastDequeuedOpCode = OpCode.Binary;
+
 	public static int checkDelimiter(byte[] data) {
 		return WebSocketFrame.checkDelimiter(data);
 	}
@@ -60,6 +66,16 @@ public class WebSocket {
 
 			return null;
 		}
+		this.lastDequeuedOpCode = frame.getOpcode();
 		return frame.getPayload();
+	}
+
+	/**
+	 * Opcode of the frame most recently returned from {@link #frameAvailable()}.
+	 * Encode paths use this to preserve Text vs Binary when rebuilding WebSocket
+	 * frames.
+	 */
+	public OpCode lastDequeuedOpCode() {
+		return lastDequeuedOpCode;
 	}
 }
