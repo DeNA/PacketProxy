@@ -17,6 +17,7 @@ package packetproxy.encode;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
@@ -25,8 +26,9 @@ import packetproxy.websocket.WebSocket;
 import packetproxy.websocket.WebSocketFrame;
 
 /**
- * Ensures Text vs Binary opcode is preserved across decode (frameAvailable) and
- * encode (getBytes).
+ * Tests that:
+ * 1. Text vs Binary opcode is preserved across decode/encode.
+ * 2. Empty-payload WebSocket frames flow through the pipeline.
  */
 public class EncodeHTTPWebSocketOpCodeTest {
 
@@ -98,6 +100,92 @@ public class EncodeHTTPWebSocketOpCodeTest {
 		WebSocketFrame bin = WebSocketFrame.parse(binaryFrameOneByte());
 		assertEquals(OpCode.Binary, bin.getOpcode());
 		assertArrayEquals(binaryFrameOneByte(), WebSocketFrame.of(bin.getOpcode(), bin.getPayload(), false).getBytes());
+	}
+
+	/** Unmasked FIN+Text frame, zero-length payload. */
+	private static byte[] textFrameEmptyPayload() {
+		return new byte[]{FIN_TEXT, 0x00};
+	}
+
+	/** Unmasked FIN+Binary frame, zero-length payload. */
+	private static byte[] binaryFrameEmptyPayload() {
+		return new byte[]{FIN_BINARY, 0x00};
+	}
+
+	@Test
+	public void emptyPayloadTextFrameQueuesForDecode() throws Exception {
+		WebSocket ws = new WebSocket();
+		ws.frameArrived(textFrameEmptyPayload());
+		assertArrayEquals(new byte[0], ws.passThroughFrame());
+		assertArrayEquals(new byte[0], ws.frameAvailable());
+	}
+
+	@Test
+	public void emptyPayloadBinaryFrameQueuesForDecode() throws Exception {
+		WebSocket ws = new WebSocket();
+		ws.frameArrived(binaryFrameEmptyPayload());
+		assertArrayEquals(new byte[0], ws.passThroughFrame());
+		assertArrayEquals(new byte[0], ws.frameAvailable());
+	}
+
+	@Test
+	public void decodeClientRequestReturnsPlaceholderForEmptyPayload() throws Exception {
+		TestEncoder encoder = new TestEncoder();
+		encoder.setBinaryStart(true);
+		byte[] decoded = encoder.decodeClientRequest(new byte[0]);
+		assertArrayEquals(EncodeHTTPWebSocket.EMPTY_PAYLOAD_PLACEHOLDER, decoded);
+	}
+
+	@Test
+	public void decodeServerResponseReturnsPlaceholderForEmptyPayload() throws Exception {
+		TestEncoder encoder = new TestEncoder();
+		encoder.setBinaryStart(true);
+		byte[] decoded = encoder.decodeServerResponse(new byte[0]);
+		assertArrayEquals(EncodeHTTPWebSocket.EMPTY_PAYLOAD_PLACEHOLDER, decoded);
+	}
+
+	@Test
+	public void emptyPayloadClientRequestRoundTrip() throws Exception {
+		TestEncoder encoder = new TestEncoder();
+		encoder.setBinaryStart(true);
+		encoder.clientWebSocket.frameArrived(textFrameEmptyPayload());
+		encoder.clientWebSocket.passThroughFrame();
+		byte[] payload = encoder.clientRequestAvailable();
+		assertNotNull(payload);
+		assertArrayEquals(EncodeHTTPWebSocket.EMPTY_PAYLOAD_PLACEHOLDER, payload);
+		byte[] decoded = encoder.decodeClientRequest(payload);
+		byte[] wire = encoder.encodeClientRequest(decoded);
+		// lastDequeuedOpCode preserves Text from the original frame
+		assertEquals(FIN_TEXT, wire[0]);
+		assertEquals(0, wire[1] & 0x7F);
+	}
+
+	@Test
+	public void emptyPayloadServerResponseRoundTrip() throws Exception {
+		TestEncoder encoder = new TestEncoder();
+		encoder.setBinaryStart(true);
+		encoder.serverWebSocket.frameArrived(binaryFrameEmptyPayload());
+		encoder.serverWebSocket.passThroughFrame();
+		byte[] payload = encoder.serverResponseAvailable();
+		assertNotNull(payload);
+		assertArrayEquals(EncodeHTTPWebSocket.EMPTY_PAYLOAD_PLACEHOLDER, payload);
+		byte[] decoded = encoder.decodeServerResponse(payload);
+		byte[] wire = encoder.encodeServerResponse(decoded);
+		assertArrayEquals(binaryFrameEmptyPayload(), wire);
+	}
+
+	@Test
+	public void editedPlaceholderClientRequestSendsNewContent() throws Exception {
+		TestEncoder encoder = new TestEncoder();
+		encoder.setBinaryStart(true);
+		encoder.clientWebSocket.frameArrived(textFrameEmptyPayload());
+		encoder.clientWebSocket.passThroughFrame();
+		encoder.clientRequestAvailable();
+		byte[] userEdited = "hello".getBytes(StandardCharsets.UTF_8);
+		byte[] wire = encoder.encodeClientRequest(userEdited);
+		// lastDequeuedOpCode preserves Text from the original frame
+		assertEquals(FIN_TEXT, wire[0]);
+		assertEquals((byte) (0x80 | 5), wire[1]);
 	}
 
 	private static final class TestEncoder extends EncodeHTTPWebSocket {
