@@ -142,7 +142,7 @@ public class EncodeHTTPWebSocket extends Encoder {
 		if (binary_start) {
 
 			byte[] payload = encodeWebsocketResponse(input);
-			WebSocketFrame frame = WebSocketFrame.of(payload, false);
+			WebSocketFrame frame = WebSocketFrame.of(serverWebSocket.lastDequeuedOpCode(), payload, false);
 			return frame.getBytes();
 		} else {
 
@@ -170,7 +170,7 @@ public class EncodeHTTPWebSocket extends Encoder {
 		if (binary_start) {
 
 			byte[] payload = encodeWebsocketRequest(input);
-			WebSocketFrame frame = WebSocketFrame.of(payload, true);
+			WebSocketFrame frame = WebSocketFrame.of(clientWebSocket.lastDequeuedOpCode(), payload, true);
 			return frame.getBytes();
 		} else {
 
