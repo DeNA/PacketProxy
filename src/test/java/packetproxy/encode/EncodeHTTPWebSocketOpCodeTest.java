@@ -17,6 +17,7 @@ package packetproxy.encode;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.nio.charset.StandardCharsets;
@@ -26,23 +27,51 @@ import packetproxy.websocket.WebSocket;
 import packetproxy.websocket.WebSocketFrame;
 
 /**
- * Tests that:
- * 1. Text vs Binary opcode is preserved across decode/encode.
- * 2. Empty-payload WebSocket frames flow through the pipeline.
+ * Tests that: 1. Text vs Binary opcode is preserved across decode/encode. 2.
+ * Empty-payload WebSocket frames flow through the pipeline.
  */
 public class EncodeHTTPWebSocketOpCodeTest {
 
-	private static final byte FIN_TEXT = (byte) 0x81;
-	private static final byte FIN_BINARY = (byte) 0x82;
+	/** RFC 6455 frame byte 0: FIN (bit 7). */
+	private static final int WS_FIN_BIT = 0x80;
+
+	/** RFC 6455 frame byte 1: MASK (bit 7) for client-to-server frames. */
+	private static final int WS_MASK_BIT = 0x80;
+
+	/**
+	 * RFC 6455 frame byte 1: bits 0–6 — payload length when that value is 0–125.
+	 */
+	private static final int WS_PAYLOAD_LEN_7BIT_MASK = 0x7F;
+
+	private static byte finFirstByte(OpCode opcode) {
+		return (byte) (WS_FIN_BIT | (opcode.code & 0x0F));
+	}
+
+	private static byte unmaskedPayloadLenByte(int payloadLength) {
+		return (byte) (payloadLength & WS_PAYLOAD_LEN_7BIT_MASK);
+	}
+
+	private static byte maskedPayloadLenByte(int payloadLength) {
+		return (byte) (WS_MASK_BIT | (payloadLength & WS_PAYLOAD_LEN_7BIT_MASK));
+	}
+
+	private static int payloadLen7Bits(byte secondByte) {
+		return secondByte & WS_PAYLOAD_LEN_7BIT_MASK;
+	}
 
 	/** Unmasked FIN+Text frame, payload "hello". */
 	private static byte[] textFrameHello() {
-		return new byte[]{FIN_TEXT, 0x05, 'h', 'e', 'l', 'l', 'o'};
+		byte[] payload = "hello".getBytes(StandardCharsets.UTF_8);
+		byte[] frame = new byte[2 + payload.length];
+		frame[0] = finFirstByte(OpCode.Text);
+		frame[1] = unmaskedPayloadLenByte(payload.length);
+		System.arraycopy(payload, 0, frame, 2, payload.length);
+		return frame;
 	}
 
 	/** Unmasked FIN+Binary frame, single zero byte payload. */
 	private static byte[] binaryFrameOneByte() {
-		return new byte[]{FIN_BINARY, 0x01, 0x00};
+		return new byte[]{finFirstByte(OpCode.Binary), unmaskedPayloadLenByte(1), 0x00};
 	}
 
 	@Test
@@ -68,7 +97,7 @@ public class EncodeHTTPWebSocketOpCodeTest {
 		encoder.clientWebSocket.frameArrived(textFrameHello());
 		byte[] payload = encoder.clientRequestAvailable();
 		byte[] wire = encoder.encodeClientRequest(payload);
-		assertEquals(FIN_TEXT, wire[0]);
+		assertEquals(finFirstByte(OpCode.Text), wire[0]);
 	}
 
 	@Test
@@ -78,7 +107,7 @@ public class EncodeHTTPWebSocketOpCodeTest {
 		encoder.clientWebSocket.frameArrived(binaryFrameOneByte());
 		byte[] payload = encoder.clientRequestAvailable();
 		byte[] wire = encoder.encodeClientRequest(payload);
-		assertEquals(FIN_BINARY, wire[0]);
+		assertEquals(finFirstByte(OpCode.Binary), wire[0]);
 	}
 
 	@Test
@@ -88,7 +117,7 @@ public class EncodeHTTPWebSocketOpCodeTest {
 		encoder.serverWebSocket.frameArrived(textFrameHello());
 		byte[] payload = encoder.serverResponseAvailable();
 		byte[] wire = encoder.encodeServerResponse(payload);
-		assertEquals(FIN_TEXT, wire[0]);
+		assertEquals(finFirstByte(OpCode.Text), wire[0]);
 	}
 
 	@Test
@@ -104,12 +133,12 @@ public class EncodeHTTPWebSocketOpCodeTest {
 
 	/** Unmasked FIN+Text frame, zero-length payload. */
 	private static byte[] textFrameEmptyPayload() {
-		return new byte[]{FIN_TEXT, 0x00};
+		return new byte[]{finFirstByte(OpCode.Text), unmaskedPayloadLenByte(0)};
 	}
 
 	/** Unmasked FIN+Binary frame, zero-length payload. */
 	private static byte[] binaryFrameEmptyPayload() {
-		return new byte[]{FIN_BINARY, 0x00};
+		return new byte[]{finFirstByte(OpCode.Binary), unmaskedPayloadLenByte(0)};
 	}
 
 	@Test
@@ -156,8 +185,8 @@ public class EncodeHTTPWebSocketOpCodeTest {
 		byte[] decoded = encoder.decodeClientRequest(payload);
 		byte[] wire = encoder.encodeClientRequest(decoded);
 		// lastDequeuedOpCode preserves Text from the original frame
-		assertEquals(FIN_TEXT, wire[0]);
-		assertEquals(0, wire[1] & 0x7F);
+		assertEquals(finFirstByte(OpCode.Text), wire[0]);
+		assertEquals(0, payloadLen7Bits(wire[1]));
 	}
 
 	@Test
@@ -184,8 +213,36 @@ public class EncodeHTTPWebSocketOpCodeTest {
 		byte[] userEdited = "hello".getBytes(StandardCharsets.UTF_8);
 		byte[] wire = encoder.encodeClientRequest(userEdited);
 		// lastDequeuedOpCode preserves Text from the original frame
-		assertEquals(FIN_TEXT, wire[0]);
-		assertEquals((byte) (0x80 | 5), wire[1]);
+		assertEquals(finFirstByte(OpCode.Text), wire[0]);
+		assertEquals(maskedPayloadLenByte(userEdited.length), wire[1]);
+	}
+
+	/**
+	 * If the literal placeholder bytes are sent as payload without having come from
+	 * an empty frame, encode must not collapse them to a zero-length payload.
+	 */
+	@Test
+	public void placeholderPayloadWithoutEmptyFrameFlagIsNotCollapsedToEmpty() throws Exception {
+		TestEncoder encoder = new TestEncoder();
+		encoder.setBinaryStart(true);
+		encoder.clientWebSocket.frameArrived(textFrameHello());
+		encoder.clientWebSocket.passThroughFrame();
+		encoder.clientRequestAvailable();
+		byte[] wire = encoder.encodeClientRequest(EncodeHTTPWebSocket.EMPTY_PAYLOAD_PLACEHOLDER);
+		assertEquals(finFirstByte(OpCode.Text), wire[0]);
+		assertNotEquals(0, payloadLen7Bits(wire[1]));
+	}
+
+	@Test
+	public void placeholderServerPayloadWithoutEmptyFrameFlagIsNotCollapsedToEmpty() throws Exception {
+		TestEncoder encoder = new TestEncoder();
+		encoder.setBinaryStart(true);
+		encoder.serverWebSocket.frameArrived(textFrameHello());
+		encoder.serverWebSocket.passThroughFrame();
+		encoder.serverResponseAvailable();
+		byte[] wire = encoder.encodeServerResponse(EncodeHTTPWebSocket.EMPTY_PAYLOAD_PLACEHOLDER);
+		assertEquals(finFirstByte(OpCode.Text), wire[0]);
+		assertEquals(EncodeHTTPWebSocket.EMPTY_PAYLOAD_PLACEHOLDER.length, payloadLen7Bits(wire[1]));
 	}
 
 	private static final class TestEncoder extends EncodeHTTPWebSocket {
