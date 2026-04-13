@@ -31,10 +31,6 @@ public class EncodeHTTPWebSocket extends Encoder {
 	 */
 	static final byte[] EMPTY_PAYLOAD_PLACEHOLDER = "(empty WebSocket frame)".getBytes(StandardCharsets.UTF_8);
 
-	private static boolean isEmptyPlaceholder(byte[] data) {
-		return Arrays.equals(data, EMPTY_PAYLOAD_PLACEHOLDER);
-	}
-
 	protected boolean binary_start = false;
 	WebSocket clientWebSocket = new WebSocket();
 	WebSocket serverWebSocket = new WebSocket();
@@ -169,7 +165,7 @@ public class EncodeHTTPWebSocket extends Encoder {
 	public byte[] encodeServerResponse(byte[] input) throws Exception {
 		if (binary_start) {
 
-			boolean emptyPlaceholder = isEmptyPlaceholder(input);
+			boolean emptyPlaceholder = Arrays.equals(input, EMPTY_PAYLOAD_PLACEHOLDER);
 			byte[] payload = emptyPlaceholder ? new byte[0] : encodeWebsocketResponse(input);
 			WebSocketFrame frame = WebSocketFrame.of(serverWebSocket.lastDequeuedOpCode(), payload, false);
 			return frame.getBytes();
@@ -200,7 +196,7 @@ public class EncodeHTTPWebSocket extends Encoder {
 	public byte[] encodeClientRequest(byte[] input) throws Exception {
 		if (binary_start) {
 
-			boolean emptyPlaceholder = isEmptyPlaceholder(input);
+			boolean emptyPlaceholder = Arrays.equals(input, EMPTY_PAYLOAD_PLACEHOLDER);
 			byte[] payload = emptyPlaceholder ? new byte[0] : encodeWebsocketRequest(input);
 			WebSocketFrame frame = WebSocketFrame.of(clientWebSocket.lastDequeuedOpCode(), payload, true);
 			return frame.getBytes();
