@@ -30,6 +30,7 @@ public class JWTVulChecker extends VulChecker {
 		return ImmutableList.<Generator>builder().add(new JWTPayloadModifiedGenerator())
 				.add(new JWTHeaderModifiedGenerator()).add(new JWTHeaderAlgNoneGenerator())
 				.add(new JWTHeaderJKUModifiedGenerator()).add(new JWTHeaderJWKGenerator())
+				.add(new JWTHeaderJKUModifiedByAtmarkGenerator()).add(new JWTHeaderJWKGenerator())
 				.add(new JWTHeaderRS256toHS256Generator()).add(new JWTHeaderAddSpecifiedJKUGenerator())
 				.add(new JWTSignWithAppleOtherTokenGenerator()).build();
 	}
