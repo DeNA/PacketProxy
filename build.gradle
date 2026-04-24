@@ -51,6 +51,7 @@ dependencies {
   implementation 'com.j256.ormlite:ormlite-core:4.48'
   implementation 'com.j256.ormlite:ormlite-jdbc:4.48'
   implementation 'com.google.protobuf:protobuf-java:4.31.1'
+  implementation 'com.google.protobuf:protobuf-java-util:4.31.1'
   implementation 'org.slf4j:slf4j-api:2.0.9'
   implementation 'org.slf4j:slf4j-log4j12:1.7.25'
   implementation 'org.jline:jline:3.25.1'
