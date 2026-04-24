@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package pp.multidir;
+
+import "common.proto";
+
+service ServiceA {
+  rpc Call(Shared) returns (Shared);
+}
