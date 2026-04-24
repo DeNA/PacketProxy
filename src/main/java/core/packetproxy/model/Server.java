@@ -54,6 +54,9 @@ public class Server {
 	@DatabaseField
 	private String comment;
 
+	@DatabaseField(columnName = "descriptor_path")
+	private String descriptorPath;
+
 	private boolean specifiedByHostName;
 
 	public Server() {
@@ -79,6 +82,7 @@ public class Server {
 		this.resolved_by_dns6 = resolved_by_dns6;
 		this.http_proxy = http_proxy;
 		this.comment = comment;
+		this.descriptorPath = null;
 		this.specifiedByHostName = isHostName(ip);
 	}
 
@@ -188,6 +192,14 @@ public class Server {
 
 	public void setComment(String comment) {
 		this.comment = comment;
+	}
+
+	public String getDescriptorPath() {
+		return descriptorPath;
+	}
+
+	public void setDescriptorPath(String descriptorPath) {
+		this.descriptorPath = descriptorPath;
 	}
 
 	public List<InetAddress> getIps() {
