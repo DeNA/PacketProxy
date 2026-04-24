@@ -164,7 +164,8 @@ public class SinglePacketAttackController {
 	}
 
 	private static List<Frame> convertPacketToFrames(final OneShotPacket packet) throws Exception {
-		final var encoder = EncoderManager.getInstance().createInstance(packet.getEncoder(), packet.getAlpn());
+		final var encoder = EncoderManager.getInstance().createInstance(packet.getEncoder(), packet.getAlpn(),
+				packet.getServer());
 
 		if (encoder == null) {
 			throw new IllegalStateException("Could not create encoder for target packet");

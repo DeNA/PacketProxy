@@ -182,7 +182,8 @@ public class ResendController {
 			public DataToBeSend(OneShotPacket oneshot, Consumer<OneShotPacket> onReceived) throws Exception {
 				this.oneshot = oneshot;
 				this.onReceived = onReceived;
-				Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(), oneshot.getAlpn());
+				Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(),
+						oneshot.getAlpn(), oneshot.getServer());
 				if (encoder.useNewConnectionForResend() == false && encoder.useNewEncoderForResend() == false) {
 
 					this.isDirectSend = true;
@@ -251,7 +252,7 @@ public class ResendController {
 
 					/* 100 Continue 対策 */
 					Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(),
-							oneshot.getAlpn());
+							oneshot.getAlpn(), oneshot.getServer());
 					if (encoder instanceof EncodeHTTPBase) {
 
 						EncodeHTTPBase httpEncoder = (EncodeHTTPBase) encoder;
