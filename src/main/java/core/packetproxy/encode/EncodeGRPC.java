@@ -15,31 +15,18 @@
  */
 package packetproxy.encode;
 
-import static packetproxy.util.Logging.errWithStackTrace;
-
 import java.io.File;
 import packetproxy.grpc.GrpcProtoWireFormat;
-import packetproxy.grpc.GrpcServiceRegistry;
-import packetproxy.grpc.GrpcServiceRegistryStore;
 import packetproxy.http.Http;
 import packetproxy.http2.Grpc;
 
 public class EncodeGRPC extends EncodeHTTPBase {
 
-	private volatile GrpcServiceRegistry registry;
+	private volatile GrpcProtoWireFormat wireFormat = GrpcProtoWireFormat.create();
 	private volatile String lastGrpcPath;
 
 	public synchronized void setDescriptorFile(File descFile) {
-		if (descFile == null || !descFile.isFile()) {
-			this.registry = null;
-			return;
-		}
-		try {
-			this.registry = GrpcServiceRegistryStore.getInstance().get(descFile);
-		} catch (Exception e) {
-			this.registry = null;
-			errWithStackTrace(e);
-		}
+		this.wireFormat = GrpcProtoWireFormat.create(descFile);
 	}
 
 	public EncodeGRPC() throws Exception {
@@ -59,7 +46,7 @@ public class EncodeGRPC extends EncodeHTTPBase {
 	protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
 		lastGrpcPath = inputHttp.getPath();
 		byte[] raw = inputHttp.getBody();
-		inputHttp.setBody(GrpcProtoWireFormat.decodeGrpcHttpBodyToUtf8(raw, registry, true, lastGrpcPath, null));
+		inputHttp.setBody(wireFormat.decodeBody(raw, true, lastGrpcPath, null));
 		return inputHttp;
 	}
 
@@ -67,7 +54,7 @@ public class EncodeGRPC extends EncodeHTTPBase {
 	protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
 		lastGrpcPath = inputHttp.getPath();
 		byte[] body = inputHttp.getBody();
-		inputHttp.setBody(GrpcProtoWireFormat.encodeClientRequestHttpBody(body, registry, lastGrpcPath));
+		inputHttp.setBody(wireFormat.encodeRequestBody(body, lastGrpcPath));
 		return inputHttp;
 	}
 
@@ -77,7 +64,7 @@ public class EncodeGRPC extends EncodeHTTPBase {
 		if (raw.length == 0) {
 			return inputHttp;
 		}
-		inputHttp.setBody(GrpcProtoWireFormat.decodeGrpcHttpBodyToUtf8(raw, registry, false, null, lastGrpcPath));
+		inputHttp.setBody(wireFormat.decodeBody(raw, false, null, lastGrpcPath));
 		return inputHttp;
 	}
 
@@ -87,7 +74,7 @@ public class EncodeGRPC extends EncodeHTTPBase {
 		if (body.length == 0) {
 			return inputHttp;
 		}
-		inputHttp.setBody(GrpcProtoWireFormat.encodeServerResponseHttpBody(body, registry, lastGrpcPath));
+		inputHttp.setBody(wireFormat.encodeResponseBody(body, lastGrpcPath));
 		return inputHttp;
 	}
 

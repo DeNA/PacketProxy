@@ -16,9 +16,12 @@
 package packetproxy.grpc
 
 import java.io.File
-import org.junit.jupiter.api.AfterEach
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class GrpcServiceRegistryStoreTest {
@@ -29,24 +32,43 @@ class GrpcServiceRegistryStoreTest {
     return File(u.toURI())
   }
 
-  @AfterEach
-  fun tearDown() {
-    GrpcServiceRegistryStore.getInstance().invalidateAll()
-  }
-
-  @Test
-  fun getCachesByCanonicalPath() {
-    val store = GrpcServiceRegistryStore.getInstance()
-    val f = resource("proto/testsvc.desc")
-    val a = store.get(f)
-    val b = store.get(f)
-    assertSame(a, b)
-    store.invalidate(f)
-  }
+  private val store: GrpcServiceRegistryStore
+    get() = GrpcServiceRegistryStore.getInstance()
 
   @Test
   fun get_missingFile_throws() {
-    val store = GrpcServiceRegistryStore.getInstance()
-    assertThrows(Exception::class.java) { store.get(File("/nonexistent/does-not-exist.desc")) }
+    assertThrows(Exception::class.java) { store.get(File("/nonexistent/path.desc")) }
+  }
+
+  @Test
+  fun get_invalidBytes_throws() {
+    val tmp = Files.createTempFile("bad", ".desc").toFile()
+    Files.writeString(tmp.toPath(), "not-a-protobuf-descriptor", StandardCharsets.UTF_8)
+    assertThrows(Exception::class.java) { store.get(tmp) }
+  }
+
+  @Test
+  fun get_withIncludeImports_ok_and_cacheReturnsSameInstance() {
+    val f = resource("proto/multidir/multi.desc")
+    val reg1 = store.get(f)
+    assertFalse(reg1.getServiceMethodEntries().isEmpty())
+    val reg2 = store.get(f)
+    assertSame(reg1, reg2)
+  }
+
+  // multi_without_imports.desc was built without --include_imports, so transitive deps are missing.
+  // loadAndBuild must detect this and throw rather than silently producing an incomplete registry.
+  @Test
+  fun get_withoutIncludeImports_throws() {
+    val f = resource("proto/multidir/multi_without_imports.desc")
+    assertThrows(IllegalStateException::class.java) { store.get(f) }
+  }
+
+  @Test
+  fun get_testsvc_containsGreeterService() {
+    val f = resource("proto/testsvc.desc")
+    val reg = store.get(f)
+    val entries = reg.getServiceMethodEntries()
+    assertTrue(entries.any { it.first == "pp.testsvc.Greeter" && it.second == "SayHello" })
   }
 }

@@ -29,22 +29,18 @@ class GrpcProtoWireFormatTest {
     return File(u.toURI())
   }
 
-  private fun registry(): GrpcServiceRegistry =
-    GrpcServiceRegistry(DescriptorSetLoader.loadAndBuild(resource("proto/testsvc.desc")))
+  private fun wireFormat(): GrpcProtoWireFormat =
+    GrpcProtoWireFormat.create(resource("proto/testsvc.desc"))
 
   @Test
   fun decodeThenEncode_request_roundtrip() {
-    val reg = registry()
+    val wireFormat = wireFormat()
     val grpcPath = "/pp.testsvc.Greeter/SayHello"
     val json = "{\n  \"name\": \"Alice\"\n}"
     val encodedOnce =
-      GrpcProtoWireFormat.encodeClientRequestHttpBody(
-        json.toByteArray(StandardCharsets.UTF_8),
-        reg,
-        grpcPath,
-      )
-    val utf8 = GrpcProtoWireFormat.decodeGrpcHttpBodyToUtf8(encodedOnce, reg, true, grpcPath, null)
-    val encodedTwice = GrpcProtoWireFormat.encodeClientRequestHttpBody(utf8, reg, grpcPath)
+      wireFormat.encodeRequestBody(json.toByteArray(StandardCharsets.UTF_8), grpcPath)
+    val utf8 = wireFormat.decodeBody(encodedOnce, true, grpcPath, null)
+    val encodedTwice = wireFormat.encodeRequestBody(utf8, grpcPath)
     val decoded = String(utf8, StandardCharsets.UTF_8)
     assertTrue(decoded.contains("\"name\""))
     assertTrue(decoded.contains("Alice"))
@@ -53,18 +49,13 @@ class GrpcProtoWireFormatTest {
 
   @Test
   fun decodeThenEncode_response_roundtrip() {
-    val reg = registry()
+    val wireFormat = wireFormat()
     val lastRequestPath = "/pp.testsvc.Greeter/SayHello"
     val json = "{\n  \"message\": \"Hello\"\n}"
     val encodedOnce =
-      GrpcProtoWireFormat.encodeServerResponseHttpBody(
-        json.toByteArray(StandardCharsets.UTF_8),
-        reg,
-        lastRequestPath,
-      )
-    val utf8 =
-      GrpcProtoWireFormat.decodeGrpcHttpBodyToUtf8(encodedOnce, reg, false, null, lastRequestPath)
-    val encodedTwice = GrpcProtoWireFormat.encodeServerResponseHttpBody(utf8, reg, lastRequestPath)
+      wireFormat.encodeResponseBody(json.toByteArray(StandardCharsets.UTF_8), lastRequestPath)
+    val utf8 = wireFormat.decodeBody(encodedOnce, false, null, lastRequestPath)
+    val encodedTwice = wireFormat.encodeResponseBody(utf8, lastRequestPath)
     val decoded = String(utf8, StandardCharsets.UTF_8)
     assertTrue(decoded.contains("message") || decoded.contains("Hello"))
     assertArrayEquals(encodedOnce, encodedTwice)

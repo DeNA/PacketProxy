@@ -15,7 +15,14 @@
  */
 package packetproxy.grpc
 
+import com.google.protobuf.DescriptorProtos.FileDescriptorSet
+import com.google.protobuf.Descriptors.DescriptorValidationException
+import com.google.protobuf.Descriptors.FileDescriptor
 import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.util.ArrayList
+import java.util.HashMap
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -38,10 +45,33 @@ class GrpcServiceRegistryStore private constructor() {
       cache[key]?.let {
         return it
       }
-      val hit = GrpcServiceRegistry(DescriptorSetLoader.loadAndBuild(descFile))
+      val hit = GrpcServiceRegistry(loadAndBuild(descFile))
       cache[key] = hit
       return hit
     }
+  }
+
+  @Throws(IOException::class, DescriptorValidationException::class, IllegalStateException::class)
+  private fun loadAndBuild(descFile: File): List<FileDescriptor> {
+    val bytes = Files.readAllBytes(descFile.toPath())
+    val fds = FileDescriptorSet.parseFrom(bytes)
+    val known = HashMap<String, FileDescriptor>()
+    val ordered = ArrayList<FileDescriptor>()
+    for (fdp in fds.fileList) {
+      val deps =
+        Array(fdp.dependencyCount) { i ->
+          val depName = fdp.getDependency(i)
+          known[depName]
+            ?: throw IllegalStateException(
+              "Missing dependency '$depName' while building '${fdp.name}'. " +
+                "Re-generate with: protoc --include_imports --descriptor_set_out=out.desc -I... your.proto"
+            )
+        }
+      val built = FileDescriptor.buildFrom(fdp, deps)
+      ordered.add(built)
+      known[built.name] = built
+    }
+    return ordered
   }
 
   fun invalidate(descFile: File?) {
