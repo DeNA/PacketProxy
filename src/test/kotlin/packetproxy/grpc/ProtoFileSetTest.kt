@@ -40,7 +40,7 @@ class ProtoFileSetTest {
   @Test
   fun addFile_deduplicatesByCanonicalPath() {
     val set = ProtoFileSet()
-    val f = resource("/proto/testsvc.proto")
+    val f = resource("proto/testsvc.proto")
     assertTrue(set.addFile(f))
     assertFalse(set.addFile(f))
     assertEquals(1, set.list().size)
@@ -49,8 +49,8 @@ class ProtoFileSetTest {
   @Test
   fun includePaths_uniqueParents() {
     val set = ProtoFileSet()
-    set.addFile(resource("/proto/testsvc.proto"))
-    set.addFile(resource("/proto/multidir/common.proto"))
+    set.addFile(resource("proto/testsvc.proto"))
+    set.addFile(resource("proto/multidir/common.proto"))
     val inc = set.includePaths()
     assertEquals(2, inc.size)
   }
@@ -58,7 +58,7 @@ class ProtoFileSetTest {
   @Test
   fun addDirectoryShallow_nonRecursive() {
     val set = ProtoFileSet()
-    val n = set.addDirectoryShallow(resource("/proto/testsvc.proto").parentFile)
+    val n = set.addDirectoryShallow(resource("proto/testsvc.proto").parentFile)
     assertTrue(n >= 1)
   }
 }

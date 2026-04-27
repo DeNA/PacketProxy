@@ -37,7 +37,7 @@ class GrpcServiceRegistryStoreTest {
   @Test
   fun getCachesByCanonicalPath() {
     val store = GrpcServiceRegistryStore.getInstance()
-    val f = resource("/proto/testsvc.desc")
+    val f = resource("proto/testsvc.desc")
     val a = store.get(f)
     val b = store.get(f)
     assertSame(a, b)

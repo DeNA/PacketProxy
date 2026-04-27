@@ -30,7 +30,7 @@ class GrpcProtoWireFormatTest {
   }
 
   private fun registry(): GrpcServiceRegistry =
-    GrpcServiceRegistry(DescriptorSetLoader.loadAndBuild(resource("/proto/testsvc.desc")))
+    GrpcServiceRegistry(DescriptorSetLoader.loadAndBuild(resource("proto/testsvc.desc")))
 
   @Test
   fun decodeThenEncode_request_roundtrip() {

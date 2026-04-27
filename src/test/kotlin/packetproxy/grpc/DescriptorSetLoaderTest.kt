@@ -47,7 +47,7 @@ class DescriptorSetLoaderTest {
 
   @Test
   fun loadAndBuild_withIncludeImports_ok() {
-    val f = resource("/proto/multidir/multi.desc")
+    val f = resource("proto/multidir/multi.desc")
     val list = DescriptorSetLoader.loadAndBuild(f)
     assertFalse(list.isEmpty())
   }
@@ -56,13 +56,13 @@ class DescriptorSetLoaderTest {
   // loadAndBuild must detect this and throw rather than silently producing an incomplete registry.
   @Test
   fun loadAndBuild_withoutIncludeImports_throws() {
-    val f = resource("/proto/multidir/multi_without_imports.desc")
+    val f = resource("proto/multidir/multi_without_imports.desc")
     assertThrows(IllegalStateException::class.java) { DescriptorSetLoader.loadAndBuild(f) }
   }
 
   @Test
   fun loadAndBuild_testsvc_containsGreeterService() {
-    val f = resource("/proto/testsvc.desc")
+    val f = resource("proto/testsvc.desc")
     val list = DescriptorSetLoader.loadAndBuild(f)
     assertTrue(list.any { it.findServiceByName("Greeter") != null })
   }

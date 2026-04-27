@@ -31,7 +31,7 @@ class GrpcServiceRegistryTest {
 
   @Test
   fun mapsGrpcPathToInputOutput() {
-    val reg = GrpcServiceRegistry(DescriptorSetLoader.loadAndBuild(resource("/proto/testsvc.desc")))
+    val reg = GrpcServiceRegistry(DescriptorSetLoader.loadAndBuild(resource("proto/testsvc.desc")))
     val input = reg.getInputType("/pp.testsvc.Greeter/SayHello")
     val output = reg.getOutputType("/pp.testsvc.Greeter/SayHello")
     assertNotNull(input)
@@ -43,7 +43,7 @@ class GrpcServiceRegistryTest {
 
   @Test
   fun findMessageByName_nestedIndexing() {
-    val reg = GrpcServiceRegistry(DescriptorSetLoader.loadAndBuild(resource("/proto/testsvc.desc")))
+    val reg = GrpcServiceRegistry(DescriptorSetLoader.loadAndBuild(resource("proto/testsvc.desc")))
     assertNotNull(reg.findMessageByName("pp.testsvc.HelloRequest"))
   }
 }

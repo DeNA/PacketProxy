@@ -1,0 +1,13 @@
+
+;
+common.protopp.multidir"
+Shared
+x (	Rxbproto3
+n
+svc_a.protopp.multidircommon.proto2<
+ServiceA0
+Call.pp.multidir.Shared.pp.multidir.Sharedbproto3
+n
+svc_b.protopp.multidircommon.proto2<
+ServiceB0
+Ping.pp.multidir.Shared.pp.multidir.Sharedbproto3
