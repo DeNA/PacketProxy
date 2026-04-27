@@ -2,14 +2,58 @@ syntax = "proto3";
 
 package pp.testsvc;
 
+enum Priority {
+  PRIORITY_UNSPECIFIED = 0;
+  PRIORITY_LOW = 1;
+  PRIORITY_MEDIUM = 2;
+  PRIORITY_HIGH = 3;
+}
+
 message HelloRequest {
   string name = 1;
+  int32 age = 2;
+  Priority priority = 3;
+  repeated string tags = 4;
+  map<string, string> metadata = 5;
+  Metadata request_meta = 6;
+
+  message Metadata {
+    string trace_id = 1;
+    int64 timestamp_ms = 2;
+    bool debug = 3;
+  }
 }
 
 message HelloReply {
   string message = 1;
+  int32 code = 2;
+  bytes payload = 3;
+
+  oneof result {
+    string success_detail = 4;
+    ErrorInfo error = 5;
+  }
+
+  message ErrorInfo {
+    int32 error_code = 1;
+    string description = 2;
+  }
+}
+
+message StreamMessage {
+  int64 sequence = 1;
+  bytes data = 2;
+  Priority priority = 3;
+}
+
+message Summary {
+  int32 total_count = 1;
+  repeated string received_names = 2;
 }
 
 service Greeter {
   rpc SayHello(HelloRequest) returns (HelloReply);
+  rpc SayHelloServerStream(HelloRequest) returns (stream StreamMessage);
+  rpc SayHelloClientStream(stream StreamMessage) returns (Summary);
+  rpc SayHelloBidiStream(stream StreamMessage) returns (stream StreamMessage);
 }

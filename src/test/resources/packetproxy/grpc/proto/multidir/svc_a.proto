@@ -4,6 +4,29 @@ package pp.multidir;
 
 import "common.proto";
 
+message CreateRequest {
+  Shared resource = 1;
+  map<string, string> options = 2;
+  bool dry_run = 3;
+}
+
+message CreateResponse {
+  Shared created = 1;
+  Timestamp created_at = 2;
+}
+
+message ListRequest {
+  Pagination pagination = 1;
+  Status filter_status = 2;
+}
+
+message ListResponse {
+  repeated Shared items = 1;
+  int32 total_count = 2;
+}
+
 service ServiceA {
   rpc Call(Shared) returns (Shared);
+  rpc Create(CreateRequest) returns (CreateResponse);
+  rpc List(ListRequest) returns (ListResponse);
 }
