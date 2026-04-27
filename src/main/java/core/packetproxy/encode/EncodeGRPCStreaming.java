@@ -41,8 +41,8 @@ import packetproxy.util.Logging;
 // gRPCでデータフレーム1つずつをメッセージと解釈して送受信するエンコーダ
 public class EncodeGRPCStreaming extends EncodeHTTPBase {
 
-	private static final JsonFormat.Printer JSON_PRINTER =
-		JsonFormat.printer().preservingProtoFieldNames().alwaysPrintFieldsWithNoPresence();
+	private static final JsonFormat.Printer JSON_PRINTER = JsonFormat.printer().preservingProtoFieldNames()
+			.alwaysPrintFieldsWithNoPresence();
 	private static final JsonFormat.Parser JSON_PARSER = JsonFormat.parser().ignoringUnknownFields();
 
 	private byte compressedFlag;
