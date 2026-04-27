@@ -59,6 +59,22 @@ class GrpcServiceRegistry(fileDescriptors: List<FileDescriptor>) {
     return messageByFullName[fullName]
   }
 
+  /**
+   * gRPC `:path` keys (`/full.ServiceName/MethodName`) as service + method pairs for UI listing.
+   */
+  fun getServiceMethodEntries(): List<Pair<String, String>> {
+    return inputByPath.keys
+      .map { grpcPath ->
+        val withoutLeading = grpcPath.removePrefix("/")
+        val idx = withoutLeading.lastIndexOf('/')
+        check(idx >= 0) { "invalid grpc path: $grpcPath" }
+        val service = withoutLeading.substring(0, idx)
+        val method = withoutLeading.substring(idx + 1)
+        Pair(service, method)
+      }
+      .sortedWith(compareBy({ it.first }, { it.second }))
+  }
+
   companion object {
     private fun indexMessages(types: Iterable<Descriptor>, out: MutableMap<String, Descriptor>) {
       for (d in types) {

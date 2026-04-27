@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets
 import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 import org.apache.commons.io.IOUtils
+import packetproxy.model.Database
 
 /**
  * Runs the `protoc` binary from `PATH` to emit a
@@ -58,7 +59,8 @@ class ProtocRunner private constructor() {
 
     /**
      * Allocates an output path under `~/.packetproxy/grpc_desc/` and runs `protoc`. The file name
-     * encodes the optional [serverId] so callers can correlate the output with a server entry.
+     * is `{projectName}_{serverId}.desc` (or `{projectName}_unsaved.desc` when [serverId] is null)
+     * so re-generation overwrites the same file instead of accumulating timestamped `*.desc` files.
      */
     @JvmStatic
     @Throws(Exception::class)
@@ -66,8 +68,14 @@ class ProtocRunner private constructor() {
       if (!DEFAULT_DESC_DIR.exists() && !DEFAULT_DESC_DIR.mkdirs()) {
         throw IllegalStateException("Cannot create directory: ${DEFAULT_DESC_DIR.absolutePath}")
       }
-      val ts = System.currentTimeMillis()
-      val name = if (serverId != null) "server_${serverId}_$ts.desc" else "new_$ts.desc"
+      val projectName =
+        Database.getInstance().getDatabasePath().fileName.toString().removeSuffix(".sqlite3")
+      val name =
+        if (serverId != null) {
+          "${projectName}_${serverId}.desc"
+        } else {
+          "${projectName}_unsaved.desc"
+        }
       return run(protos, includes, File(DEFAULT_DESC_DIR, name))
     }
 
