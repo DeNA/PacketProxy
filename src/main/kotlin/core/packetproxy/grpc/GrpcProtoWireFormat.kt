@@ -15,9 +15,6 @@
  */
 package packetproxy.grpc
 
-import packetproxy.common.Protobuf3
-import packetproxy.common.Utils
-
 import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.core.JsonToken
 import com.google.protobuf.Descriptors.Descriptor
@@ -30,6 +27,8 @@ import java.util.ArrayList
 import java.util.Arrays
 import java.util.Collections
 import org.apache.commons.lang3.ArrayUtils
+import packetproxy.common.Protobuf3
+import packetproxy.common.Utils
 
 /**
  * gRPC length-prefixed bodies to/from UTF-8 JSON using a [GrpcServiceRegistry], with schema-less
