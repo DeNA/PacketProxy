@@ -41,9 +41,9 @@ public class EncodeGRPC extends EncodeHTTPBase {
 
 	private static final JsonFormat.Printer JSON_PRINTER =
 		JsonFormat.printer().preservingProtoFieldNames().alwaysPrintFieldsWithNoPresence();
-
 	private static final JsonFormat.Parser JSON_PARSER = JsonFormat.parser().ignoringUnknownFields();
 
+	private byte compressedFlag;
 	private volatile GrpcServiceRegistry registry;
 	private volatile String lastGrpcPath;
 
@@ -76,16 +76,70 @@ public class EncodeGRPC extends EncodeHTTPBase {
 	@Override
 	protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
 		lastGrpcPath = inputHttp.getPath();
-		Descriptor type = getInputType(lastGrpcPath);
-		inputHttp.setBody(decodeLengthPrefixedBody(inputHttp.getBody(), type));
+		Descriptor type = registry != null ? registry.getInputType(lastGrpcPath) : null;
+		if (type != null) {
+			inputHttp.setBody(decodeSchemaAwareBody(inputHttp.getBody(), type));
+			return inputHttp;
+		}
+		byte[] raw = inputHttp.getBody();
+		ByteArrayOutputStream body = new ByteArrayOutputStream();
+		int pos = 0;
+		while (pos < raw.length) {
+
+			compressedFlag = raw[pos];
+			if (compressedFlag != 0) {
+
+				throw new Exception("gRPC: compressed flag in gRPC message is not supported yet");
+			}
+			pos += 1;
+			int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, pos, pos + 4)).getInt();
+			pos += 4;
+			byte[] grpcMsg = Arrays.copyOfRange(raw, pos, pos + messageLength);
+			byte[] decodedMsg = decodeGrpcClientPayload(grpcMsg);
+			if (body.size() > 0) {
+
+				body.write("\n".getBytes());
+			}
+			body.write(Protobuf3.decode(decodedMsg).getBytes(StandardCharsets.UTF_8));
+			pos += messageLength;
+		}
+		inputHttp.setBody(body.toByteArray());
 		return inputHttp;
 	}
 
 	@Override
 	protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
 		lastGrpcPath = inputHttp.getPath();
-		Descriptor type = getInputType(lastGrpcPath);
-		inputHttp.setBody(encodeLengthPrefixedFromUtf8Json(inputHttp.getBody(), type));
+		Descriptor type = registry != null ? registry.getInputType(lastGrpcPath) : null;
+		if (type != null) {
+			inputHttp.setBody(encodeSchemaAwareBody(inputHttp.getBody(), type));
+			return inputHttp;
+		}
+		byte[] body = inputHttp.getBody();
+		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();
+		int pos = 0;
+		while (pos < body.length) {
+
+			byte[] subBody;
+			int idx;
+			if ((idx = Utils.indexOf(body, pos, body.length, "\n}".getBytes())) > 0) { // split into gRPC messages
+
+				subBody = ArrayUtils.subarray(body, pos, idx + 2);
+				pos = idx + 2;
+			} else {
+
+				subBody = ArrayUtils.subarray(body, pos, body.length);
+				pos = body.length;
+			}
+			String msg = new String(subBody, StandardCharsets.UTF_8);
+			byte[] data = Protobuf3.encode(msg);
+			byte[] encodedData = encodeGrpcClientPayload(data);
+			int encodedDataLen = encodedData.length;
+			rawStream.write((byte) 0); // always compressed flag is zero
+			rawStream.write(ByteBuffer.allocate(4).putInt(encodedDataLen).array());
+			rawStream.write(encodedData);
+		}
+		inputHttp.setBody(rawStream.toByteArray());
 		return inputHttp;
 	}
 
@@ -93,10 +147,36 @@ public class EncodeGRPC extends EncodeHTTPBase {
 	protected Http decodeServerResponseHttp(Http inputHttp) throws Exception {
 		byte[] raw = inputHttp.getBody();
 		if (raw.length == 0) {
+
 			return inputHttp;
 		}
-		Descriptor type = getOutputType(lastGrpcPath);
-		inputHttp.setBody(decodeLengthPrefixedBody(raw, type));
+		Descriptor type = registry != null ? registry.getOutputType(lastGrpcPath) : null;
+		if (type != null) {
+			inputHttp.setBody(decodeSchemaAwareBody(raw, type));
+			return inputHttp;
+		}
+		ByteArrayOutputStream body = new ByteArrayOutputStream();
+		int pos = 0;
+		while (pos < raw.length) {
+
+			compressedFlag = raw[pos];
+			if (compressedFlag != 0) {
+
+				throw new Exception("gRPC: compressed flag in gRPC message is not supported yet");
+			}
+			pos += 1;
+			int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, pos, pos + 4)).getInt();
+			pos += 4;
+			byte[] grpcMsg = Arrays.copyOfRange(raw, pos, pos + messageLength);
+			byte[] decodedMsg = decodeGrpcServerPayload(grpcMsg);
+			if (body.size() > 0) {
+
+				body.write("\n".getBytes());
+			}
+			body.write(Protobuf3.decode(decodedMsg).getBytes(StandardCharsets.UTF_8));
+			pos += messageLength;
+		}
+		inputHttp.setBody(body.toByteArray());
 		return inputHttp;
 	}
 
@@ -104,107 +184,106 @@ public class EncodeGRPC extends EncodeHTTPBase {
 	protected Http encodeServerResponseHttp(Http inputHttp) throws Exception {
 		byte[] body = inputHttp.getBody();
 		if (body.length == 0) {
+
 			return inputHttp;
 		}
-		Descriptor type = getOutputType(lastGrpcPath);
-		inputHttp.setBody(encodeLengthPrefixedFromUtf8Json(body, type));
-		return inputHttp;
-	}
-
-	private Descriptor getInputType(String grpcPath) {
-		if (registry == null) {
-			return null;
-		}
-		return registry.getInputType(grpcPath);
-	}
-
-	private Descriptor getOutputType(String lastRequestGrpcPath) {
-		if (registry == null) {
-			return null;
-		}
-		return registry.getOutputType(lastRequestGrpcPath);
-	}
-
-	private byte[] decodeLengthPrefixedBody(byte[] raw, Descriptor type) throws Exception {
-		if (type == null) {
-			return decodeSchemalessGrpcBody(raw);
-		}
-		ByteArrayOutputStream body = new ByteArrayOutputStream();
-		int pos = 0;
-		while (pos < raw.length) {
-			byte compressedFlag = raw[pos];
-			if (compressedFlag != 0) {
-				throw new Exception("gRPC: compressed flag in gRPC message is not supported yet");
-			}
-			pos += 1;
-			int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, pos, pos + 4)).getInt();
-			pos += 4;
-			byte[] grpcMsg = Arrays.copyOfRange(raw, pos, pos + messageLength);
-			pos += messageLength;
-			if (body.size() > 0) {
-				body.write('\n');
-			}
-			body.write(decodeOnePayloadToUtf8String(grpcMsg, type).getBytes(StandardCharsets.UTF_8));
-		}
-		return body.toByteArray();
-	}
-
-	private byte[] decodeSchemalessGrpcBody(byte[] raw) throws Exception {
-		ByteArrayOutputStream body = new ByteArrayOutputStream();
-		int pos = 0;
-		while (pos < raw.length) {
-			byte compressedFlag = raw[pos];
-			if (compressedFlag != 0) {
-				throw new Exception("gRPC: compressed flag in gRPC message is not supported yet");
-			}
-			pos += 1;
-			int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, pos, pos + 4)).getInt();
-			pos += 4;
-			byte[] grpcMsg = Arrays.copyOfRange(raw, pos, pos + messageLength);
-			pos += messageLength;
-			if (body.size() > 0) {
-				body.write('\n');
-			}
-			body.write(Protobuf3.decode(grpcMsg).getBytes(StandardCharsets.UTF_8));
-		}
-		return body.toByteArray();
-	}
-
-	private String decodeOnePayloadToUtf8String(byte[] payload, Descriptor type) throws Exception {
-		try {
-			DynamicMessage msg = DynamicMessage.parseFrom(type, payload);
-			return JSON_PRINTER.print(msg);
-		} catch (Exception e) {
-			return Protobuf3.decode(payload);
-		}
-	}
-
-	private byte[] encodeLengthPrefixedFromUtf8Json(byte[] body, Descriptor type) throws Exception {
-		if (type == null) {
-			return encodeSchemalessGrpcBody(body);
-		}
-		return encodeBodyFromJsonChunksForSchema(body, type);
-	}
-
-	private byte[] encodeSchemalessGrpcBody(byte[] body) throws Exception {
-		if (body.length == 0) {
-			return body;
+		Descriptor type = registry != null ? registry.getOutputType(lastGrpcPath) : null;
+		if (type != null) {
+			inputHttp.setBody(encodeSchemaAwareBody(body, type));
+			return inputHttp;
 		}
 		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();
 		int pos = 0;
 		while (pos < body.length) {
+
 			byte[] subBody;
-			int idx = Utils.indexOf(body, pos, body.length, "\n}".getBytes(StandardCharsets.UTF_8));
-			if (idx > 0) {
+			int idx;
+			if ((idx = Utils.indexOf(body, pos, body.length, "\n}".getBytes())) > 0) { // split into gRPC messages
+
 				subBody = ArrayUtils.subarray(body, pos, idx + 2);
 				pos = idx + 2;
 			} else {
+
 				subBody = ArrayUtils.subarray(body, pos, body.length);
 				pos = body.length;
 			}
 			String msg = new String(subBody, StandardCharsets.UTF_8);
 			byte[] data = Protobuf3.encode(msg);
-			writeGrpcFrame(rawStream, data);
+			byte[] encodedData = encodeGrpcServerPayload(data);
+			int encodedDataLen = encodedData.length;
+			rawStream.write((byte) 0); // always compressed flag is zero
+			rawStream.write(ByteBuffer.allocate(4).putInt(encodedDataLen).array());
+			rawStream.write(encodedData);
+		}
+		inputHttp.setBody(rawStream.toByteArray());
+		return inputHttp;
+	}
+
+	public byte[] decodeGrpcClientPayload(byte[] payload) throws Exception {
+		return payload;
+	}
+
+	public byte[] encodeGrpcClientPayload(byte[] payload) throws Exception {
+		return payload;
+	}
+
+	public byte[] decodeGrpcServerPayload(byte[] payload) throws Exception {
+		return payload;
+	}
+
+	public byte[] encodeGrpcServerPayload(byte[] payload) throws Exception {
+		return payload;
+	}
+
+	private byte[] decodeSchemaAwareBody(byte[] raw, Descriptor type) throws Exception {
+		ByteArrayOutputStream body = new ByteArrayOutputStream();
+		int pos = 0;
+		while (pos < raw.length) {
+			if (raw[pos] != 0) {
+				throw new Exception("gRPC: compressed flag in gRPC message is not supported yet");
+			}
+			pos += 1;
+			int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, pos, pos + 4)).getInt();
+			pos += 4;
+			byte[] grpcMsg = Arrays.copyOfRange(raw, pos, pos + messageLength);
+			pos += messageLength;
+			if (body.size() > 0) {
+				body.write('\n');
+			}
+			String json;
+			try {
+				json = JSON_PRINTER.print(DynamicMessage.parseFrom(type, grpcMsg));
+			} catch (Exception e) {
+				json = Protobuf3.decode(grpcMsg);
+			}
+			body.write(json.getBytes(StandardCharsets.UTF_8));
+		}
+		return body.toByteArray();
+	}
+
+	private byte[] encodeSchemaAwareBody(byte[] body, Descriptor type) throws Exception {
+		String s = new String(body, StandardCharsets.UTF_8);
+		List<String> objects = splitTopLevelJsonObjects(s);
+		if (objects.isEmpty() && !s.trim().isEmpty()) {
+			objects = Collections.singletonList(s);
+		}
+		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();
+		for (String json : objects) {
+			String trimmed = json.trim();
+			if (trimmed.isEmpty()) {
+				continue;
+			}
+			byte[] data;
+			try {
+				DynamicMessage.Builder builder = DynamicMessage.newBuilder(type);
+				JSON_PARSER.merge(trimmed, builder);
+				data = builder.build().toByteArray();
+			} catch (Exception e) {
+				data = Protobuf3.encode(trimmed);
+			}
+			rawStream.write(0);
+			rawStream.write(ByteBuffer.allocate(4).putInt(data.length).array());
+			rawStream.write(data);
 		}
 		return rawStream.toByteArray();
 	}
@@ -235,39 +314,5 @@ public class EncodeGRPC extends EncodeHTTPBase {
 		} catch (Exception ignored) {
 		}
 		return out;
-	}
-
-	private byte[] encodeBodyFromJsonChunksForSchema(byte[] body, Descriptor type) throws Exception {
-		String s = new String(body, StandardCharsets.UTF_8);
-		List<String> objects = splitTopLevelJsonObjects(s);
-		if (objects.isEmpty() && !s.trim().isEmpty()) {
-			objects = Collections.singletonList(s);
-		}
-		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();
-		for (String json : objects) {
-			String trimmed = json.trim();
-			if (trimmed.isEmpty()) {
-				continue;
-			}
-			byte[] data = encodeOneJsonToBinary(trimmed, type);
-			writeGrpcFrame(rawStream, data);
-		}
-		return rawStream.toByteArray();
-	}
-
-	private byte[] encodeOneJsonToBinary(String json, Descriptor type) throws Exception {
-		try {
-			DynamicMessage.Builder builder = DynamicMessage.newBuilder(type);
-			JSON_PARSER.merge(json, builder);
-			return builder.build().toByteArray();
-		} catch (Exception e) {
-			return Protobuf3.encode(json);
-		}
-	}
-
-	private void writeGrpcFrame(ByteArrayOutputStream rawStream, byte[] payload) throws Exception {
-		rawStream.write(0);
-		rawStream.write(ByteBuffer.allocate(4).putInt(payload.length).array());
-		rawStream.write(payload);
 	}
 }
