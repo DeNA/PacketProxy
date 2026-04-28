@@ -15,73 +15,28 @@
  */
 package packetproxy.encode;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonToken;
 import com.google.protobuf.Descriptors.Descriptor;
-import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.util.JsonFormat;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.common.Protobuf3;
 import packetproxy.common.Utils;
+import packetproxy.grpc.GrpcSchemaResolver;
 import packetproxy.grpc.GrpcServiceRegistry;
-import packetproxy.grpc.GrpcServiceRegistryStore;
 import packetproxy.http.Http;
 import packetproxy.http2.GrpcStreaming;
-import packetproxy.util.Logging;
 
 // gRPCでデータフレーム1つずつをメッセージと解釈して送受信するエンコーダ
 public class EncodeGRPCStreaming extends EncodeHTTPBase {
 
-	private static final JsonFormat.Printer JSON_PRINTER = JsonFormat.printer().preservingProtoFieldNames()
-			.alwaysPrintFieldsWithNoPresence();
-	private static final JsonFormat.Parser JSON_PARSER = JsonFormat.parser().ignoringUnknownFields();
+	private final GrpcSchemaResolver schemaResolver = new GrpcSchemaResolver();
 
 	private byte compressedFlag;
 	private volatile String lastGrpcPath;
 	private final ConcurrentHashMap<Integer, String> grpcPathByStreamId = new ConcurrentHashMap<>();
-	private volatile GrpcServiceRegistry lastResolvedRegistry;
-
-	/** Same-package tests that build HTTP without Servers metadata. */
-	volatile GrpcServiceRegistry registryOverrideForTest;
-
-	private GrpcServiceRegistry resolveRegistry(Http http) {
-		try {
-			if (registryOverrideForTest != null) {
-				return registryOverrideForTest;
-			}
-			String authority = http.getFirstHeader("X-PacketProxy-HTTP2-Host");
-			if (authority.isEmpty()) {
-				authority = http.getFirstHeader("x-packetproxy-http3-host");
-			}
-			if (authority.isEmpty()) {
-				String host = http.getHost();
-				if (host != null && !host.isEmpty()) {
-					authority = host;
-				}
-			}
-			return GrpcServiceRegistryStore.getInstance().getByAuthority(authority);
-		} catch (Exception e) {
-			Logging.errWithStackTrace(e);
-			return null;
-		}
-	}
-
-	private GrpcServiceRegistry effectiveRegistry(Http http) {
-		GrpcServiceRegistry reg = resolveRegistry(http);
-		if (reg != null) {
-			lastResolvedRegistry = reg;
-			return reg;
-		}
-		return lastResolvedRegistry;
-	}
 
 	private String resolveGrpcPathClient(Http http) {
 		String path = http.getPath();
@@ -139,13 +94,10 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 	@Override
 	protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
 		lastGrpcPath = resolveGrpcPathClient(inputHttp);
-		GrpcServiceRegistry reg = resolveRegistry(inputHttp);
-		if (reg != null) {
-			lastResolvedRegistry = reg;
-		}
+		GrpcServiceRegistry reg = schemaResolver.resolveRegistryForRequest(inputHttp);
 		Descriptor type = reg != null ? reg.getInputType(lastGrpcPath) : null;
 		if (type != null) {
-			inputHttp.setBody(decodeSchemaAwareBody(inputHttp.getBody(), type));
+			inputHttp.setBody(schemaResolver.decodeSchemaAwareBody(inputHttp.getBody(), type));
 			return inputHttp;
 		}
 		byte[] raw = inputHttp.getBody();
@@ -177,13 +129,10 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 	@Override
 	protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
 		lastGrpcPath = resolveGrpcPathClient(inputHttp);
-		GrpcServiceRegistry reg = resolveRegistry(inputHttp);
-		if (reg != null) {
-			lastResolvedRegistry = reg;
-		}
+		GrpcServiceRegistry reg = schemaResolver.resolveRegistryForRequest(inputHttp);
 		Descriptor type = reg != null ? reg.getInputType(lastGrpcPath) : null;
 		if (type != null) {
-			inputHttp.setBody(encodeSchemaAwareBody(inputHttp.getBody(), type));
+			inputHttp.setBody(schemaResolver.encodeSchemaAwareBody(inputHttp.getBody(), type));
 			return inputHttp;
 		}
 		byte[] body = inputHttp.getBody();
@@ -222,10 +171,10 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 			return inputHttp;
 		}
 		lastGrpcPath = resolveGrpcPathServer(inputHttp);
-		GrpcServiceRegistry reg = effectiveRegistry(inputHttp);
+		GrpcServiceRegistry reg = schemaResolver.effectiveRegistry(inputHttp);
 		Descriptor type = reg != null ? reg.getOutputType(lastGrpcPath) : null;
 		if (type != null) {
-			inputHttp.setBody(decodeSchemaAwareBody(raw, type));
+			inputHttp.setBody(schemaResolver.decodeSchemaAwareBody(raw, type));
 			return inputHttp;
 		}
 		ByteArrayOutputStream body = new ByteArrayOutputStream();
@@ -261,10 +210,10 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 			return inputHttp;
 		}
 		lastGrpcPath = resolveGrpcPathServer(inputHttp);
-		GrpcServiceRegistry reg = effectiveRegistry(inputHttp);
+		GrpcServiceRegistry reg = schemaResolver.effectiveRegistry(inputHttp);
 		Descriptor type = reg != null ? reg.getOutputType(lastGrpcPath) : null;
 		if (type != null) {
-			inputHttp.setBody(encodeSchemaAwareBody(body, type));
+			inputHttp.setBody(schemaResolver.encodeSchemaAwareBody(body, type));
 			return inputHttp;
 		}
 		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();
@@ -308,86 +257,5 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 
 	public byte[] encodeGrpcServerPayload(byte[] payload) throws Exception {
 		return payload;
-	}
-
-	private byte[] decodeSchemaAwareBody(byte[] raw, Descriptor type) throws Exception {
-		ByteArrayOutputStream body = new ByteArrayOutputStream();
-		int pos = 0;
-		while (pos < raw.length) {
-			if (raw[pos] != 0) {
-				throw new Exception("gRPC: compressed flag in gRPC message is not supported yet");
-			}
-			pos += 1;
-			int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, pos, pos + 4)).getInt();
-			pos += 4;
-			byte[] grpcMsg = Arrays.copyOfRange(raw, pos, pos + messageLength);
-			pos += messageLength;
-			if (body.size() > 0) {
-				body.write('\n');
-			}
-			String json;
-			try {
-				json = JSON_PRINTER.print(DynamicMessage.parseFrom(type, grpcMsg));
-			} catch (Exception e) {
-				json = Protobuf3.decode(grpcMsg);
-			}
-			body.write(json.getBytes(StandardCharsets.UTF_8));
-		}
-		return body.toByteArray();
-	}
-
-	private byte[] encodeSchemaAwareBody(byte[] body, Descriptor type) throws Exception {
-		String s = new String(body, StandardCharsets.UTF_8);
-		List<String> objects = splitTopLevelJsonObjects(s);
-		if (objects.isEmpty() && !s.trim().isEmpty()) {
-			objects = Collections.singletonList(s);
-		}
-		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();
-		for (String json : objects) {
-			String trimmed = json.trim();
-			if (trimmed.isEmpty()) {
-				continue;
-			}
-			byte[] data;
-			try {
-				DynamicMessage.Builder builder = DynamicMessage.newBuilder(type);
-				JSON_PARSER.merge(trimmed, builder);
-				data = builder.build().toByteArray();
-			} catch (Exception e) {
-				data = Protobuf3.encode(trimmed);
-			}
-			rawStream.write(0);
-			rawStream.write(ByteBuffer.allocate(4).putInt(data.length).array());
-			rawStream.write(data);
-		}
-		return rawStream.toByteArray();
-	}
-
-	private List<String> splitTopLevelJsonObjects(String text) {
-		if (text == null || text.isEmpty()) {
-			return Collections.emptyList();
-		}
-		List<String> out = new ArrayList<>();
-		JsonFactory factory = new JsonFactory();
-		try (com.fasterxml.jackson.core.JsonParser p = factory.createParser(text)) {
-			int depth = 0;
-			int start = -1;
-			while (p.nextToken() != null) {
-				if (p.currentToken() == JsonToken.START_OBJECT) {
-					if (depth == 0) {
-						start = (int) p.getCurrentLocation().getCharOffset();
-					}
-					depth++;
-				} else if (p.currentToken() == JsonToken.END_OBJECT) {
-					depth--;
-					if (depth == 0 && start >= 0) {
-						int end = (int) p.getCurrentLocation().getCharOffset() + 1;
-						out.add(text.substring(start, end));
-					}
-				}
-			}
-		} catch (Exception ignored) {
-		}
-		return out;
 	}
 }
