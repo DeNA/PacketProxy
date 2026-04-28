@@ -20,10 +20,15 @@ import com.google.protobuf.Descriptors.DescriptorValidationException
 import com.google.protobuf.Descriptors.FileDescriptor
 import java.io.File
 import java.io.IOException
+import java.net.InetSocketAddress
 import java.nio.file.Files
 import java.util.ArrayList
 import java.util.HashMap
 import java.util.concurrent.ConcurrentHashMap
+import packetproxy.model.ListenPort
+import packetproxy.model.ListenPorts
+import packetproxy.model.Server
+import packetproxy.model.Servers
 
 /**
  * Caches [GrpcServiceRegistry] per descriptor file path so short-lived encoders do not re-parse
@@ -31,6 +36,89 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class GrpcServiceRegistryStore private constructor() {
   private val cache = ConcurrentHashMap<String, GrpcServiceRegistry>()
+
+  /**
+   * Resolves a [GrpcServiceRegistry] from HTTP `:authority` (e.g. `host:443` or `[ipv6]:443`).
+   * Tries [Servers.queryByHostNameAndPort] first, then [Servers.queryByAddress] for IP literals,
+   * then an enabled [ListenPort] on the same TCP port (covers transparent proxy where authority is
+   * the listener address, not the upstream server).
+   */
+  fun getByAuthority(authority: String?): GrpcServiceRegistry? {
+    if (authority.isNullOrBlank()) return null
+    return try {
+      val parsed = parseAuthorityHostPort(authority.trim()) ?: return null
+      val (host, port) = parsed
+      var server = Servers.getInstance().queryByHostNameAndPort(host, port)
+      if (server == null) {
+        try {
+          val addr = InetSocketAddress(host, port)
+          server = Servers.getInstance().queryByAddress(addr)
+        } catch (_: Exception) {
+          // unresolved hostname / invalid socket
+        }
+      }
+      if (server == null) {
+        server = tryResolveServerViaListenPort(port, ListenPorts.getInstance())
+      }
+      if (server == null) return null
+      val path = server.descriptorPath?.trim().takeUnless { it.isNullOrEmpty() } ?: return null
+      val f = File(path)
+      if (!f.isFile()) return null
+      get(f)
+    } catch (_: Exception) {
+      null
+    }
+  }
+
+  /**
+   * Resolves a [Server] when the authority does not match [Servers] rows, by looking up an enabled
+   * [ListenPort] on the same TCP port (transparent listener case). Exposed for unit tests with a
+   * mock [ListenPorts] (static [ListenPorts.getInstance] is not mockable).
+   */
+  internal fun tryResolveServerViaListenPort(port: Int, listenPorts: ListenPorts): Server? {
+    return try {
+      val listenPort = listenPorts.queryEnabledByPort(ListenPort.Protocol.TCP, port) ?: return null
+      listenPort.getServer()
+    } catch (_: Exception) {
+      null
+    }
+  }
+
+  /**
+   * Parses `:authority` into host and port. Port defaults to 443 when omitted (typical for gRPC
+   * over TLS).
+   */
+  internal fun parseAuthorityHostPort(authority: String): Pair<String, Int>? {
+    if (authority.isEmpty()) return null
+    if (authority.startsWith('[')) {
+      val close = authority.indexOf(']')
+      if (close < 0) return null
+      val host = authority.substring(1, close)
+      val rest = authority.substring(close + 1)
+      val port =
+        if (rest.startsWith(":")) {
+          rest.substring(1).toIntOrNull() ?: return null
+        } else {
+          443
+        }
+      return Pair(host, port)
+    }
+    val colonIdx = authority.lastIndexOf(':')
+    if (colonIdx < 0) {
+      return Pair(authority, 443)
+    }
+    if (colonIdx == authority.length - 1) {
+      return null
+    }
+    val hostPart = authority.substring(0, colonIdx)
+    val portPart = authority.substring(colonIdx + 1)
+    val port = portPart.toIntOrNull()
+    return if (port != null && portPart.isNotEmpty() && portPart.all { it.isDigit() }) {
+      Pair(hostPart, port)
+    } else {
+      Pair(authority, 443)
+    }
+  }
 
   @Throws(Exception::class)
   fun get(descFile: File?): GrpcServiceRegistry {

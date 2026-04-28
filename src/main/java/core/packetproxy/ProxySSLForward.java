@@ -104,7 +104,7 @@ public class ProxySSLForward extends Proxy {
 
 			if (alpn == null || alpn.isEmpty()) {
 
-				Encoder encoder = EncoderManager.getInstance().createInstance(server.getEncoder(), "", null);
+				Encoder encoder = EncoderManager.getInstance().createInstance(server.getEncoder(), "");
 				if (encoder instanceof EncodeHTTPBase) {
 
 					/* The client does not support ALPN. It seems to be an old HTTP client */

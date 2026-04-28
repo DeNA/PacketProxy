@@ -18,11 +18,20 @@ package packetproxy.grpc
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
+import packetproxy.model.ListenPort
+import packetproxy.model.ListenPorts
+import packetproxy.model.Server
 
 class GrpcServiceRegistryStoreTest {
   private fun resource(classpathPath: String): File {
@@ -34,6 +43,11 @@ class GrpcServiceRegistryStoreTest {
 
   private val store: GrpcServiceRegistryStore
     get() = GrpcServiceRegistryStore.getInstance()
+
+  @AfterEach
+  fun clearDescriptorCache() {
+    store.invalidateAll()
+  }
 
   @Test
   fun get_missingFile_throws() {
@@ -70,5 +84,83 @@ class GrpcServiceRegistryStoreTest {
     val reg = store.get(f)
     val entries = reg.getServiceMethodEntries()
     assertTrue(entries.any { it.first == "pp.testsvc.Greeter" && it.second == "SayHello" })
+  }
+
+  @Test
+  fun get_withIncludeImports_resolvesImportedTopLevelType() {
+    val f = resource("proto/multidir/multi.desc")
+    val reg = store.get(f)
+    val shared = reg.findMessageByName("pp.multidir.Shared")
+    val timestamp = reg.findMessageByName("pp.multidir.Timestamp")
+    assertNotNull(shared)
+    assertNotNull(timestamp)
+    assertEquals("Shared", shared!!.name)
+    assertEquals("Timestamp", timestamp!!.name)
+  }
+
+  @Test
+  fun get_withIncludeImports_resolvesImportedNestedType() {
+    val f = resource("proto/multidir/multi.desc")
+    val reg = store.get(f)
+    val detail = reg.findMessageByName("pp.multidir.Shared.Detail")
+    assertNotNull(detail)
+    assertEquals("Detail", detail!!.name)
+  }
+
+  @Test
+  fun parseAuthorityHostPort_hostOnly_defaultsTo443() {
+    val s = store
+    assertEquals("example.com" to 443, s.parseAuthorityHostPort("example.com"))
+  }
+
+  @Test
+  fun parseAuthorityHostPort_hostAndPort() {
+    val s = store
+    assertEquals("api.example.com" to 8443, s.parseAuthorityHostPort("api.example.com:8443"))
+  }
+
+  @Test
+  fun parseAuthorityHostPort_ipv6WithPort() {
+    val s = store
+    assertEquals("2001:db8::1" to 443, s.parseAuthorityHostPort("[2001:db8::1]:443"))
+  }
+
+  @Test
+  fun parseAuthorityHostPort_ipv6WithoutPort_defaults443() {
+    val s = store
+    assertEquals("::1" to 443, s.parseAuthorityHostPort("[::1]"))
+  }
+
+  @Test
+  fun get_withIncludeImports_resolvesMethodTypesUsingImportedMessages() {
+    val f = resource("proto/multidir/multi.desc")
+    val reg = store.get(f)
+    val input = reg.getInputType("/pp.multidir.ServiceA/Call")
+    val output = reg.getOutputType("/pp.multidir.ServiceA/Call")
+    assertNotNull(input)
+    assertNotNull(output)
+    assertEquals("Shared", input!!.name)
+    assertEquals("Shared", output!!.name)
+  }
+
+  /**
+   * Logic shared by [GrpcServiceRegistryStore.getByAuthority] for the transparent-listener case.
+   */
+  @Test
+  fun tryResolveServerViaListenPort_returnsServerFromEnabledListenPort() {
+    val listenPorts = mock(ListenPorts::class.java)
+    val server = mock(Server::class.java)
+    val listenPort = mock(ListenPort::class.java)
+    `when`(listenPorts.queryEnabledByPort(ListenPort.Protocol.TCP, 59999)).thenReturn(listenPort)
+    `when`(listenPort.getServer()).thenReturn(server)
+    val out = store.tryResolveServerViaListenPort(59999, listenPorts)
+    assertSame(server, out)
+  }
+
+  @Test
+  fun tryResolveServerViaListenPort_returnsNullWhenNoMatchingListenPort() {
+    val listenPorts = mock(ListenPorts::class.java)
+    `when`(listenPorts.queryEnabledByPort(ListenPort.Protocol.TCP, 59999)).thenReturn(null)
+    assertNull(store.tryResolveServerViaListenPort(59999, listenPorts))
   }
 }

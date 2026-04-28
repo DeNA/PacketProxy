@@ -186,25 +186,21 @@ public class OneShotPacket implements PacketInfo, Cloneable {
 	}
 
 	public String getSummarizedRequest() throws Exception {
-		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name, alpn,
-				new InetSocketAddress(server_ip, server_port));
+		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name, alpn);
 		if (encoder == null) {
 
 			err("エンコードモジュール: %s が見当たらないので、Sample とみなしました", encoder_name);
-			encoder = EncoderManager.getInstance().createInstance("Sample", alpn,
-					new InetSocketAddress(server_ip, server_port));
+			encoder = EncoderManager.getInstance().createInstance("Sample", alpn);
 		}
 		return (getDirection() == Direction.CLIENT) ? encoder.getSummarizedRequest(toPacket()) : "";
 	}
 
 	public String getSummarizedResponse() throws Exception {
-		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name, alpn,
-				new InetSocketAddress(server_ip, server_port));
+		Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name, alpn);
 		if (encoder == null) {
 
 			err("エンコードモジュール: %s が見当たらないので、Sample とみなしました", encoder_name);
-			encoder = EncoderManager.getInstance().createInstance("Sample", alpn,
-					new InetSocketAddress(server_ip, server_port));
+			encoder = EncoderManager.getInstance().createInstance("Sample", alpn);
 		}
 		return (getDirection() == Direction.SERVER) ? encoder.getSummarizedResponse(toPacket()) : "";
 	}

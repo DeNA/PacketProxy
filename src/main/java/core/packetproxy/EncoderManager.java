@@ -20,7 +20,6 @@ import static packetproxy.util.Logging.errWithStackTrace;
 import com.google.common.collect.Sets;
 import java.io.File;
 import java.lang.reflect.Modifier;
-import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
@@ -38,11 +37,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 import org.apache.commons.io.FilenameUtils;
-import packetproxy.encode.EncodeGRPC;
-import packetproxy.encode.EncodeGRPCStreaming;
 import packetproxy.encode.Encoder;
-import packetproxy.model.Server;
-import packetproxy.model.Servers;
 
 public class EncoderManager {
 
@@ -193,37 +188,12 @@ public class EncoderManager {
 		return klass.getConstructor(String.class).newInstance(ALPN);
 	}
 
-	public Encoder createInstance(String encoderName, String ALPN, InetSocketAddress serverAddr) throws Exception {
+	public Encoder createInstance(String encoderName, String ALPN) throws Exception {
 		Class<Encoder> klass = module_list.get(encoderName);
 		if (klass == null) {
 
 			return null;
 		}
-		Encoder encoder = createInstance(klass, ALPN);
-		applyGrpcDescriptor(encoder, serverAddr);
-		return encoder;
-	}
-
-	private void applyGrpcDescriptor(Encoder encoder, InetSocketAddress serverAddr) {
-		if (serverAddr == null)
-			return;
-		try {
-			Server server = Servers.getInstance().queryByAddress(serverAddr);
-			if (server == null)
-				return;
-			String path = server.getDescriptorPath();
-			if (path == null || path.trim().isEmpty())
-				return;
-			File f = new File(path.trim());
-			if (!f.isFile())
-				return;
-			if (encoder instanceof EncodeGRPC) {
-				((EncodeGRPC) encoder).setDescriptorFile(f);
-			} else if (encoder instanceof EncodeGRPCStreaming) {
-				((EncodeGRPCStreaming) encoder).setDescriptorFile(f);
-			}
-		} catch (Exception e) {
-			errWithStackTrace(e);
-		}
+		return createInstance(klass, ALPN);
 	}
 }

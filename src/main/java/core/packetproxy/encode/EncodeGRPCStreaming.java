@@ -21,7 +21,6 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.util.JsonFormat;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -46,22 +45,42 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 	private static final JsonFormat.Parser JSON_PARSER = JsonFormat.parser().ignoringUnknownFields();
 
 	private byte compressedFlag;
-	private volatile GrpcServiceRegistry registry;
 	private volatile String lastGrpcPath;
 	private final ConcurrentHashMap<Integer, String> grpcPathByStreamId = new ConcurrentHashMap<>();
+	private volatile GrpcServiceRegistry lastResolvedRegistry;
 
-	public synchronized void setDescriptorFile(File descFile) {
-		grpcPathByStreamId.clear();
-		if (descFile == null || !descFile.isFile()) {
-			registry = null;
-			return;
-		}
+	/** Same-package tests that build HTTP without Servers metadata. */
+	volatile GrpcServiceRegistry registryOverrideForTest;
+
+	private GrpcServiceRegistry resolveRegistry(Http http) {
 		try {
-			registry = GrpcServiceRegistryStore.getInstance().get(descFile);
+			if (registryOverrideForTest != null) {
+				return registryOverrideForTest;
+			}
+			String authority = http.getFirstHeader("X-PacketProxy-HTTP2-Host");
+			if (authority.isEmpty()) {
+				authority = http.getFirstHeader("x-packetproxy-http3-host");
+			}
+			if (authority.isEmpty()) {
+				String host = http.getHost();
+				if (host != null && !host.isEmpty()) {
+					authority = host;
+				}
+			}
+			return GrpcServiceRegistryStore.getInstance().getByAuthority(authority);
 		} catch (Exception e) {
 			Logging.errWithStackTrace(e);
-			registry = null;
+			return null;
 		}
+	}
+
+	private GrpcServiceRegistry effectiveRegistry(Http http) {
+		GrpcServiceRegistry reg = resolveRegistry(http);
+		if (reg != null) {
+			lastResolvedRegistry = reg;
+			return reg;
+		}
+		return lastResolvedRegistry;
 	}
 
 	private String resolveGrpcPathClient(Http http) {
@@ -120,7 +139,11 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 	@Override
 	protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
 		lastGrpcPath = resolveGrpcPathClient(inputHttp);
-		Descriptor type = registry != null ? registry.getInputType(lastGrpcPath) : null;
+		GrpcServiceRegistry reg = resolveRegistry(inputHttp);
+		if (reg != null) {
+			lastResolvedRegistry = reg;
+		}
+		Descriptor type = reg != null ? reg.getInputType(lastGrpcPath) : null;
 		if (type != null) {
 			inputHttp.setBody(decodeSchemaAwareBody(inputHttp.getBody(), type));
 			return inputHttp;
@@ -154,7 +177,11 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 	@Override
 	protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
 		lastGrpcPath = resolveGrpcPathClient(inputHttp);
-		Descriptor type = registry != null ? registry.getInputType(lastGrpcPath) : null;
+		GrpcServiceRegistry reg = resolveRegistry(inputHttp);
+		if (reg != null) {
+			lastResolvedRegistry = reg;
+		}
+		Descriptor type = reg != null ? reg.getInputType(lastGrpcPath) : null;
 		if (type != null) {
 			inputHttp.setBody(encodeSchemaAwareBody(inputHttp.getBody(), type));
 			return inputHttp;
@@ -195,7 +222,8 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 			return inputHttp;
 		}
 		lastGrpcPath = resolveGrpcPathServer(inputHttp);
-		Descriptor type = registry != null ? registry.getOutputType(lastGrpcPath) : null;
+		GrpcServiceRegistry reg = effectiveRegistry(inputHttp);
+		Descriptor type = reg != null ? reg.getOutputType(lastGrpcPath) : null;
 		if (type != null) {
 			inputHttp.setBody(decodeSchemaAwareBody(raw, type));
 			return inputHttp;
@@ -233,7 +261,8 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 			return inputHttp;
 		}
 		lastGrpcPath = resolveGrpcPathServer(inputHttp);
-		Descriptor type = registry != null ? registry.getOutputType(lastGrpcPath) : null;
+		GrpcServiceRegistry reg = effectiveRegistry(inputHttp);
+		Descriptor type = reg != null ? reg.getOutputType(lastGrpcPath) : null;
 		if (type != null) {
 			inputHttp.setBody(encodeSchemaAwareBody(body, type));
 			return inputHttp;

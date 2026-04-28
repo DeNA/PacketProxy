@@ -69,7 +69,7 @@ public class DuplexFactory {
 
 		duplex.addDuplexEventListener(new Duplex.DuplexEventListener() {
 			private Packets packets = Packets.getInstance();
-			private Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name, ALPN, server_addr);
+			private Encoder encoder = EncoderManager.getInstance().createInstance(encoder_name, ALPN);
 
 			private Modifications mods = Modifications.getInstance();
 			private Packet client_packet;
@@ -347,7 +347,7 @@ public class DuplexFactory {
 
 			private Packets packets = Packets.getInstance();
 			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(),
-					oneshot.getAlpn(), oneshot.getServer());
+					oneshot.getAlpn());
 
 			private Packet client_packet;
 			private Packet server_packet;
@@ -537,7 +537,7 @@ public class DuplexFactory {
 
 			private Packets packets = Packets.getInstance();
 			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(),
-					oneshot.getAlpn(), oneshot.getServer());
+					oneshot.getAlpn());
 
 			private Packet client_packet;
 			private Packet server_packet;
@@ -697,7 +697,7 @@ public class DuplexFactory {
 
 			private Packets packets = Packets.getInstance();
 			private Encoder encoder = EncoderManager.getInstance().createInstance(oneshot.getEncoder(),
-					oneshot.getAlpn(), oneshot.getServer());
+					oneshot.getAlpn());
 
 			private Packet client_packet;
 			private Packet server_packet;

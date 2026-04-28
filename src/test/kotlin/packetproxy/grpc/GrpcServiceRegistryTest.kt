@@ -46,4 +46,26 @@ class GrpcServiceRegistryTest {
     val reg = GrpcServiceRegistryStore.getInstance().get(resource("proto/testsvc.desc"))
     assertNotNull(reg.findMessageByName("pp.testsvc.HelloRequest"))
   }
+
+  @Test
+  fun findMessageByName_nestedMessage_returnsDescriptor() {
+    val reg = GrpcServiceRegistryStore.getInstance().get(resource("proto/testsvc.desc"))
+    val metadata = reg.findMessageByName("pp.testsvc.HelloRequest.Metadata")
+    assertNotNull(metadata)
+    assertEquals("Metadata", metadata!!.name)
+  }
+
+  @Test
+  fun findMessageByName_nestedMessageInAnotherType_returnsDescriptor() {
+    val reg = GrpcServiceRegistryStore.getInstance().get(resource("proto/testsvc.desc"))
+    val errorInfo = reg.findMessageByName("pp.testsvc.HelloReply.ErrorInfo")
+    assertNotNull(errorInfo)
+    assertEquals("ErrorInfo", errorInfo!!.name)
+  }
+
+  @Test
+  fun findMessageByName_unknownNestedMessage_returnsNull() {
+    val reg = GrpcServiceRegistryStore.getInstance().get(resource("proto/testsvc.desc"))
+    assertNull(reg.findMessageByName("pp.testsvc.HelloRequest.Unknown"))
+  }
 }
