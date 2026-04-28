@@ -15,6 +15,7 @@
  */
 package packetproxy.encode;
 
+import com.google.protobuf.Descriptors.Descriptor;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -22,12 +23,17 @@ import java.util.Arrays;
 import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.common.Protobuf3;
 import packetproxy.common.Utils;
+import packetproxy.grpc.GrpcSchemaResolver;
+import packetproxy.grpc.GrpcServiceRegistry;
 import packetproxy.http.Http;
 import packetproxy.http2.Grpc;
 
 public class EncodeGRPC extends EncodeHTTPBase {
 
+	private final GrpcSchemaResolver schemaResolver = new GrpcSchemaResolver();
+
 	private byte compressedFlag;
+	private volatile String lastGrpcPath;
 
 	public EncodeGRPC() throws Exception {
 		super();
@@ -44,6 +50,13 @@ public class EncodeGRPC extends EncodeHTTPBase {
 
 	@Override
 	protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
+		lastGrpcPath = inputHttp.getPath();
+		GrpcServiceRegistry reg = schemaResolver.resolveRegistryForRequest(inputHttp);
+		Descriptor type = reg != null ? reg.getInputType(lastGrpcPath) : null;
+		if (type != null) {
+			inputHttp.setBody(schemaResolver.decodeSchemaAwareBody(inputHttp.getBody(), type));
+			return inputHttp;
+		}
 		byte[] raw = inputHttp.getBody();
 		ByteArrayOutputStream body = new ByteArrayOutputStream();
 		int pos = 0;
@@ -72,6 +85,13 @@ public class EncodeGRPC extends EncodeHTTPBase {
 
 	@Override
 	protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
+		lastGrpcPath = inputHttp.getPath();
+		GrpcServiceRegistry reg = schemaResolver.resolveRegistryForRequest(inputHttp);
+		Descriptor type = reg != null ? reg.getInputType(lastGrpcPath) : null;
+		if (type != null) {
+			inputHttp.setBody(schemaResolver.encodeSchemaAwareBody(inputHttp.getBody(), type));
+			return inputHttp;
+		}
 		byte[] body = inputHttp.getBody();
 		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();
 		int pos = 0;
@@ -107,6 +127,12 @@ public class EncodeGRPC extends EncodeHTTPBase {
 
 			return inputHttp;
 		}
+		GrpcServiceRegistry reg = schemaResolver.effectiveRegistry(inputHttp);
+		Descriptor type = reg != null ? reg.getOutputType(lastGrpcPath) : null;
+		if (type != null) {
+			inputHttp.setBody(schemaResolver.decodeSchemaAwareBody(raw, type));
+			return inputHttp;
+		}
 		ByteArrayOutputStream body = new ByteArrayOutputStream();
 		int pos = 0;
 		while (pos < raw.length) {
@@ -137,6 +163,12 @@ public class EncodeGRPC extends EncodeHTTPBase {
 		byte[] body = inputHttp.getBody();
 		if (body.length == 0) {
 
+			return inputHttp;
+		}
+		GrpcServiceRegistry reg = schemaResolver.effectiveRegistry(inputHttp);
+		Descriptor type = reg != null ? reg.getOutputType(lastGrpcPath) : null;
+		if (type != null) {
+			inputHttp.setBody(schemaResolver.encodeSchemaAwareBody(body, type));
 			return inputHttp;
 		}
 		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();
