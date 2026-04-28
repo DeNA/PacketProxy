@@ -19,7 +19,6 @@ import com.google.protobuf.Descriptors.Descriptor
 import com.google.protobuf.Descriptors.FileDescriptor
 import java.util.Collections
 
-/** Resolves gRPC `:path` values (e.g. `/pkg.Service/Method`) to protobuf message descriptors. */
 class GrpcServiceRegistry(fileDescriptors: List<FileDescriptor>) {
   private val inputByPath: Map<String, Descriptor>
   private val outputByPath: Map<String, Descriptor>
@@ -59,9 +58,6 @@ class GrpcServiceRegistry(fileDescriptors: List<FileDescriptor>) {
     return messageByFullName[fullName]
   }
 
-  /**
-   * gRPC `:path` keys (`/full.ServiceName/MethodName`) as service + method pairs for UI listing.
-   */
   fun getServiceMethodEntries(): List<Pair<String, String>> {
     return inputByPath.keys
       .map { grpcPath ->

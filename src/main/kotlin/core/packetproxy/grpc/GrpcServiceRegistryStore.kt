@@ -30,19 +30,10 @@ import packetproxy.model.ListenPorts
 import packetproxy.model.Server
 import packetproxy.model.Servers
 
-/**
- * Caches [GrpcServiceRegistry] per descriptor file path so short-lived encoders do not re-parse
- * `.desc`.
- */
 class GrpcServiceRegistryStore private constructor() {
   private val cache = ConcurrentHashMap<String, GrpcServiceRegistry>()
 
-  /**
-   * Resolves a [GrpcServiceRegistry] from HTTP `:authority` (e.g. `host:443` or `[ipv6]:443`).
-   * Tries [Servers.queryByHostNameAndPort] first, then [Servers.queryByAddress] for IP literals,
-   * then an enabled [ListenPort] on the same TCP port (covers transparent proxy where authority is
-   * the listener address, not the upstream server).
-   */
+  /** Transparent proxy では authority がリスナーアドレスになるため、Servers → ListenPort の順でフォールバックする */
   fun getByAuthority(authority: String?): GrpcServiceRegistry? {
     if (authority.isNullOrBlank()) return null
     return try {
@@ -70,11 +61,6 @@ class GrpcServiceRegistryStore private constructor() {
     }
   }
 
-  /**
-   * Resolves a [Server] when the authority does not match [Servers] rows, by looking up an enabled
-   * [ListenPort] on the same TCP port (transparent listener case). Exposed for unit tests with a
-   * mock [ListenPorts] (static [ListenPorts.getInstance] is not mockable).
-   */
   internal fun tryResolveServerViaListenPort(port: Int, listenPorts: ListenPorts): Server? {
     return try {
       val listenPort = listenPorts.queryEnabledByPort(ListenPort.Protocol.TCP, port) ?: return null
@@ -84,10 +70,6 @@ class GrpcServiceRegistryStore private constructor() {
     }
   }
 
-  /**
-   * Parses `:authority` into host and port. Port defaults to 443 when omitted (typical for gRPC
-   * over TLS).
-   */
   internal fun parseAuthorityHostPort(authority: String): Pair<String, Int>? {
     if (authority.isEmpty()) return null
     if (authority.startsWith('[')) {
