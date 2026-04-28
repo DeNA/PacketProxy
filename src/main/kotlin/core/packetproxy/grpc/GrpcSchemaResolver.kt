@@ -140,7 +140,7 @@ class GrpcSchemaResolver {
         while (p.nextToken() != null) {
           if (p.currentToken() == JsonToken.START_OBJECT) {
             if (depth == 0) {
-              start = p.currentLocation.charOffset.toInt()
+              start = p.tokenLocation.charOffset.toInt()
             }
             depth++
           } else if (p.currentToken() == JsonToken.END_OBJECT) {
