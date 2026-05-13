@@ -15,20 +15,68 @@
  */
 package packetproxy.encode;
 
+import com.google.protobuf.Descriptors.Descriptor;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.common.Protobuf3;
 import packetproxy.common.Utils;
+import packetproxy.grpc.GrpcSchemaResolver;
+import packetproxy.grpc.GrpcServiceRegistry;
 import packetproxy.http.Http;
 import packetproxy.http2.GrpcStreaming;
 
 // gRPCでデータフレーム1つずつをメッセージと解釈して送受信するエンコーダ
 public class EncodeGRPCStreaming extends EncodeHTTPBase {
 
+	private final GrpcSchemaResolver schemaResolver = new GrpcSchemaResolver();
+
 	private byte compressedFlag;
+	private volatile String lastGrpcPath;
+	private final ConcurrentHashMap<Integer, String> grpcPathByStreamId = new ConcurrentHashMap<>();
+
+	private String resolveGrpcPathClient(Http http) {
+		String path = http.getPath();
+		String streamIdStr = http.getFirstHeader("X-PacketProxy-HTTP2-Stream-Id");
+		if (streamIdStr == null || streamIdStr.isEmpty()) {
+			return path;
+		}
+		int streamId;
+		try {
+			streamId = Integer.parseInt(streamIdStr);
+		} catch (NumberFormatException e) {
+			return path;
+		}
+		if ("/trailer-header-frame".equals(path)) {
+			String removed = grpcPathByStreamId.remove(streamId);
+			return removed != null ? removed : path;
+		}
+		if ("/data-frame".equals(path)) {
+			String mapped = grpcPathByStreamId.get(streamId);
+			return mapped != null ? mapped : path;
+		}
+		grpcPathByStreamId.put(streamId, path);
+		return path;
+	}
+
+	private String resolveGrpcPathServer(Http http) {
+		String path = http.getPath();
+		String streamIdStr = http.getFirstHeader("X-PacketProxy-HTTP2-Stream-Id");
+		if (streamIdStr == null || streamIdStr.isEmpty()) {
+			return path;
+		}
+		int streamId;
+		try {
+			streamId = Integer.parseInt(streamIdStr);
+		} catch (NumberFormatException e) {
+			return path;
+		}
+		String mapped = grpcPathByStreamId.get(streamId);
+		return mapped != null ? mapped : path;
+	}
 
 	public EncodeGRPCStreaming() throws Exception {
 		super();
@@ -45,6 +93,13 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 
 	@Override
 	protected Http decodeClientRequestHttp(Http inputHttp) throws Exception {
+		lastGrpcPath = resolveGrpcPathClient(inputHttp);
+		GrpcServiceRegistry reg = schemaResolver.resolveRegistryForRequest(inputHttp);
+		Descriptor type = reg != null ? reg.getInputType(lastGrpcPath) : null;
+		if (type != null) {
+			inputHttp.setBody(schemaResolver.decodeSchemaAwareBody(inputHttp.getBody(), type));
+			return inputHttp;
+		}
 		byte[] raw = inputHttp.getBody();
 		ByteArrayOutputStream body = new ByteArrayOutputStream();
 		int pos = 0;
@@ -73,6 +128,13 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 
 	@Override
 	protected Http encodeClientRequestHttp(Http inputHttp) throws Exception {
+		lastGrpcPath = resolveGrpcPathClient(inputHttp);
+		GrpcServiceRegistry reg = schemaResolver.resolveRegistryForRequest(inputHttp);
+		Descriptor type = reg != null ? reg.getInputType(lastGrpcPath) : null;
+		if (type != null) {
+			inputHttp.setBody(schemaResolver.encodeSchemaAwareBody(inputHttp.getBody(), type));
+			return inputHttp;
+		}
 		byte[] body = inputHttp.getBody();
 		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();
 		int pos = 0;
@@ -108,6 +170,13 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 
 			return inputHttp;
 		}
+		lastGrpcPath = resolveGrpcPathServer(inputHttp);
+		GrpcServiceRegistry reg = schemaResolver.effectiveRegistry(inputHttp);
+		Descriptor type = reg != null ? reg.getOutputType(lastGrpcPath) : null;
+		if (type != null) {
+			inputHttp.setBody(schemaResolver.decodeSchemaAwareBody(raw, type));
+			return inputHttp;
+		}
 		ByteArrayOutputStream body = new ByteArrayOutputStream();
 		int pos = 0;
 		while (pos < raw.length) {
@@ -138,6 +207,13 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 		byte[] body = inputHttp.getBody();
 		if (body.length == 0) {
 
+			return inputHttp;
+		}
+		lastGrpcPath = resolveGrpcPathServer(inputHttp);
+		GrpcServiceRegistry reg = schemaResolver.effectiveRegistry(inputHttp);
+		Descriptor type = reg != null ? reg.getOutputType(lastGrpcPath) : null;
+		if (type != null) {
+			inputHttp.setBody(schemaResolver.encodeSchemaAwareBody(body, type));
 			return inputHttp;
 		}
 		ByteArrayOutputStream rawStream = new ByteArrayOutputStream();

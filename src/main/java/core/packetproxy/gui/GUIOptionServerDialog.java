@@ -23,6 +23,7 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.regex.*;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -53,7 +54,14 @@ public class GUIOptionServerDialog extends JDialog {
 	private JCheckBox checkbox_upstream_http_proxy = new JCheckBox(
 			I18nString.get("Need to be defined as an Upstream Http Proxy"));
 	JComboBox<String> combo = new JComboBox<String>();
-	private int height = 500;
+	private JButton button_import_proto = new JButton(I18nString.get("Import Proto File"));
+	private JPanel panelDescriptorPath;
+
+	/** Working gRPC descriptor path; applied to [Server] on Save. */
+	private String grpcDescriptorPath;
+
+	private Integer editingServerId;
+	private int height = 580;
 	private int width = 700;
 	private Server server = null;
 
@@ -78,6 +86,7 @@ public class GUIOptionServerDialog extends JDialog {
 	}
 
 	public Server showDialog(Server preset) {
+		editingServerId = preset.getId();
 		text_ip.setText(preset.getIp());
 		text_port.setText(Integer.toString(preset.getPort()));
 		combo.setSelectedItem(preset.getEncoder());
@@ -86,6 +95,9 @@ public class GUIOptionServerDialog extends JDialog {
 		checkbox_dns.setSelected(preset.isResolved());
 		checkbox_dns6.setSelected(preset.isResolved6());
 		text_comment.setText(preset.getComment());
+		String dp = preset.getDescriptorPath();
+		grpcDescriptorPath = (dp != null && !dp.isEmpty()) ? dp : null;
+		updateGrpcDescriptorUiVisibility();
 		setModal(true);
 		setVisible(true);
 		if (server != null) {
@@ -98,12 +110,17 @@ public class GUIOptionServerDialog extends JDialog {
 			preset.setResolved6(checkbox_dns6.isSelected());
 			preset.setHttpProxy(checkbox_upstream_http_proxy.isSelected());
 			preset.setComment(text_comment.getText());
+			String path = grpcDescriptorPath != null ? grpcDescriptorPath.trim() : "";
+			preset.setDescriptorPath(path.isEmpty() ? null : path);
 			return preset;
 		}
 		return server;
 	}
 
 	public Server showDialog() {
+		editingServerId = null;
+		grpcDescriptorPath = null;
+		updateGrpcDescriptorUiVisibility();
 		EventQueue.invokeLater(new Runnable() {
 
 			@Override
@@ -171,6 +188,27 @@ public class GUIOptionServerDialog extends JDialog {
 		return label_and_object(I18nString.get("Comments:"), text_comment);
 	}
 
+	private JComponent createDescriptorPathSetting() {
+		JPanel row = new JPanel();
+		row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+		JLabel label = new JLabel(I18nString.get("gRPC descriptor (.desc):"));
+		label.setPreferredSize(new Dimension(150, label.getMaximumSize().height));
+		row.add(label);
+		row.add(button_import_proto);
+		row.add(Box.createHorizontalGlue());
+		panelDescriptorPath = row;
+		return row;
+	}
+
+	private void updateGrpcDescriptorUiVisibility() {
+		boolean show = !checkbox_upstream_http_proxy.isSelected();
+		Object enc = combo.getSelectedItem();
+		show = show && enc != null && ("gRPC".equals(enc.toString()) || "gRPC Streaming".equals(enc.toString()));
+		if (panelDescriptorPath != null) {
+			panelDescriptorPath.setVisible(show);
+		}
+	}
+
 	public GUIOptionServerDialog(JFrame owner) throws Exception {
 		super(owner);
 		setTitle(I18nString.get("Server setting"));
@@ -198,6 +236,23 @@ public class GUIOptionServerDialog extends JDialog {
 					checkbox_dns.setEnabled(true);
 					checkbox_dns6.setEnabled(true);
 				}
+				updateGrpcDescriptorUiVisibility();
+			}
+		});
+
+		combo.addActionListener(e -> updateGrpcDescriptorUiVisibility());
+
+		button_import_proto.addActionListener(e -> {
+			try {
+				GUIOptionGrpcDescriptorDialog dlg = new GUIOptionGrpcDescriptorDialog((JFrame) getOwner(),
+						editingServerId, grpcDescriptorPath);
+				GrpcDescriptorDialogOutcome r = dlg.showManageDialog();
+				if (r.isApplied()) {
+					grpcDescriptorPath = r.getDescriptorPath();
+				}
+			} catch (Exception ex) {
+				JOptionPane.showMessageDialog(this, ex.getMessage(), I18nString.get("Error"),
+						JOptionPane.ERROR_MESSAGE);
 			}
 		});
 
@@ -213,6 +268,7 @@ public class GUIOptionServerDialog extends JDialog {
 			panel.add(createModuleAlert());
 		}
 		panel.add(createModuleSetting());
+		panel.add(createDescriptorPathSetting());
 		panel.add(createDNSSettinglabel());
 		panel.add(createDNSSetting());
 		panel.add(createDNS6Setting());
@@ -222,6 +278,7 @@ public class GUIOptionServerDialog extends JDialog {
 		panel.add(buttons());
 
 		c.add(panel);
+		updateGrpcDescriptorUiVisibility();
 
 		button_cancel.addActionListener(new ActionListener() {
 
@@ -248,6 +305,8 @@ public class GUIOptionServerDialog extends JDialog {
 				server = new Server(text_ip.getText(), Integer.parseInt(text_port.getText()), checkbox_ssl.isSelected(),
 						combo.getSelectedItem().toString(), checkbox_dns.isSelected(), checkbox_dns6.isSelected(),
 						checkbox_upstream_http_proxy.isSelected(), text_comment.getText());
+				String path = grpcDescriptorPath != null ? grpcDescriptorPath.trim() : "";
+				server.setDescriptorPath(path.isEmpty() ? null : path);
 				dispose();
 			}
 		});

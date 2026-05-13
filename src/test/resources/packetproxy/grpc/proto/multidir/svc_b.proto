@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package pp.multidir;
+
+import "common.proto";
+
+message PingRequest {
+  Shared payload = 1;
+  int32 ttl = 2;
+}
+
+message PingResponse {
+  Shared payload = 1;
+  Timestamp responded_at = 2;
+  int64 latency_ms = 3;
+}
+
+message Event {
+  int64 sequence = 1;
+  string type = 2;
+  bytes data = 3;
+  Timestamp occurred_at = 4;
+  Status status = 5;
+}
+
+message SubscribeRequest {
+  repeated string event_types = 1;
+  Status filter_status = 2;
+}
+
+service ServiceB {
+  rpc Ping(PingRequest) returns (PingResponse);
+  rpc Subscribe(SubscribeRequest) returns (stream Event);
+  rpc Upload(stream Event) returns (Shared);
+}

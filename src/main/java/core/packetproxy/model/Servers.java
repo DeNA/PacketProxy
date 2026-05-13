@@ -49,6 +49,15 @@ public class Servers implements PropertyChangeListener {
 		database = Database.getInstance();
 		dao = database.createTable(Server.class, this);
 		cache = new DaoQueryCache();
+		ensureDescriptorPathColumn();
+	}
+
+	private void ensureDescriptorPathColumn() {
+		try {
+			dao.executeRawNoArgs("ALTER TABLE servers ADD COLUMN descriptor_path VARCHAR");
+		} catch (Exception ignored) {
+			// column already exists
+		}
 	}
 
 	public void create(Server server) throws Exception {
@@ -258,12 +267,14 @@ public class Servers implements PropertyChangeListener {
 					database = Database.getInstance();
 					dao = database.createTable(Server.class, this);
 					cache.clear();
+					ensureDescriptorPathColumn();
 					firePropertyChange(message);
 					break;
 				case RECREATE :
 					database = Database.getInstance();
 					dao = database.createTable(Server.class, this);
 					cache.clear();
+					ensureDescriptorPathColumn();
 					break;
 				default :
 					break;
