@@ -571,7 +571,7 @@ public class GUIData {
 	 */
 	private byte[] resolveDataForDiff() throws Exception {
 		if (!GUIHistory.getInstance().isSelectedRowMerged()) {
-			return tabs.getRaw().getData();
+			return getActiveData();
 		}
 		// macOS の JOptionPane はボタンを右から左に描画するため、
 		// 視覚的に左から「Request | Response」の順にするには逆順で定義する。
@@ -581,7 +581,7 @@ public class GUIData {
 		if (choice == JOptionPane.CLOSED_OPTION)
 			return null;
 		if (choice == 0)
-			return GUIPacket.getInstance().getResponsePacket().getReceivedData();
-		return tabs.getRaw().getData();
+			return responseDataProvider != null ? responseDataProvider.get() : null;
+		return getActiveData();
 	}
 }
