@@ -37,6 +37,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import packetproxy.EncoderManager;
 import packetproxy.encode.Encoder;
+import packetproxy.gui.extensions.GuiExtension;
 import packetproxy.model.Extension;
 import packetproxy.model.Extensions;
 
@@ -158,15 +159,19 @@ public class GUIExtensions {
 			}
 		}
 
+		if (!(ext instanceof GuiExtension guiExt)) {
+			return;
+		}
+
 		// extension page
-		JComponent component = ext.createPanel();
+		JComponent component = guiExt.createPanel();
 		if (component != null) {
 
-			tabs.addTab(ext.getName(), ext.createPanel());
+			tabs.addTab(ext.getName(), component);
 		}
 
 		// history right click
-		JMenuItem extensionItem = ext.historyClickHandler();
+		JMenuItem extensionItem = guiExt.historyClickHandler();
 		if (extensionItem != null) {
 
 			GUIHistory.getInstance().addMenu(extensionItem);

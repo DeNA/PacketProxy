@@ -15,12 +15,17 @@
  */
 package packetproxy.platform;
 
-/** メインウィンドウへの参照（vulchecker 等が利用）。 */
-public interface MainWindowAccess {
+/**
+ * Main window position and size without depending on
+ * {@code java.awt.Rectangle}.
+ */
+public record WindowBounds(int x, int y, int width, int height) {
 
-	WindowBounds getBounds();
+	public int centeredDialogX(int dialogWidth) {
+		return x + width / 2 - dialogWidth / 2;
+	}
 
-	void setAlwaysOnTop(boolean onTop);
-
-	void setVisible(boolean visible);
+	public int centeredDialogY(int dialogHeight) {
+		return y + height / 2 - dialogHeight / 2;
+	}
 }

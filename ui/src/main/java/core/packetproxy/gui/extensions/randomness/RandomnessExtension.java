@@ -65,11 +65,11 @@ import packetproxy.controller.ResendController;
 import packetproxy.extensions.randomness.test.RandomnessTestManager;
 import packetproxy.gui.GUIBulkSenderData;
 import packetproxy.gui.GUIPacket;
-import packetproxy.model.Extension;
+import packetproxy.gui.extensions.GuiExtension;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.Packet;
 
-public class RandomnessExtension extends Extension {
+public class RandomnessExtension extends GuiExtension {
 
 	private static JFrame owner;
 
@@ -294,7 +294,10 @@ public class RandomnessExtension extends Extension {
 		testPanel.setBackground(Color.WHITE);
 		testPanel.setLayout(new BoxLayout(testPanel, BoxLayout.X_AXIS));
 		testPanel.add(new JLabel("testing method:"));
-		testMethods = RandomnessTestManager.getInstance().createTestList();
+		testMethods = new JComboBox<>();
+		for (var testName : RandomnessTestManager.getInstance().getTestNames()) {
+			testMethods.addItem(testName);
+		}
 		testPanel.add(testMethods);
 
 		JButton analyzeButton = new JButton("Start analysis");

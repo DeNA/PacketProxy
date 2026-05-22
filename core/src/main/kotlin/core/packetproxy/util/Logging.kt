@@ -30,8 +30,6 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.yield
-import org.jline.jansi.Ansi
-import org.jline.jansi.Ansi.Color.RED
 import org.slf4j.LoggerFactory
 import packetproxy.platform.LogSinks
 
@@ -110,7 +108,7 @@ object Logging {
   fun err(format: Any, vararg args: Any?) {
     val fs = formatString(format, *args)
 
-    logger.error(Ansi.ansi().fg(RED).a(fs).reset().toString())
+    logger.error(fs)
     if (!isGulp) {
       LogSinks.appendErr(fs)
     }

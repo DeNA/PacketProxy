@@ -13,33 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy.gui;
+package packetproxy.gui.extensions;
 
-import java.awt.Rectangle;
-import packetproxy.platform.MainWindowAccess;
-import packetproxy.platform.WindowBounds;
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import packetproxy.model.Extension;
 
-public class GUIMainWindowAccess implements MainWindowAccess {
+/** Swing UI hooks for {@link Extension} implementations in the ui module. */
+public abstract class GuiExtension extends Extension {
 
-	private final GUIMain main;
-
-	public GUIMainWindowAccess(GUIMain main) {
-		this.main = main;
+	public GuiExtension() {
+		super();
 	}
 
-	@Override
-	public WindowBounds getBounds() {
-		Rectangle rect = main.getBounds();
-		return new WindowBounds(rect.x, rect.y, rect.width, rect.height);
+	public GuiExtension(String name, String path) throws Exception {
+		super(name, path);
 	}
 
-	@Override
-	public void setAlwaysOnTop(boolean onTop) {
-		main.setAlwaysOnTop(onTop);
+	public JComponent createPanel() throws Exception {
+		return null;
 	}
 
-	@Override
-	public void setVisible(boolean visible) {
-		main.setVisible(visible);
+	public JMenuItem historyClickHandler() {
+		return null;
 	}
 }

@@ -19,15 +19,24 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import org.junit.jupiter.api.Test;
 
 class CoreModuleArchitectureTest {
 
-	private final JavaClasses classes = new ClassFileImporter().importPackages("packetproxy");
+	private final JavaClasses classes = new ClassFileImporter()
+			.withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+			.withImportOption(location -> location.contains("/core/build/classes/")).importPackages("packetproxy");
 
 	@Test
 	void coreMustNotDependOnUiOrGulp() {
 		noClasses().that().resideInAPackage("packetproxy..").should().dependOnClassesThat()
 				.resideInAnyPackage("packetproxy.gui..", "packetproxy.gulp..", "packetproxy.cli..").check(classes);
+	}
+
+	@Test
+	void coreMustNotDependOnSwingOrAwt() {
+		noClasses().that().resideInAPackage("packetproxy..").should().dependOnClassesThat()
+				.resideInAnyPackage("javax.swing..", "java.awt..").check(classes);
 	}
 }

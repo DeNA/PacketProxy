@@ -19,8 +19,6 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import java.util.HashMap;
 import java.util.Map;
-import javax.swing.JComponent;
-import javax.swing.JMenuItem;
 
 @DatabaseTable(tableName = "extensions")
 public class Extension {
@@ -65,16 +63,6 @@ public class Extension {
 
 	public void setPath(String s) {
 		this.path = s;
-	}
-
-	public JComponent createPanel() throws Exception {
-		// Please override this
-		return null;
-	}
-
-	public JMenuItem historyClickHandler() {
-		// Please override this
-		return null;
 	}
 
 	public Map<String, Class<?>> getEncoders() {

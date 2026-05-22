@@ -17,7 +17,6 @@ package packetproxy.model;
 
 import difflib.Chunk;
 import java.util.List;
-import javax.swing.event.EventListenerList;
 
 public abstract class DiffBase {
 
@@ -49,7 +48,6 @@ public abstract class DiffBase {
 	public DiffBase() {
 	}
 
-	protected EventListenerList diffEventListenerList = new EventListenerList();
 	protected byte[] orig = null;
 	protected DiffSet set;
 

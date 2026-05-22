@@ -19,14 +19,15 @@ import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.DoubleStream;
-import javax.swing.JComboBox;
 
 public class RandomnessTestManager {
 
 	private static RandomnessTestManager instance;
 	private final Map<String, RandomnessTest> testMap = new HashMap<>();
+	private final List<String> testNames = new ArrayList<>();
 	private final double[] x;
 
 	public static RandomnessTestManager getInstance() {
@@ -43,42 +44,25 @@ public class RandomnessTestManager {
 
 			x[i] = Math.pow(10.0, x[i]);
 		}
+		registerTest("Frequency", new FrequencyTest());
+		registerTest("Runs", new RunsTest());
+		registerTest("LongestRunOfOne", new LongestRunOfOneTest());
+		registerTest("MatrixRank", new RankTest());
+		registerTest("LinearComplexity with 8bit", new LinearComplexityTest(8));
+		registerTest("LinearComplexity with 32bit", new LinearComplexityTest(32));
+		registerTest("Serial with 8bit", new SerialTest(8));
+		registerTest("ApproximateEntropy with 8bit", new ApproximateEntropyTest(8));
+		registerTest("CUsUM with forward", new CUsUMTest(0));
+		registerTest("CUsUM with backward", new CUsUMTest(1));
 	}
 
-	public JComboBox<String> createTestList() {
-		JComboBox<String> testList = new JComboBox<>();
+	public List<String> getTestNames() {
+		return List.copyOf(testNames);
+	}
 
-		testList.addItem("Frequency");
-		testMap.put("Frequency", new FrequencyTest());
-
-		testList.addItem("Runs");
-		testMap.put("Runs", new RunsTest());
-
-		testList.addItem("LongestRunOfOne");
-		testMap.put("LongestRunOfOne", new LongestRunOfOneTest());
-
-		testList.addItem("MatrixRank");
-		testMap.put("MatrixRank", new RankTest());
-
-		testList.addItem("LinearComplexity with 8bit");
-		testMap.put("LinearComplexity with 8bit", new LinearComplexityTest(8));
-
-		testList.addItem("LinearComplexity with 32bit");
-		testMap.put("LinearComplexity with 32bit", new LinearComplexityTest(32));
-
-		testList.addItem("Serial with 8bit");
-		testMap.put("Serial with 8bit", new SerialTest(8));
-
-		testList.addItem("ApproximateEntropy with 8bit");
-		testMap.put("ApproximateEntropy with 8bit", new ApproximateEntropyTest(8));
-
-		testList.addItem("CUsUM with forward");
-		testMap.put("CUsUM with forward", new CUsUMTest(0));
-
-		testList.addItem("CUsUM with backward");
-		testMap.put("CUsUM with backward", new CUsUMTest(1));
-
-		return testList;
+	private void registerTest(String name, RandomnessTest test) {
+		testMap.put(name, test);
+		testNames.add(name);
 	}
 
 	// return list of (x, y)

@@ -38,9 +38,9 @@ import packetproxy.extensions.securityheaders.exclusion.ExclusionRuleType
 import packetproxy.extensions.securityheaders.ui.SecurityHeadersDetailPanel
 import packetproxy.extensions.securityheaders.ui.SecurityHeadersTableRenderer
 import packetproxy.extensions.securityheaders.ui.SecurityHeadersToolbar
+import packetproxy.gui.extensions.GuiExtension
 import packetproxy.http.Http
 import packetproxy.http.HttpHeader
-import packetproxy.model.Extension
 import packetproxy.model.Packet
 import packetproxy.model.Packets
 
@@ -52,7 +52,7 @@ import packetproxy.model.Packets
  * To add a new security check: 1. Create a new class implementing SecurityCheck interface 2. Add
  * the check to the SECURITY_CHECKS list in this class
  */
-class SecurityHeadersExtension : Extension() {
+class SecurityHeadersExtension : GuiExtension() {
   // ===== Registered Security Checks =====
   // Add new checks here to extend functionality
   companion object {

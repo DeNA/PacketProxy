@@ -30,8 +30,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.net.ssl.SSLException;
-import javax.swing.event.EventListenerList;
 import org.apache.commons.lang3.ArrayUtils;
+import packetproxy.util.ListenerList;
 
 class Simplex extends Thread {
 
@@ -43,7 +43,7 @@ class Simplex extends Thread {
 	private boolean flag_close = true;
 	private final byte[] input_data;
 
-	protected EventListenerList simplexEventListenerList = new EventListenerList();
+	protected ListenerList simplexEventListenerList = new ListenerList();
 
 	public interface SimplexEventListener extends EventListener {
 
@@ -118,7 +118,7 @@ class Simplex extends Thread {
 
 			return data.length;
 		}
-		for (SimplexEventListener listener : simplexEventListenerList.getListeners(SimplexEventListener.class)) {
+		for (SimplexEventListener listener : simplexEventListenerList.listeners(SimplexEventListener.class)) {
 
 			return listener.onPacketReceived(data);
 		}
@@ -130,7 +130,7 @@ class Simplex extends Thread {
 
 			return;
 		}
-		for (SimplexEventListener listener : simplexEventListenerList.getListeners(SimplexEventListener.class)) {
+		for (SimplexEventListener listener : simplexEventListenerList.listeners(SimplexEventListener.class)) {
 
 			listener.onChunkArrived(data);
 		}
@@ -141,7 +141,7 @@ class Simplex extends Thread {
 
 			return null;
 		}
-		for (SimplexEventListener listener : simplexEventListenerList.getListeners(SimplexEventListener.class)) {
+		for (SimplexEventListener listener : simplexEventListenerList.listeners(SimplexEventListener.class)) {
 
 			return listener.onChunkPassThrough();
 		}
@@ -153,7 +153,7 @@ class Simplex extends Thread {
 
 			return null;
 		}
-		for (SimplexEventListener listener : simplexEventListenerList.getListeners(SimplexEventListener.class)) {
+		for (SimplexEventListener listener : simplexEventListenerList.listeners(SimplexEventListener.class)) {
 
 			return listener.onChunkAvailable();
 		}
@@ -165,7 +165,7 @@ class Simplex extends Thread {
 
 			return data;
 		}
-		for (SimplexEventListener listener : simplexEventListenerList.getListeners(SimplexEventListener.class)) {
+		for (SimplexEventListener listener : simplexEventListenerList.listeners(SimplexEventListener.class)) {
 
 			return listener.onChunkReceived(data);
 		}
@@ -177,7 +177,7 @@ class Simplex extends Thread {
 
 			return data;
 		}
-		for (SimplexEventListener listener : simplexEventListenerList.getListeners(SimplexEventListener.class)) {
+		for (SimplexEventListener listener : simplexEventListenerList.listeners(SimplexEventListener.class)) {
 
 			return listener.onChunkSend(data);
 		}
