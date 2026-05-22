@@ -7,7 +7,6 @@
 # Gradle
 **/build/
 **/.gradle/
-buildSrc/build/
 /src/main/resources/version
 
 # IntelliJ IDEA

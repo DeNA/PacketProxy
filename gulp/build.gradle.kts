@@ -1,0 +1,20 @@
+plugins {
+  id("java-library")
+  id("org.jetbrains.kotlin.jvm")
+}
+
+apply(from = rootProject.file("gradle/module-common.gradle.kts"))
+
+dependencies {
+  api(project(":core"))
+  implementation("org.jline:jline:3.25.1")
+  implementation("org.jline:jline-terminal-jansi:3.25.1")
+
+  testImplementation("org.junit.jupiter:junit-jupiter:6.0.0")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  testRuntimeOnly("org.jetbrains.kotlin:kotlin-reflect:2.2.21")
+  testImplementation("org.assertj:assertj-core:3.23.1")
+  testImplementation("com.tngtech.archunit:archunit-junit5:1.4.1")
+}
+
+sourceSets { test { kotlin.setSrcDirs(listOf("src/test/kotlin")) } }

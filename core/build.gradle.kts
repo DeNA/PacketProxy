@@ -1,0 +1,119 @@
+import groovy.util.Eval
+import java.io.File
+import org.gradle.api.file.FileCollection
+
+plugins {
+  id("java-library")
+  id("org.jetbrains.kotlin.jvm")
+  id("me.champeau.jmh")
+}
+
+fun eachInternalEntry(filename: String, action: (dir: String, entry: Any) -> Unit) {
+  listOf("dena/", "denaN/", "denaL/").forEach { dir ->
+    val file = rootProject.file(dir + filename)
+    if (file.exists()) {
+      @Suppress("UNCHECKED_CAST") val entries = Eval.me(file.readText()) as Iterable<Any>
+      entries.forEach { action(dir, it) }
+    }
+  }
+}
+
+fun collectInternalSrcDirs(filename: String): List<File> {
+  val result = mutableListOf<File>()
+  eachInternalEntry(filename) { dir, src ->
+    val path = rootProject.file(dir + src.toString())
+    if (path.exists()) {
+      result.add(path)
+    }
+  }
+  return result
+}
+
+fun runCommand(command: String): String =
+  ProcessBuilder("sh", "-c", command).start().inputStream.bufferedReader().readText().trim()
+
+fun addInternalApiDependency(entry: Any) {
+  when (entry) {
+    is File -> dependencies.add("api", files(entry))
+    is FileCollection -> dependencies.add("api", entry)
+    else -> dependencies.add("api", entry.toString())
+  }
+}
+
+apply(from = rootProject.file("gradle/module-common.gradle.kts"))
+
+val gitVersion = runCommand("git describe --tags --abbrev=0")
+
+layout.projectDirectory.file("src/main/resources/version").asFile.writeText(gitVersion)
+
+dependencies {
+  compileOnly("org.projectlombok:lombok:1.18.42")
+  annotationProcessor("org.projectlombok:lombok:1.18.42")
+  testCompileOnly("org.projectlombok:lombok:1.18.42")
+  testAnnotationProcessor("org.projectlombok:lombok:1.18.42")
+
+  testImplementation("org.junit.jupiter:junit-jupiter:6.0.0")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  testRuntimeOnly("org.jetbrains.kotlin:kotlin-reflect:2.2.21")
+  testImplementation("org.assertj:assertj-core:3.23.1")
+  testImplementation("org.mockito:mockito-core:4.7.0")
+  testImplementation("com.tngtech.archunit:archunit-junit5:1.4.1")
+  implementation("org.ejml:ejml-all:0.41")
+
+  api("com.google.guava:guava:24.1-jre")
+  api("commons-codec:commons-codec:1.6")
+  api("commons-io:commons-io:2.4")
+  api("org.apache.commons:commons-lang3:3.1")
+  api("org.apache.commons:commons-collections4:4.0")
+  api("org.xerial:sqlite-jdbc:3.7.2")
+  api("com.j256.ormlite:ormlite-core:4.48")
+  api("com.j256.ormlite:ormlite-jdbc:4.48")
+  api("com.google.protobuf:protobuf-java:4.31.1")
+  api("com.google.protobuf:protobuf-java-util:4.31.1")
+  api("org.slf4j:slf4j-api:2.0.9")
+  api("org.slf4j:slf4j-log4j12:1.7.25")
+  api("ch.qos.logback:logback-classic:1.4.14")
+  api("com.googlecode.java-diff-utils:diffutils:1.2.1")
+  api("com.google.re2j:re2j:1.1")
+  api("com.github.mobius-software-ltd:mqtt-parser:parser-1.0.3")
+  api("net.arnx:jsonic:1.3.0")
+  api("org.json:json:20180813")
+  api("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.10.0")
+  api("com.fasterxml.jackson.core:jackson-databind:2.10.0")
+  api("org.msgpack:jackson-dataformat-msgpack:0.8.18")
+  api("org.bouncycastle:bcpkix-jdk15on:1.64")
+  api("commons-net:commons-net:3.6")
+  api("org.nanohttpd:nanohttpd:2.3.1")
+  api("com.google.code.gson:gson:2.13.1")
+  api("org.apache.commons:commons-math3:3.0")
+  api("at.favre.lib:hkdf:1.1.0")
+  api("org.eclipse.jetty.http2:http2-hpack:11.0.11")
+  api("org.eclipse.jetty.http3:http3-qpack:11.0.11")
+  api("com.github.docker-java:docker-java:3.3.0")
+  api("com.github.docker-java:docker-java-transport-httpclient5:3.3.0")
+  api("org.apache.commons:commons-compress:1.28.0")
+  api("com.github.luben:zstd-jni:1.5.6-3")
+  api("org.brotli:dec:0.1.2")
+  api("dnsjava:dnsjava:3.6.4")
+  api(files("${rootProject.projectDir}/libs/agent15.jar"))
+  api("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+  api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+  api("io.arrow-kt:arrow-core:2.1.2")
+}
+
+eachInternalEntry("libraries.gradle") { _: String, lib: Any -> addInternalApiDependency(lib) }
+
+sourceSets {
+  main {
+    java.setSrcDirs(listOf("src/main/java/core") + collectInternalSrcDirs("sources.gradle"))
+    resources.setSrcDirs(listOf("src/main/resources") + collectInternalSrcDirs("resources.gradle"))
+  }
+  test {
+    java.setSrcDirs(listOf("src/test/java") + collectInternalSrcDirs("tests.gradle"))
+    kotlin.setSrcDirs(listOf("src/test/kotlin"))
+    resources.setSrcDirs(listOf("src/test/resources"))
+  }
+  named("jmh") { java.setSrcDirs(listOf("src/jmh/java")) }
+}
+
+jmh { fork.set(2) }
