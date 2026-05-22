@@ -24,8 +24,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.List;
-import javax.swing.JOptionPane;
 import packetproxy.ListenPortManager;
+import packetproxy.platform.UserPrompts;
 import packetproxy.model.Database.DatabaseMessage;
 
 public class SSLPassThroughs implements PropertyChangeListener {
@@ -235,9 +235,8 @@ public class SSLPassThroughs implements PropertyChangeListener {
 	}
 
 	private void RecreateTable() throws Exception {
-		int option = JOptionPane.showConfirmDialog(null, "SSLPassThroughsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",
-				"テーブルの更新", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-		if (option == JOptionPane.YES_OPTION) {
+		if (UserPrompts.get().confirmTableRecreate("SSLPassThroughs",
+				"SSLPassThroughsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？")) {
 
 			database.dropTable(SSLPassThrough.class);
 			dao = database.createTable(SSLPassThrough.class, this);

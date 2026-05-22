@@ -13,31 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy;
+package packetproxy.gui;
 
 import packetproxy.platform.SpoofingIPSource;
 
-public class DNSSpoofingIPGetter {
+public class GUIOptionPrivateDNSSpoofingSource implements SpoofingIPSource {
 
-	private final SpoofingIPSource source;
+	private final GUIOptionPrivateDNS gui;
 
-	public DNSSpoofingIPGetter(SpoofingIPSource source) {
-		this.source = source;
+	public GUIOptionPrivateDNSSpoofingSource(GUIOptionPrivateDNS gui) {
+		this.gui = gui;
 	}
 
+	@Override
 	public boolean isAuto() {
-		return source.isAuto();
+		return gui.isAutoSpoofing();
 	}
 
+	@Override
 	public String get() {
-		return source.get();
+		return gui.getSpoofingIP();
 	}
 
+	@Override
 	public String get6() {
-		return source.get6();
+		return gui.getSpoofingIP6();
 	}
 
+	@Override
 	public String getInt() {
-		return source.getInt();
+		return gui.getBindInterface();
 	}
 }

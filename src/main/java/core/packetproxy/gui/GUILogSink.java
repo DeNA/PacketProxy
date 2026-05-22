@@ -13,31 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy;
+package packetproxy.gui;
 
-import packetproxy.platform.SpoofingIPSource;
+import packetproxy.platform.LogSink;
 
-public class DNSSpoofingIPGetter {
+public class GUILogSink implements LogSink {
 
-	private final SpoofingIPSource source;
+	private final GUILog guiLog;
 
-	public DNSSpoofingIPGetter(SpoofingIPSource source) {
-		this.source = source;
+	public GUILogSink(GUILog guiLog) {
+		this.guiLog = guiLog;
 	}
 
-	public boolean isAuto() {
-		return source.isAuto();
+	@Override
+	public void append(String message) {
+		guiLog.append(message);
 	}
 
-	public String get() {
-		return source.get();
-	}
-
-	public String get6() {
-		return source.get6();
-	}
-
-	public String getInt() {
-		return source.getInt();
+	@Override
+	public void appendErr(String message) {
+		guiLog.appendErr(message);
 	}
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy.common;
+package packetproxy.gui;
 
 import static packetproxy.util.Logging.errWithStackTrace;
 
@@ -29,7 +29,6 @@ import javax.swing.RowFilter;
 import javax.swing.RowFilter.ComparisonType;
 import javax.swing.table.DefaultTableModel;
 import org.apache.commons.collections4.map.HashedMap;
-import packetproxy.gui.GUIHistory;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 

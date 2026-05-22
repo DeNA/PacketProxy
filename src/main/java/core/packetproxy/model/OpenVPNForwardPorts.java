@@ -24,8 +24,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.List;
-import javax.swing.JOptionPane;
 import packetproxy.model.Database.DatabaseMessage;
+import packetproxy.platform.UserPrompts;
 
 public class OpenVPNForwardPorts implements PropertyChangeListener {
 
@@ -176,10 +176,8 @@ public class OpenVPNForwardPorts implements PropertyChangeListener {
 	}
 
 	private void RecreateTable() throws Exception {
-		int option = JOptionPane.showConfirmDialog(null,
-				"OpenVPNForwardPortsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？", "テーブルの更新", JOptionPane.YES_NO_OPTION,
-				JOptionPane.WARNING_MESSAGE);
-		if (option == JOptionPane.YES_OPTION) {
+		if (UserPrompts.get().confirmTableRecreate("OpenVPNForwardPorts",
+				"OpenVPNForwardPortsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？")) {
 
 			database.dropTable(OpenVPNForwardPort.class);
 			dao = database.createTable(OpenVPNForwardPort.class, this);

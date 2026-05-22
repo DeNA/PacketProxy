@@ -104,7 +104,7 @@ public class GUIOptionHubServer implements PropertyChangeListener {
 
 	private void startServer() throws Exception {
 		String accessToken = new ConfigString("SharingConfigsAccessToken").getString();
-		this.server = new ConfigHttpServer("localhost", 32349, accessToken);
+		this.server = new ConfigHttpServer("localhost", 32349, accessToken, new SwingConfigHttpUiActions());
 		this.server.start();
 	}
 

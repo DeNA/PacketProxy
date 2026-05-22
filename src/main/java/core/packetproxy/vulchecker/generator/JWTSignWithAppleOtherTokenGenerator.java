@@ -24,7 +24,7 @@ import java.awt.event.MouseEvent;
 import java.net.URI;
 import javax.swing.*;
 import packetproxy.common.TokenHttpServer;
-import packetproxy.gui.GUIMain;
+import packetproxy.platform.MainWindows;
 
 public class JWTSignWithAppleOtherTokenGenerator extends Generator {
 
@@ -49,9 +49,10 @@ public class JWTSignWithAppleOtherTokenGenerator extends Generator {
 		this.tokenFromBrowser = "";
 		this.cancelClicked = false;
 
-		JDialog dlg = new JDialog(GUIMain.getInstance());
+		var mainWindow = MainWindows.get();
+		JDialog dlg = new JDialog(mainWindow.getFrame());
 
-		Rectangle rect = GUIMain.getInstance().getBounds();
+		Rectangle rect = mainWindow.getBounds();
 		int width = 300;
 		int height = 150;
 		dlg.setBounds(rect.x + rect.width / 2 - width / 2, rect.y + rect.height / 2 - height / 2, width,
@@ -105,11 +106,11 @@ public class JWTSignWithAppleOtherTokenGenerator extends Generator {
 		}
 		server.start();
 
-		JPanel main = new JPanel();
-		main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
-		main.add(labels);
-		main.add(buttons);
-		dlg.getContentPane().add(main);
+		JPanel content = new JPanel();
+		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+		content.add(labels);
+		content.add(buttons);
+		dlg.getContentPane().add(content);
 		dlg.setModal(true);
 		dlg.setVisible(true);
 
@@ -118,15 +119,15 @@ public class JWTSignWithAppleOtherTokenGenerator extends Generator {
 			throw new Exception("cancel");
 		}
 
-		GUIMain.getInstance().setAlwaysOnTop(true);
-		GUIMain.getInstance().setVisible(true);
+		mainWindow.setAlwaysOnTop(true);
+		mainWindow.setVisible(true);
 
 		// Need to wait for the server to finish sending the response data before
 		// exiting
 		Thread.sleep(100);
 		server.stop();
 
-		GUIMain.getInstance().setAlwaysOnTop(false);
+		mainWindow.setAlwaysOnTop(false);
 
 		return tokenFromBrowser;
 	}

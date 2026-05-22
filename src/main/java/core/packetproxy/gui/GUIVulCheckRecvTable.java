@@ -25,7 +25,6 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.TableCellRenderer;
 import packetproxy.model.OneShotPacket;
-import packetproxy.model.OptionTableModel;
 
 public class GUIVulCheckRecvTable {
 

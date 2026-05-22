@@ -285,7 +285,7 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 			if (port == null) {
 				return;
 			}
-			privateDNS.setPort(port, new DNSSpoofingIPGetter(this));
+			privateDNS.setPort(port, new DNSSpoofingIPGetter(new GUIOptionPrivateDNSSpoofingSource(this)));
 		});
 		return button;
 	}
@@ -390,7 +390,7 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 				return;
 			}
 
-			if (!privateDNS.start(new DNSSpoofingIPGetter(this))) {
+			if (!privateDNS.start(new DNSSpoofingIPGetter(new GUIOptionPrivateDNSSpoofingSource(this)))) {
 				checkBox.setSelected(false);
 				showPrivateDnsStartErrorDialog();
 			}
@@ -437,7 +437,7 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 			if (!checkBox.isSelected()) {
 				return;
 			}
-			if (!privateDNS.start(new DNSSpoofingIPGetter(this))) {
+			if (!privateDNS.start(new DNSSpoofingIPGetter(new GUIOptionPrivateDNSSpoofingSource(this)))) {
 				checkBox.setSelected(false);
 				showPrivateDnsStartErrorDialog();
 			}
@@ -504,7 +504,7 @@ public class GUIOptionPrivateDNS implements PropertyChangeListener {
 			if (!privateDNS.isRunning()) {
 				return;
 			}
-			if (!privateDNS.restart(new DNSSpoofingIPGetter(this))) {
+			if (!privateDNS.restart(new DNSSpoofingIPGetter(new GUIOptionPrivateDNSSpoofingSource(this)))) {
 				checkBox.setSelected(false);
 				showPrivateDnsStartErrorDialog();
 			}

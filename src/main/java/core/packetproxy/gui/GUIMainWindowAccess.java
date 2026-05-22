@@ -13,31 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy;
+package packetproxy.gui;
 
-import packetproxy.platform.SpoofingIPSource;
+import java.awt.Frame;
+import java.awt.Rectangle;
+import packetproxy.platform.MainWindowAccess;
 
-public class DNSSpoofingIPGetter {
+public class GUIMainWindowAccess implements MainWindowAccess {
 
-	private final SpoofingIPSource source;
+	private final GUIMain main;
 
-	public DNSSpoofingIPGetter(SpoofingIPSource source) {
-		this.source = source;
+	public GUIMainWindowAccess(GUIMain main) {
+		this.main = main;
 	}
 
-	public boolean isAuto() {
-		return source.isAuto();
+	@Override
+	public Frame getFrame() {
+		return main;
 	}
 
-	public String get() {
-		return source.get();
+	@Override
+	public Rectangle getBounds() {
+		return main.getBounds();
 	}
 
-	public String get6() {
-		return source.get6();
+	@Override
+	public void setAlwaysOnTop(boolean onTop) {
+		main.setAlwaysOnTop(onTop);
 	}
 
-	public String getInt() {
-		return source.getInt();
+	@Override
+	public void setVisible(boolean visible) {
+		main.setVisible(visible);
 	}
 }

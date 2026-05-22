@@ -22,10 +22,11 @@ import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.EventListener;
-import javax.swing.event.EventListenerList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class Duplex {
-	protected EventListenerList duplexEventListenerList = new EventListenerList();
+	private final List<DuplexEventListener> duplexEventListeners = new CopyOnWriteArrayList<>();
 	private boolean flag_event_listener;
 	private int PIPE_SIZE = 65536;
 	private PipedOutputStream clientOutputForFlowControl;
@@ -61,7 +62,7 @@ public abstract class Duplex {
 	}
 
 	public void addDuplexEventListener(DuplexEventListener listener) {
-		duplexEventListenerList.add(DuplexEventListener.class, listener);
+		duplexEventListeners.add(listener);
 		enableDuplexEventListener();
 	}
 
@@ -70,7 +71,7 @@ public abstract class Duplex {
 
 			return data.length;
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			return listener.onClientPacketReceived(data);
 		}
@@ -82,7 +83,7 @@ public abstract class Duplex {
 
 			return data.length;
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			return listener.onServerPacketReceived(data);
 		}
@@ -94,7 +95,7 @@ public abstract class Duplex {
 
 			inputClientData.write(data);
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			listener.onClientChunkArrived(data);
 		}
@@ -105,7 +106,7 @@ public abstract class Duplex {
 
 			inputServerData.write(data);
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			listener.onServerChunkArrived(data);
 		}
@@ -116,7 +117,7 @@ public abstract class Duplex {
 
 			return null;
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			return listener.onClientChunkPassThrough();
 		}
@@ -128,7 +129,7 @@ public abstract class Duplex {
 
 			return null;
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			return listener.onServerChunkPassThrough();
 		}
@@ -142,7 +143,7 @@ public abstract class Duplex {
 			inputClientData.reset();
 			return ret;
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			return listener.onClientChunkAvailable();
 		}
@@ -156,7 +157,7 @@ public abstract class Duplex {
 			inputServerData.reset();
 			return ret;
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			return listener.onServerChunkAvailable();
 		}
@@ -168,7 +169,7 @@ public abstract class Duplex {
 
 			return data;
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			return listener.onClientChunkReceived(data);
 		}
@@ -180,7 +181,7 @@ public abstract class Duplex {
 
 			return data;
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			return listener.onServerChunkReceived(data);
 		}
@@ -192,7 +193,7 @@ public abstract class Duplex {
 
 			return data;
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			return listener.onClientChunkSend(data);
 		}
@@ -204,7 +205,7 @@ public abstract class Duplex {
 
 			return data;
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			return listener.onServerChunkSend(data);
 		}
@@ -216,7 +217,7 @@ public abstract class Duplex {
 
 			return data;
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			return listener.onClientChunkSendForced(data);
 		}
@@ -228,7 +229,7 @@ public abstract class Duplex {
 
 			return data;
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			return listener.onServerChunkSendForced(data);
 		}
@@ -241,7 +242,7 @@ public abstract class Duplex {
 			clientOutputForFlowControl.write(data);
 			clientOutputForFlowControl.flush();
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			listener.onClientChunkFlowControl(data);
 		}
@@ -252,7 +253,7 @@ public abstract class Duplex {
 
 			clientOutputForFlowControl.close();
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			listener.closeClientChunkFlowControl();
 		}
@@ -263,7 +264,7 @@ public abstract class Duplex {
 
 			return clientInputForFlowControl;
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			return listener.getClientChunkFlowControlSink();
 		}
@@ -276,7 +277,7 @@ public abstract class Duplex {
 			serverOutputForFlowControl.write(data);
 			serverOutputForFlowControl.flush();
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			listener.onServerChunkFlowControl(data);
 		}
@@ -287,7 +288,7 @@ public abstract class Duplex {
 
 			serverOutputForFlowControl.close();
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			listener.closeServerChunkFlowControl();
 		}
@@ -298,7 +299,7 @@ public abstract class Duplex {
 
 			return serverInputForFlowControl;
 		}
-		for (DuplexEventListener listener : duplexEventListenerList.getListeners(DuplexEventListener.class)) {
+		for (DuplexEventListener listener : duplexEventListeners) {
 
 			return listener.getServerChunkFlowControlSink();
 		}

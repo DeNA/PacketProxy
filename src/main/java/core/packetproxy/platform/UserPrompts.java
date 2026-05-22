@@ -13,31 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy;
+package packetproxy.platform;
 
-import packetproxy.platform.SpoofingIPSource;
+/** {@link UserPrompt} の実行時登録先。起動モード（GUI / Gulp）に応じて実装を差し替える。 */
+public final class UserPrompts {
 
-public class DNSSpoofingIPGetter {
+	private static volatile UserPrompt instance = new ConsoleUserPrompt();
 
-	private final SpoofingIPSource source;
-
-	public DNSSpoofingIPGetter(SpoofingIPSource source) {
-		this.source = source;
+	private UserPrompts() {
 	}
 
-	public boolean isAuto() {
-		return source.isAuto();
+	public static UserPrompt get() {
+		return instance;
 	}
 
-	public String get() {
-		return source.get();
-	}
-
-	public String get6() {
-		return source.get6();
-	}
-
-	public String getInt() {
-		return source.getInt();
+	public static void set(UserPrompt prompt) {
+		instance = prompt;
 	}
 }

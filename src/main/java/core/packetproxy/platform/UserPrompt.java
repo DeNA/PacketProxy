@@ -13,31 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy;
+package packetproxy.platform;
 
-import packetproxy.platform.SpoofingIPSource;
+/** UI や CLI が実装する、ユーザー確認ダイアログの抽象化。 */
+public interface UserPrompt {
 
-public class DNSSpoofingIPGetter {
-
-	private final SpoofingIPSource source;
-
-	public DNSSpoofingIPGetter(SpoofingIPSource source) {
-		this.source = source;
-	}
-
-	public boolean isAuto() {
-		return source.isAuto();
-	}
-
-	public String get() {
-		return source.get();
-	}
-
-	public String get6() {
-		return source.get6();
-	}
-
-	public String getInt() {
-		return source.getInt();
-	}
+	/**
+	 * スキーマ不一致時にテーブル再作成の可否をユーザーに尋ねる。
+	 *
+	 * @return 再作成してよい場合は true
+	 */
+	boolean confirmTableRecreate(String tableName, String message);
 }

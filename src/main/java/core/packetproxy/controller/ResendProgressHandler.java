@@ -13,31 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy;
+package packetproxy.controller;
 
-import packetproxy.platform.SpoofingIPSource;
+import java.util.List;
+import packetproxy.model.OneShotPacket;
 
-public class DNSSpoofingIPGetter {
+/** Resend 進捗を EDT 等へ渡す（通常は GUI が SwingUtilities で登録）。 */
+public interface ResendProgressHandler {
 
-	private final SpoofingIPSource source;
-
-	public DNSSpoofingIPGetter(SpoofingIPSource source) {
-		this.source = source;
-	}
-
-	public boolean isAuto() {
-		return source.isAuto();
-	}
-
-	public String get() {
-		return source.get();
-	}
-
-	public String get6() {
-		return source.get6();
-	}
-
-	public String getInt() {
-		return source.getInt();
-	}
+	void onProgress(ResendController.ResendWorker worker, List<OneShotPacket> packets);
 }

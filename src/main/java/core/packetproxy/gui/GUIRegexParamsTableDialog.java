@@ -23,7 +23,6 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.TableRowSorter;
 import packetproxy.common.FontManager;
-import packetproxy.model.OptionTableModel;
 import packetproxy.model.RegexParam;
 
 public class GUIRegexParamsTableDialog extends JDialog {

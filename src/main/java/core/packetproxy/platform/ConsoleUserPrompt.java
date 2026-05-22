@@ -13,31 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy;
+package packetproxy.platform;
 
-import packetproxy.platform.SpoofingIPSource;
+import static packetproxy.util.Logging.err;
 
-public class DNSSpoofingIPGetter {
+/** 非対話環境（Gulp 等）向け。確認は行わず、テーブル再作成は拒否する。 */
+public class ConsoleUserPrompt implements UserPrompt {
 
-	private final SpoofingIPSource source;
-
-	public DNSSpoofingIPGetter(SpoofingIPSource source) {
-		this.source = source;
-	}
-
-	public boolean isAuto() {
-		return source.isAuto();
-	}
-
-	public String get() {
-		return source.get();
-	}
-
-	public String get6() {
-		return source.get6();
-	}
-
-	public String getInt() {
-		return source.getInt();
+	@Override
+	public boolean confirmTableRecreate(String tableName, String message) {
+		err("Table schema mismatch for %s (recreate declined in non-interactive mode): %s", tableName, message);
+		return false;
 	}
 }
