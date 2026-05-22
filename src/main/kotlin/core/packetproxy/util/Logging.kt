@@ -33,11 +33,10 @@ import kotlinx.coroutines.yield
 import org.jline.jansi.Ansi
 import org.jline.jansi.Ansi.Color.RED
 import org.slf4j.LoggerFactory
-import packetproxy.gui.GUILog
+import packetproxy.platform.LogSinks
 
 object Logging {
   private val dtf: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
-  private val guiLog: GUILog = GUILog.getInstance()
   private val logger = LoggerFactory.getLogger("")
   private var isGulp: Boolean = false
 
@@ -101,8 +100,9 @@ object Logging {
 
     // WARN未満は出力されないためwarnで出力する
     logger.warn(fs)
-    if (isGulp) return
-    guiLog.append(fs)
+    if (!isGulp) {
+      LogSinks.append(fs)
+    }
   }
 
   @JvmStatic
@@ -111,8 +111,9 @@ object Logging {
     val fs = formatString(format, *args)
 
     logger.error(Ansi.ansi().fg(RED).a(fs).reset().toString())
-    if (isGulp) return
-    guiLog.appendErr(fs)
+    if (!isGulp) {
+      LogSinks.appendErr(fs)
+    }
   }
 
   /** 別のログが挟まらないように一塊にした上で１度に出力する */

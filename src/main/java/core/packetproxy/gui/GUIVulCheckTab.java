@@ -172,7 +172,7 @@ public class GUIVulCheckTab {
 					ResendController.getInstance().resend(new ResendWorker(packet, 1) {
 
 						@Override
-						protected void process(List<OneShotPacket> oneshots) {
+						public void process(List<OneShotPacket> oneshots) {
 							Date recvTime = new Date();
 							try {
 
@@ -216,7 +216,7 @@ public class GUIVulCheckTab {
 								ResendController.getInstance().resend(new ResendWorker(packet, 1) {
 
 									@Override
-									protected void process(List<OneShotPacket> oneshots) {
+									public void process(List<OneShotPacket> oneshots) {
 										Date recvTime = new Date();
 										try {
 

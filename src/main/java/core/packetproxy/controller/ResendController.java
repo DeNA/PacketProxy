@@ -20,9 +20,13 @@ import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import javax.swing.SwingWorker;
 import packetproxy.Duplex;
 import packetproxy.DuplexAsync;
 import packetproxy.DuplexFactory;
@@ -38,6 +42,16 @@ import packetproxy.model.Packet;
 public class ResendController {
 
 	private static ResendController instance;
+	private static volatile ResendProgressHandler progressHandler = (worker, packets) -> {};
+	private final ExecutorService executor = Executors.newCachedThreadPool();
+
+	public static void setProgressHandler(ResendProgressHandler handler) {
+		progressHandler = handler;
+	}
+
+	static void notifyProgress(ResendWorker worker, OneShotPacket packet) {
+		progressHandler.onProgress(worker, Collections.singletonList(packet));
+	}
 
 	public static ResendController getInstance() throws Exception {
 		if (instance == null) {
@@ -62,15 +76,14 @@ public class ResendController {
 
 	/** レスポンスを受け取って処理する必要がないとき用 */
 	public void resend(OneShotPacket oneshot, int count, boolean wait) throws Exception {
-		SwingWorker<Object, OneShotPacket> worker;
-		worker = new ResendWorker(oneshot, count);
-		worker.execute();
+		var worker = new ResendWorker(oneshot, count);
+		Future<?> future = executor.submit(worker::runInBackground);
 		if (wait && count != 1) {
 
 			try {
 
 				// InterceptでForward x 20した時に先に本体が処理されると困るので待つ
-				worker.get(20000, TimeUnit.MILLISECONDS);
+				future.get(20000, TimeUnit.MILLISECONDS);
 			} catch (Exception e) {
 
 				errWithStackTrace(e);
@@ -85,10 +98,10 @@ public class ResendController {
 	 * @param worker
 	 */
 	public void resend(ResendWorker worker) {
-		worker.execute();
+		executor.submit(worker::runInBackground);
 	}
 
-	public static class ResendWorker extends SwingWorker<Object, OneShotPacket> {
+	public static class ResendWorker {
 
 		int count;
 		OneShotPacket oneshot;
@@ -108,8 +121,23 @@ public class ResendController {
 			this.oneshots = oneshots;
 		}
 
-		@Override
-		protected Object doInBackground() throws Exception {
+		protected void publish(OneShotPacket packet) {
+			ResendController.notifyProgress(this, packet);
+		}
+
+		public void process(List<OneShotPacket> packets) {}
+
+		public void runInBackground() {
+			try {
+
+				doInBackground();
+			} catch (Exception e) {
+
+				errWithStackTrace(e);
+			}
+		}
+
+		protected void doInBackground() throws Exception {
 			try {
 
 				ArrayList<DataToBeSend> list = new ArrayList<DataToBeSend>();
@@ -134,7 +162,7 @@ public class ResendController {
 				} else {
 
 					err("Resend packet is wrong!");
-					return null;
+					return;
 				}
 
 				list.stream().filter(o -> o.isDirectSend()).forEach(sendData -> {
@@ -161,13 +189,12 @@ public class ResendController {
 				err("Resend Connection is timeout!");
 				err("All resend packets are dropped.");
 				errWithStackTrace(e);
-				return null;
+				return;
 			} catch (Exception e) {
 
 				errWithStackTrace(e);
 				throw e;
 			}
-			return null;
 		}
 
 		private class DataToBeSend {

@@ -13,31 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy;
+package packetproxy.platform;
 
-import packetproxy.platform.SpoofingIPSource;
+import java.awt.Frame;
+import java.awt.Rectangle;
 
-public class DNSSpoofingIPGetter {
+/** メインウィンドウへの参照（vulchecker 等が利用）。 */
+public interface MainWindowAccess {
 
-	private final SpoofingIPSource source;
+	Frame getFrame();
 
-	public DNSSpoofingIPGetter(SpoofingIPSource source) {
-		this.source = source;
-	}
+	Rectangle getBounds();
 
-	public boolean isAuto() {
-		return source.isAuto();
-	}
+	void setAlwaysOnTop(boolean onTop);
 
-	public String get() {
-		return source.get();
-	}
-
-	public String get6() {
-		return source.get6();
-	}
-
-	public String getInt() {
-		return source.getInt();
-	}
+	void setVisible(boolean visible);
 }

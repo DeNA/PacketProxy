@@ -13,31 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy;
+package packetproxy.platform;
 
-import packetproxy.platform.SpoofingIPSource;
+/** {@link LogSink} の実行時登録先。 */
+public final class LogSinks {
 
-public class DNSSpoofingIPGetter {
+	private static volatile LogSink sink;
 
-	private final SpoofingIPSource source;
+	private LogSinks() {}
 
-	public DNSSpoofingIPGetter(SpoofingIPSource source) {
-		this.source = source;
+	public static void set(LogSink logSink) {
+		sink = logSink;
 	}
 
-	public boolean isAuto() {
-		return source.isAuto();
+	public static void clear() {
+		sink = null;
 	}
 
-	public String get() {
-		return source.get();
+	public static void append(String message) {
+		var current = sink;
+		if (current != null) {
+			current.append(message);
+		}
 	}
 
-	public String get6() {
-		return source.get6();
-	}
-
-	public String getInt() {
-		return source.getInt();
+	public static void appendErr(String message) {
+		var current = sink;
+		if (current != null) {
+			current.appendErr(message);
+		}
 	}
 }

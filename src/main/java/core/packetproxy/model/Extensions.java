@@ -33,8 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import javax.swing.JOptionPane;
-import packetproxy.extensions.randomness.RandomnessExtension;
+import packetproxy.gui.extensions.randomness.RandomnessExtension;
+import packetproxy.platform.UserPrompts;
 import packetproxy.extensions.samplehttp.SampleEncoders;
 import packetproxy.extensions.securityheaders.SecurityHeadersExtension;
 import packetproxy.model.Database.DatabaseMessage;
@@ -313,9 +313,8 @@ public class Extensions implements PropertyChangeListener {
 	}
 
 	private void RecreateTable() throws Exception {
-		int option = JOptionPane.showConfirmDialog(null, "Extensionsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",
-				"テーブルの更新", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-		if (option == JOptionPane.YES_OPTION) {
+		if (UserPrompts.get().confirmTableRecreate("Extensions",
+				"Extensionsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？")) {
 
 			database.dropTable(Extension.class);
 			dao = database.createTable(Extension.class, this);

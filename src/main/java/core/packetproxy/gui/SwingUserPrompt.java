@@ -13,31 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy;
+package packetproxy.gui;
 
-import packetproxy.platform.SpoofingIPSource;
+import javax.swing.JOptionPane;
+import packetproxy.platform.UserPrompt;
 
-public class DNSSpoofingIPGetter {
+public class SwingUserPrompt implements UserPrompt {
 
-	private final SpoofingIPSource source;
-
-	public DNSSpoofingIPGetter(SpoofingIPSource source) {
-		this.source = source;
-	}
-
-	public boolean isAuto() {
-		return source.isAuto();
-	}
-
-	public String get() {
-		return source.get();
-	}
-
-	public String get6() {
-		return source.get6();
-	}
-
-	public String getInt() {
-		return source.getInt();
+	@Override
+	public boolean confirmTableRecreate(String tableName, String message) {
+		int option = JOptionPane.showConfirmDialog(null, message, "テーブルの更新", JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
+		return option == JOptionPane.YES_OPTION;
 	}
 }

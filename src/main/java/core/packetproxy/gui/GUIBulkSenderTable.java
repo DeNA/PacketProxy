@@ -40,7 +40,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.TableCellRenderer;
 import packetproxy.common.Utils;
 import packetproxy.model.OneShotPacket;
-import packetproxy.model.OptionTableModel;
 import packetproxy.model.RegexParam;
 
 public class GUIBulkSenderTable {

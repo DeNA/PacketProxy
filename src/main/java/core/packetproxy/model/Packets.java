@@ -27,8 +27,8 @@ import java.beans.PropertyChangeSupport;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import javax.swing.JOptionPane;
 import packetproxy.common.Logger;
+import packetproxy.platform.UserPrompts;
 import packetproxy.model.Database.DatabaseMessage;
 
 public class Packets implements PropertyChangeListener {
@@ -251,9 +251,7 @@ public class Packets implements PropertyChangeListener {
 	}
 
 	private void RecreateTable() throws Exception {
-		int option = JOptionPane.showConfirmDialog(null, "packetsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",
-				"テーブルの更新", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-		if (option == JOptionPane.YES_OPTION) {
+		if (UserPrompts.get().confirmTableRecreate("packets", "packetsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？")) {
 
 			database.dropTable(Packet.class);
 			dao = database.createTable(Packet.class);

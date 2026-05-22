@@ -33,6 +33,10 @@ import javax.swing.text.Keymap;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
 import packetproxy.model.InterceptModel;
+import packetproxy.controller.ResendController;
+import packetproxy.platform.LogSinks;
+import packetproxy.platform.MainWindows;
+import packetproxy.platform.UserPrompts;
 import packetproxy.util.PacketProxyUtility;
 
 public class GUIMain extends JFrame implements PropertyChangeListener {
@@ -100,6 +104,10 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 	private GUIMain(String title) {
 		try {
 
+			UserPrompts.set(new SwingUserPrompt());
+			MainWindows.set(new GUIMainWindowAccess(this));
+			ResendController.setProgressHandler(
+					(worker, packets) -> SwingUtilities.invokeLater(() -> worker.process(packets)));
 			setIcon();
 			gui_history = initProjectAndHistory();
 			setLookandFeel();
@@ -117,6 +125,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 			gui_extensions = GUIExtensions.getInstance();
 			gui_vulcheckhelper = GUIVulCheckHelper.getInstance();
 			gui_log = GUILog.getInstance();
+			LogSinks.set(new GUILogSink(gui_log));
 
 			tabbedpane = new JTabbedPane();
 

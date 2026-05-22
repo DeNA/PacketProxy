@@ -249,7 +249,7 @@ public class GUIResender implements PropertyChangeListener {
 						ResendController.getInstance().resend(new ResendWorker(sendPacket, 1) {
 
 							@Override
-							protected void process(List<OneShotPacket> packets) {
+							public void process(List<OneShotPacket> packets) {
 								try {
 
 									OneShotPacket recvPacket = packets.get(0);

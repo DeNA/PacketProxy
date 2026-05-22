@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy.ppcontextmenu;
+package packetproxy.gui.ppcontextmenu;
 
 import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;

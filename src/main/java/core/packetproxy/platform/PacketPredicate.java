@@ -13,31 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy;
+package packetproxy.platform;
 
-import packetproxy.platform.SpoofingIPSource;
+import packetproxy.model.Packet;
 
-public class DNSSpoofingIPGetter {
+/** パケット履歴フィルタの評価（Swing 非依存）。 */
+@FunctionalInterface
+public interface PacketPredicate {
 
-	private final SpoofingIPSource source;
-
-	public DNSSpoofingIPGetter(SpoofingIPSource source) {
-		this.source = source;
-	}
-
-	public boolean isAuto() {
-		return source.isAuto();
-	}
-
-	public String get() {
-		return source.get();
-	}
-
-	public String get6() {
-		return source.get6();
-	}
-
-	public String getInt() {
-		return source.getInt();
-	}
+	boolean test(Packet packet);
 }

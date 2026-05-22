@@ -118,7 +118,7 @@ public class GUIBulkSender {
 						ResendController.getInstance().resend(new ResendWorker(oneshots) {
 
 							@Override
-							protected void process(List<OneShotPacket> oneshots) {
+							public void process(List<OneShotPacket> oneshots) {
 								try {
 
 									for (OneShotPacket oneshot : oneshots) {
@@ -159,7 +159,7 @@ public class GUIBulkSender {
 										ResendController.getInstance().resend(new ResendWorker(sendOneshot, 1) {
 
 											@Override
-											protected void process(List<OneShotPacket> oneshots) {
+											public void process(List<OneShotPacket> oneshots) {
 												try {
 
 													for (OneShotPacket oneshot : oneshots) {

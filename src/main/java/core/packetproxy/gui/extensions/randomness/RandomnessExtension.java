@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy.extensions.randomness;
+package packetproxy.gui.extensions.randomness;
 
 import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
@@ -186,7 +186,7 @@ public class RandomnessExtension extends Extension {
 								ResendController.getInstance().resend(new ResendController.ResendWorker(sendPacket, 1) {
 
 									@Override
-									protected void process(List<OneShotPacket> oneshots) {
+									public void process(List<OneShotPacket> oneshots) {
 										int id = requestProgressBar.getValue();
 										for (OneShotPacket oneshot : oneshots) {
 

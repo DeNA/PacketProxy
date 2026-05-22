@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy.model;
+package packetproxy.gui;
 
 import javax.swing.table.DefaultTableModel;
 import org.apache.commons.lang3.ObjectUtils.Null;

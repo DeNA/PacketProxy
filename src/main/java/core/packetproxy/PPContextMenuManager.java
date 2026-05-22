@@ -30,14 +30,14 @@ import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
-import packetproxy.ppcontextmenu.PPContextMenu;
+import packetproxy.gui.ppcontextmenu.PPContextMenu;
 
 public class PPContextMenuManager {
 
 	private static PPContextMenuManager instance;
 	private List<PPContextMenu> module_list;
-	private static final String item_package = "packetproxy.ppcontextmenu";
-	private static final Class<PPContextMenu> item_class = packetproxy.ppcontextmenu.PPContextMenu.class;
+	private static final String item_package = "packetproxy.gui.ppcontextmenu";
+	private static final Class<PPContextMenu> item_class = packetproxy.gui.ppcontextmenu.PPContextMenu.class;
 
 	public static PPContextMenuManager getInstance() throws Exception {
 		if (instance == null) {

@@ -7,13 +7,13 @@ import fi.iki.elonen.NanoHTTPD;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.*;
-import packetproxy.gui.GUIMain;
 import packetproxy.model.*;
+import packetproxy.platform.ConfigHttpUiActions;
 
 public class ConfigHttpServer extends NanoHTTPD {
 
 	private final String allowedAccessToken;
+	private final ConfigHttpUiActions uiActions;
 
 	private static class DaoHub {
 
@@ -30,9 +30,10 @@ public class ConfigHttpServer extends NanoHTTPD {
 		List<SSLPassThrough> sslPassThroughList;
 	}
 
-	public ConfigHttpServer(String hostname, int port, String allowedAccessToken) {
+	public ConfigHttpServer(String hostname, int port, String allowedAccessToken, ConfigHttpUiActions uiActions) {
 		super(hostname, port);
 		this.allowedAccessToken = allowedAccessToken;
+		this.uiActions = uiActions;
 	}
 
 	private void fixUpServerList(Map<Integer, Integer> serverMap, List<Server> serverList) {
@@ -133,18 +134,9 @@ public class ConfigHttpServer extends NanoHTTPD {
 
 			try {
 
-				GUIMain.getInstance().setAlwaysOnTop(true);
-				GUIMain.getInstance().setVisible(true);
+				uiActions.showOptionsTab();
 
-				GUIMain.getInstance().getTabbedPane().setSelectedIndex(GUIMain.Panes.OPTIONS.ordinal());
-
-				int option = JOptionPane.showConfirmDialog(GUIMain.getInstance(),
-						I18nString.get("Do you want to overwrite config?"), I18nString.get("Loading config"),
-						JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-
-				GUIMain.getInstance().setAlwaysOnTop(false);
-
-				if (option == JOptionPane.NO_OPTION) {
+				if (!uiActions.confirmOverwriteConfig()) {
 
 					return NanoHTTPD.newFixedLengthResponse(Response.Status.UNAUTHORIZED, MIME_HTML, null);
 				}

@@ -23,8 +23,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.List;
-import javax.swing.JOptionPane;
 import packetproxy.model.Database.DatabaseMessage;
+import packetproxy.platform.UserPrompts;
 
 public class Modifications implements PropertyChangeListener {
 
@@ -210,9 +210,8 @@ public class Modifications implements PropertyChangeListener {
 	}
 
 	private void RecreateTable() throws Exception {
-		int option = JOptionPane.showConfirmDialog(null, "Modificationsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？",
-				"テーブルの更新", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-		if (option == JOptionPane.YES_OPTION) {
+		if (UserPrompts.get().confirmTableRecreate("Modifications",
+				"Modificationsテーブルの形式が更新されているため\n現在のテーブルを削除して再起動しても良いですか？")) {
 
 			database.dropTable(Modification.class);
 			dao = database.createTable(Modification.class, this);

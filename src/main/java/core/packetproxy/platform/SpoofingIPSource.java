@@ -13,31 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy;
+package packetproxy.platform;
 
-import packetproxy.platform.SpoofingIPSource;
+/** Private DNS のスプーフ IP 設定（GUI 実装が提供する）。 */
+public interface SpoofingIPSource {
 
-public class DNSSpoofingIPGetter {
+	boolean isAuto();
 
-	private final SpoofingIPSource source;
+	String get();
 
-	public DNSSpoofingIPGetter(SpoofingIPSource source) {
-		this.source = source;
-	}
+	String get6();
 
-	public boolean isAuto() {
-		return source.isAuto();
-	}
-
-	public String get() {
-		return source.get();
-	}
-
-	public String get6() {
-		return source.get6();
-	}
-
-	public String getInt() {
-		return source.getInt();
-	}
+	String getInt();
 }

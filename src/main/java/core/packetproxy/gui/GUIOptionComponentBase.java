@@ -35,7 +35,6 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.TableRowSorter;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
-import packetproxy.model.OptionTableModel;
 
 public abstract class GUIOptionComponentBase<T> implements PropertyChangeListener {
 

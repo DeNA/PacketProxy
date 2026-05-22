@@ -9,6 +9,8 @@ import packetproxy.common.ConfigIO
 import packetproxy.common.Utils
 import packetproxy.model.Database
 import packetproxy.model.Packets
+import packetproxy.platform.ConsoleUserPrompt
+import packetproxy.platform.UserPrompts
 import packetproxy.util.Logging
 
 object AppInitializer {
@@ -29,6 +31,10 @@ object AppInitializer {
   @JvmStatic
   fun initCore() {
     check(isCoreNotReady) { "initCore() has already been done !" }
+
+    if (isGulp) {
+      UserPrompts.set(ConsoleUserPrompt())
+    }
 
     // ログ機能のエラーについては標準エラー出力への出力を行い終了する
     try {

@@ -21,7 +21,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
 import org.apache.commons.codec.binary.Hex;
-import packetproxy.gui.GUIMain;
+import packetproxy.platform.MainWindows;
 
 public class JWTHeaderAddSpecifiedJKUGenerator extends Generator {
 
@@ -41,9 +41,10 @@ public class JWTHeaderAddSpecifiedJKUGenerator extends Generator {
 	public String generate(String inputData) throws Exception {
 
 		cancelClicked = false;
-		JDialog dlg = new JDialog(GUIMain.getInstance());
+		var mainWindow = MainWindows.get();
+		JDialog dlg = new JDialog(mainWindow.getFrame());
 
-		Rectangle rect = GUIMain.getInstance().getBounds();
+		Rectangle rect = mainWindow.getBounds();
 		int width = 400;
 		int height = 300;
 		dlg.setBounds(rect.x + rect.width / 2 - width / 2, rect.y + rect.height / 2 - height / 2, width,
@@ -82,12 +83,12 @@ public class JWTHeaderAddSpecifiedJKUGenerator extends Generator {
 		});
 		buttons.add(cancel);
 
-		JPanel main = new JPanel();
-		main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
-		main.add(labels);
-		main.add(scrollpane);
-		main.add(buttons);
-		dlg.getContentPane().add(main);
+		JPanel content = new JPanel();
+		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+		content.add(labels);
+		content.add(scrollpane);
+		content.add(buttons);
+		dlg.getContentPane().add(content);
 		dlg.setModal(true);
 		dlg.setVisible(true);
 
