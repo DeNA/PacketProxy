@@ -5,8 +5,9 @@
 /.settings/
 
 # Gradle
-/build/
-/.gradle
+**/build/
+**/.gradle/
+buildSrc/build/
 /src/main/resources/version
 
 # IntelliJ IDEA

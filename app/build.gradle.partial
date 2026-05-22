@@ -1,0 +1,580 @@
+import com.bmuschko.gradle.izpack.CreateInstallerTask
+import org.apache.tools.ant.taskdefs.condition.Os
+import org.gradle.plugins.ide.eclipse.model.AccessRule
+
+buildscript {
+  dependencies {
+    classpath 'com.bmuschko:gradle-izpack-plugin:3.0'
+  }
+}
+
+plugins {
+  id 'java'
+  id 'application'
+  id 'eclipse'
+  id 'me.champeau.jmh' version '0.7.3'
+  id 'com.bmuschko.izpack' version '3.2'
+  id 'com.github.jk1.dependency-license-report' version '2.5'
+  id "de.undercouch.download" version "5.6.0"
+  id "com.diffplug.spotless" version "7.1.0"
+  id 'org.jetbrains.kotlin.jvm' version '2.2.21'
+}
+
+repositories {
+  mavenCentral()
+  maven { url = 'https://jitpack.io' }
+}
+
+dependencies {
+  compileOnly 'org.projectlombok:lombok:1.18.42'
+  annotationProcessor 'org.projectlombok:lombok:1.18.42'
+  testCompileOnly 'org.projectlombok:lombok:1.18.42'
+  testAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
+
+  testImplementation 'org.junit.jupiter:junit-jupiter:6.0.0'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+  testRuntimeOnly 'org.jetbrains.kotlin:kotlin-reflect:2.2.21'
+  testImplementation 'org.assertj:assertj-core:3.23.1'
+  testImplementation 'org.mockito:mockito-core:4.7.0'
+  testImplementation 'org.projectlombok:lombok:1.18.42'
+
+  // FlatLaf - Modern Look and Feel
+  implementation 'com.formdev:flatlaf:3.4.1'
+  implementation 'com.formdev:flatlaf-intellij-themes:3.4.1'
+
+  implementation 'com.google.guava:guava:24.1-jre'
+  implementation 'commons-codec:commons-codec:1.6'
+  implementation 'commons-io:commons-io:2.4'
+  implementation 'org.apache.commons:commons-lang3:3.1'
+  implementation 'org.apache.commons:commons-collections4:4.0'
+  implementation 'org.xerial:sqlite-jdbc:3.7.2'
+  implementation 'com.j256.ormlite:ormlite-core:4.48'
+  implementation 'com.j256.ormlite:ormlite-jdbc:4.48'
+  implementation 'com.google.protobuf:protobuf-java:4.31.1'
+  implementation 'com.google.protobuf:protobuf-java-util:4.31.1'
+  implementation 'org.slf4j:slf4j-api:2.0.9'
+  implementation 'org.slf4j:slf4j-log4j12:1.7.25'
+  implementation 'org.jline:jline:3.25.1'
+  implementation 'org.jline:jline-terminal-jansi:3.25.1'
+  implementation 'ch.qos.logback:logback-classic:1.4.14'
+  implementation 'com.googlecode.java-diff-utils:diffutils:1.2.1'
+  implementation 'com.google.re2j:re2j:1.1'
+  implementation 'com.github.mobius-software-ltd:mqtt-parser:parser-1.0.3'
+  implementation 'net.arnx:jsonic:1.3.0'
+  implementation 'org.json:json:20180813'
+  implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.10.0'
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.10.0'
+  implementation 'org.msgpack:jackson-dataformat-msgpack:0.8.18'
+  implementation 'org.bouncycastle:bcpkix-jdk15on:1.64'
+  implementation 'commons-net:commons-net:3.6'
+  implementation 'org.nanohttpd:nanohttpd:2.3.1'
+  implementation 'com.google.code.gson:gson:2.13.1'
+  implementation 'org.apache.commons:commons-math3:3.0'
+  implementation 'org.jfree:jfreechart:1.5.3'
+  implementation 'org.ejml:ejml-all:0.41'
+  implementation 'at.favre.lib:hkdf:1.1.0'
+  implementation 'org.eclipse.jetty.http2:http2-hpack:11.0.11'
+  implementation 'org.eclipse.jetty.http3:http3-qpack:11.0.11'
+  implementation 'com.github.docker-java:docker-java:3.3.0'
+  implementation 'com.github.docker-java:docker-java-transport-httpclient5:3.3.0'
+  implementation 'org.apache.commons:commons-compress:1.28.0'
+  implementation 'com.github.luben:zstd-jni:1.5.6-3'
+  implementation 'org.brotli:dec:0.1.2'
+  implementation 'dnsjava:dnsjava:3.6.4'
+  implementation files('libs/agent15.jar')
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1"
+  implementation "io.arrow-kt:arrow-core:2.1.2"
+
+  izpack 'org.codehaus.izpack:izpack-dist:5.1.3'
+
+  // load additional Internal modules if it exists
+  eachInternalEntry('libraries.gradle') { dir, lib -> implementation lib }
+}
+
+licenseReport {
+  outputDir = "$buildDir/reports/licenses"
+  configurations = ['runtimeClasspath']
+}
+
+tasks.withType(JavaCompile) {
+  options.encoding = "UTF-8"
+}
+
+tasks.withType(Test) {
+  systemProperty "file.encoding", "UTF-8"
+}
+
+test {
+  useJUnitPlatform()
+}
+
+/**
+ * 内部ディレクトリ配下に存在する filename の内容を Eval.me で評価し、
+ * 各エントリと元ディレクトリを action(dir, entry) の形で渡す汎用イテレータ
+ */
+def eachInternalEntry(String filename, Closure action) {
+  ['dena/', 'denaN/', 'denaL/'].each { def dir ->
+    def f = file(dir + filename)
+    if (f.exists()) {
+      Eval.me(f.text).each { action(dir, it) }
+    }
+  }
+}
+
+/**
+ * 内部ディレクトリ配下に存在する filename の内容を Eval.me で評価し、
+ * 実在するソースディレクトリパスの一覧を返す
+ */
+def collectInternalSrcDirs(String filename) {
+  def result = []
+  eachInternalEntry(filename) { dir, src ->
+    if (file(dir + src).exists()) {
+      result << dir + src
+    }
+  }
+  return result
+}
+
+def spotlessTarget = { String pattern ->
+  fileTree('.') {
+    include pattern
+    // dena/ は対象に含めたい
+    exclude 'bin/**', 'build/**', '.gradle/**', 'denaN/**', 'denaL/**'
+  }
+}
+
+spotless {
+  java {
+    target spotlessTarget('**/*.java')
+
+    cleanthat()
+    googleJavaFormat()
+
+    eclipse().configFile('eclipse-format-settings.xml')
+
+    formatAnnotations()
+  }
+
+  kotlin {
+    target spotlessTarget('**/*.kt')
+
+    ktfmt().googleStyle()
+    trimTrailingWhitespace()
+    endWithNewline()
+  }
+
+  groovy {
+    target spotlessTarget('**/*.gradle')
+
+    greclipse()
+    leadingTabsToSpaces(2)
+    trimTrailingWhitespace()
+    endWithNewline()
+  }
+
+  flexmark {
+    target spotlessTarget('**/*.md')
+
+    flexmark()
+  }
+}
+
+application {
+  mainClass = "packetproxy.PacketProxy"
+}
+
+def shell(String command) {
+  ["sh", "-c", command].execute().waitForProcessOutput(System.out, System.err)
+}
+
+def gitVersion = "git describe --tags --abbrev=0".execute().text.replace("\n", "")
+new File("${projectDir}/src/main/resources/version").text = gitVersion
+
+project.ext {
+  nameInstaller    = "PacketProxy-${gitVersion}-Installer.jar"
+  nameMacInstallApp = "PacketProxy-${gitVersion}-Installer-Mac.app"
+  nameMacRelease   = "PacketProxy-${gitVersion}-Installer-Mac.zip"
+  nameMacSignedReleaseJPackage = "PacketProxy-${gitVersion}.dmg"
+  nameMacSignedRelease = "PacketProxy-${gitVersion}-Installer-Mac-Signed.dmg"
+  nameWin32Release = "PacketProxy-${gitVersion}-Installer-Win32.jar"
+  nameWin64Release = "PacketProxy-${gitVersion}-Installer-Win64.jar"
+  nameLinuxReleaseDir = "PacketProxy-${gitVersion}-Linux"
+  nameLinuxRelease = "PacketProxy-${gitVersion}-Installer-Linux.jar"
+  // path
+  pathInstaller     = "${buildDir}/distributions/${nameInstaller}"
+  pathWorkDir       = "${buildDir}/distributions"
+  // Mac
+  pathMacWorkDir    = "${buildDir}/distributions/mac"
+  pathMacTarget     = "${pathMacWorkDir}/target"
+  pathMacInstaller  = "${pathMacWorkDir}/${nameInstaller}"
+  pathMacInstallApp = "${pathMacWorkDir}/${nameMacInstallApp}"
+  pathMacRelease    = "${pathMacWorkDir}/${nameMacRelease}"
+  pathMacSignedReleaseJPackage = "${pathMacWorkDir}/${nameMacSignedReleaseJPackage}"
+  pathMacSignedRelease = "${pathMacWorkDir}/${nameMacSignedRelease}"
+  // Win32
+  pathWin32WorkDir   = "${buildDir}/distributions/win32"
+  pathWin32Target    = "${pathWin32WorkDir}/target"
+  pathWin32Installer = "${pathWin32WorkDir}/${nameInstaller}"
+  pathWin32Release   = "${pathWin32WorkDir}/${nameWin32Release}"
+  // Win64
+  pathWin64WorkDir   = "${buildDir}/distributions/win64"
+  pathWin64Target    = "${pathWin64WorkDir}/target"
+  pathWin64Installer = "${pathWin64WorkDir}/${nameInstaller}"
+  pathWin64Release   = "${pathWin64WorkDir}/${nameWin64Release}"
+  // Linux
+  pathLinuxWorkDir   = "${buildDir}/distributions/Linux"
+  pathLinuxTarget    = "${pathLinuxWorkDir}/target"
+  pathLinuxInstaller = "${pathLinuxWorkDir}/${nameInstaller}"
+  pathLinuxReleaseDir = "${pathLinuxWorkDir}/${nameLinuxReleaseDir}"
+  pathLinuxRelease   = "${pathLinuxWorkDir}/${nameLinuxRelease}"
+}
+
+project.ext {
+  appleId      = "test@example.com"
+  applePasswd  = "xxxx-xxxx-xxxx-xxxx"
+  signedKey    = "Developer ID Application: YYYYYYYY (ZZZZZZZZ)"
+  teamId       = "ZZZZZZZZ"
+}
+
+eclipse {
+  classpath {
+    file {
+      whenMerged {
+        def jre = entries.find { it.path.contains 'org.eclipse.jdt.launching.JRE_CONTAINER' }
+        jre.accessRules.add(new AccessRule('accessible', 'com/**'))
+        jre.accessRules.add(new AccessRule('accessible', 'sun/**'))
+      }
+    }
+  }
+}
+
+sourceSets {
+  main {
+    java {
+      srcDirs = ['src/main/java/core'] + collectInternalSrcDirs('sources.gradle')
+    }
+    resources {
+      srcDirs = ['src/main/resources'] + collectInternalSrcDirs('resources.gradle')
+    }
+  }
+  test {
+    java {
+      srcDirs = [
+        'src/test/java',
+        'src/test/kotlin'
+      ] + collectInternalSrcDirs('tests.gradle')
+    }
+  }
+}
+
+jmh {
+  fork = 2
+}
+
+jar {
+  duplicatesStrategy = DuplicatesStrategy.INCLUDE
+  doFirst {
+    def serviceDir = file("${buildDir}/META-INF/services")
+    serviceDir.deleteDir()
+    serviceDir.mkdirs()
+    for (file in configurations.runtimeClasspath) {
+      zipTree(file).matching { include 'META-INF/services/*' }.each { f ->
+        new File(serviceDir, f.name) << f.getText("UTF-8") << "\n"
+      }
+    }
+  }
+  manifest {
+    attributes(
+        "Main-Class": "packetproxy/PacketProxy",
+        "Class-Path": configurations.runtimeClasspath.collect { it.getName() }.join(' ')
+        )
+  }
+  from {
+    configurations.runtimeClasspath.collect {
+      it.isDirectory() ? it : zipTree(it).matching {
+        exclude "META-INF/**"
+      }
+    }
+  }
+  from {
+    fileTree(buildDir).matching {
+      include 'META-INF/services/*'
+    }
+  }
+}
+
+task prepareJPackage(dependsOn: "jar") {
+  doLast {
+    def workDir = "${project.ext.pathMacWorkDir}"
+    delete "${workDir}"
+    new File("${workDir}").mkdirs()
+    def jdkUrl = "https://corretto.aws/downloads/resources/17.0.15.6.1/amazon-corretto-17.0.15.6.1-macosx-x64.tar.gz"
+    def destFile = file("${workDir}/OpenJDK17.tar.gz")
+    if (!destFile.exists()) {
+      ant.get(src: jdkUrl, dest: destFile, verbose: true)
+    }
+    copy {
+      from tarTree(resources.gzip("${workDir}/OpenJDK17.tar.gz"))
+      into file("${workDir}/OpenJDK17")
+    }
+    // create icon
+    copy {
+      from "${projectDir}/src/main/resources/gui/icon.png"
+      into "${workDir}/icon.iconset/"
+    }
+    shell("mv ${workDir}/icon.iconset/icon.png ${workDir}/icon.iconset/icon_256x256.png")
+    shell("iconutil -c icns --output ${workDir}/icon.icns ${workDir}/icon.iconset/")
+  }
+  onlyIf { Os.isFamily(Os.FAMILY_MAC) }
+}
+
+class CreateWinTarget extends DefaultTask {
+  @Input
+  String workDir = ''
+  @Input
+  String targetDir = ''
+  @Input
+  String jdkUrl = ''
+
+  @TaskAction
+  void start() {
+    project.delete {
+      delete "${workDir}"
+    }
+    new File("${workDir}").mkdirs()
+    new File("${targetDir}").mkdirs()
+    project.copy {
+      from "${project.buildDir}/reports/licenses/index.html"
+      into "${targetDir}/licenses"
+    }
+    project.copy {
+      from "${project.projectDir}/src/main/resources/gui/icon.ico"
+      into "${targetDir}"
+      rename('icon.ico', 'PacketProxy.ico')
+    }
+    project.copy {
+      from "${project.buildDir}/libs/PacketProxy.jar"
+      into "${targetDir}"
+    }
+    def destFile = project.file("${workDir}/OpenJDK17.zip")
+    if (!destFile.exists()) {
+      ant.get(src: jdkUrl, dest: destFile, verbose: true)
+    }
+    project.copy {
+      from project.zipTree("${workDir}/OpenJDK17.zip")
+      into project.file("${workDir}/OpenJDK17")
+    }
+    project.copy {
+      from project.file("${workDir}/OpenJDK17/jdk17.0.15_6")
+      into project.file("${targetDir}/OpenJDK17")
+    }
+  }
+}
+
+task createWin64Target(type: CreateWinTarget, dependsOn: [
+  'jar',
+  'generateLicenseReport'
+]) {
+  workDir   = project.ext.pathWin64WorkDir
+  targetDir = project.ext.pathWin64Target
+  jdkUrl    = 'https://corretto.aws/downloads/resources/17.0.15.6.1/amazon-corretto-17.0.15.6.1-windows-x64-jdk.zip'
+}
+
+task createLinuxTarget(dependsOn: [
+  'jar',
+  'generateLicenseReport'
+]) {
+  def workDir = project.ext.pathLinuxWorkDir
+  def targetDir = project.ext.pathLinuxTarget
+  def jdkUrl = 'https://corretto.aws/downloads/resources/17.0.15.6.1/amazon-corretto-17.0.15.6.1-linux-x64.tar.gz'
+  def buildDirectory = project.buildDir
+  def projectDirectory = project.projectDir
+
+  doLast {
+    delete {
+      delete "${workDir}"
+    }
+    new File("${workDir}").mkdirs()
+    new File("${targetDir}").mkdirs()
+    copy {
+      from "${buildDirectory}/reports/licenses/index.html"
+      from "${projectDirectory}/LICENSES"
+      into "${targetDir}/share/packetproxy/licenses"
+    }
+    copy {
+      from "${projectDirectory}/src/main/resources/gui/icon.ico"
+      into "${targetDir}/share/packetproxy"
+      rename('icon.ico', 'PacketProxy.ico')
+    }
+    copy {
+      from "${buildDirectory}/libs/PacketProxy.jar"
+      into "${targetDir}/share/packetproxy"
+    }
+    def destFile = file("${workDir}/OpenJDK17.tar.gz")
+    if (!destFile.exists()) {
+      ant.get(src: jdkUrl, dest: destFile, verbose: true)
+    }
+    copy {
+      from tarTree(resources.gzip("${workDir}/OpenJDK17.tar.gz"))
+      into file("${workDir}/OpenJDK17")
+    }
+    copy {
+      from file("${workDir}/OpenJDK17/amazon-corretto-17.0.15.6.1-linux-x64")
+      into file("${targetDir}/share/packetproxy/OpenJDK17")
+    }
+    copy {
+      from "${projectDirectory}/installer/izpack/packetproxy"
+      into "${targetDir}/bin/"
+    }
+  }
+}
+
+task preIzpack {
+  doLast {
+    copy {
+      from "${projectDir}/installer/izpack/shortcutSpec.xml"
+      into "${project.ext.pathWorkDir}"
+    }
+    copy {
+      from "${projectDir}/src/main/resources/gui/installer_leftside_image.png"
+      into "${project.ext.pathWorkDir}"
+    }
+    copy {
+      from "${projectDir}/src/main/resources/gui/installer_icon.png"
+      into "${project.ext.pathWorkDir}"
+    }
+  }
+}
+
+task izpackWin64(type: CreateInstallerTask, dependsOn: [
+  'createWin64Target',
+  'preIzpack'
+]) {
+  baseDir = file(project.ext.pathWin64Target)
+  installFile = file("${projectDir}/installer/izpack/installer.xml")
+  outputFile = file(project.ext.pathWin64Installer)
+  compression = 'deflate'
+  compressionLevel = 9
+  appProperties = ['app.group': 'PacketProxy', 'app.name': 'PacketProxy', 'app.title': 'PacketProxy',
+    'app.version': gitVersion, 'app.subpath': "PacketProxy-${gitVersion}"]
+}
+
+task izpackLinux(type: CreateInstallerTask, dependsOn: [
+  'createLinuxTarget',
+  'preIzpack'
+]) {
+  baseDir = file(project.ext.pathLinuxTarget)
+  installFile = file("${projectDir}/installer/izpack/installer.xml")
+  outputFile = file(project.ext.pathLinuxInstaller)
+  compression = 'deflate'
+  compressionLevel = 9
+  appProperties = ['app.group': 'PacketProxy', 'app.name': 'PacketProxy', 'app.title': 'PacketProxy',
+    'app.version': gitVersion, 'app.subpath': "PacketProxy-${gitVersion}"]
+}
+
+task createMacJPackage(type: Exec, dependsOn: "prepareJPackage") {
+  workingDir "${projectDir}"
+  commandLine = [
+    "/Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk/Contents/Home/bin/jpackage",
+    "--verbose",
+    "-d",
+    "${project.ext.pathMacWorkDir}",
+    "-n",
+    "PacketProxy",
+    "-i",
+    "${buildDir}/libs/",
+    "--app-version",
+    gitVersion,
+    "--icon",
+    "${project.ext.pathMacWorkDir}/icon.icns",
+    "--main-jar",
+    "PacketProxy.jar",
+    "--mac-sign",
+    "--mac-signing-key-user-name",
+    "${project.ext.signedKey}"
+  ]
+  onlyIf { Os.isFamily(Os.FAMILY_MAC) }
+}
+
+task resignMacJPackage(dependsOn: "createMacJPackage") {
+  doLast {
+    shell("hdiutil convert ${pathMacSignedReleaseJPackage} -format UDRW -o ${project.ext.pathMacWorkDir}/tmp.dmg")
+    shell("hdiutil mount ${project.ext.pathMacWorkDir}/tmp.dmg")
+    shell("rm -rf /tmp/packetproxy && mkdir /tmp/packetproxy && cd /tmp/packetproxy && jar xvf /Volumes/PacketProxy/PacketProxy.app/Contents/app/PacketProxy.jar")
+    shell("cd /tmp/packetproxy; for i in \$(find . -type f); do if file \$i | grep Mach-O > /dev/null; then codesign -fv --timestamp --options=runtime --deep -s \"${project.ext.signedKey}\" \$i; fi; done")
+    shell("cd /tmp/packetproxy; jar cvfm /Volumes/PacketProxy/PacketProxy.app/Contents/app/PacketProxy.jar META-INF/MANIFEST.MF *")
+    shell("cd /Volumes/PacketProxy/PacketProxy.app/Contents/; for i in \$(find . -type f); do if file \$i | grep Mach-O > /dev/null; then codesign -fv --timestamp --options=runtime --deep -s \"${project.ext.signedKey}\" \$i; fi; done")
+    shell("cd /Volumes/PacketProxy; codesign -fv --timestamp --options=runtime --deep -s \"${project.ext.signedKey}\" --entitlements ${projectDir}/assets/resign/entitlements.xml PacketProxy.app")
+    shell("hdiutil detach /Volumes/PacketProxy")
+    shell("rm ${pathMacSignedReleaseJPackage}; hdiutil convert ${project.ext.pathMacWorkDir}/tmp.dmg -format UDZO -o ${pathMacSignedReleaseJPackage}")
+  }
+  onlyIf { Os.isFamily(Os.FAMILY_MAC) }
+}
+
+task createMacInstaller(type: Exec, dependsOn: "resignMacJPackage") {
+  workingDir "${projectDir}"
+  commandLine = [
+    "mv",
+    project.ext.pathMacSignedReleaseJPackage,
+    project.ext.pathMacSignedRelease
+  ]
+  onlyIf { Os.isFamily(Os.FAMILY_MAC) }
+}
+
+task notaryMacInstaller(type: Exec) {
+  workingDir "${projectDir}"
+  commandLine = [
+    "xcrun",
+    "notarytool",
+    "submit",
+    "${project.ext.pathMacSignedRelease}",
+    "--apple-id",
+    "${project.ext.appleId}",
+    "--password",
+    "${project.ext.applePasswd}",
+    "--team-id",
+    "${project.ext.teamId}",
+    "--wait"
+  ]
+  onlyIf { Os.isFamily(Os.FAMILY_MAC) }
+}
+
+task createWin64Release(type: Copy, dependsOn: 'izpackWin64') {
+  from "${project.ext.pathWin64Installer}"
+  into "${project.ext.pathWin64WorkDir}"
+  rename("${project.ext.nameInstaller}", "${project.ext.nameWin64Release}")
+}
+
+task createLinuxInstaller(type: Copy, dependsOn: 'izpackLinux') {
+  from "${project.ext.pathLinuxInstaller}"
+  into "${project.ext.pathLinuxWorkDir}"
+  rename("${project.ext.nameInstaller}", "${project.ext.nameLinuxRelease}")
+}
+
+task createMacRelease(dependsOn: 'createMacInstaller') {
+  /* do nothing */
+}
+
+task createWinRelease(dependsOn: 'createWin64Release') {
+  /* do nothing */
+}
+
+task createLinuxRelease(dependsOn: 'createLinuxInstaller') {
+  doLast {
+    file(project.ext.pathLinuxReleaseDir).mkdirs()
+    copy {
+      from "${projectDir}/installer/izpack/installer.sh"
+      from "${project.ext.pathLinuxInstaller}"
+      into "${project.ext.pathLinuxReleaseDir}"
+    }
+    shell("cd ${project.ext.pathLinuxWorkDir}; tar czvf ${project.ext.nameLinuxRelease} ${project.ext.nameLinuxReleaseDir}")
+  }
+}
+
+task release(dependsOn: [
+  'createMacRelease',
+  'createWinRelease',
+  'createLinuxRelease'
+]) {
+}

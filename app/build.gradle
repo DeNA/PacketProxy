@@ -1,0 +1,72 @@
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath 'com.bmuschko:gradle-izpack-plugin:3.0'
+  }
+}
+
+plugins {
+  id 'java'
+  id 'application'
+  id 'com.bmuschko.izpack' version '3.2'
+  id 'com.github.jk1.dependency-license-report' version '2.5'
+  id 'de.undercouch.download' version '5.6.0'
+}
+
+apply from: rootProject.file('gradle/module-common.gradle')
+apply from: rootProject.file('gradle/app-release.gradle')
+
+dependencies {
+  implementation project(':core')
+  implementation project(':ui')
+  implementation project(':gulp')
+
+  izpack 'org.codehaus.izpack:izpack-dist:5.1.3'
+}
+
+application {
+  mainClass = 'packetproxy.PacketProxy'
+}
+
+sourceSets {
+  main {
+    java {
+      srcDirs = ['src/main/java/core']
+    }
+  }
+}
+
+licenseReport {
+  outputDir = "$buildDir/reports/licenses"
+  configurations = ['runtimeClasspath']
+}
+
+tasks.named('jar', Jar) {
+  archiveBaseName.set('PacketProxy')
+  duplicatesStrategy = DuplicatesStrategy.INCLUDE
+  doFirst {
+    def serviceDir = file("${buildDir}/META-INF/services")
+    serviceDir.deleteDir()
+    serviceDir.mkdirs()
+    for (file in configurations.runtimeClasspath) {
+      zipTree(file).matching { include 'META-INF/services/*' }.each { f ->
+        new File(serviceDir, f.name) << f.getText('UTF-8') << '\n'
+      }
+    }
+  }
+  manifest {
+    attributes(
+        'Main-Class': 'packetproxy.PacketProxy',
+        'Class-Path': configurations.runtimeClasspath.collect { it.name }.join(' '))
+  }
+  from {
+    configurations.runtimeClasspath.collect {
+      it.isDirectory() ? it : zipTree(it).matching { exclude 'META-INF/**' }
+    }
+  }
+  from {
+    fileTree(buildDir).matching { include 'META-INF/services/*' }
+  }
+}
