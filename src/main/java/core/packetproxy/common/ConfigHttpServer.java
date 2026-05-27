@@ -2,7 +2,6 @@ package packetproxy.common;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.SerializedName;
 import fi.iki.elonen.NanoHTTPD;
 import java.util.HashMap;
 import java.util.List;
@@ -14,21 +13,6 @@ public class ConfigHttpServer extends NanoHTTPD {
 	private final String allowedAccessToken;
 	private final ConfigHttpUiActions uiActions;
 	private final ConfigSettingsWriter settingsWriter;
-
-	private static class DaoHub {
-
-		@SerializedName(value = "listenPorts")
-		List<ListenPort> listenPortList;
-
-		@SerializedName(value = "servers")
-		List<Server> serverList;
-
-		@SerializedName(value = "modifications")
-		List<Modification> modificationList;
-
-		@SerializedName(value = "sslPassThroughs")
-		List<SSLPassThrough> sslPassThroughList;
-	}
 
 	public ConfigHttpServer(String hostname, int port, String allowedAccessToken, ConfigHttpUiActions uiActions,
 			ConfigSettingsWriter settingsWriter) {
@@ -77,7 +61,7 @@ public class ConfigHttpServer extends NanoHTTPD {
 		}
 	}
 
-	private void fixUp(DaoHub daoHub) {
+	private void fixUp(ConfigDaoHub daoHub) {
 		Map<Integer, Integer> serverMap = new HashMap<>();
 		fixUpServerList(serverMap, daoHub.serverList);
 		fixUpListenPortList(serverMap, daoHub.listenPortList);
@@ -110,7 +94,7 @@ public class ConfigHttpServer extends NanoHTTPD {
 
 			try {
 
-				DaoHub daoHub = new DaoHub();
+				ConfigDaoHub daoHub = new ConfigDaoHub();
 
 				daoHub.listenPortList = ListenPorts.getInstance().queryAll();
 				daoHub.serverList = Servers.getInstance().queryAll();
