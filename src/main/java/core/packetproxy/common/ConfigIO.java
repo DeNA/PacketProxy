@@ -2,7 +2,6 @@ package packetproxy.common;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.SerializedName;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,21 +9,6 @@ import javax.swing.*;
 import packetproxy.model.*;
 
 public class ConfigIO {
-
-	private static class DaoHub {
-
-		@SerializedName(value = "listenPorts")
-		List<ListenPort> listenPortList;
-
-		@SerializedName(value = "servers")
-		List<Server> serverList;
-
-		@SerializedName(value = "modifications")
-		List<Modification> modificationList;
-
-		@SerializedName(value = "sslPassThroughs")
-		List<SSLPassThrough> sslPassThroughList;
-	}
 
 	public ConfigIO() {
 	}
@@ -68,7 +52,7 @@ public class ConfigIO {
 		}
 	}
 
-	private void fixUp(DaoHub daoHub) {
+	private void fixUp(ConfigDaoHub daoHub) {
 		Map<Integer, Integer> serverMap = new HashMap<>();
 		fixUpServerList(serverMap, daoHub.serverList);
 		fixUpListenPortList(serverMap, daoHub.listenPortList);
@@ -76,7 +60,7 @@ public class ConfigIO {
 	}
 
 	public String getOptions() throws Exception {
-		DaoHub daoHub = new DaoHub();
+		ConfigDaoHub daoHub = new ConfigDaoHub();
 
 		daoHub.listenPortList = ListenPorts.getInstance().queryAll();
 		daoHub.serverList = Servers.getInstance().queryAll();
@@ -92,7 +76,7 @@ public class ConfigIO {
 	}
 
 	public void setOptions(String json) throws Exception {
-		DaoHub daoHub = new Gson().fromJson(json, DaoHub.class);
+		ConfigDaoHub daoHub = new Gson().fromJson(json, ConfigDaoHub.class);
 
 		Database.getInstance().dropConfigs();
 
