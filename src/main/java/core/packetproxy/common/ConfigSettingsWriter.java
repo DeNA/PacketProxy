@@ -16,30 +16,13 @@
 package packetproxy.common;
 
 import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
-import java.util.List;
 import packetproxy.model.*;
 
 /** リモート設定 JSON を DB に反映する。 */
 public class ConfigSettingsWriter {
 
-	private static class DaoHub {
-
-		@SerializedName(value = "listenPorts")
-		List<ListenPort> listenPortList;
-
-		@SerializedName(value = "servers")
-		List<Server> serverList;
-
-		@SerializedName(value = "modifications")
-		List<Modification> modificationList;
-
-		@SerializedName(value = "sslPassThroughs")
-		List<SSLPassThrough> sslPassThroughList;
-	}
-
 	public void applyFromJson(String json) throws Exception {
-		var daoHub = new Gson().fromJson(json, DaoHub.class);
+		var daoHub = new Gson().fromJson(json, ConfigDaoHub.class);
 
 		Database.getInstance().dropConfigs();
 
