@@ -16,10 +16,9 @@
 package packetproxy;
 
 import java.io.File;
-import java.io.InputStream;
 import java.sql.SQLException;
 import javax.swing.*;
-import org.apache.commons.io.IOUtils;
+import packetproxy.common.AppVersion;
 import packetproxy.common.I18nString;
 import packetproxy.common.Utils;
 import packetproxy.gui.GUIMain;
@@ -119,11 +118,7 @@ public class PacketProxy {
 	}
 
 	private void startGUI() throws Exception {
-		String version = "1.0.0";
-		InputStream versionStream = getClass().getResourceAsStream("/version");
-		if (versionStream != null) {
-			version = IOUtils.toString(versionStream);
-		}
+		var version = AppVersion.get();
 		gui = GUIMain.getInstance(String.format("PacketProxy %s", version));
 		gui.setVisible(true);
 	}
