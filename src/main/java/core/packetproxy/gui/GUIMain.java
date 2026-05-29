@@ -56,7 +56,6 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 	private GUIVulCheckHelper gui_vulcheckhelper;
 	private GUILog gui_log;
 	private InterceptModel interceptModel;
-	private String version;
 
 	public enum Panes {
 		HISTORY, INTERCEPT, RESENDER, VULCHECKHELPER, BULKSENDER, EXTENSIONS, OPTIONS, LOG
@@ -98,8 +97,6 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 
 	private GUIMain() {
 		try {
-			this.version = AppVersion.get();
-
 			setIcon();
 			gui_history = initProjectAndHistory();
 			setLookandFeel();
@@ -366,8 +363,8 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 	}
 
 	public void updateTitle() {
-		String projectName = getProjectDisplayName();
-		String titleText = String.format("PacketProxy %s - %s", version, projectName);
+		var projectName = getProjectDisplayName();
+		var titleText = String.format("PacketProxy %s - %s", AppVersion.get(), projectName);
 		setTitle(titleText);
 	}
 
