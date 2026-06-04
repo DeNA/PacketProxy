@@ -335,17 +335,15 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		// Handle intercept model events
-		if (interceptModel.getData() == null) {
+		if (PropertyChangeEventType.INTERCEPT_DATA.matches(evt)) {
+			if (evt.getNewValue() == null) {
 
-			setInterceptDownLight();
-		} else {
+				setInterceptDownLight();
+			} else {
 
-			setInterceptHighLight();
-		}
-
-		// Handle database reconnection events to update title
-		if (PropertyChangeEventType.DATABASE_MESSAGE.matches(evt)) {
+				setInterceptHighLight();
+			}
+		} else if (PropertyChangeEventType.DATABASE_MESSAGE.matches(evt)) {
 			if (evt.getNewValue() instanceof DatabaseMessage) {
 				DatabaseMessage msg = (DatabaseMessage) evt.getNewValue();
 				if (msg == DatabaseMessage.RECONNECT) {
