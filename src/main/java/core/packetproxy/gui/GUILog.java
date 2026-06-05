@@ -31,16 +31,7 @@ public class GUILog {
 	private JTextPane text;
 	private JScrollPane scrollPane;
 	private JPanel mainPanel;
-	private static GUILog instance;
 	private Object thread_lock;
-
-	public static GUILog getInstance() {
-		if (instance == null) {
-
-			instance = new GUILog();
-		}
-		return instance;
-	}
 
 	public GUILog() {
 		text = new JTextPane();
