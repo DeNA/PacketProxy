@@ -30,9 +30,14 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.Keymap;
+import packetproxy.common.AppVersion;
 import packetproxy.common.FontManager;
 import packetproxy.common.I18nString;
+import packetproxy.common.ProjectDisplayName;
+import packetproxy.model.Database;
+import packetproxy.model.Database.DatabaseMessage;
 import packetproxy.model.InterceptModel;
+import packetproxy.model.PropertyChangeEventType;
 import packetproxy.util.PacketProxyUtility;
 
 public class GUIMain extends JFrame implements PropertyChangeListener {
@@ -55,18 +60,10 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		HISTORY, INTERCEPT, RESENDER, VULCHECKHELPER, BULKSENDER, EXTENSIONS, OPTIONS, LOG
 	};
 
-	public static GUIMain getInstance(String title) throws Exception {
-		if (instance == null) {
-
-			instance = new GUIMain(title);
-		}
-		return instance;
-	}
-
 	public static GUIMain getInstance() throws Exception {
 		if (instance == null) {
 
-			throw new Exception("GUIMain instance not found.");
+			instance = new GUIMain();
 		}
 		return instance;
 	}
@@ -97,13 +94,18 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		return null;
 	}
 
-	private GUIMain(String title) {
+	private GUIMain() {
 		try {
-
 			setIcon();
 			gui_history = initProjectAndHistory();
 			setLookandFeel();
-			setTitle(title);
+
+			// Register for database events
+			Database.getInstance().addPropertyChangeListener(this);
+
+			// Set initial title with project name
+			updateTitle();
+
 			setBounds(10, 10, 1100, 850);
 			enableFullScreenForMac(this);
 
@@ -326,14 +328,28 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 		tabbedpane.repaint();
 	}
 
+	public void updateTitle() {
+		var titleText = String.format("PacketProxy %s - %s", AppVersion.get(), ProjectDisplayName.get());
+		setTitle(titleText);
+	}
+
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		if (interceptModel.getData() == null) {
+		if (PropertyChangeEventType.INTERCEPT_DATA.matches(evt)) {
+			if (evt.getNewValue() == null) {
 
-			setInterceptDownLight();
-		} else {
+				setInterceptDownLight();
+			} else {
 
-			setInterceptHighLight();
+				setInterceptHighLight();
+			}
+		} else if (PropertyChangeEventType.DATABASE_MESSAGE.matches(evt)) {
+			if (evt.getNewValue() instanceof DatabaseMessage) {
+				DatabaseMessage msg = (DatabaseMessage) evt.getNewValue();
+				if (msg == DatabaseMessage.RECONNECT) {
+					SwingUtilities.invokeLater(this::updateTitle);
+				}
+			}
 		}
 	}
 }

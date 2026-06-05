@@ -18,7 +18,6 @@ package packetproxy;
 import java.io.File;
 import java.sql.SQLException;
 import javax.swing.*;
-import packetproxy.common.AppVersion;
 import packetproxy.common.I18nString;
 import packetproxy.common.Utils;
 import packetproxy.gui.GUIMain;
@@ -118,8 +117,7 @@ public class PacketProxy {
 	}
 
 	private void startGUI() throws Exception {
-		var version = AppVersion.get();
-		gui = GUIMain.getInstance(String.format("PacketProxy %s", version));
+		gui = GUIMain.getInstance();
 		gui.setVisible(true);
 	}
 }
