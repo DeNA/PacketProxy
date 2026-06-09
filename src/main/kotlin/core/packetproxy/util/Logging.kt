@@ -35,6 +35,21 @@ import org.jline.jansi.Ansi.Color.RED
 import org.slf4j.LoggerFactory
 import packetproxy.gui.GUILog
 
+/** ログの出力先モード */
+enum class LogMode {
+  /** GUIモード: stdout に出力し、GUIログにも追記する (既存の isGulp=false) */
+  GUI,
+
+  /** gulp REPL モード: ファイル (logs/gulp.log) に出力する (既存の isGulp=true) */
+  GULP_FILE,
+
+  /** server CLI モード: stderr に出力する (CI でログを可視化) */
+  SERVER_STDERR,
+
+  /** encode/decode CLI モード: 出力を抑制して stdout を汚さない */
+  SILENT,
+}
+
 object Logging {
   private val dtf: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
   private val guiLog: GUILog = GUILog.getInstance()
@@ -55,12 +70,21 @@ object Logging {
     logFile
   }
 
-  @JvmStatic
-  fun init(isGulp: Boolean) {
-    this.isGulp = isGulp
-    val context = LoggerFactory.getILoggerFactory() as LoggerContext
+  /** 後方互換: isGulp=true → GULP_FILE, isGulp=false → GUI */
+  @JvmStatic fun init(isGulp: Boolean) = init(if (isGulp) LogMode.GULP_FILE else LogMode.GUI)
 
+  @JvmStatic
+  fun init(mode: LogMode) {
+    isGulp = (mode != LogMode.GUI)
+    val context = LoggerFactory.getILoggerFactory() as LoggerContext
     context.reset()
+
+    val rootLogger = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
+
+    if (mode == LogMode.SILENT) {
+      rootLogger.level = Level.OFF
+      return
+    }
 
     val encoder =
       PatternLayoutEncoder().apply {
@@ -70,25 +94,33 @@ object Logging {
       }
 
     val appender =
-      if (isGulp) {
-        FileAppender<ILoggingEvent>().apply {
-          this.context = context
-          name = "FILE"
-          file = logFilePath
-          isAppend = false
-          this.encoder = encoder
-          start()
-        }
-      } else {
-        ConsoleAppender<ILoggingEvent>().apply {
-          this.context = context
-          name = "CONSOLE"
-          this.encoder = encoder
-          start()
-        }
+      when (mode) {
+        LogMode.GULP_FILE ->
+          FileAppender<ILoggingEvent>().apply {
+            this.context = context
+            name = "FILE"
+            file = logFilePath
+            isAppend = false
+            this.encoder = encoder
+            start()
+          }
+        LogMode.SERVER_STDERR ->
+          ConsoleAppender<ILoggingEvent>().apply {
+            this.context = context
+            name = "STDERR"
+            target = "System.err"
+            this.encoder = encoder
+            start()
+          }
+        else ->
+          ConsoleAppender<ILoggingEvent>().apply {
+            this.context = context
+            name = "CONSOLE"
+            this.encoder = encoder
+            start()
+          }
       }
 
-    val rootLogger = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
     rootLogger.addAppender(appender)
     // ormliteなどのdebugログを抑制するため、WARN未満は出力しない
     rootLogger.level = Level.WARN

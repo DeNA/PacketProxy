@@ -9,11 +9,13 @@ import packetproxy.common.ConfigIO
 import packetproxy.common.Utils
 import packetproxy.model.Database
 import packetproxy.model.Packets
+import packetproxy.util.LogMode
 import packetproxy.util.Logging
 
 object AppInitializer {
   private var isGulp = false // Gulp modeか否か
   private var settingsPath = "" // 設定用JSONのファイルpath
+  private var logModeOverride: LogMode? = null // CLIモードからのログ出力先オーバーライド
 
   private var isCoreNotReady = true
   private var isGulpNotReady = true
@@ -25,6 +27,12 @@ object AppInitializer {
     this.settingsPath = settingsPath ?: ""
   }
 
+  /** CLIサブコマンドからログ出力先をオーバーライドする。initCore() より前に呼ぶこと。 */
+  @JvmStatic
+  fun setLogMode(mode: LogMode) {
+    logModeOverride = mode
+  }
+
   /** GUI / CLI(Gulp) に関連なく最初に実行するべき初期化を一度のみ実行する */
   @JvmStatic
   fun initCore() {
@@ -32,7 +40,9 @@ object AppInitializer {
 
     // ログ機能のエラーについては標準エラー出力への出力を行い終了する
     try {
-      Logging.init(isGulp)
+      val effectiveMode = logModeOverride ?: if (isGulp) LogMode.GULP_FILE else LogMode.GUI
+      logModeOverride = null
+      Logging.init(effectiveMode)
     } catch (e: Exception) {
       System.err.println("[FATAL ERROR]: Logging.init(), exit 1")
       System.err.println(e.message)
@@ -159,7 +169,12 @@ object AppInitializer {
 
   /** JSON設定ファイルを読み込んで適用 ListenPortManager初期化後に呼び出すことで、設定ファイル内の有効なプロキシが自動的に開始される */
   private fun loadSettingsFromJson() {
-    if (settingsPath.isEmpty()) return
+    if (settingsPath.isEmpty()) {
+      val dbPath =
+        Paths.get(System.getProperty("user.home"), ".packetproxy", "db", "resources.sqlite3")
+      Logging.log("--config未指定: 既存のSQLiteデータベースの設定を使用します: $dbPath")
+      return
+    }
 
     try {
       val jsonBytes = Utils.readfile(settingsPath)
