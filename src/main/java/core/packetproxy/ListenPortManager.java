@@ -55,6 +55,20 @@ public class ListenPortManager implements PropertyChangeListener {
 		listenPorts.refresh();
 	}
 
+	/** 全ての listen ポートを停止する。サーバー CLI モードのシャットダウン時に使用。 */
+	public void stopAll() throws Exception {
+		synchronized (listen_map) {
+			for (Listen listen : listen_map.values()) {
+				try {
+					listen.close();
+				} catch (Exception e) {
+					errWithStackTrace(e);
+				}
+			}
+			listen_map.clear();
+		}
+	}
+
 	public void rebootIfHTTPProxyRunning() throws Exception {
 		List<ListenPort> list = listenPorts.queryEnabledHttpProxis();
 		for (ListenPort lp : list) {
