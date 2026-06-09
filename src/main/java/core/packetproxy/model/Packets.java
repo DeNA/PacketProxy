@@ -21,6 +21,7 @@ import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -156,6 +157,23 @@ public class Packets implements PropertyChangeListener {
 
 	public List<Packet> queryRange(long offset, long limit) throws Exception {
 		return dao.queryBuilder().offset(offset).limit(limit).orderBy("id", true).query();
+	}
+
+	public List<Packet> querySummaryRange(long offset, long limit) throws Exception {
+		return dao.queryBuilder()
+				.selectColumns("id", "direction", "listen_port", "client_ip", "server_ip", "server_port",
+						"server_name", "encoder_name", "modified", "resend", "date", "color")
+				.offset(offset).limit(limit).orderBy("id", true).query();
+	}
+
+	public List<Packet> querySummaryRangeFiltered(long offset, long limit, String whereClause)
+			throws Exception {
+		QueryBuilder<Packet, Integer> qb = dao.queryBuilder();
+		qb.selectColumns("id", "direction", "listen_port", "client_ip", "server_ip", "server_port",
+				"server_name", "encoder_name", "modified", "resend", "date", "color")
+				.offset(offset).limit(limit).orderBy("id", true);
+		qb.where().raw(whereClause);
+		return qb.query();
 	}
 
 	public List<Packet> queryAll() throws Exception {
