@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.net.ssl.SSLException;
 import javax.swing.event.EventListenerList;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.ArrayUtils;
 
 class Simplex extends Thread {
@@ -268,7 +269,12 @@ class Simplex extends Thread {
 
 			errWithStackTrace(e);
 			log("-----");
-			log(new String(bout.toByteArray()));
+			byte[] pending = bout.toByteArray();
+			log(isBinaryData(pending)
+					? String.format("[binary %d bytes] %s%s", pending.length,
+							Hex.encodeHexString(ArrayUtils.subarray(pending, 0, Math.min(pending.length, 64))),
+							pending.length > 64 ? "..." : "")
+					: new String(pending, java.nio.charset.StandardCharsets.UTF_8));
 			log("-----");
 			try {
 
@@ -358,5 +364,21 @@ class Simplex extends Thread {
 	public void close() {
 		flag_break_loop = true;
 		flag_close = true;
+	}
+
+	private static boolean isBinaryData(byte[] data) {
+		if (data.length == 0) return false;
+		try {
+			String text = java.nio.charset.StandardCharsets.UTF_8.newDecoder()
+					.onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+					.onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
+					.decode(java.nio.ByteBuffer.wrap(data)).toString();
+			long nonPrintable = text.chars()
+					.filter(c -> (c < 0x20 && c != '\t' && c != '\n' && c != '\r') || (c >= 0x7F && c <= 0x9F))
+					.count();
+			return nonPrintable > text.length() / 10;
+		} catch (java.nio.charset.CharacterCodingException e) {
+			return true;
+		}
 	}
 }
