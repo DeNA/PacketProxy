@@ -44,7 +44,7 @@ public class EncoderManager {
 	private static EncoderManager instance;
 	private boolean isDuplicated = false;
 
-	public static EncoderManager getInstance() throws Exception {
+	public static synchronized EncoderManager getInstance() throws Exception {
 		if (instance == null) {
 
 			instance = new EncoderManager();
