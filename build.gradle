@@ -85,6 +85,7 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1"
   implementation "io.arrow-kt:arrow-core:2.1.2"
+  implementation 'info.picocli:picocli:4.7.6'
 
   izpack 'org.codehaus.izpack:izpack-dist:5.1.3'
 
