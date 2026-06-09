@@ -161,17 +161,15 @@ public class Packets implements PropertyChangeListener {
 
 	public List<Packet> querySummaryRange(long offset, long limit) throws Exception {
 		return dao.queryBuilder()
-				.selectColumns("id", "direction", "listen_port", "client_ip", "server_ip", "server_port",
-						"server_name", "encoder_name", "modified", "resend", "date", "color")
+				.selectColumns("id", "direction", "listen_port", "client_ip", "server_ip", "server_port", "server_name",
+						"encoder_name", "modified", "resend", "date", "color")
 				.offset(offset).limit(limit).orderBy("id", true).query();
 	}
 
-	public List<Packet> querySummaryRangeFiltered(long offset, long limit, String whereClause)
-			throws Exception {
+	public List<Packet> querySummaryRangeFiltered(long offset, long limit, String whereClause) throws Exception {
 		QueryBuilder<Packet, Integer> qb = dao.queryBuilder();
-		qb.selectColumns("id", "direction", "listen_port", "client_ip", "server_ip", "server_port",
-				"server_name", "encoder_name", "modified", "resend", "date", "color")
-				.offset(offset).limit(limit).orderBy("id", true);
+		qb.selectColumns("id", "direction", "listen_port", "client_ip", "server_ip", "server_port", "server_name",
+				"encoder_name", "modified", "resend", "date", "color").offset(offset).limit(limit).orderBy("id", true);
 		qb.where().raw(whereClause);
 		return qb.query();
 	}

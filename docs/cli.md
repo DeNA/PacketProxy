@@ -42,12 +42,12 @@ packetproxy server [オプション]
 
 ### オプション
 
-| オプション | 説明 |
-|---|---|
+|          オプション          |                                    説明                                     |
+|-------------------------|---------------------------------------------------------------------------|
 | `-c`, `--config <path>` | 設定 JSON ファイルのパス。指定すると SQLite の設定を JSON 内容で置き換えて起動。省略時は既存の SQLite をそのまま使用。 |
-| `--no-log` | ログ出力を抑制 |
-| `--api-port <port>` | 管理 API を起動するポート番号（省略時は API 無効）|
-| `--api-key <token>` | API 認証トークン。全リクエストに `Authorization: Bearer <token>` が必要になる。省略時は認証なし。 |
+| `--no-log`              | ログ出力を抑制                                                                   |
+| `--api-port <port>`     | 管理 API を起動するポート番号（省略時は API 無効）                                            |
+| `--api-key <token>`     | API 認証トークン。全リクエストに `Authorization: Bearer <token>` が必要になる。省略時は認証なし。       |
 
 ### 設定の読み込み優先順位
 
@@ -92,13 +92,13 @@ packetproxy decode -e <encoder> [オプション]
 
 ### オプション
 
-| オプション | 説明 |
-|---|---|
+|          オプション           |                     説明                      |
+|--------------------------|---------------------------------------------|
 | `-e`, `--encoder <name>` | エンコーダー名（必須）。一覧は `packetproxy encoders` で確認。 |
-| `--response` | サーバーレスポンス方向で変換。省略時はクライアントリクエスト方向。 |
-| `--text` | 出力を UTF-8 テキストとして扱い、末尾に改行がなければ追加する。 |
-| `--in <file>` | 入力ファイル。省略時は stdin。 |
-| `--out <file>` | 出力ファイル。省略時は stdout。 |
+| `--response`             | サーバーレスポンス方向で変換。省略時はクライアントリクエスト方向。           |
+| `--text`                 | 出力を UTF-8 テキストとして扱い、末尾に改行がなければ追加する。         |
+| `--in <file>`            | 入力ファイル。省略時は stdin。                          |
+| `--out <file>`           | 出力ファイル。省略時は stdout。                         |
 
 ### 使用例
 
@@ -178,11 +178,11 @@ GET /api/status
 curl -H "Authorization: Bearer mytoken" http://127.0.0.1:8888/api/status
 ```
 
-| `status` | 説明 |
-|---|---|
+|  `status`  |                 説明                 |
+|------------|------------------------------------|
 | `STARTING` | コンポーネント初期化中（EncoderManager 等のロード中） |
-| `READY` | 全コンポーネント初期化済み、プロキシ稼働中 |
-| `STOPPING` | シャットダウン処理中（SIGINT / SIGTERM 受信後） |
+| `READY`    | 全コンポーネント初期化済み、プロキシ稼働中              |
+| `STOPPING` | シャットダウン処理中（SIGINT / SIGTERM 受信後）   |
 
 `readyAt` / `uptimeSec` は `READY` または `STOPPING` 状態でのみ含まれます。
 
@@ -226,12 +226,12 @@ echo "server is ready"
 GET /api/packets[?filter=<式>&offset=0&limit=100]
 ```
 
-| クエリパラメータ | デフォルト | 説明 |
-|---|---|---|
-| `filter` | なし | フィルター式（後述）|
-| `offset` | 0 | 取得開始位置 |
-| `limit` | 100（最大 1000）| 取得件数 |
-| `q` | なし | フルテキスト検索（レガシー。`filter=full_text==<q>` と等価） |
+| クエリパラメータ |    デフォルト     |                     説明                     |
+|----------|--------------|--------------------------------------------|
+| `filter` | なし           | フィルター式（後述）                                 |
+| `offset` | 0            | 取得開始位置                                     |
+| `limit`  | 100（最大 1000） | 取得件数                                       |
+| `q`      | なし           | フルテキスト検索（レガシー。`filter=full_text==<q>` と等価） |
 
 データフィールド（`decoded_data` 等）は含みません。詳細は `GET /api/packets/{id}` を使ってください。
 
@@ -249,25 +249,25 @@ GUI の FilterTextParser と同一の文法を使用します。
 
 **利用可能なカラム:**
 
-| カラム名 | 対応する DB フィールド | 型 | 備考 |
-|---|---|---|---|
-| `id` | id | 整数 | |
-| `client_ip` | client_ip | 文字列 | LIKE 部分一致 |
-| `client_port` | client_port | 整数 | |
-| `server_ip` | server_ip | 文字列 | LIKE 部分一致 |
-| `server_port` | server_port | 整数 | |
-| `time` | date | 整数（epoch ms）| |
-| `resend` | resend | boolean | `true`/`false` |
-| `modified` | modified | boolean | `true`/`false` |
-| `type` | content_type | 文字列 | LIKE 部分一致 |
-| `encode` | encoder_name | 文字列 | LIKE 部分一致 |
-| `alpn` | alpn | 文字列 | LIKE 部分一致 |
-| `group` | group | 整数 | |
-| `length` | LENGTH(decoded_data) | 整数 | |
-| `full_text` | decoded_data GLOB | 文字列 | case-sensitive |
-| `full_text_i` | decoded_data LIKE | 文字列 | case-insensitive |
-| `request` | decoded_data LIKE | 文字列 | ベストエフォート |
-| `response` | decoded_data LIKE | 文字列 | ベストエフォート |
+|     カラム名      |    対応する DB フィールド     |      型       |        備考        |
+|---------------|----------------------|--------------|------------------|
+| `id`          | id                   | 整数           |                  |
+| `client_ip`   | client_ip            | 文字列          | LIKE 部分一致        |
+| `client_port` | client_port          | 整数           |                  |
+| `server_ip`   | server_ip            | 文字列          | LIKE 部分一致        |
+| `server_port` | server_port          | 整数           |                  |
+| `time`        | date                 | 整数（epoch ms） |                  |
+| `resend`      | resend               | boolean      | `true`/`false`   |
+| `modified`    | modified             | boolean      | `true`/`false`   |
+| `type`        | content_type         | 文字列          | LIKE 部分一致        |
+| `encode`      | encoder_name         | 文字列          | LIKE 部分一致        |
+| `alpn`        | alpn                 | 文字列          | LIKE 部分一致        |
+| `group`       | group                | 整数           |                  |
+| `length`      | LENGTH(decoded_data) | 整数           |                  |
+| `full_text`   | decoded_data GLOB    | 文字列          | case-sensitive   |
+| `full_text_i` | decoded_data LIKE    | 文字列          | case-insensitive |
+| `request`     | decoded_data LIKE    | 文字列          | ベストエフォート         |
+| `response`    | decoded_data LIKE    | 文字列          | ベストエフォート         |
 
 > **注意**: 文字列カラムの `==`/`=~` は LIKE `'%値%'` で評価されます（正規表現は非サポート）。
 
@@ -513,11 +513,11 @@ Content-Type: application/json
 }
 ```
 
-| フィールド | 説明 |
-|---|---|
-| `packet_id` | ベースにするパケットの ID |
-| `range_start` | 置換対象のバイト開始位置（0 始まり、inclusive）|
-| `range_end` | 置換対象のバイト終了位置（exclusive）|
+|     フィールド     |              説明               |
+|---------------|-------------------------------|
+| `packet_id`   | ベースにするパケットの ID                |
+| `range_start` | 置換対象のバイト開始位置（0 始まり、inclusive） |
+| `range_end`   | 置換対象のバイト終了位置（exclusive）       |
 
 指定チェッカーの全 Generator がペイロードを生成し、`range_start`〜`range_end` を置換した OneShotPacket を順番に送信します。
 
@@ -696,13 +696,14 @@ curl -s -H "Authorization: Bearer mytoken" \
 
 ## エラーレスポンス
 
-| HTTP ステータス | 意味 |
-|---|---|
-| 400 Bad Request | リクエストパラメータが不正 |
-| 401 Unauthorized | `--api-key` 指定時に認証ヘッダーが不正または欠落 |
-| 404 Not Found | 指定 ID のリソースが存在しない |
-| 500 Internal Server Error | サーバー内部エラー |
+|        HTTP ステータス         |               意味               |
+|---------------------------|--------------------------------|
+| 400 Bad Request           | リクエストパラメータが不正                  |
+| 401 Unauthorized          | `--api-key` 指定時に認証ヘッダーが不正または欠落 |
+| 404 Not Found             | 指定 ID のリソースが存在しない              |
+| 500 Internal Server Error | サーバー内部エラー                      |
 
 ```json
 {"error": "エラーメッセージ"}
 ```
+

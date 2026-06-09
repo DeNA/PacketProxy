@@ -367,15 +367,15 @@ class Simplex extends Thread {
 	}
 
 	private static boolean isBinaryData(byte[] data) {
-		if (data.length == 0) return false;
+		if (data.length == 0)
+			return false;
 		try {
 			String text = java.nio.charset.StandardCharsets.UTF_8.newDecoder()
 					.onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
 					.onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
 					.decode(java.nio.ByteBuffer.wrap(data)).toString();
 			long nonPrintable = text.chars()
-					.filter(c -> (c < 0x20 && c != '\t' && c != '\n' && c != '\r') || (c >= 0x7F && c <= 0x9F))
-					.count();
+					.filter(c -> (c < 0x20 && c != '\t' && c != '\n' && c != '\r') || (c >= 0x7F && c <= 0x9F)).count();
 			return nonPrintable > text.length() / 10;
 		} catch (java.nio.charset.CharacterCodingException e) {
 			return true;

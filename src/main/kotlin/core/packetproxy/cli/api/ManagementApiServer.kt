@@ -19,11 +19,11 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import fi.iki.elonen.NanoHTTPD
-import packetproxy.model.Database
 import fi.iki.elonen.NanoHTTPD.IHTTPSession
 import fi.iki.elonen.NanoHTTPD.Method
 import fi.iki.elonen.NanoHTTPD.Response
 import fi.iki.elonen.NanoHTTPD.Response.Status
+import packetproxy.model.Database
 
 /** `GET /api/status` が返すサーバーの状態。 */
 enum class ServerPhase {
@@ -37,11 +37,7 @@ enum class ServerPhase {
   STOPPING,
 }
 
-private data class ServerState(
-  val phase: ServerPhase,
-  val startedAt: Long,
-  val readyAt: Long?,
-)
+private data class ServerState(val phase: ServerPhase, val startedAt: Long, val readyAt: Long?)
 
 /**
  * packetproxy server の管理 HTTP API サーバー。
@@ -89,15 +85,18 @@ class ManagementApiServer(port: Int, private val apiKey: String?) : NanoHTTPD("1
   private fun statusResponse(): Response {
     val s = state
     val now = System.currentTimeMillis()
-    val body = buildMap<String, Any?> {
-      put("status", s.phase.name)
-      put("startedAt", s.startedAt)
-      if (s.readyAt != null) {
-        put("readyAt", s.readyAt)
-        put("uptimeSec", (now - s.readyAt) / 1000)
+    val body =
+      buildMap<String, Any?> {
+        put("status", s.phase.name)
+        put("startedAt", s.startedAt)
+        if (s.readyAt != null) {
+          put("readyAt", s.readyAt)
+          put("uptimeSec", (now - s.readyAt) / 1000)
+        }
       }
-    }
-    return withCors(NanoHTTPD.newFixedLengthResponse(Status.OK, "application/json", gson.toJson(body)))
+    return withCors(
+      NanoHTTPD.newFixedLengthResponse(Status.OK, "application/json", gson.toJson(body))
+    )
   }
 
   private fun dbDownload(): Response {
