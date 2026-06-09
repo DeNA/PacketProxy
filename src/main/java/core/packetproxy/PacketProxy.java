@@ -17,7 +17,9 @@ package packetproxy;
 
 import java.io.File;
 import java.sql.SQLException;
+import java.util.Set;
 import javax.swing.*;
+import packetproxy.cli.app.CliRoot;
 import packetproxy.common.I18nString;
 import packetproxy.common.Utils;
 import packetproxy.gui.GUIMain;
@@ -25,15 +27,26 @@ import packetproxy.gui.Splash;
 import packetproxy.gulp.GulpTerminal;
 import packetproxy.model.Database;
 import packetproxy.util.Logging;
+import picocli.CommandLine;
 
 public class PacketProxy {
 	public GUIMain gui;
 	public ListenPortManager listenPortManager;
 
+	/** picocli に委譲する CLI サブコマンド名のセット */
+	private static final Set<String> CLI_SUBCOMMANDS = Set.of("server", "encode", "decode", "encoders");
+
 	public PacketProxy() throws Exception {
 	}
 
 	public static void main(String[] args) throws Exception {
+		// CLI サブコマンドの場合は picocli に委譲して終了（後方互換パスはそのまま）
+		if (args.length > 0 && CLI_SUBCOMMANDS.contains(args[0])) {
+			int exitCode = new CommandLine(new CliRoot()).execute(args);
+			System.exit(exitCode);
+			return;
+		}
+
 		// バイナリへの引数の解釈とセット
 		String gulpMode = getOption("--gulp", args);
 		String settingsJson = getOption("--settings-json", args);
