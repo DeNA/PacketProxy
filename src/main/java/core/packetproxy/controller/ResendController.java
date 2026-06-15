@@ -20,7 +20,10 @@ import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import javax.swing.SwingWorker;
 import packetproxy.Duplex;
@@ -88,11 +91,49 @@ public class ResendController {
 		worker.execute();
 	}
 
+	/**
+	 * oneshots を送信し、各送信に対するサーバー応答を「入力と同じ順序で」収集して返す。 戻り値の index i は oneshots[i]
+	 * に対応する。応答が取得できなかった要素（タイムアウト、 既存コネクションへの再送など）は null になる。
+	 *
+	 * <p>
+	 * REST API（CLI server）のように、送信結果を呼び出し元へ同期的に返す必要があるとき用。 timeoutMs
+	 * を超えた場合はそこまでに得られた部分的な結果を返す。
+	 *
+	 * @param oneshots
+	 *            送信するパケット配列
+	 * @param timeoutMs
+	 *            全送信完了を待つ最大時間（ミリ秒）
+	 * @return oneshots と同じ順序の応答 OneShotPacket リスト（未取得は null）
+	 */
+	public List<OneShotPacket> resendAndCollect(OneShotPacket[] oneshots, long timeoutMs) throws Exception {
+		ResendWorker worker = new ResendWorker(oneshots);
+		worker.execute();
+		try {
+
+			worker.get(timeoutMs, TimeUnit.MILLISECONDS);
+		} catch (TimeoutException e) {
+
+			worker.cancel(true);
+			err("Resend timed out after %d ms; returning partial results.", timeoutMs);
+		}
+		List<OneShotPacket> collected = worker.getCollected();
+		synchronized (collected) {
+			return new ArrayList<OneShotPacket>(collected);
+		}
+	}
+
 	public static class ResendWorker extends SwingWorker<Object, OneShotPacket> {
 
 		int count;
 		OneShotPacket oneshot;
 		OneShotPacket[] oneshots;
+		// 送信した各パケットに対する応答を入力順に格納する（未取得は null）。
+		private final List<OneShotPacket> collected = Collections.synchronizedList(new ArrayList<OneShotPacket>());
+
+		/** 入力順に並んだ応答リストを返す。doInBackground 完了後に参照すること。 */
+		public List<OneShotPacket> getCollected() {
+			return collected;
+		}
 
 		// 同じパケットを複数再送
 		public ResendWorker(OneShotPacket oneshot, int count) {
@@ -117,16 +158,28 @@ public class ResendController {
 
 					for (int i = 0; i < this.count; i++) {
 
+						collected.add(null);
+					}
+					for (int i = 0; i < this.count; i++) {
+
+						final int idx = i;
 						DataToBeSend sendData = new DataToBeSend(this.oneshot, result -> {
+							collected.set(idx, result);
 							publish(result);
 						});
 						list.add(sendData);
 					}
 				} else if (this.oneshots != null && this.oneshots.length > 0) {
 
-					for (OneShotPacket os : this.oneshots) {
+					for (int i = 0; i < this.oneshots.length; i++) {
 
-						DataToBeSend sendData = new DataToBeSend(os, result -> {
+						collected.add(null);
+					}
+					for (int i = 0; i < this.oneshots.length; i++) {
+
+						final int idx = i;
+						DataToBeSend sendData = new DataToBeSend(this.oneshots[i], result -> {
+							collected.set(idx, result);
 							publish(result);
 						});
 						list.add(sendData);
@@ -134,7 +187,7 @@ public class ResendController {
 				} else {
 
 					err("Resend packet is wrong!");
-					return null;
+					return collected;
 				}
 
 				list.stream().filter(o -> o.isDirectSend()).forEach(sendData -> {
@@ -161,13 +214,13 @@ public class ResendController {
 				err("Resend Connection is timeout!");
 				err("All resend packets are dropped.");
 				errWithStackTrace(e);
-				return null;
+				return collected;
 			} catch (Exception e) {
 
 				errWithStackTrace(e);
 				throw e;
 			}
-			return null;
+			return collected;
 		}
 
 		private class DataToBeSend {
