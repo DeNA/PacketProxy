@@ -24,6 +24,11 @@ import packetproxy.model.Packets
 
 internal class VulCheckApiHandler(private val server: ManagementApiServer) {
 
+  private companion object {
+    /** サーバー応答を待つデフォルトの最大時間（ミリ秒）。body の `timeout_ms` で上書き可。 */
+    const val DEFAULT_TIMEOUT_MS = 30_000L
+  }
+
   /**
    * GET /api/vulcheckers
    *
@@ -57,8 +62,15 @@ internal class VulCheckApiHandler(private val server: ManagementApiServer) {
    * - `packet_id`: ベースにするパケットの ID
    * - `range_start` / `range_end`: データの置換対象バイト範囲（0始まり）
    *
-   * 各 Generator がペイロードを生成し、対象範囲を置換した OneShotPacket を順番に送信する。 送信は非同期で開始され、即座に
-   * `{"status":"accepted","sent":N}` を返す。
+   * 各 Generator がペイロードを生成し、対象範囲を置換した OneShotPacket を順番に送信する。 送信後にサーバー応答を待ち、送信内容と応答を通信履歴（packets
+   * テーブル）に保存する。 レスポンスの `results` は送信した Generator ごとに 1 要素で、保存されたリクエスト／応答 パケットの ID と Generator 名を持つ。
+   *
+   * ```json
+   * {"status":"completed","group":123,"sent":2,
+   *  "results":[{"index":0,"generator":"NegativeNumber","requestPacketId":1024,"responsePacketId":1025}, ...]}
+   * ```
+   *
+   * body の `timeout_ms` で応答待ちの最大時間（ミリ秒）を指定できる。
    */
   fun run(checkerName: String, session: IHTTPSession): Response {
     val manager = VulCheckerManager.getInstance()
@@ -71,6 +83,7 @@ internal class VulCheckApiHandler(private val server: ManagementApiServer) {
     val rangeStart =
       body["range_start"]?.asInt ?: return server.error400("'range_start' is required")
     val rangeEnd = body["range_end"]?.asInt ?: return server.error400("'range_end' is required")
+    val timeoutMs = if (body.has("timeout_ms")) body["timeout_ms"].asLong else DEFAULT_TIMEOUT_MS
 
     if (rangeStart < 0 || rangeEnd <= rangeStart) {
       return server.error400("invalid range: range_end must be greater than range_start")
@@ -79,6 +92,9 @@ internal class VulCheckApiHandler(private val server: ManagementApiServer) {
     val packet = Packets.getInstance().query(packetId) ?: return server.error404()
     val baseData =
       packet.modifiedData ?: packet.decodedData ?: return server.error400("packet has no data")
+    if (rangeEnd > baseData.size) {
+      return server.error400("range_end exceeds packet data length (${baseData.size})")
+    }
 
     val vulChecker = manager.createInstance(checkerName)
     val prefix = baseData.copyOfRange(0, rangeStart)
@@ -86,22 +102,45 @@ internal class VulCheckApiHandler(private val server: ManagementApiServer) {
     val original = String(baseData.copyOfRange(rangeStart, rangeEnd))
 
     val oneshots = mutableListOf<OneShotPacket>()
+    val generatorNames = mutableListOf<String>()
     for (generator in vulChecker.generators) {
       try {
         val payload = generator.generate(original).toByteArray()
         val newData = prefix + payload + suffix
         oneshots.add(packet.getOneShotPacket(newData))
+        generatorNames.add(generator.name)
       } catch (_: Exception) {
         // generator がこの入力に対応していない場合はスキップ
       }
     }
 
     if (oneshots.isEmpty()) {
-      return server.json200(mapOf("status" to "accepted", "sent" to 0))
+      return server.json200(
+        mapOf("status" to "completed", "sent" to 0, "results" to emptyList<Any>())
+      )
     }
 
-    val worker = ResendController.ResendWorker(oneshots.toTypedArray())
-    ResendController.getInstance().resend(worker)
-    return server.json200(mapOf("status" to "accepted", "sent" to oneshots.size))
+    val responses =
+      ResendController.getInstance().resendAndCollect(oneshots.toTypedArray(), timeoutMs)
+
+    val group = ResendPersistence.nextGroup()
+    val results =
+      oneshots.indices.map { i ->
+        mapOf(
+          "index" to i,
+          "generator" to generatorNames[i],
+          "requestPacketId" to ResendPersistence.persistRequest(oneshots[i], group),
+          "responsePacketId" to ResendPersistence.persistResponse(responses.getOrNull(i), group),
+        )
+      }
+
+    return server.json200(
+      mapOf(
+        "status" to "completed",
+        "group" to group,
+        "sent" to oneshots.size,
+        "results" to results,
+      )
+    )
   }
 }

@@ -24,17 +24,29 @@ import packetproxy.model.Packets
 
 internal class ResendApiHandler(private val server: ManagementApiServer) {
 
+  private companion object {
+    /** サーバー応答を待つデフォルトの最大時間（ミリ秒）。body の `timeout_ms` で上書き可。 */
+    const val DEFAULT_TIMEOUT_MS = 30_000L
+  }
+
   /**
    * POST /api/packets/{id}/resend
    *
    * body (省略可):
    * ```json
-   * {"data": "<base64>"}
+   * {"data": "<base64>", "timeout_ms": 30000}
    * ```
    *
    * `data` 省略時は Packet の modified_data、なければ decoded_data を使用する。
    *
-   * 送信は非同期で開始され、即座に `{"status":"accepted"}` を返す。
+   * パケットを送信し、サーバー応答を待ってから、送信内容と応答を通信履歴（packets テーブル）に 保存する。レスポンスでは保存されたパケットの ID を返すので、`GET
+   * /api/packets/{id}` で 内容を取得・相関できる。
+   *
+   * ```json
+   * {"status":"completed","group":123,"requestPacketId":1024,"responsePacketId":1025}
+   * ```
+   *
+   * 既存コネクションへの再送など応答を取得できないケースでは `responsePacketId` は省略される。
    */
   fun resend(packetId: Int, session: IHTTPSession): Response {
     val packet = Packets.getInstance().query(packetId) ?: return server.error404()
@@ -46,10 +58,23 @@ internal class ResendApiHandler(private val server: ManagementApiServer) {
       } else {
         packet.modifiedData ?: packet.decodedData ?: return server.error400("packet has no data")
       }
+    val timeoutMs = if (body.has("timeout_ms")) body["timeout_ms"].asLong else DEFAULT_TIMEOUT_MS
 
     val oneshot = packet.getOneShotPacket(data)
-    ResendController.getInstance().resend(oneshot, 1, false)
-    return server.json200(mapOf("status" to "accepted"))
+    val responses = ResendController.getInstance().resendAndCollect(arrayOf(oneshot), timeoutMs)
+
+    val group = ResendPersistence.nextGroup()
+    val requestPacketId = ResendPersistence.persistRequest(oneshot, group)
+    val responsePacketId = ResendPersistence.persistResponse(responses.getOrNull(0), group)
+
+    return server.json200(
+      mapOf(
+        "status" to "completed",
+        "group" to group,
+        "requestPacketId" to requestPacketId,
+        "responsePacketId" to responsePacketId,
+      )
+    )
   }
 
   /**
@@ -59,10 +84,16 @@ internal class ResendApiHandler(private val server: ManagementApiServer) {
    *
    * body:
    * ```json
-   * {"packets": [{"data": "<base64>"}, ...]}
+   * {"packets": [{"data": "<base64>"}, ...], "timeout_ms": 30000}
    * ```
    *
-   * 送信は非同期で開始され、即座に `{"status":"accepted","count":N}` を返す。
+   * 各パケットを送信し、応答を待ってから送信内容と応答を通信履歴に保存する。 レスポンスの `results` は入力 `packets` と同じ順序で、各要素が保存された
+   * リクエスト／応答パケットの ID を持つ。
+   *
+   * ```json
+   * {"status":"completed","group":123,"count":2,
+   *  "results":[{"index":0,"requestPacketId":1024,"responsePacketId":1025}, ...]}
+   * ```
    */
   fun bulkSend(packetId: Int, session: IHTTPSession): Response {
     val packet = Packets.getInstance().query(packetId) ?: return server.error404()
@@ -73,6 +104,7 @@ internal class ResendApiHandler(private val server: ManagementApiServer) {
       else return server.error400("'packets' array is required")
 
     if (packetsArray.size() == 0) return server.error400("'packets' array is empty")
+    val timeoutMs = if (body.has("timeout_ms")) body["timeout_ms"].asLong else DEFAULT_TIMEOUT_MS
 
     val oneshots: Array<OneShotPacket> =
       packetsArray
@@ -88,8 +120,25 @@ internal class ResendApiHandler(private val server: ManagementApiServer) {
         }
         .toTypedArray()
 
-    val worker = ResendController.ResendWorker(oneshots)
-    ResendController.getInstance().resend(worker)
-    return server.json200(mapOf("status" to "accepted", "count" to oneshots.size))
+    val responses = ResendController.getInstance().resendAndCollect(oneshots, timeoutMs)
+
+    val group = ResendPersistence.nextGroup()
+    val results =
+      oneshots.indices.map { i ->
+        mapOf(
+          "index" to i,
+          "requestPacketId" to ResendPersistence.persistRequest(oneshots[i], group),
+          "responsePacketId" to ResendPersistence.persistResponse(responses.getOrNull(i), group),
+        )
+      }
+
+    return server.json200(
+      mapOf(
+        "status" to "completed",
+        "group" to group,
+        "count" to oneshots.size,
+        "results" to results,
+      )
+    )
   }
 }
