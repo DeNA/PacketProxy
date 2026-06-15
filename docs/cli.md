@@ -393,10 +393,12 @@ curl -s -H "Authorization: Bearer mytoken" \
 POST /api/packets/{id}/resend
 Content-Type: application/json
 
-{"data": "<base64>"}   // 省略可
+{"data": "<base64>", "timeout_ms": 30000}   // いずれも省略可
 ```
 
-`data` を省略した場合、パケットの `modified_data`（なければ `decoded_data`）を使用します。送信は非同期で開始され、即座にレスポンスを返します。
+`data` を省略した場合、パケットの `modified_data`（なければ `decoded_data`）を使用します。`timeout_ms` は応答を待つ最大時間（ミリ秒、デフォルト 30000）です。
+
+パケットを送信したあとサーバー応答を待ち、**送信内容と応答を通信履歴（packets テーブル）に保存**します。レスポンスには保存されたパケットの ID が含まれるので、`GET /api/packets/{id}` で送信内容（`sentData` / `decodedData`）と応答（`receivedData`）を取得できます。
 
 ```bash
 # modified_data でそのまま再送
@@ -418,8 +420,19 @@ curl -s -X POST \
 レスポンス：
 
 ```json
-{"status": "accepted"}
+{
+  "status": "completed",
+  "group": 1718524800123,
+  "requestPacketId": 1024,
+  "responsePacketId": 1025
+}
 ```
+
+|       フィールド        |                             説明                             |
+|--------------------|------------------------------------------------------------|
+| `group`            | このバッチに付与された group 値。保存された全パケットが共有する                        |
+| `requestPacketId`  | 送信したリクエストを保存したパケットの ID                                     |
+| `responsePacketId` | 応答を保存したパケットの ID。応答を取得できなかった場合（タイムアウト、既存コネクションへの再送など）は省略される |
 
 #### POST /api/packets/{id}/bulk-send — バルク送信
 
@@ -432,11 +445,12 @@ Content-Type: application/json
     {"data": "<base64>"},
     {"data": "<base64>"},
     ...
-  ]
+  ],
+  "timeout_ms": 30000
 }
 ```
 
-指定パケットの接続情報（サーバーアドレス、エンコーダー等）を使い、`packets` 配列の内容を順番に送信します。
+指定パケットの接続情報（サーバーアドレス、エンコーダー等）を使い、`packets` 配列の内容を順番に送信します。`timeout_ms` は応答待ちの最大時間（ミリ秒、デフォルト 30000）です。各送信について送信内容と応答を通信履歴に保存し、`results` 配列で `packets` と同じ順序の packet ID を返します。
 
 ```bash
 # ID=1 と ID=2 のパケットデータをそれぞれ取得して一括送信する例
@@ -455,8 +469,18 @@ curl -s -X POST \
 レスポンス：
 
 ```json
-{"status": "accepted", "count": 2}
+{
+  "status": "completed",
+  "group": 1718524800124,
+  "count": 2,
+  "results": [
+    {"index": 0, "requestPacketId": 1026, "responsePacketId": 1027},
+    {"index": 1, "requestPacketId": 1028, "responsePacketId": 1029}
+  ]
+}
 ```
+
+`index` は送信した `packets` 配列のインデックスに対応します。応答を取得できなかった要素では `responsePacketId` が省略されます。
 
 ---
 
@@ -509,7 +533,8 @@ Content-Type: application/json
 {
   "packet_id":   42,
   "range_start": 10,
-  "range_end":   20
+  "range_end":   20,
+  "timeout_ms":  30000
 }
 ```
 
@@ -518,14 +543,16 @@ Content-Type: application/json
 | `packet_id`   | ベースにするパケットの ID                |
 | `range_start` | 置換対象のバイト開始位置（0 始まり、inclusive） |
 | `range_end`   | 置換対象のバイト終了位置（exclusive）       |
+| `timeout_ms`  | 応答待ちの最大時間（ミリ秒、省略時 30000）      |
 
-指定チェッカーの全 Generator がペイロードを生成し、`range_start`〜`range_end` を置換した OneShotPacket を順番に送信します。
+指定チェッカーの全 Generator がペイロードを生成し、`range_start`〜`range_end` を置換した OneShotPacket を順番に送信します。送信後にサーバー応答を待ち、送信内容と応答を通信履歴に保存します。`results` は送信した Generator ごとに 1 要素を持ち、Generator 名と保存されたパケット ID で「どのペイロードがどの応答か」を相関できます。
 
 **ワークフロー例：**
 
 1. `GET /api/packets/42` でパケット内容を確認
 2. `decodedData` を Base64 デコードして対象パラメータのバイト位置を特定
 3. VulCheck を実行
+4. レスポンスの `responsePacketId` を `GET /api/packets/{id}` で取得し、`receivedData` を確認
 
 ```bash
 # Number チェッカーでパケット 42 のバイト 10〜20 をテスト
@@ -539,10 +566,18 @@ curl -s -X POST \
 レスポンス：
 
 ```json
-{"status": "accepted", "sent": 7}
+{
+  "status": "completed",
+  "group": 1718524800125,
+  "sent": 2,
+  "results": [
+    {"index": 0, "generator": "NegativeNumber", "requestPacketId": 1030, "responsePacketId": 1031},
+    {"index": 1, "generator": "Zero",           "requestPacketId": 1032, "responsePacketId": 1033}
+  ]
+}
 ```
 
-送信結果はプロキシの通信履歴（`GET /api/packets`）に残ります。
+各 Generator が送信したペイロードと応答は、`requestPacketId` / `responsePacketId` で個別に取得できます。入力に対応できない Generator はスキップされるため、`sent` は Generator 総数より少なくなることがあります。応答を取得できなかった要素では `responsePacketId` が省略されます。送信結果はプロキシの通信履歴（`GET /api/packets`）にも残ります。
 
 ---
 
