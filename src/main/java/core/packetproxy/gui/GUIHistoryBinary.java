@@ -58,7 +58,6 @@ public class GUIHistoryBinary extends GUIHistoryPanel implements BinaryTextPane.
 
 	public GUIHistoryBinary() throws Exception {
 		hex_text = new BinaryTextPane();
-		hex_text.setParentHistory(this);
 		hex_text.addDataChangedListener(this);
 		// hex_text.setLineWrap(true);
 		hex_text.setFont(FontManager.getInstance().getFont());

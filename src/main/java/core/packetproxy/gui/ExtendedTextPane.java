@@ -23,7 +23,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Arrays;
 import java.util.EventListener;
-import javax.swing.JButton;
 import javax.swing.JTextPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -45,9 +44,7 @@ abstract class ExtendedTextPane extends JTextPane {
 	private static final int TEXT_TRIMMING_SIZE = 300000;
 	private static final int BINARY_TRIMMING_SIZE = 10000; // バイナリデータの表示はテキストデータの表示に比べ大幅に時間がかかることを考慮して設定
 	private static final int DEFAULT_SHOW_SIZE = 2000;
-	private static final int FONT_SIZE = 12;
 	private WrapEditorKit editor = new WrapEditorKit(new byte[]{});
-	private GUIHistoryPanel parentHistory = null;
 	public String prev_text_panel = "";
 	public UndoManager undo_manager = new UndoManager();
 	public BinaryBuffer raw_data = new BinaryBuffer();
@@ -157,7 +154,6 @@ abstract class ExtendedTextPane extends JTextPane {
 
 			public void mouseReleased(MouseEvent e) {
 				showDecodedTooltipOnSelectedText();
-				notifySelectedText();
 			}
 		});
 		addKeyListener(new KeyListener() {
@@ -209,25 +205,6 @@ abstract class ExtendedTextPane extends JTextPane {
 			callDataChanged(data);
 		}
 		setCaretPosition(0);
-	}
-
-	public void setParentHistory(GUIHistoryPanel parentHistory) {
-		this.parentHistory = parentHistory;
-	}
-
-	public JButton getParentSend() {
-		return parentHistory.getParentSend();
-	}
-
-	private void notifySelectedText() {
-		int position_start = getSelectionStart();
-		int position_end = getSelectionEnd();
-		Range area = Range.of(position_start, position_end);
-		if (area.getLength() == 0 || area.getLength() > 1000) {
-
-			return;
-		}
-		byte[] request = Utils.getSelectedCharacters(data, area.getPositionStart(), area.getPositionEnd());
 	}
 
 	private void showDecodedTooltipOnSelectedText() {
