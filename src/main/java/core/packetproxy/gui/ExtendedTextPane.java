@@ -28,6 +28,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.EventListenerList;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
+import javax.swing.text.BadLocationException;
 import javax.swing.undo.UndoManager;
 import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.common.BinaryBuffer;
@@ -89,6 +90,10 @@ abstract class ExtendedTextPane extends PlainTextCopyTextPane {
 			public void removeUpdate(DocumentEvent e) {
 				try {
 
+					if (init_flg == true) {
+
+						return;
+					}
 					if (fin_flg == true) {
 
 						fin_flg = false;
@@ -233,6 +238,23 @@ abstract class ExtendedTextPane extends PlainTextCopyTextPane {
 		for (DataChangedListener listener : listenerList.getListeners(DataChangedListener.class)) {
 
 			listener.dataChanged(data);
+		}
+	}
+
+	protected byte[] getLoadedData() {
+		return data;
+	}
+
+	protected void finishDocumentInitialization() {
+		init_flg = false;
+		fin_flg = false;
+		init_count = 0;
+		try {
+
+			prev_text_panel = getDocument().getText(0, getDocument().getLength());
+		} catch (BadLocationException e) {
+
+			errWithStackTrace(e);
 		}
 	}
 
