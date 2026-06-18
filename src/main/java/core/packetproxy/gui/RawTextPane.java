@@ -43,7 +43,6 @@ import packetproxy.common.Range;
 import packetproxy.common.Utils;
 import packetproxy.model.Packet;
 import packetproxy.util.CharSetUtility;
-import packetproxy.util.PacketProxyUtility;
 import packetproxy.vulchecker.VulChecker;
 
 public class RawTextPane extends ExtendedTextPane {
@@ -53,21 +52,11 @@ public class RawTextPane extends ExtendedTextPane {
 	public RawTextPane() throws Exception {
 		charSetUtility = CharSetUtility.getInstance();
 
-		int mask_key = ActionEvent.META_MASK;
-		if (!PacketProxyUtility.getInstance().isMac()) {
-
-			mask_key = ActionEvent.CTRL_MASK;
-		}
 		JPopupMenu menu = new JPopupMenu();
 
 		addKeyListener(new KeyAdapter() {
 
 			public void keyPressed(KeyEvent e) {
-				int mask_key = KeyEvent.META_MASK;
-				if (!PacketProxyUtility.getInstance().isMac()) {
-
-					mask_key = KeyEvent.CTRL_MASK;
-				}
 				switch (e.getKeyCode()) {
 					case KeyEvent.VK_Z :
 						if ((Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() & e.getModifiers()) > 0) {
@@ -451,7 +440,6 @@ public class RawTextPane extends ExtendedTextPane {
 	}
 
 	public byte[] getData() {
-		// Logging.log(raw_data.toString());
 		return raw_data.toByteArray();
 	}
 
