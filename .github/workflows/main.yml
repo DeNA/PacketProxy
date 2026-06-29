@@ -2,7 +2,7 @@ name: Java CI with Gradle
 
 on:
     push:
-        branches: [master, chore/upgrade-github-actions-node24]
+        branches: [master]
     pull_request:
         branches: [master]
 
