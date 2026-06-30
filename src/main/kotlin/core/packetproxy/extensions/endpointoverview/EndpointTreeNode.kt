@@ -15,8 +15,6 @@
  */
 package packetproxy.extensions.endpointoverview
 
-import java.net.URI
-
 sealed interface EndpointTreeNode {
   val displayName: String
 }
@@ -30,20 +28,7 @@ data class EndpointTreeFolder(val fullPathPrefix: String, val segmentLabel: Stri
   override val displayName: String = segmentLabel
 }
 
-data class EndpointTreeMethod(val method: String, val summary: EndpointSummary) : EndpointTreeNode {
-  override val displayName: String
-    get() = formatEndpointLabel(method, summary)
-}
-
-internal fun formatEndpointLabel(method: String, summary: EndpointSummary): String {
-  val query =
-    try {
-      URI(summary.url).rawQuery
-    } catch (_: Exception) {
-      null
-    }
-
-  val stats = "[${summary.formattedStatusCodes()}]"
-  val queryPart = if (query != null && query.isNotEmpty()) " ?$query  " else "  "
-  return "$method$queryPart$stats"
+data class EndpointTreeMethod(val method: String, val variants: List<EndpointSummary>) :
+  EndpointTreeNode {
+  override val displayName: String = method
 }
