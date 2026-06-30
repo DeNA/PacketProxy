@@ -43,6 +43,7 @@ class PacketDataButtonBar(
   private val getBodyData: () -> ByteArray?,
   private val getResponseData: () -> ByteArray?,
   private val markedOriginalRowHighlight: MarkedOriginalRowHighlight,
+  private val resendDelegate: (() -> Unit)? = null,
 ) {
   private val charSetUtility = CharSetUtility.getInstance()
 
@@ -115,6 +116,11 @@ class PacketDataButtonBar(
       alignmentX = 0.5f
       addActionListener {
         runCatching {
+            val delegate = resendDelegate
+            if (delegate != null) {
+              delegate()
+              return@addActionListener
+            }
             withActivePacket { data, packet, packetId ->
               ResendController.getInstance().resend(packet.getOneShotPacket(data))
               markResent(packet, packetId)
