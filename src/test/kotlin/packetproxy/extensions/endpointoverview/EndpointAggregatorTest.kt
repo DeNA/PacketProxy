@@ -41,7 +41,64 @@ class EndpointAggregatorTest {
   }
 
   @Test
-  fun aggregateEndpoints_sameEndpointMultiplePairs_mergesStatusCodes() {
+  fun aggregateEndpoints_sameMethodUrlDifferentBodies_returnsSeparateEndpoints() {
+    val packets =
+      listOf(
+        createRequestPacketWithBody(
+          group = 1L,
+          method = "POST",
+          host = "example.com",
+          path = "/api/users",
+          body = """{"id":1}""",
+        ),
+        createResponsePacket(group = 1L, statusCode = "200", contentType = "application/json"),
+        createRequestPacketWithBody(
+          group = 2L,
+          method = "POST",
+          host = "example.com",
+          path = "/api/users",
+          body = """{"id":2}""",
+        ),
+        createResponsePacket(group = 2L, statusCode = "200", contentType = "application/json"),
+      )
+
+    val endpoints = EndpointAggregator.aggregateEndpoints(packets)
+
+    assertEquals(2, endpoints.size)
+  }
+
+  @Test
+  fun aggregateEndpoints_sameMethodUrlSameBody_mergesIntoOneEndpoint() {
+    val packets =
+      listOf(
+        createRequestPacketWithBody(
+          group = 1L,
+          method = "POST",
+          host = "example.com",
+          path = "/api/users",
+          body = """{"id":1}""",
+        ),
+        createResponsePacket(group = 1L, statusCode = "200", contentType = "application/json"),
+        createRequestPacketWithBody(
+          group = 2L,
+          method = "POST",
+          host = "example.com",
+          path = "/api/users",
+          body = """{"id":1}""",
+        ),
+        createResponsePacket(group = 2L, statusCode = "404", contentType = "text/html"),
+      )
+
+    val endpoints = EndpointAggregator.aggregateEndpoints(packets)
+
+    assertEquals(1, endpoints.size)
+    val summary = endpoints.values.first()
+    assertEquals(setOf("200", "404"), summary.statusCodes)
+    assertEquals(setOf("application/json", "text/html"), summary.contentTypes)
+  }
+
+  @Test
+  fun aggregateEndpoints_sameMethodUrlNoBody_mergesIntoOneEndpoint() {
     val packets =
       listOf(
         createRequestPacket(group = 1L, method = "GET", host = "example.com", path = "/api/users"),
@@ -139,6 +196,22 @@ class EndpointAggregatorTest {
 
     assertEquals(1, requestMap.size)
     assertEquals(request, requestMap[10L])
+  }
+
+  private fun createRequestPacketWithBody(
+    group: Long,
+    method: String,
+    host: String,
+    path: String,
+    body: String,
+  ): Packet {
+    val data =
+      "$method $path HTTP/1.1\r\nHost: $host\r\nContent-Type: application/json\r\n\r\n$body"
+    return createPacket(
+      group = group,
+      direction = Packet.Direction.CLIENT,
+      decodedData = data.toByteArray(),
+    )
   }
 
   private fun createRequestPacketWithoutHost(
