@@ -18,7 +18,10 @@ package packetproxy.extensions.endpointoverview
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.FlowLayout
+import java.beans.PropertyChangeListener
+import javax.swing.DefaultComboBoxModel
 import javax.swing.JButton
+import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -34,17 +37,33 @@ import javax.swing.event.TreeSelectionListener
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeCellRenderer
 import javax.swing.tree.DefaultTreeModel
+import packetproxy.controller.ResendController
+import packetproxy.controller.ResendController.ResendWorker
 import packetproxy.gui.GUIHistory
+import packetproxy.gui.GUIOptionSessionProfileDialog
 import packetproxy.gui.GUIRequestResponsePanel
+import packetproxy.http.Http
+import packetproxy.http.SessionRequestModifier
 import packetproxy.model.Extension
+import packetproxy.model.OneShotPacket
 import packetproxy.model.Packets
+import packetproxy.model.SessionProfile
+import packetproxy.model.SessionProfiles
+import packetproxy.util.Logging.errWithStackTrace
 
 class EndpointOverviewExtension : Extension() {
+  private data class SessionComboEntry(val label: String, val profile: SessionProfile?) {
+    override fun toString(): String = label
+  }
+
   private lateinit var tree: JTree
   private lateinit var treeModel: DefaultTreeModel
   private lateinit var filterField: JTextField
   private lateinit var requestResponsePanel: GUIRequestResponsePanel
+  private lateinit var sessionComboBox: JComboBox<SessionComboEntry>
+  private lateinit var sendButton: JButton
   private var endpoints: Collection<EndpointSummary> = emptyList()
+  private var sessionProfileListener: PropertyChangeListener? = null
 
   init {
     setName("EndpointOverview")
@@ -54,6 +73,7 @@ class EndpointOverviewExtension : Extension() {
     val panel = JPanel(BorderLayout())
 
     initializeTree()
+    initializeSessionControls()
     setupSelectionListener()
 
     requestResponsePanel = GUIRequestResponsePanel(GUIHistory.getOwner())
@@ -69,6 +89,20 @@ class EndpointOverviewExtension : Extension() {
     scanHistory()
 
     return panel
+  }
+
+  private fun initializeSessionControls() {
+    sessionComboBox = JComboBox()
+    sendButton = JButton("Send")
+    sendButton.isEnabled = false
+
+    try {
+      refreshSessionComboBox()
+      sessionProfileListener = PropertyChangeListener { refreshSessionComboBox() }
+      SessionProfiles.getInstance().addPropertyChangeListener(sessionProfileListener)
+    } catch (e: Exception) {
+      errWithStackTrace(e)
+    }
   }
 
   private fun initializeTree() {
@@ -105,16 +139,25 @@ class EndpointOverviewExtension : Extension() {
         if (event.isAddedPath()) {
           showSelectedEndpoint()
         }
+        updateSendButtonState()
       }
     )
   }
 
   private fun showSelectedEndpoint() {
     val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return
-    val summary = (selectedNode.userObject as? EndpointTreeLeaf)?.summary ?: return
+    val summary = resolveSummary(selectedNode) ?: return
     val requestPacket = summary.latestRequestPacket ?: return
     val responsePacket = summary.latestResponsePacket ?: return
     requestResponsePanel.setPackets(requestPacket, responsePacket)
+  }
+
+  private fun resolveSummary(node: DefaultMutableTreeNode): EndpointSummary? {
+    return when (val userObject = node.userObject) {
+      is EndpointTreeLeaf -> userObject.summary
+      is EndpointTreeMethod -> userObject.summary
+      else -> null
+    }
   }
 
   private fun createToolbar(): JPanel {
@@ -128,6 +171,16 @@ class EndpointOverviewExtension : Extension() {
     val clearButton = JButton("Clear")
     clearButton.addActionListener { clearTree() }
     buttonPanel.add(clearButton)
+
+    buttonPanel.add(JLabel("Session:"))
+    buttonPanel.add(sessionComboBox)
+
+    sendButton.addActionListener { resendWithSelectedSession() }
+    buttonPanel.add(sendButton)
+
+    val manageButton = JButton("Manage...")
+    manageButton.addActionListener { openSessionManageDialog() }
+    buttonPanel.add(manageButton)
 
     toolbar.add(buttonPanel, BorderLayout.WEST)
 
@@ -153,6 +206,90 @@ class EndpointOverviewExtension : Extension() {
     toolbar.add(filterPanel, BorderLayout.EAST)
 
     return toolbar
+  }
+
+  private fun refreshSessionComboBox() {
+    val selectedProfile = (sessionComboBox.selectedItem as? SessionComboEntry)?.profile
+    val entries = mutableListOf(SessionComboEntry(ORIGINAL_LABEL, null))
+    try {
+      SessionProfiles.getInstance().queryAll().forEach { profile ->
+        entries.add(SessionComboEntry(profile.name, profile))
+      }
+    } catch (e: Exception) {
+      errWithStackTrace(e)
+    }
+
+    sessionComboBox.model = DefaultComboBoxModel(entries.toTypedArray())
+    if (selectedProfile != null) {
+      entries
+        .firstOrNull { it.profile?.id == selectedProfile.id }
+        ?.let { sessionComboBox.selectedItem = it }
+    }
+  }
+
+  private fun updateSendButtonState() {
+    val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode
+    sendButton.isEnabled = selectedNode != null && resolveSummary(selectedNode) != null
+  }
+
+  private fun resendWithSelectedSession() {
+    val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return
+    val summary = resolveSummary(selectedNode) ?: return
+    val requestPacket = summary.latestRequestPacket ?: return
+    val entry = sessionComboBox.selectedItem as? SessionComboEntry ?: return
+
+    try {
+      val modifiedBytes = SessionRequestModifier.apply(requestPacket.decodedData, entry.profile)
+      val sendPacket = requestPacket.getOneShotPacket(modifiedBytes)
+      val modifiedRequestPacket = sendPacket.toPacket()
+
+      ResendController.getInstance()
+        .resend(
+          object : ResendWorker(sendPacket, 1) {
+            override fun process(chunks: MutableList<OneShotPacket>) {
+              if (chunks.isEmpty()) {
+                return
+              }
+              SwingUtilities.invokeLater {
+                try {
+                  val responsePacket = chunks[0].toPacket()
+                  requestResponsePanel.setPackets(modifiedRequestPacket, responsePacket)
+                } catch (e: Exception) {
+                  errWithStackTrace(e)
+                }
+              }
+            }
+          }
+        )
+    } catch (e: Exception) {
+      errWithStackTrace(e)
+    }
+  }
+
+  private fun openSessionManageDialog() {
+    try {
+      val dlg =
+        GUIOptionSessionProfileDialog(GUIHistory.getOwner()) {
+          extractAuthorizationFromSelectedRequest()
+        }
+      val profile = dlg.showDialog()
+      if (profile != null) {
+        SessionProfiles.getInstance().create(profile)
+      }
+    } catch (e: Exception) {
+      errWithStackTrace(e)
+    }
+  }
+
+  private fun extractAuthorizationFromSelectedRequest(): String {
+    val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return ""
+    val summary = resolveSummary(selectedNode) ?: return ""
+    val requestPacket = summary.latestRequestPacket ?: return ""
+    return try {
+      Http.create(requestPacket.decodedData).getFirstHeader("Authorization")
+    } catch (_: Exception) {
+      ""
+    }
   }
 
   private fun applyFilter() {
@@ -181,6 +318,7 @@ class EndpointOverviewExtension : Extension() {
       endpoints = emptyList()
       treeModel.setRoot(DefaultMutableTreeNode(EndpointTreeRoot()))
       filterField.text = ""
+      updateSendButtonState()
     }
   }
 
@@ -193,7 +331,7 @@ class EndpointOverviewExtension : Extension() {
             populateTree(endpoints)
           }
         } catch (e: Exception) {
-          e.printStackTrace()
+          errWithStackTrace(e)
         }
       }
       .start()
@@ -211,5 +349,9 @@ class EndpointOverviewExtension : Extension() {
     for (i in 0 until root.childCount) {
       tree.expandRow(i + 1)
     }
+  }
+
+  private companion object {
+    private const val ORIGINAL_LABEL = "(Original)"
   }
 }
