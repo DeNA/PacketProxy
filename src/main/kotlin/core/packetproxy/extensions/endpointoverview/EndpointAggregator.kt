@@ -15,6 +15,8 @@
  */
 package packetproxy.extensions.endpointoverview
 
+import org.apache.commons.codec.binary.Hex
+import packetproxy.common.CryptUtils
 import packetproxy.http.Http
 import packetproxy.model.Packet
 
@@ -66,7 +68,8 @@ object EndpointAggregator {
       val statusCode = responseHttp.statusCode ?: return
 
       val contentType = responseHttp.header.getValue("Content-Type").orElse("")
-      val endpointKey = "$method $url"
+      val bodyFingerprint = fingerprintRequestBody(requestHttp)
+      val endpointKey = "$method $url $bodyFingerprint"
 
       val summary =
         endpointMap.getOrPut(endpointKey) {
@@ -82,5 +85,13 @@ object EndpointAggregator {
     } catch (_: Exception) {
       // Skip packets that cannot be parsed as HTTP.
     }
+  }
+
+  private fun fingerprintRequestBody(requestHttp: Http): String {
+    val body = requestHttp.body ?: return ""
+    if (body.isEmpty()) {
+      return ""
+    }
+    return Hex.encodeHexString(CryptUtils.sha256(body))
   }
 }
