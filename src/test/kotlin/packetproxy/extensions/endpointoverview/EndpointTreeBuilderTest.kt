@@ -59,7 +59,8 @@ class EndpointTreeBuilderTest {
 
     val method = methodNode.userObject as EndpointTreeMethod
     assertEquals("GET", method.method)
-    assertEquals(summary, method.summary)
+    assertEquals("GET", method.displayName)
+    assertEquals(listOf(summary), method.variants)
     assertEquals(0, methodNode.childCount)
   }
 
@@ -110,7 +111,7 @@ class EndpointTreeBuilderTest {
   }
 
   @Test
-  fun build_samePathSameMethodDifferentQueries_createsFlatMethodNodesUnderPathFolder() {
+  fun build_samePathSameMethodDifferentQueries_groupsVariantsUnderSingleMethodNode() {
     val firstSummary =
       createSummary(
         "GET",
@@ -129,24 +130,18 @@ class EndpointTreeBuilderTest {
     val root = EndpointTreeBuilder.build(listOf(firstSummary, secondSummary))
     val usersNode = findPathFolder(root, "/api/users")
 
-    assertEquals(2, usersNode.childCount)
+    assertEquals(1, usersNode.childCount)
 
-    val methods =
-      (0 until usersNode.childCount)
-        .map {
-          (usersNode.getChildAt(it) as DefaultMutableTreeNode).userObject as EndpointTreeMethod
-        }
-        .toList()
+    val method =
+      (usersNode.getChildAt(0) as DefaultMutableTreeNode).userObject as EndpointTreeMethod
 
-    assertEquals(setOf("GET"), methods.map { it.method }.toSet())
-    assertEquals(setOf(firstSummary, secondSummary), methods.map { it.summary }.toSet())
-    assertTrue(methods.any { it.displayName.contains("?id=1") })
-    assertTrue(methods.any { it.displayName.contains("?id=2") })
-    assertTrue(methods.all { it.displayName.contains("GET") })
+    assertEquals("GET", method.method)
+    assertEquals("GET", method.displayName)
+    assertEquals(setOf(firstSummary, secondSummary), method.variants.toSet())
   }
 
   @Test
-  fun build_samePathSameMethodMixedQueryAndNoQuery_createsDistinctFlatMethodLabels() {
+  fun build_samePathSameMethodMixedQueryAndNoQuery_groupsVariantsUnderSingleMethodNode() {
     val noQuerySummary =
       createSummary(
         "POST",
@@ -165,17 +160,14 @@ class EndpointTreeBuilderTest {
     val root = EndpointTreeBuilder.build(listOf(noQuerySummary, querySummary))
     val usersNode = findPathFolder(root, "/api/users")
 
-    assertEquals(2, usersNode.childCount)
+    assertEquals(1, usersNode.childCount)
 
-    val displayNames =
-      (0 until usersNode.childCount)
-        .map {
-          ((usersNode.getChildAt(it) as DefaultMutableTreeNode).userObject as EndpointTreeMethod)
-            .displayName
-        }
-        .toSet()
+    val method =
+      (usersNode.getChildAt(0) as DefaultMutableTreeNode).userObject as EndpointTreeMethod
 
-    assertEquals(setOf("POST  [200]", "POST ?id=1  [404]"), displayNames)
+    assertEquals("POST", method.displayName)
+    assertEquals(2, method.variants.size)
+    assertEquals(setOf(noQuerySummary, querySummary), method.variants.toSet())
   }
 
   @Test
@@ -193,14 +185,13 @@ class EndpointTreeBuilderTest {
     val methodNode = usersNode.getChildAt(0) as DefaultMutableTreeNode
     val method = methodNode.userObject as EndpointTreeMethod
 
-    assertEquals(summary, method.summary)
+    assertEquals(listOf(summary), method.variants)
     assertEquals(0, methodNode.childCount)
-    assertTrue(method.displayName.contains("?id=1"))
-    assertTrue(method.displayName.contains("GET"))
+    assertEquals("GET", method.displayName)
   }
 
   @Test
-  fun build_queryUrl_includesQueryInMethodDisplayNameWhenSingleEntry() {
+  fun build_queryUrl_showsMethodNameOnly() {
     val summary =
       createSummary(
         "GET",
@@ -212,19 +203,19 @@ class EndpointTreeBuilderTest {
     val root = EndpointTreeBuilder.build(listOf(summary))
     val method = findMethodNode(root)
 
-    assertTrue(method.displayName.contains("?id=1"))
-    assertTrue(method.displayName.contains("GET"))
+    assertEquals("GET", method.displayName)
+    assertEquals("GET", method.method)
   }
 
   @Test
-  fun build_noQueryUrl_showsStatsOnMethodNodeWithoutLeaf() {
+  fun build_noQueryUrl_showsMethodNameOnly() {
     val summary = createSummary("GET", "https://example.com/api/users", "example.com")
 
     val root = EndpointTreeBuilder.build(listOf(summary))
     val method = findMethodNode(root)
 
-    assertEquals("GET  [200]", method.displayName)
-    assertEquals(summary, method.summary)
+    assertEquals("GET", method.displayName)
+    assertEquals(listOf(summary), method.variants)
   }
 
   private fun buildPathSegments(path: String): List<PathSegment> =

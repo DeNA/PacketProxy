@@ -73,9 +73,8 @@ object EndpointTreeBuilder {
 
     for ((methodKey, summaries) in methodBuckets) {
       val parent = methodBucketParents[methodKey] ?: continue
-      for (summary in summaries) {
-        parent.add(DefaultMutableTreeNode(EndpointTreeMethod(summary.method, summary)))
-      }
+      val method = methodKey.third
+      parent.add(DefaultMutableTreeNode(EndpointTreeMethod(method, summaries.toList())))
     }
 
     return root

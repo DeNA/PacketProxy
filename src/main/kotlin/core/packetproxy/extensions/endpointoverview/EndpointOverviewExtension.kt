@@ -58,6 +58,7 @@ class EndpointOverviewExtension : Extension() {
   private lateinit var treeModel: DefaultTreeModel
   private lateinit var filterField: JTextField
   private lateinit var requestResponsePanel: GUIRequestResponsePanel
+  private lateinit var variantPanel: EndpointVariantPanel
   private lateinit var sessionComboBox: JComboBox<SessionComboEntry>
   private lateinit var sendButton: JButton
   private var endpoints: Collection<EndpointSummary> = emptyList()
@@ -79,9 +80,17 @@ class EndpointOverviewExtension : Extension() {
       (sessionComboBox.selectedItem as? SessionComboEntry)?.profile
     }
 
+    variantPanel = EndpointVariantPanel()
+    variantPanel.setOnVariantSelected { summary -> showVariant(summary) }
+
     val treeScrollPane = JScrollPane(tree)
+    val treeVariantSplit =
+      JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScrollPane, variantPanel).apply {
+        dividerLocation = 250
+        resizeWeight = 0.4
+      }
     val mainSplit =
-      JSplitPane(JSplitPane.VERTICAL_SPLIT, treeScrollPane, requestResponsePanel.createPanel())
+      JSplitPane(JSplitPane.VERTICAL_SPLIT, treeVariantSplit, requestResponsePanel.createPanel())
     mainSplit.dividerLocation = 300
 
     panel.add(createToolbar(), BorderLayout.NORTH)
@@ -147,17 +156,30 @@ class EndpointOverviewExtension : Extension() {
 
   private fun showSelectedEndpoint() {
     val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return
-    val summary = resolveSummary(selectedNode) ?: return
+    val variants = resolveVariants(selectedNode)
+    if (variants == null) {
+      variantPanel.clear()
+      return
+    }
+    variantPanel.setVariants(variants)
+  }
+
+  private fun showVariant(summary: EndpointSummary) {
     val requestPacket = summary.latestRequestPacket ?: return
     val responsePacket = summary.latestResponsePacket ?: return
     requestResponsePanel.setPackets(requestPacket, responsePacket)
+    updateSendButtonState()
+  }
+
+  private fun resolveVariants(node: DefaultMutableTreeNode): List<EndpointSummary>? {
+    return when (val userObject = node.userObject) {
+      is EndpointTreeMethod -> userObject.variants
+      else -> null
+    }
   }
 
   private fun resolveSummary(node: DefaultMutableTreeNode): EndpointSummary? {
-    return when (val userObject = node.userObject) {
-      is EndpointTreeMethod -> userObject.summary
-      else -> null
-    }
+    return variantPanel.getSelectedSummary() ?: resolveVariants(node)?.firstOrNull()
   }
 
   private fun createToolbar(): JPanel {
@@ -279,6 +301,7 @@ class EndpointOverviewExtension : Extension() {
       endpoints = emptyList()
       treeModel.setRoot(DefaultMutableTreeNode())
       filterField.text = ""
+      variantPanel.clear()
       updateSendButtonState()
     }
   }
