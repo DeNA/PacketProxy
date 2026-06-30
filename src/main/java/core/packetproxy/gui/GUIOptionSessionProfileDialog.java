@@ -31,6 +31,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import packetproxy.common.I18nString;
 import packetproxy.model.SessionProfile;
+import packetproxy.model.SessionProfiles;
 
 public class GUIOptionSessionProfileDialog extends JDialog {
 
@@ -45,6 +46,7 @@ public class GUIOptionSessionProfileDialog extends JDialog {
 	private final JTextField authorizationField = new JTextField();
 
 	private SessionProfile profile;
+	private Integer editingId;
 
 	public GUIOptionSessionProfileDialog(JFrame owner, Supplier<String> authorizationSupplier) throws Exception {
 		super(owner);
@@ -54,6 +56,8 @@ public class GUIOptionSessionProfileDialog extends JDialog {
 	}
 
 	public SessionProfile showDialog() {
+		editingId = null;
+		profile = null;
 		nameField.setText("");
 		authorizationField.setText("");
 		setModal(true);
@@ -62,6 +66,8 @@ public class GUIOptionSessionProfileDialog extends JDialog {
 	}
 
 	public SessionProfile showDialog(String initialAuthorization) {
+		editingId = null;
+		profile = null;
 		nameField.setText("");
 		authorizationField.setText(initialAuthorization != null ? initialAuthorization : "");
 		setModal(true);
@@ -70,6 +76,8 @@ public class GUIOptionSessionProfileDialog extends JDialog {
 	}
 
 	public SessionProfile showDialog(SessionProfile preset) {
+		editingId = preset.getId();
+		profile = null;
 		nameField.setText(preset.getName());
 		authorizationField.setText(preset.getAuthorization() != null ? preset.getAuthorization() : "");
 		setModal(true);
@@ -148,7 +156,44 @@ public class GUIOptionSessionProfileDialog extends JDialog {
 					JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}
-		profile = new SessionProfile(name, authorizationField.getText());
-		dispose();
+
+		try {
+			var profiles = SessionProfiles.getInstance();
+			var authorization = authorizationField.getText();
+			var existing = profiles.queryByName(name);
+			var isConflict = existing != null && (editingId == null || existing.getId() != editingId);
+
+			if (isConflict) {
+				var option = JOptionPane.showConfirmDialog(owner,
+						"A session profile named \"" + name + "\" already exists. Overwrite?",
+						I18nString.get("Message"), JOptionPane.YES_NO_OPTION);
+				if (option != JOptionPane.YES_OPTION) {
+					return;
+				}
+				existing.setAuthorization(authorization);
+				profiles.update(existing);
+				if (editingId != null && editingId != existing.getId()) {
+					profiles.delete(profiles.query(editingId));
+				}
+				profile = existing;
+				dispose();
+				return;
+			}
+
+			if (editingId != null) {
+				var current = profiles.query(editingId);
+				current.setName(name);
+				current.setAuthorization(authorization);
+				profiles.update(current);
+				profile = current;
+			} else {
+				var newProfile = new SessionProfile(name, authorization);
+				profiles.create(newProfile);
+				profile = newProfile;
+			}
+			dispose();
+		} catch (Exception e) {
+			errWithStackTrace(e);
+		}
 	}
 }

@@ -33,7 +33,6 @@ import packetproxy.controller.ResendController
 import packetproxy.http.Http
 import packetproxy.http.SessionProfileAuthorizationExtractor
 import packetproxy.model.Packets
-import packetproxy.model.SessionProfiles
 import packetproxy.util.Logging.errWithStackTrace
 
 /**
@@ -119,10 +118,7 @@ object GUIHistoryContextMenuFactory {
             return@createMenuItem
           }
           val dlg = GUIOptionSessionProfileDialog(owner, null)
-          val profile = dlg.showDialog(authorization)
-          if (profile != null) {
-            SessionProfiles.getInstance().create(profile)
-          }
+          dlg.showDialog(authorization)
         } catch (ex: Exception) {
           errWithStackTrace(ex)
         }
