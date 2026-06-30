@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import javax.swing.JFrame;
+import packetproxy.common.I18nString;
 import packetproxy.model.SessionProfile;
 import packetproxy.model.SessionProfiles;
 
@@ -46,7 +47,7 @@ public class GUIOptionSessionProfile extends GUIOptionComponentBase<SessionProfi
 		sessionProfiles.addPropertyChangeListener(this);
 		tableList = new ArrayList<>();
 
-		String[] menu = {"Name", "Authorization"};
+		String[] menu = {I18nString.get("Name"), I18nString.get("Authorization")};
 		int[] menuWidth = {150, 400};
 
 		MouseAdapter tableAction = new MouseAdapter() {

@@ -115,11 +115,11 @@ public class GUIOptionSessionProfileDialog extends JDialog {
 		Container c = getContentPane();
 		var panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-		panel.add(labelAndObject("Name:", nameField));
-		panel.add(labelAndObject("Authorization:", authorizationField));
+		panel.add(labelAndObject(I18nString.get("Name:"), nameField));
+		panel.add(labelAndObject(I18nString.get("Authorization:"), authorizationField));
 
 		if (authorizationSupplier != null) {
-			var importButton = new JButton("Import from current request");
+			var importButton = new JButton(I18nString.get("Import from current request"));
 			importButton.addActionListener(e -> importAuthorizationFromRequest());
 			panel.add(importButton);
 		}
@@ -139,7 +139,8 @@ public class GUIOptionSessionProfileDialog extends JDialog {
 		try {
 			var authorization = authorizationSupplier.get();
 			if (authorization == null || authorization.isEmpty()) {
-				JOptionPane.showMessageDialog(owner, "No Authorization header found in the current request.",
+				JOptionPane.showMessageDialog(owner,
+						I18nString.get("No Authorization header found in the current request."),
 						I18nString.get("Message"), JOptionPane.INFORMATION_MESSAGE);
 				return;
 			}
@@ -152,7 +153,7 @@ public class GUIOptionSessionProfileDialog extends JDialog {
 	private void saveProfile() {
 		var name = nameField.getText().trim();
 		if (name.isEmpty()) {
-			JOptionPane.showMessageDialog(owner, "Name is required.", I18nString.get("Message"),
+			JOptionPane.showMessageDialog(owner, I18nString.get("Name is required."), I18nString.get("Message"),
 					JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}
@@ -165,7 +166,7 @@ public class GUIOptionSessionProfileDialog extends JDialog {
 
 			if (isConflict) {
 				var option = JOptionPane.showConfirmDialog(owner,
-						"A session profile named \"" + name + "\" already exists. Overwrite?",
+						I18nString.get("A session profile named \"%s\" already exists. Overwrite?", name),
 						I18nString.get("Message"), JOptionPane.YES_NO_OPTION);
 				if (option != JOptionPane.YES_OPTION) {
 					return;

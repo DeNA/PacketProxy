@@ -29,6 +29,7 @@ import javax.swing.JPopupMenu
 import javax.swing.JTable
 import javax.swing.KeyStroke
 import org.apache.commons.io.FileUtils
+import packetproxy.common.I18nString
 import packetproxy.controller.ResendController
 import packetproxy.http.Http
 import packetproxy.http.SessionProfileAuthorizationExtractor
@@ -104,15 +105,15 @@ object GUIHistoryContextMenuFactory {
       }
 
     val createSessionProfile =
-      createMenuItem("create session profile", -1, null) {
+      createMenuItem(I18nString.get("create session profile"), -1, null) {
         try {
           val data = guiPacket.data
           val authorization = SessionProfileAuthorizationExtractor.extract(data)
           if (authorization == null || authorization.isEmpty()) {
             JOptionPane.showMessageDialog(
               owner,
-              "No Authorization header found in the current request.",
-              "Message",
+              I18nString.get("No Authorization header found in the current request."),
+              I18nString.get("Message"),
               JOptionPane.INFORMATION_MESSAGE,
             )
             return@createMenuItem

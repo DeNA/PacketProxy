@@ -37,6 +37,7 @@ import javax.swing.event.TreeSelectionListener
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeCellRenderer
 import javax.swing.tree.DefaultTreeModel
+import packetproxy.common.I18nString
 import packetproxy.controller.ResendController
 import packetproxy.controller.ResendController.ResendWorker
 import packetproxy.gui.GUIHistory
@@ -93,7 +94,7 @@ class EndpointOverviewExtension : Extension() {
 
   private fun initializeSessionControls() {
     sessionComboBox = JComboBox()
-    sendButton = JButton("Send")
+    sendButton = JButton(I18nString.get("Send"))
     sendButton.isEnabled = false
 
     try {
@@ -164,28 +165,28 @@ class EndpointOverviewExtension : Extension() {
     val toolbar = JPanel(BorderLayout())
 
     val buttonPanel = JPanel(FlowLayout(FlowLayout.LEFT))
-    val scanButton = JButton("Scan History")
+    val scanButton = JButton(I18nString.get("Scan History"))
     scanButton.addActionListener { scanHistory() }
     buttonPanel.add(scanButton)
 
-    val clearButton = JButton("Clear")
+    val clearButton = JButton(I18nString.get("Clear"))
     clearButton.addActionListener { clearTree() }
     buttonPanel.add(clearButton)
 
-    buttonPanel.add(JLabel("Session:"))
+    buttonPanel.add(JLabel(I18nString.get("Session:")))
     buttonPanel.add(sessionComboBox)
 
     sendButton.addActionListener { resendWithSelectedSession() }
     buttonPanel.add(sendButton)
 
-    val manageButton = JButton("Manage...")
+    val manageButton = JButton(I18nString.get("Manage..."))
     manageButton.addActionListener { openSessionManageDialog() }
     buttonPanel.add(manageButton)
 
     toolbar.add(buttonPanel, BorderLayout.WEST)
 
     val filterPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
-    filterPanel.add(JLabel("Filter:"))
+    filterPanel.add(JLabel(I18nString.get("Filter:")))
     filterField = JTextField(20)
     filterField.document.addDocumentListener(
       object : DocumentListener {
@@ -210,7 +211,7 @@ class EndpointOverviewExtension : Extension() {
 
   private fun refreshSessionComboBox() {
     val selectedProfile = (sessionComboBox.selectedItem as? SessionComboEntry)?.profile
-    val entries = mutableListOf(SessionComboEntry(ORIGINAL_LABEL, null))
+    val entries = mutableListOf(SessionComboEntry(I18nString.get("(Original)"), null))
     try {
       SessionProfiles.getInstance().queryAll().forEach { profile ->
         entries.add(SessionComboEntry(profile.name, profile))
@@ -338,9 +339,5 @@ class EndpointOverviewExtension : Extension() {
     for (i in 0 until root.childCount) {
       tree.expandRow(i + 1)
     }
-  }
-
-  private companion object {
-    private const val ORIGINAL_LABEL = "(Original)"
   }
 }
