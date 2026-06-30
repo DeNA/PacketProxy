@@ -61,6 +61,14 @@ public class GUIOptionSessionProfileDialog extends JDialog {
 		return profile;
 	}
 
+	public SessionProfile showDialog(String initialAuthorization) {
+		nameField.setText("");
+		authorizationField.setText(initialAuthorization != null ? initialAuthorization : "");
+		setModal(true);
+		setVisible(true);
+		return profile;
+	}
+
 	public SessionProfile showDialog(SessionProfile preset) {
 		nameField.setText(preset.getName());
 		authorizationField.setText(preset.getAuthorization() != null ? preset.getAuthorization() : "");
