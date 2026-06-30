@@ -21,10 +21,6 @@ sealed interface EndpointTreeNode {
   val displayName: String
 }
 
-data class EndpointTreeRoot(val name: String = "Endpoints") : EndpointTreeNode {
-  override val displayName: String = name
-}
-
 data class EndpointTreeHost(val host: String) : EndpointTreeNode {
   override val displayName: String = host
 }
