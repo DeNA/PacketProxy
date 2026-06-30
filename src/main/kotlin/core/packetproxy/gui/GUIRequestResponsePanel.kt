@@ -38,6 +38,9 @@ import javax.swing.SwingUtilities
 import javax.swing.border.TitledBorder
 import javax.swing.event.ChangeListener
 import packetproxy.common.I18nString
+import packetproxy.controller.ResendController
+import packetproxy.controller.ResendController.ResendWorker
+import packetproxy.model.OneShotPacket
 import packetproxy.model.Packet
 import packetproxy.model.Packets
 import packetproxy.util.Logging.errWithStackTrace
@@ -135,6 +138,7 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
       splitMarkedOriginalRowHighlight,
       responsePane,
       getContextPacketOverride = { showingRequestPacket },
+      resendDelegate = { resendActiveRequest() },
     )
     addButtonBar(
       ViewType.SINGLE,
@@ -164,6 +168,7 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     getBodyData: () -> ByteArray?,
     getResponseData: () -> ByteArray?,
     markedOriginalRowHighlight: MarkedOriginalRowHighlight,
+    resendDelegate: (() -> Unit)? = null,
   ): PacketDataButtonBar {
     return PacketDataButtonBar(
       owner = owner,
@@ -172,6 +177,7 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
       getBodyData = getBodyData,
       getResponseData = getResponseData,
       markedOriginalRowHighlight = markedOriginalRowHighlight,
+      resendDelegate = resendDelegate,
     )
   }
 
@@ -181,6 +187,7 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     markedOriginalRowHighlight: MarkedOriginalRowHighlight,
     responsePane: PacketDetailPane? = null,
     getContextPacketOverride: (() -> Packet?)? = null,
+    resendDelegate: (() -> Unit)? = null,
   ) {
     buttonPanel.add(
       createPacketDataButtonBar(
@@ -191,6 +198,7 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
           },
           getResponseData = { responsePane?.getActiveData() },
           markedOriginalRowHighlight = markedOriginalRowHighlight,
+          resendDelegate = resendDelegate,
         )
         .createPanel(),
       viewType.name,
@@ -425,6 +433,35 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
       return EMPTY_DATA
     }
     return requestPane.getActiveData()
+  }
+
+  fun resendActiveRequest() {
+    val packet = showingRequestPacket ?: return
+    val data = getActiveRequestData()
+    if (data.isEmpty()) return
+    try {
+      val sendPacket = packet.getOneShotPacket(data)
+      val sentRequestPacket = sendPacket.toPacket()
+      ResendController.getInstance()
+        .resend(
+          object : ResendWorker(sendPacket, 1) {
+            override fun process(chunks: MutableList<OneShotPacket>) {
+              if (chunks.isEmpty()) {
+                return
+              }
+              SwingUtilities.invokeLater {
+                try {
+                  setPackets(sentRequestPacket, chunks[0].toPacket())
+                } catch (e: Exception) {
+                  errWithStackTrace(e)
+                }
+              }
+            }
+          }
+        )
+    } catch (e: Exception) {
+      errWithStackTrace(e)
+    }
   }
 
   fun getResponseData(): ByteArray {
