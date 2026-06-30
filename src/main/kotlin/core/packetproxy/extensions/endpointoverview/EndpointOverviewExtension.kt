@@ -42,7 +42,7 @@ import packetproxy.controller.ResendController.ResendWorker
 import packetproxy.gui.GUIHistory
 import packetproxy.gui.GUIOptionSessionProfileDialog
 import packetproxy.gui.GUIRequestResponsePanel
-import packetproxy.http.Http
+import packetproxy.http.SessionProfileAuthorizationExtractor
 import packetproxy.http.SessionRequestModifier
 import packetproxy.model.Extension
 import packetproxy.model.OneShotPacket
@@ -270,7 +270,10 @@ class EndpointOverviewExtension : Extension() {
     try {
       val dlg =
         GUIOptionSessionProfileDialog(GUIHistory.getOwner()) {
-          extractAuthorizationFromSelectedRequest()
+          val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode
+          val requestData =
+            selectedNode?.let { resolveSummary(it)?.latestRequestPacket?.decodedData }
+          SessionProfileAuthorizationExtractor.extract(requestData ?: ByteArray(0))
         }
       val profile = dlg.showDialog()
       if (profile != null) {
@@ -278,17 +281,6 @@ class EndpointOverviewExtension : Extension() {
       }
     } catch (e: Exception) {
       errWithStackTrace(e)
-    }
-  }
-
-  private fun extractAuthorizationFromSelectedRequest(): String {
-    val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return ""
-    val summary = resolveSummary(selectedNode) ?: return ""
-    val requestPacket = summary.latestRequestPacket ?: return ""
-    return try {
-      Http.create(requestPacket.decodedData).getFirstHeader("Authorization")
-    } catch (_: Exception) {
-      ""
     }
   }
 

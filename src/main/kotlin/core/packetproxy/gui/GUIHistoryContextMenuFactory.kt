@@ -31,7 +31,9 @@ import javax.swing.KeyStroke
 import org.apache.commons.io.FileUtils
 import packetproxy.controller.ResendController
 import packetproxy.http.Http
+import packetproxy.http.SessionProfileAuthorizationExtractor
 import packetproxy.model.Packets
+import packetproxy.model.SessionProfiles
 import packetproxy.util.Logging.errWithStackTrace
 
 /**
@@ -97,6 +99,30 @@ object GUIHistoryContextMenuFactory {
             GUIResender.getInstance().addResends(packet.getOneShotFromModifiedData())
           }
           context.updateRequestOne(context.selectedPacketId)
+        } catch (ex: Exception) {
+          errWithStackTrace(ex)
+        }
+      }
+
+    val createSessionProfile =
+      createMenuItem("create session profile", -1, null) {
+        try {
+          val data = guiPacket.data
+          val authorization = SessionProfileAuthorizationExtractor.extract(data)
+          if (authorization == null || authorization.isEmpty()) {
+            JOptionPane.showMessageDialog(
+              owner,
+              "No Authorization header found in the current request.",
+              "Message",
+              JOptionPane.INFORMATION_MESSAGE,
+            )
+            return@createMenuItem
+          }
+          val dlg = GUIOptionSessionProfileDialog(owner, null)
+          val profile = dlg.showDialog(authorization)
+          if (profile != null) {
+            SessionProfiles.getInstance().create(profile)
+          }
         } catch (ex: Exception) {
           errWithStackTrace(ex)
         }
@@ -253,6 +279,7 @@ object GUIHistoryContextMenuFactory {
 
     menu.add(send)
     menu.add(sendToResender)
+    menu.add(createSessionProfile)
     menu.add(copyAll)
     menu.add(copy)
     menu.add(bulkSender)
