@@ -21,7 +21,6 @@ data class EndpointSummary(
   val method: String,
   val url: String,
   val host: String,
-  var count: Int = 0,
   val statusCodes: MutableSet<String> = mutableSetOf(),
   val contentTypes: MutableSet<String> = mutableSetOf(),
   var latestRequestPacket: Packet? = null,
