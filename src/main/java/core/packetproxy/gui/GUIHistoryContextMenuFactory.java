@@ -34,6 +34,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import org.apache.commons.io.FileUtils;
+import packetproxy.common.I18nString;
 import packetproxy.controller.ResendController;
 import packetproxy.http.HeaderField;
 import packetproxy.http.Http;
@@ -127,13 +128,14 @@ public class GUIHistoryContextMenuFactory {
 					}
 				});
 
-		JMenuItem createSessionProfile = createMenuItem("create session profile", -1, null, e -> {
+		JMenuItem createSessionProfile = createMenuItem(I18nString.get("create session profile"), -1, null, e -> {
 			try {
 				byte[] data = gui_packet.getData();
 				String authorization = SessionProfileAuthorizationExtractor.extract(data);
 				if (authorization == null || authorization.isEmpty()) {
-					JOptionPane.showMessageDialog(owner, "No Authorization header found in the current request.",
-							"Message", JOptionPane.INFORMATION_MESSAGE);
+					JOptionPane.showMessageDialog(owner,
+							I18nString.get("No Authorization header found in the current request."),
+							I18nString.get("Message"), JOptionPane.INFORMATION_MESSAGE);
 					return;
 				}
 				var dlg = new GUIOptionSessionProfileDialog(owner, null);
