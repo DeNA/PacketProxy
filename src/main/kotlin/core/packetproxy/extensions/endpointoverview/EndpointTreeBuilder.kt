@@ -35,6 +35,7 @@ object EndpointTreeBuilder {
     val hostNodes = mutableMapOf<String, DefaultMutableTreeNode>()
     val pathNodes = mutableMapOf<Pair<String, String>, DefaultMutableTreeNode>()
     val methodNodes = mutableMapOf<Triple<String, String, String>, DefaultMutableTreeNode>()
+    val methodBuckets = mutableMapOf<Triple<String, String, String>, MutableList<EndpointSummary>>()
 
     val sorted =
       endpoints.sortedWith(compareBy<EndpointSummary>({ it.host }, { it.url }, { it.method }))
@@ -66,11 +67,23 @@ object EndpointTreeBuilder {
       }
 
       val methodKey = Triple(summary.host, fullPathPrefix, summary.method)
-      val methodNode =
-        methodNodes.getOrPut(methodKey) {
-          DefaultMutableTreeNode(EndpointTreeMethod(summary.method)).also { current.add(it) }
-        }
-      methodNode.add(DefaultMutableTreeNode(EndpointTreeLeaf(summary)))
+      methodNodes.getOrPut(methodKey) {
+        DefaultMutableTreeNode(EndpointTreeMethod(summary.method)).also { current.add(it) }
+      }
+      methodBuckets.getOrPut(methodKey) { mutableListOf() }.add(summary)
+    }
+
+    for ((methodKey, summaries) in methodBuckets) {
+      val methodNode = methodNodes[methodKey] ?: continue
+      if (summaries.size == 1) {
+        val summary = summaries.first()
+        methodNode.userObject = EndpointTreeMethod(summary.method, summary)
+        continue
+      }
+
+      for (summary in summaries) {
+        methodNode.add(DefaultMutableTreeNode(EndpointTreeLeaf(summary)))
+      }
     }
 
     return root
