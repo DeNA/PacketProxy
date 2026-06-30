@@ -240,7 +240,9 @@ class EndpointOverviewExtension : Extension() {
     val entry = sessionComboBox.selectedItem as? SessionComboEntry ?: return
 
     try {
-      val modifiedBytes = SessionRequestModifier.apply(requestPacket.decodedData, entry.profile)
+      val requestBytes = requestResponsePanel.getActiveRequestData()
+      val baseBytes = if (requestBytes.isNotEmpty()) requestBytes else requestPacket.decodedData
+      val modifiedBytes = SessionRequestModifier.apply(baseBytes, entry.profile)
       val sendPacket = requestPacket.getOneShotPacket(modifiedBytes)
       val modifiedRequestPacket = sendPacket.toPacket()
 

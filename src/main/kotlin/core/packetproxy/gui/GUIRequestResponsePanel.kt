@@ -406,6 +406,13 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     return requestPane.getDecodedData()
   }
 
+  fun getActiveRequestData(): ByteArray {
+    if (showingRequestPacket == null || currentView != ViewType.SPLIT) {
+      return EMPTY_DATA
+    }
+    return requestPane.getActiveData()
+  }
+
   fun getResponseData(): ByteArray {
     if (showingResponsePacket == null) return EMPTY_DATA
     // Decodedタブからデータを取得
