@@ -31,8 +31,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -46,7 +44,6 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.Scrollable;
-import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 import packetproxy.controller.ResendController;
 import packetproxy.controller.SinglePacketAttackController;
@@ -54,7 +51,6 @@ import packetproxy.http.Http;
 import packetproxy.model.Diff;
 import packetproxy.model.DiffBinary;
 import packetproxy.model.DiffJson;
-import packetproxy.model.OneShotPacket;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 import packetproxy.util.CharSetUtility;
@@ -84,7 +80,7 @@ public class GUIData {
 	private Supplier<byte[]> bodyDataProvider = null;
 	private Supplier<byte[]> responseDataProvider = null;
 	private Supplier<Packet> packetProvider = null;
-	private BiConsumer<Packet, Packet> resendResultHandler = null;
+	private Runnable resendDelegate = null;
 
 	public GUIData(JFrame owner) {
 		this.owner = owner;
@@ -98,8 +94,8 @@ public class GUIData {
 		this.packetProvider = provider;
 	}
 
-	public void setResendResultHandler(BiConsumer<Packet, Packet> handler) {
-		this.resendResultHandler = handler;
+	public void setResendDelegate(Runnable delegate) {
+		this.resendDelegate = delegate;
 	}
 
 	public void setBodyDataProvider(Supplier<byte[]> provider) {
@@ -301,27 +297,10 @@ public class GUIData {
 						Packet packet = getContextPacket();
 						if (packet == null)
 							return;
-						OneShotPacket sendPacket = packet.getOneShotPacket(data);
-						if (resendResultHandler != null) {
-							ResendController.getInstance().resend(new ResendController.ResendWorker(sendPacket, 1) {
-								@Override
-								protected void process(List<OneShotPacket> chunks) {
-									if (chunks.isEmpty()) {
-										return;
-									}
-									SwingUtilities.invokeLater(() -> {
-										try {
-											Packet responsePacket = chunks.get(0).toPacket();
-											Packet requestPacket = sendPacket.toPacket();
-											resendResultHandler.accept(requestPacket, responsePacket);
-										} catch (Exception ex) {
-											errWithStackTrace(ex);
-										}
-									});
-								}
-							});
+						if (resendDelegate != null) {
+							resendDelegate.run();
 						} else {
-							ResendController.getInstance().resend(sendPacket);
+							ResendController.getInstance().resend(packet.getOneShotPacket(data));
 						}
 						packet.setResend();
 						Packets.getInstance().update(packet);

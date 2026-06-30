@@ -38,6 +38,9 @@ import javax.swing.SwingUtilities
 import javax.swing.border.TitledBorder
 import javax.swing.event.ChangeListener
 import packetproxy.common.I18nString
+import packetproxy.controller.ResendController
+import packetproxy.controller.ResendController.ResendWorker
+import packetproxy.model.OneShotPacket
 import packetproxy.model.Packet
 import packetproxy.util.Logging.errWithStackTrace
 
@@ -129,9 +132,7 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     // ボタンが現在アクティブな外側タブ（Decoded/Modified等）のデータを読むようにサプライヤを注入する
     requestPane.receivedPanel.setDataProvider { requestPane.getActiveData() }
     requestPane.receivedPanel.setPacketProvider { showingRequestPacket }
-    requestPane.receivedPanel.setResendResultHandler { requestPacket, responsePacket ->
-      setPackets(requestPacket, responsePacket)
-    }
+    requestPane.receivedPanel.setResendDelegate { resendActiveRequest() }
     buttonPanel.add(singlePane.receivedPanel.createButtonPanel(), ViewType.SINGLE.name)
     singlePane.receivedPanel.setDataProvider { singlePane.getActiveData() }
 
@@ -376,6 +377,35 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
       return EMPTY_DATA
     }
     return requestPane.getActiveData()
+  }
+
+  fun resendActiveRequest() {
+    val packet = showingRequestPacket ?: return
+    val data = getActiveRequestData()
+    if (data.isEmpty()) return
+    try {
+      val sendPacket = packet.getOneShotPacket(data)
+      val sentRequestPacket = sendPacket.toPacket()
+      ResendController.getInstance()
+        .resend(
+          object : ResendWorker(sendPacket, 1) {
+            override fun process(chunks: MutableList<OneShotPacket>) {
+              if (chunks.isEmpty()) {
+                return
+              }
+              SwingUtilities.invokeLater {
+                try {
+                  setPackets(sentRequestPacket, chunks[0].toPacket())
+                } catch (e: Exception) {
+                  errWithStackTrace(e)
+                }
+              }
+            }
+          }
+        )
+    } catch (e: Exception) {
+      errWithStackTrace(e)
+    }
   }
 
   fun getResponseData(): ByteArray {
