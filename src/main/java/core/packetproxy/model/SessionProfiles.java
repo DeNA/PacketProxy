@@ -47,7 +47,7 @@ public class SessionProfiles implements PropertyChangeListener {
 	}
 
 	public void create(SessionProfile profile) throws Exception {
-		dao.createIfNotExists(profile);
+		dao.create(profile);
 		firePropertyChange();
 	}
 
@@ -63,6 +63,10 @@ public class SessionProfiles implements PropertyChangeListener {
 
 	public SessionProfile query(int id) throws Exception {
 		return dao.queryForId(id);
+	}
+
+	public SessionProfile queryByName(String name) throws Exception {
+		return dao.queryBuilder().where().eq("name", name).queryForFirst();
 	}
 
 	public List<SessionProfile> queryAll() throws Exception {

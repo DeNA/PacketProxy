@@ -275,10 +275,7 @@ class EndpointOverviewExtension : Extension() {
             selectedNode?.let { resolveSummary(it)?.latestRequestPacket?.decodedData }
           SessionProfileAuthorizationExtractor.extract(requestData ?: ByteArray(0))
         }
-      val profile = dlg.showDialog()
-      if (profile != null) {
-        SessionProfiles.getInstance().create(profile)
-      }
+      dlg.showDialog()
     } catch (e: Exception) {
       errWithStackTrace(e)
     }

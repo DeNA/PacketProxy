@@ -65,10 +65,7 @@ public class GUIOptionSessionProfile extends GUIOptionComponentBase<SessionProfi
 			public void actionPerformed(ActionEvent e) {
 				try {
 					var dlg = new GUIOptionSessionProfileDialog(owner, authorizationSupplier);
-					var profile = dlg.showDialog();
-					if (profile != null) {
-						sessionProfiles.create(profile);
-					}
+					dlg.showDialog();
 				} catch (Exception e1) {
 					errWithStackTrace(e1);
 				}
@@ -84,12 +81,7 @@ public class GUIOptionSessionProfile extends GUIOptionComponentBase<SessionProfi
 						return;
 					}
 					var dlg = new GUIOptionSessionProfileDialog(owner, authorizationSupplier);
-					var profile = dlg.showDialog(oldProfile);
-					if (profile != null) {
-						oldProfile.setName(profile.getName());
-						oldProfile.setAuthorization(profile.getAuthorization());
-						sessionProfiles.update(oldProfile);
-					}
+					dlg.showDialog(oldProfile);
 				} catch (Exception e1) {
 					errWithStackTrace(e1);
 				}
@@ -117,10 +109,7 @@ public class GUIOptionSessionProfile extends GUIOptionComponentBase<SessionProfi
 	public void showManageDialog() {
 		try {
 			var dlg = new GUIOptionSessionProfileDialog(owner, authorizationSupplier);
-			var profile = dlg.showDialog();
-			if (profile != null) {
-				sessionProfiles.create(profile);
-			}
+			dlg.showDialog();
 		} catch (Exception e) {
 			errWithStackTrace(e);
 		}
