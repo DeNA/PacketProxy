@@ -108,9 +108,9 @@ class EndpointOverviewExtension : Extension() {
   }
 
   private fun initializeTree() {
-    treeModel = DefaultTreeModel(DefaultMutableTreeNode(EndpointTreeRoot()))
+    treeModel = DefaultTreeModel(DefaultMutableTreeNode())
     tree = JTree(treeModel)
-    tree.isRootVisible = true
+    tree.isRootVisible = false
     tree.showsRootHandles = true
     tree.cellRenderer =
       object : DefaultTreeCellRenderer() {
@@ -308,7 +308,7 @@ class EndpointOverviewExtension : Extension() {
   private fun clearTree() {
     SwingUtilities.invokeLater {
       endpoints = emptyList()
-      treeModel.setRoot(DefaultMutableTreeNode(EndpointTreeRoot()))
+      treeModel.setRoot(DefaultMutableTreeNode())
       filterField.text = ""
       updateSendButtonState()
     }

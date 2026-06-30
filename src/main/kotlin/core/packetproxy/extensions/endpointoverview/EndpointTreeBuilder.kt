@@ -31,7 +31,7 @@ object EndpointTreeBuilder {
   }
 
   fun build(endpoints: Collection<EndpointSummary>): DefaultMutableTreeNode {
-    val root = DefaultMutableTreeNode(EndpointTreeRoot())
+    val root = DefaultMutableTreeNode()
     val hostNodes = mutableMapOf<String, DefaultMutableTreeNode>()
     val pathNodes = mutableMapOf<Pair<String, String>, DefaultMutableTreeNode>()
     val methodBuckets = mutableMapOf<Triple<String, String, String>, MutableList<EndpointSummary>>()
