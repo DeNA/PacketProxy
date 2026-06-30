@@ -34,23 +34,12 @@ data class EndpointTreeFolder(val fullPathPrefix: String, val segmentLabel: Stri
   override val displayName: String = segmentLabel
 }
 
-data class EndpointTreeMethod(val method: String, val summary: EndpointSummary? = null) :
-  EndpointTreeNode {
+data class EndpointTreeMethod(val method: String, val summary: EndpointSummary) : EndpointTreeNode {
   override val displayName: String
-    get() {
-      if (summary == null) {
-        return method
-      }
-      return formatEndpointLabel(method, summary)
-    }
+    get() = formatEndpointLabel(method, summary)
 }
 
-data class EndpointTreeLeaf(val summary: EndpointSummary) : EndpointTreeNode {
-  override val displayName: String
-    get() = formatEndpointLabel(method = null, summary = summary)
-}
-
-internal fun formatEndpointLabel(method: String?, summary: EndpointSummary): String {
+internal fun formatEndpointLabel(method: String, summary: EndpointSummary): String {
   val query =
     try {
       URI(summary.url).rawQuery
@@ -59,11 +48,6 @@ internal fun formatEndpointLabel(method: String?, summary: EndpointSummary): Str
     }
 
   val stats = "[${summary.formattedStatusCodes()}]"
-  if (method == null) {
-    val queryPart = if (query != null && query.isNotEmpty()) "?$query  " else ""
-    return "$queryPart$stats"
-  }
-
   val queryPart = if (query != null && query.isNotEmpty()) " ?$query  " else "  "
   return "$method$queryPart$stats"
 }
