@@ -70,7 +70,6 @@ object EndpointAggregator {
           EndpointSummary(method = method, url = url, host = host)
         }
 
-      summary.count++
       summary.statusCodes.add(statusCode)
       if (contentType.isNotEmpty()) {
         summary.contentTypes.add(contentType)

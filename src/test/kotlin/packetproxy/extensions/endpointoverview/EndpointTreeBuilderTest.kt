@@ -193,7 +193,7 @@ class EndpointTreeBuilderTest {
     val root = EndpointTreeBuilder.build(listOf(summary))
     val method = findMethodNode(root)
 
-    assertEquals("GET  (×1) [200]", method.displayName)
+    assertEquals("GET  [200]", method.displayName)
     assertEquals(summary, method.summary)
   }
 
@@ -204,14 +204,12 @@ class EndpointTreeBuilderTest {
     method: String,
     url: String,
     host: String,
-    count: Int = 1,
     statusCodes: Set<String> = setOf("200"),
   ): EndpointSummary {
     return EndpointSummary(
       method = method,
       url = url,
       host = host,
-      count = count,
       statusCodes = statusCodes.toMutableSet(),
       contentTypes = mutableSetOf(),
     )

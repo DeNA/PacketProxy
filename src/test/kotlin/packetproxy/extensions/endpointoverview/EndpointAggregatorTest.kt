@@ -36,13 +36,12 @@ class EndpointAggregatorTest {
     assertEquals("GET", summary.method)
     assertEquals("https://example.com/api/users", summary.url)
     assertEquals("example.com", summary.host)
-    assertEquals(1, summary.count)
     assertEquals(setOf("200"), summary.statusCodes)
     assertEquals(setOf("application/json"), summary.contentTypes)
   }
 
   @Test
-  fun aggregateEndpoints_sameEndpointMultiplePairs_incrementsCountAndMergesStatusCodes() {
+  fun aggregateEndpoints_sameEndpointMultiplePairs_mergesStatusCodes() {
     val packets =
       listOf(
         createRequestPacket(group = 1L, method = "GET", host = "example.com", path = "/api/users"),
@@ -55,7 +54,6 @@ class EndpointAggregatorTest {
 
     assertEquals(1, endpoints.size)
     val summary = endpoints.values.first()
-    assertEquals(2, summary.count)
     assertEquals(setOf("200", "404"), summary.statusCodes)
     assertEquals(setOf("application/json", "text/html"), summary.contentTypes)
   }

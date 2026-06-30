@@ -58,7 +58,7 @@ internal fun formatEndpointLabel(method: String?, summary: EndpointSummary): Str
       null
     }
 
-  val stats = "(×${summary.count}) [${summary.formattedStatusCodes()}]"
+  val stats = "[${summary.formattedStatusCodes()}]"
   if (method == null) {
     val queryPart = if (query != null && query.isNotEmpty()) "?$query  " else ""
     return "$queryPart$stats"
