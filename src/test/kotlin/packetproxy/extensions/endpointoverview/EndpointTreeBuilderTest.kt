@@ -18,7 +18,6 @@ package packetproxy.extensions.endpointoverview
 import javax.swing.tree.DefaultMutableTreeNode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -111,7 +110,7 @@ class EndpointTreeBuilderTest {
   }
 
   @Test
-  fun build_samePathSameMethodDifferentQueries_createsQueryLeavesUnderMethodNode() {
+  fun build_samePathSameMethodDifferentQueries_createsFlatMethodNodesUnderPathFolder() {
     val firstSummary =
       createSummary(
         "GET",
@@ -129,23 +128,54 @@ class EndpointTreeBuilderTest {
 
     val root = EndpointTreeBuilder.build(listOf(firstSummary, secondSummary))
     val usersNode = findPathFolder(root, "/api/users")
-    val methodNode = usersNode.getChildAt(0) as DefaultMutableTreeNode
 
-    val method = methodNode.userObject as EndpointTreeMethod
-    assertEquals("GET", method.method)
-    assertNull(method.summary)
-    assertEquals(2, methodNode.childCount)
+    assertEquals(2, usersNode.childCount)
+
+    val methods =
+      (0 until usersNode.childCount)
+        .map {
+          (usersNode.getChildAt(it) as DefaultMutableTreeNode).userObject as EndpointTreeMethod
+        }
+        .toList()
+
+    assertEquals(setOf("GET"), methods.map { it.method }.toSet())
+    assertEquals(setOf(firstSummary, secondSummary), methods.map { it.summary }.toSet())
+    assertTrue(methods.any { it.displayName.contains("?id=1") })
+    assertTrue(methods.any { it.displayName.contains("?id=2") })
+    assertTrue(methods.all { it.displayName.contains("GET") })
+  }
+
+  @Test
+  fun build_samePathSameMethodMixedQueryAndNoQuery_createsDistinctFlatMethodLabels() {
+    val noQuerySummary =
+      createSummary(
+        "POST",
+        "https://example.com/api/users",
+        "example.com",
+        statusCodes = setOf("200"),
+      )
+    val querySummary =
+      createSummary(
+        "POST",
+        "https://example.com/api/users?id=1",
+        "example.com",
+        statusCodes = setOf("404"),
+      )
+
+    val root = EndpointTreeBuilder.build(listOf(noQuerySummary, querySummary))
+    val usersNode = findPathFolder(root, "/api/users")
+
+    assertEquals(2, usersNode.childCount)
 
     val displayNames =
-      (0 until methodNode.childCount)
+      (0 until usersNode.childCount)
         .map {
-          ((methodNode.getChildAt(it) as DefaultMutableTreeNode).userObject as EndpointTreeLeaf)
+          ((usersNode.getChildAt(it) as DefaultMutableTreeNode).userObject as EndpointTreeMethod)
             .displayName
         }
         .toSet()
 
-    assertTrue(displayNames.any { it.contains("?id=1") })
-    assertTrue(displayNames.any { it.contains("?id=2") })
+    assertEquals(setOf("POST  [200]", "POST ?id=1  [404]"), displayNames)
   }
 
   @Test

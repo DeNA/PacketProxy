@@ -155,7 +155,6 @@ class EndpointOverviewExtension : Extension() {
 
   private fun resolveSummary(node: DefaultMutableTreeNode): EndpointSummary? {
     return when (val userObject = node.userObject) {
-      is EndpointTreeLeaf -> userObject.summary
       is EndpointTreeMethod -> userObject.summary
       else -> null
     }
