@@ -40,7 +40,6 @@ import packetproxy.http.Http;
 import packetproxy.http.SessionProfileAuthorizationExtractor;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
-import packetproxy.model.SessionProfiles;
 import packetproxy.util.CharSetUtility;
 
 /**
@@ -138,10 +137,7 @@ public class GUIHistoryContextMenuFactory {
 					return;
 				}
 				var dlg = new GUIOptionSessionProfileDialog(owner, null);
-				var profile = dlg.showDialog(authorization);
-				if (profile != null) {
-					SessionProfiles.getInstance().create(profile);
-				}
+				dlg.showDialog(authorization);
 			} catch (Exception ex) {
 				errWithStackTrace(ex);
 			}

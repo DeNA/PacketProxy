@@ -16,6 +16,7 @@
 package packetproxy.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
@@ -28,6 +29,23 @@ public class SessionProfilesTest {
 	public void setUp() throws Exception {
 		var tempDb = Files.createTempFile("session_profiles_test", ".sqlite3");
 		Database.getInstance().openAt(tempDb.toString());
+	}
+
+	@Test
+	public void queryByName_returnsProfileWhenExists() throws Exception {
+		var profiles = SessionProfiles.getInstance();
+		var profile = new SessionProfile("userA", "Bearer token-a");
+		profiles.create(profile);
+
+		var found = profiles.queryByName("userA");
+		assertEquals(profile.getId(), found.getId());
+		assertEquals("Bearer token-a", found.getAuthorization());
+	}
+
+	@Test
+	public void queryByName_returnsNullWhenMissing() throws Exception {
+		var profiles = SessionProfiles.getInstance();
+		assertNull(profiles.queryByName("missing"));
 	}
 
 	@Test
