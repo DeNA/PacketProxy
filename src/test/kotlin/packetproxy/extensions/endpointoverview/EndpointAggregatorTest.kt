@@ -108,6 +108,29 @@ class EndpointAggregatorTest {
   }
 
   @Test
+  fun aggregateEndpoints_missingHostHeader_usesServerNameForUrl() {
+    val request =
+      createRequestPacketWithoutHost(
+        group = 1L,
+        method = "GET",
+        path = "/api/users",
+        serverName = "example.com",
+      )
+    val packets =
+      listOf(
+        request,
+        createResponsePacket(group = 1L, statusCode = "200", contentType = "application/json"),
+      )
+
+    val endpoints = EndpointAggregator.aggregateEndpoints(packets)
+
+    assertEquals(1, endpoints.size)
+    val summary = endpoints.values.first()
+    assertEquals("https://example.com/api/users", summary.url)
+    assertEquals("example.com", summary.host)
+  }
+
+  @Test
   fun buildRequestMap_returnsOnlyClientPackets() {
     val request =
       createRequestPacket(group = 10L, method = "POST", host = "example.com", path = "/login")
@@ -116,6 +139,23 @@ class EndpointAggregatorTest {
 
     assertEquals(1, requestMap.size)
     assertEquals(request, requestMap[10L])
+  }
+
+  private fun createRequestPacketWithoutHost(
+    group: Long,
+    method: String,
+    path: String,
+    serverName: String,
+    query: String = "",
+  ): Packet {
+    val queryPart = if (query.isNotEmpty()) "?$query" else ""
+    val data = "$method $path$queryPart HTTP/1.1\r\n\r\n"
+    return createPacket(
+      group = group,
+      direction = Packet.Direction.CLIENT,
+      decodedData = data.toByteArray(),
+      serverName = serverName,
+    )
   }
 
   private fun createRequestPacket(
@@ -147,6 +187,7 @@ class EndpointAggregatorTest {
     group: Long,
     direction: Packet.Direction,
     decodedData: ByteArray,
+    serverName: String = "example.com",
   ): Packet {
     val packet =
       Packet(
@@ -155,7 +196,7 @@ class EndpointAggregatorTest {
         12345,
         "93.184.216.34",
         443,
-        "example.com",
+        serverName,
         true,
         "HTTP",
         null,

@@ -128,6 +128,7 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     buttonPanel.add(requestPane.receivedPanel.createButtonPanel(), ViewType.SPLIT.name)
     // ボタンが現在アクティブな外側タブ（Decoded/Modified等）のデータを読むようにサプライヤを注入する
     requestPane.receivedPanel.setDataProvider { requestPane.getActiveData() }
+    requestPane.receivedPanel.setPacketProvider { showingRequestPacket }
     buttonPanel.add(singlePane.receivedPanel.createButtonPanel(), ViewType.SINGLE.name)
     singlePane.receivedPanel.setDataProvider { singlePane.getActiveData() }
 

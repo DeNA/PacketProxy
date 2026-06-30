@@ -79,6 +79,7 @@ public class GUIData {
 	private Supplier<byte[]> dataProvider = null;
 	private Supplier<byte[]> bodyDataProvider = null;
 	private Supplier<byte[]> responseDataProvider = null;
+	private Supplier<Packet> packetProvider = null;
 
 	public GUIData(JFrame owner) {
 		this.owner = owner;
@@ -86,6 +87,10 @@ public class GUIData {
 
 	public void setDataProvider(Supplier<byte[]> provider) {
 		this.dataProvider = provider;
+	}
+
+	public void setPacketProvider(Supplier<Packet> provider) {
+		this.packetProvider = provider;
 	}
 
 	public void setBodyDataProvider(Supplier<byte[]> provider) {
@@ -189,6 +194,14 @@ public class GUIData {
 		return null;
 	}
 
+	private Packet getContextPacket() throws Exception {
+		if (packetProvider != null) {
+			return packetProvider.get();
+		}
+		int id = GUIHistory.getInstance().getSelectedPacketId();
+		return Packets.getInstance().query(id);
+	}
+
 	private void initButtons() throws Exception {
 		copy_url_body_button = new JButton("copy Method+URL+Body");
 		copy_url_body_button.addActionListener(new ActionListener() {
@@ -200,8 +213,9 @@ public class GUIData {
 					byte[] data = getActiveData();
 					if (data == null || data.length == 0)
 						return;
-					int id = GUIHistory.getInstance().getSelectedPacketId();
-					Packet packet = Packets.getInstance().query(id);
+					Packet packet = getContextPacket();
+					if (packet == null)
+						return;
 					Http http = Http.create(data);
 					String copyData = http.getMethod() + "\t" + http.getURL(packet.getServerPort(), packet.getUseSSL())
 							+ "\t" + new String(http.getBody(), "UTF-8");
@@ -248,8 +262,9 @@ public class GUIData {
 					byte[] data = getActiveData();
 					if (data == null || data.length == 0)
 						return;
-					int id = GUIHistory.getInstance().getSelectedPacketId();
-					Packet packet = Packets.getInstance().query(id);
+					Packet packet = getContextPacket();
+					if (packet == null)
+						return;
 					Http http = Http.create(data);
 					String url = http.getURL(packet.getServerPort(), packet.getUseSSL());
 					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -274,12 +289,13 @@ public class GUIData {
 					byte[] data = getActiveData();
 					if (data != null && data.length > 0) {
 
-						int id = GUIHistory.getInstance().getSelectedPacketId();
-						Packet packet = Packets.getInstance().query(id);
+						Packet packet = getContextPacket();
+						if (packet == null)
+							return;
 						ResendController.getInstance().resend(packet.getOneShotPacket(data));
 						packet.setResend();
 						Packets.getInstance().update(packet);
-						GUIHistory.getInstance().updateRequestOne(id);
+						GUIHistory.getInstance().updateRequestOne(packet.getId());
 					}
 				} catch (Exception e1) {
 
@@ -300,12 +316,13 @@ public class GUIData {
 					byte[] data = getActiveData();
 					if (data != null && data.length > 0) {
 
-						int id = GUIHistory.getInstance().getSelectedPacketId();
-						Packet packet = Packets.getInstance().query(id);
+						Packet packet = getContextPacket();
+						if (packet == null)
+							return;
 						ResendController.getInstance().resend(packet.getOneShotPacket(data), 20);
 						packet.setResend();
 						Packets.getInstance().update(packet);
-						GUIHistory.getInstance().updateRequestOne(id);
+						GUIHistory.getInstance().updateRequestOne(packet.getId());
 					}
 				} catch (Exception e1) {
 
@@ -322,12 +339,13 @@ public class GUIData {
 				try {
 					byte[] data = getActiveData();
 					if (data != null && data.length > 0) {
-						int id = GUIHistory.getInstance().getSelectedPacketId();
-						Packet packet = Packets.getInstance().query(id);
+						Packet packet = getContextPacket();
+						if (packet == null)
+							return;
 						new SinglePacketAttackController(packet.getOneShotPacket(data)).attack(20);
 						packet.setResend();
 						Packets.getInstance().update(packet);
-						GUIHistory.getInstance().updateRequestOne(id);
+						GUIHistory.getInstance().updateRequestOne(packet.getId());
 					}
 				} catch (Exception e1) {
 					errWithStackTrace(e1);
@@ -346,12 +364,13 @@ public class GUIData {
 					byte[] data = getActiveData();
 					if (data != null && data.length > 0) {
 
-						int id = GUIHistory.getInstance().getSelectedPacketId();
-						Packet packet = Packets.getInstance().query(id);
+						Packet packet = getContextPacket();
+						if (packet == null)
+							return;
 						packet.setResend();
 						Packets.getInstance().update(packet);
 						GUIResender.getInstance().addResends(packet.getOneShotPacket(data));
-						GUIHistory.getInstance().updateRequestOne(id);
+						GUIHistory.getInstance().updateRequestOne(packet.getId());
 					}
 				} catch (Exception e1) {
 

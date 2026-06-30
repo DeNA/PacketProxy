@@ -59,6 +59,9 @@ object EndpointAggregator {
 
       val method = requestHttp.method ?: return
       val host = requestHttp.header.getValue("Host").orElse(requestPacket.serverName) ?: return
+      if (!requestHttp.header.getValue("Host").isPresent) {
+        requestHttp.updateHeader("Host", host)
+      }
       val url = requestHttp.getURL(requestPacket.serverPort, requestPacket.useSSL) ?: return
       val statusCode = responseHttp.statusCode ?: return
 
