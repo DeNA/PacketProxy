@@ -37,6 +37,7 @@ import javax.swing.event.TreeSelectionListener
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeCellRenderer
 import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.TreePath
 import packetproxy.common.I18nString
 import packetproxy.controller.ResendController
 import packetproxy.controller.ResendController.ResendWorker
@@ -331,14 +332,11 @@ class EndpointOverviewExtension : Extension() {
   private fun populateTree(summaries: Collection<EndpointSummary>) {
     val filtered = filterSummaries(summaries, filterField.text.trim())
     treeModel.setRoot(EndpointTreeBuilder.build(filtered))
-    expandHostNodes()
+    collapseAllNodes()
   }
 
-  private fun expandHostNodes() {
+  private fun collapseAllNodes() {
     val root = treeModel.root as? DefaultMutableTreeNode ?: return
-    tree.expandRow(0)
-    for (i in 0 until root.childCount) {
-      tree.expandRow(i + 1)
-    }
+    tree.collapsePath(TreePath(root))
   }
 }
