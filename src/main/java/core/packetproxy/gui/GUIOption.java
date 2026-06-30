@@ -161,7 +161,7 @@ public class GUIOption {
 
 		panel.add(createSeparator());
 
-		panel.add(createElement("Session Profiles",
+		panel.add(createElement(I18nString.get("Session Profiles"),
 				I18nString.get("Set Authorization header profiles for resending requests with different sessions.")));
 		GUIOptionSessionProfile sessionProfiles = new GUIOptionSessionProfile(owner);
 		panel.add(sessionProfiles.createPanel());
