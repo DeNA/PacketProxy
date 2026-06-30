@@ -337,6 +337,9 @@ class EndpointOverviewExtension : Extension() {
 
   private fun collapseAllNodes() {
     val root = treeModel.root as? DefaultMutableTreeNode ?: return
-    tree.collapsePath(TreePath(root))
+    tree.expandPath(TreePath(root))
+    for (i in 0 until root.childCount) {
+      tree.collapsePath(TreePath(root.getChildAt(i)))
+    }
   }
 }
