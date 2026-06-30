@@ -40,8 +40,10 @@ import javax.swing.event.ChangeListener
 import packetproxy.common.I18nString
 import packetproxy.controller.ResendController
 import packetproxy.controller.ResendController.ResendWorker
+import packetproxy.http.SessionRequestModifier
 import packetproxy.model.OneShotPacket
 import packetproxy.model.Packet
+import packetproxy.model.SessionProfile
 import packetproxy.util.Logging.errWithStackTrace
 
 /**
@@ -100,6 +102,11 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
 
   // Copy Body のデータ取得元（最後にクリックされたペイン）。null のときは requestPane を使う
   private var activePaneForBody: PacketDetailPane? = null
+  private var sessionProfileProvider: (() -> SessionProfile?)? = null
+
+  fun setSessionProfileProvider(provider: () -> SessionProfile?) {
+    sessionProfileProvider = provider
+  }
 
   @Throws(Exception::class)
   fun createPanel(): JComponent {
@@ -381,10 +388,12 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
 
   fun resendActiveRequest() {
     val packet = showingRequestPacket ?: return
-    val data = getActiveRequestData()
-    if (data.isEmpty()) return
+    val requestBytes = getActiveRequestData()
+    val baseBytes = if (requestBytes.isNotEmpty()) requestBytes else packet.decodedData
+    if (baseBytes.isEmpty()) return
     try {
-      val sendPacket = packet.getOneShotPacket(data)
+      val modifiedBytes = SessionRequestModifier.apply(baseBytes, sessionProfileProvider?.invoke())
+      val sendPacket = packet.getOneShotPacket(modifiedBytes)
       val sentRequestPacket = sendPacket.toPacket()
       ResendController.getInstance()
         .resend(

@@ -39,15 +39,11 @@ import javax.swing.tree.DefaultTreeCellRenderer
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreePath
 import packetproxy.common.I18nString
-import packetproxy.controller.ResendController
-import packetproxy.controller.ResendController.ResendWorker
 import packetproxy.gui.GUIHistory
 import packetproxy.gui.GUIOptionSessionProfileDialog
 import packetproxy.gui.GUIRequestResponsePanel
 import packetproxy.http.SessionProfileAuthorizationExtractor
-import packetproxy.http.SessionRequestModifier
 import packetproxy.model.Extension
-import packetproxy.model.OneShotPacket
 import packetproxy.model.Packets
 import packetproxy.model.SessionProfile
 import packetproxy.model.SessionProfiles
@@ -79,6 +75,9 @@ class EndpointOverviewExtension : Extension() {
     setupSelectionListener()
 
     requestResponsePanel = GUIRequestResponsePanel(GUIHistory.getOwner())
+    requestResponsePanel.setSessionProfileProvider {
+      (sessionComboBox.selectedItem as? SessionComboEntry)?.profile
+    }
 
     val treeScrollPane = JScrollPane(tree)
     val mainSplit =
@@ -235,38 +234,8 @@ class EndpointOverviewExtension : Extension() {
 
   private fun resendWithSelectedSession() {
     val selectedNode = tree.lastSelectedPathComponent as? DefaultMutableTreeNode ?: return
-    val summary = resolveSummary(selectedNode) ?: return
-    val requestPacket = summary.latestRequestPacket ?: return
-    val entry = sessionComboBox.selectedItem as? SessionComboEntry ?: return
-
-    try {
-      val requestBytes = requestResponsePanel.getActiveRequestData()
-      val baseBytes = if (requestBytes.isNotEmpty()) requestBytes else requestPacket.decodedData
-      val modifiedBytes = SessionRequestModifier.apply(baseBytes, entry.profile)
-      val sendPacket = requestPacket.getOneShotPacket(modifiedBytes)
-      val modifiedRequestPacket = sendPacket.toPacket()
-
-      ResendController.getInstance()
-        .resend(
-          object : ResendWorker(sendPacket, 1) {
-            override fun process(chunks: MutableList<OneShotPacket>) {
-              if (chunks.isEmpty()) {
-                return
-              }
-              SwingUtilities.invokeLater {
-                try {
-                  val responsePacket = chunks[0].toPacket()
-                  requestResponsePanel.setPackets(modifiedRequestPacket, responsePacket)
-                } catch (e: Exception) {
-                  errWithStackTrace(e)
-                }
-              }
-            }
-          }
-        )
-    } catch (e: Exception) {
-      errWithStackTrace(e)
-    }
+    if (resolveSummary(selectedNode) == null) return
+    requestResponsePanel.resendActiveRequest()
   }
 
   private fun openSessionManageDialog() {
