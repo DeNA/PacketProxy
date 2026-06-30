@@ -129,8 +129,19 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     // === 共有ボタンパネル（分割表示の対象外・下部に1つだけ表示）===
     buttonCardLayout = CardLayout()
     buttonPanel = JPanel(buttonCardLayout)
-    addButtonBar(ViewType.SPLIT, requestPane, splitMarkedOriginalRowHighlight, responsePane)
-    addButtonBar(ViewType.SINGLE, singlePane, singleMarkedOriginalRowHighlight)
+    addButtonBar(
+      ViewType.SPLIT,
+      requestPane,
+      splitMarkedOriginalRowHighlight,
+      responsePane,
+      getContextPacketOverride = { showingRequestPacket },
+    )
+    addButtonBar(
+      ViewType.SINGLE,
+      singlePane,
+      singleMarkedOriginalRowHighlight,
+      getContextPacketOverride = { showingSinglePacket },
+    )
 
     registerBodyFocusTracker()
 
@@ -142,13 +153,14 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
 
   private fun getBodyData(): ByteArray = (activePaneForBody ?: requestPane).getActiveData()
 
-  private fun getContextPacket(): Packet? {
+  private fun getHistoryContextPacket(): Packet? {
     val id = GUIHistory.getInstance().selectedPacketId
     return Packets.getInstance().query(id)
   }
 
   private fun createPacketDataButtonBar(
     getActiveData: () -> ByteArray?,
+    getContextPacket: () -> Packet?,
     getBodyData: () -> ByteArray?,
     getResponseData: () -> ByteArray?,
     markedOriginalRowHighlight: MarkedOriginalRowHighlight,
@@ -156,7 +168,7 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     return PacketDataButtonBar(
       owner = owner,
       getActiveData = getActiveData,
-      getContextPacket = { getContextPacket() },
+      getContextPacket = getContextPacket,
       getBodyData = getBodyData,
       getResponseData = getResponseData,
       markedOriginalRowHighlight = markedOriginalRowHighlight,
@@ -168,10 +180,12 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     primaryPane: PacketDetailPane,
     markedOriginalRowHighlight: MarkedOriginalRowHighlight,
     responsePane: PacketDetailPane? = null,
+    getContextPacketOverride: (() -> Packet?)? = null,
   ) {
     buttonPanel.add(
       createPacketDataButtonBar(
           getActiveData = { primaryPane.getActiveData() },
+          getContextPacket = { getContextPacketOverride?.invoke() ?: getHistoryContextPacket() },
           getBodyData = {
             if (responsePane != null) getBodyData() else primaryPane.getActiveData()
           },

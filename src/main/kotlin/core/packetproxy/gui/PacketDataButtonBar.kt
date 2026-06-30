@@ -262,9 +262,8 @@ class PacketDataButtonBar(
     if (data.isEmpty()) {
       return
     }
-    val packetId = GUIHistory.getInstance().selectedPacketId
     val packet = getContextPacket() ?: return
-    block(data, packet, packetId)
+    block(data, packet, packet.id)
   }
 
   private fun markResent(packet: Packet, packetId: Int) {
