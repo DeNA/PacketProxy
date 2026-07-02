@@ -28,6 +28,7 @@ import java.io.RandomAccessFile
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import javax.swing.JComponent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.yield
 import org.jline.jansi.Ansi
@@ -37,7 +38,7 @@ import packetproxy.gui.GUILog
 
 object Logging {
   private val dtf: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
-  private val guiLog: GUILog = GUILog.getInstance()
+  private val guiLog = GUILog()
   private val logger = LoggerFactory.getLogger("")
   private var isGulp: Boolean = false
 
@@ -54,6 +55,8 @@ object Logging {
     if (!logFile.exists()) throw IOException("not found: ${logFile.absolutePath}")
     logFile
   }
+
+  @JvmStatic fun createLogPanel(): JComponent = guiLog.createPanel()
 
   @JvmStatic
   fun init(isGulp: Boolean) {

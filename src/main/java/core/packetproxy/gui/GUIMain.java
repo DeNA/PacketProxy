@@ -38,6 +38,7 @@ import packetproxy.model.Database;
 import packetproxy.model.Database.DatabaseMessage;
 import packetproxy.model.InterceptModel;
 import packetproxy.model.PropertyChangeEventType;
+import packetproxy.util.Logging;
 import packetproxy.util.PacketProxyUtility;
 
 public class GUIMain extends JFrame implements PropertyChangeListener {
@@ -53,7 +54,6 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 	private GUIBulkSender gui_bulksender;
 	private GUIExtensions gui_extensions;
 	private GUIVulCheckHelper gui_vulcheckhelper;
-	private GUILog gui_log;
 	private InterceptModel interceptModel;
 
 	public enum Panes {
@@ -118,7 +118,6 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 			gui_bulksender = GUIBulkSender.getInstance();
 			gui_extensions = GUIExtensions.getInstance();
 			gui_vulcheckhelper = GUIVulCheckHelper.getInstance();
-			gui_log = GUILog.getInstance();
 
 			tabbedpane = new JTabbedPane();
 
@@ -137,7 +136,7 @@ public class GUIMain extends JFrame implements PropertyChangeListener {
 			tabbedpane.addTab(getPaneString(Panes.BULKSENDER), gui_bulksender.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.EXTENSIONS), gui_extensions.createPanel());
 			tabbedpane.addTab(getPaneString(Panes.OPTIONS), gui_option.createPanel());
-			tabbedpane.addTab(getPaneString(Panes.LOG), gui_log.createPanel());
+			tabbedpane.addTab(getPaneString(Panes.LOG), Logging.createLogPanel());
 
 			getContentPane().add(tabbedpane, BorderLayout.CENTER);
 
