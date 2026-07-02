@@ -34,9 +34,11 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import org.apache.commons.io.FileUtils;
+import packetproxy.common.I18nString;
 import packetproxy.controller.ResendController;
 import packetproxy.http.HeaderField;
 import packetproxy.http.Http;
+import packetproxy.http.SessionProfileAuthorizationExtractor;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
 import packetproxy.util.CharSetUtility;
@@ -125,6 +127,23 @@ public class GUIHistoryContextMenuFactory {
 						errWithStackTrace(ex);
 					}
 				});
+
+		JMenuItem createSessionProfile = createMenuItem(I18nString.get("create session profile"), -1, null, e -> {
+			try {
+				byte[] data = gui_packet.getData();
+				String authorization = SessionProfileAuthorizationExtractor.extract(data);
+				if (authorization == null || authorization.isEmpty()) {
+					JOptionPane.showMessageDialog(owner,
+							I18nString.get("No Authorization header found in the current request."),
+							I18nString.get("Message"), JOptionPane.INFORMATION_MESSAGE);
+					return;
+				}
+				var dlg = new GUIOptionSessionProfileDialog(owner, null);
+				dlg.showDialog(authorization);
+			} catch (Exception ex) {
+				errWithStackTrace(ex);
+			}
+		});
 
 		JMenuItem copyAll = createMenuItem("copy Method + URL + Body", KeyEvent.VK_M,
 				KeyStroke.getKeyStroke(KeyEvent.VK_M, mask_key), e -> {
@@ -355,6 +374,7 @@ public class GUIHistoryContextMenuFactory {
 
 		menu.add(send);
 		menu.add(sendToResender);
+		menu.add(createSessionProfile);
 		menu.add(copyAll);
 		menu.add(copy);
 		menu.add(bulkSender);

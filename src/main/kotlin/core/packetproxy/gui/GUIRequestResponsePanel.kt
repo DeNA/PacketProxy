@@ -38,7 +38,12 @@ import javax.swing.SwingUtilities
 import javax.swing.border.TitledBorder
 import javax.swing.event.ChangeListener
 import packetproxy.common.I18nString
+import packetproxy.controller.ResendController
+import packetproxy.controller.ResendController.ResendWorker
+import packetproxy.http.SessionRequestModifier
+import packetproxy.model.OneShotPacket
 import packetproxy.model.Packet
+import packetproxy.model.SessionProfile
 import packetproxy.util.Logging.errWithStackTrace
 
 /**
@@ -97,6 +102,11 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
 
   // Copy Body のデータ取得元（最後にクリックされたペイン）。null のときは requestPane を使う
   private var activePaneForBody: PacketDetailPane? = null
+  private var sessionProfileProvider: (() -> SessionProfile?)? = null
+
+  fun setSessionProfileProvider(provider: () -> SessionProfile?) {
+    sessionProfileProvider = provider
+  }
 
   @Throws(Exception::class)
   fun createPanel(): JComponent {
@@ -128,6 +138,8 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     buttonPanel.add(requestPane.receivedPanel.createButtonPanel(), ViewType.SPLIT.name)
     // ボタンが現在アクティブな外側タブ（Decoded/Modified等）のデータを読むようにサプライヤを注入する
     requestPane.receivedPanel.setDataProvider { requestPane.getActiveData() }
+    requestPane.receivedPanel.setPacketProvider { showingRequestPacket }
+    requestPane.receivedPanel.setResendDelegate { resendActiveRequest() }
     buttonPanel.add(singlePane.receivedPanel.createButtonPanel(), ViewType.SINGLE.name)
     singlePane.receivedPanel.setDataProvider { singlePane.getActiveData() }
 
@@ -365,6 +377,44 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     if (showingRequestPacket == null) return EMPTY_DATA
     // Decodedタブからデータを取得
     return requestPane.getDecodedData()
+  }
+
+  fun getActiveRequestData(): ByteArray {
+    if (showingRequestPacket == null || currentView != ViewType.SPLIT) {
+      return EMPTY_DATA
+    }
+    return requestPane.getActiveData()
+  }
+
+  fun resendActiveRequest() {
+    val packet = showingRequestPacket ?: return
+    val requestBytes = getActiveRequestData()
+    val baseBytes = if (requestBytes.isNotEmpty()) requestBytes else packet.decodedData
+    if (baseBytes.isEmpty()) return
+    try {
+      val modifiedBytes = SessionRequestModifier.apply(baseBytes, sessionProfileProvider?.invoke())
+      val sendPacket = packet.getOneShotPacket(modifiedBytes)
+      val sentRequestPacket = sendPacket.toPacket()
+      ResendController.getInstance()
+        .resend(
+          object : ResendWorker(sendPacket, 1) {
+            override fun process(chunks: MutableList<OneShotPacket>) {
+              if (chunks.isEmpty()) {
+                return
+              }
+              SwingUtilities.invokeLater {
+                try {
+                  setPackets(sentRequestPacket, chunks[0].toPacket())
+                } catch (e: Exception) {
+                  errWithStackTrace(e)
+                }
+              }
+            }
+          }
+        )
+    } catch (e: Exception) {
+      errWithStackTrace(e)
+    }
   }
 
   fun getResponseData(): ByteArray {
