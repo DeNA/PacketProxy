@@ -52,7 +52,7 @@ public class GUILog {
 
 			synchronized (thread_lock) {
 				StyledDocument doc = text.getStyledDocument();
-				doc.insertString(doc.getLength(), s + "\n\r", null);
+				doc.insertString(doc.getLength(), s + "\n", null);
 			}
 		} catch (BadLocationException ex) {
 
@@ -67,7 +67,7 @@ public class GUILog {
 				StyleConstants.setBackground(keyWord, new Color(240, 150, 150));
 				StyleConstants.setBold(keyWord, true);
 				StyledDocument doc = text.getStyledDocument();
-				doc.insertString(doc.getLength() - 1, s + "\n", keyWord);
+				doc.insertString(doc.getLength(), s + "\n", keyWord);
 			}
 		} catch (BadLocationException ex) {
 
