@@ -61,11 +61,13 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
+import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
@@ -84,6 +86,7 @@ import packetproxy.model.ResenderPackets;
 public class GUIHistory implements PropertyChangeListener {
 
 	private static final int COL_ID = 0;
+	private static final int COL_CLIENT_REQUEST = 1;
 	private static final int COL_SERVER_RESPONSE = 2;
 	private static final int COL_LENGTH = 3;
 	private static final int COL_MODIFIED = 10;
@@ -136,6 +139,7 @@ public class GUIHistory implements PropertyChangeListener {
 	private GUIHistoryAutoScroll autoScroll;
 	private JPopupMenu menu;
 	private PacketPairingService pairingService;
+	private ResendBatchService resendBatchService;
 
 	private Color packetColorGreen = new Color(0x7f, 0xff, 0xd4);
 	private Color packetColorBrown = new Color(0xd2, 0x69, 0x1e);
@@ -147,6 +151,7 @@ public class GUIHistory implements PropertyChangeListener {
 		ResenderPackets.getInstance().initTable(restore);
 		Filters.getInstance().addPropertyChangeListener(this);
 		pairingService = new PacketPairingService();
+		resendBatchService = ResendBatchService.getInstance();
 		gui_packet = GUIPacket.getInstance();
 		colorManager = new TableCustomColorManager();
 		preferredPosition = 0;
@@ -302,12 +307,39 @@ public class GUIHistory implements PropertyChangeListener {
 			}
 		});
 
+		JToggleButton expandResendBatches = new JToggleButton("Expand resent batches");
+		expandResendBatches.setPreferredSize(new Dimension(180, gui_filter.getMaximumSize().height));
+		expandResendBatches.setMaximumSize(new Dimension(180, gui_filter.getMaximumSize().height));
+		expandResendBatches.setMinimumSize(new Dimension(180, gui_filter.getMaximumSize().height));
+		expandResendBatches.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (expandResendBatches.isSelected()) {
+
+					resendBatchService.expandAll();
+				} else {
+
+					resendBatchService.collapseAll();
+				}
+				try {
+
+					applyRowFilters();
+				} catch (Exception ex) {
+
+					errWithStackTrace(ex);
+				}
+				table.repaint();
+			}
+		});
+
 		JPanel filter_panel = new JPanel();
 		filter_panel.setLayout(new BoxLayout(filter_panel, BoxLayout.X_AXIS));
 		filter_panel.add(gui_filter);
 		filter_panel.add(filterDropDown);
 		filter_panel.add(filterConfigAdd);
 		filter_panel.add(filterConfig);
+		filter_panel.add(expandResendBatches);
 
 		return filter_panel;
 	}
@@ -446,6 +478,57 @@ public class GUIHistory implements PropertyChangeListener {
 		sorter.setSortsOnUpdates(true);
 		sorter.toggleSortOrder(14); /* 14 is 'group' column */
 		table.setRowSorter(sorter);
+		table.getColumnModel().getColumn(COL_CLIENT_REQUEST).setCellRenderer(new DefaultTableCellRenderer() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+					boolean hasFocus, int row, int column) {
+				Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
+						column);
+				int packetId = (Integer) table.getValueAt(row, COL_ID);
+				long batchId = resendBatchService.getBatchIdForPacket(packetId);
+				if (batchId != 0 && resendBatchService.isRepresentativePacket(packetId)) {
+
+					String label = resendBatchService.getSummaryLabel(batchId);
+					String original = value == null ? "" : value.toString();
+					setText(label + "  " + original);
+				}
+				return component;
+			}
+		});
+		table.addMouseListener(new MouseAdapter() {
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				int row = table.rowAtPoint(e.getPoint());
+				if (row < 0) {
+					return;
+				}
+				int col = table.columnAtPoint(e.getPoint());
+				int packetId = (Integer) table.getValueAt(row, COL_ID);
+				long batchId = resendBatchService.getBatchIdForPacket(packetId);
+				if (batchId == 0) {
+					return;
+				}
+				if (!resendBatchService.isRepresentativePacket(packetId)) {
+					return;
+				}
+				if (col != COL_CLIENT_REQUEST && e.getClickCount() < 2) {
+					return;
+				}
+				resendBatchService.toggleCollapsed(batchId);
+				try {
+
+					applyRowFilters();
+				} catch (Exception ex) {
+
+					errWithStackTrace(ex);
+				}
+				table.repaint();
+			}
+		});
 
 		GUIHistoryContextMenuFactory.Handles handles = GUIHistoryContextMenuFactory.build(this, owner, table,
 				gui_packet, packets, colorManager, packetColorGreen, packetColorBrown, packetColorYellow);
@@ -576,6 +659,13 @@ public class GUIHistory implements PropertyChangeListener {
 		main_panel.setLayout(new BoxLayout(main_panel, BoxLayout.Y_AXIS));
 		main_panel.add(createFilterPanel());
 		main_panel.add(split_panel);
+		try {
+
+			applyRowFilters();
+		} catch (Exception e) {
+
+			errWithStackTrace(e);
+		}
 
 		return main_panel;
 	}
@@ -710,6 +800,22 @@ public class GUIHistory implements PropertyChangeListener {
 		} else {
 			addNewRowWithGroupTracking(packet, packetId, isResponse, groupId);
 		}
+		registerResendBatchPacket(packet, packetId, isResponse);
+	}
+
+	private void registerResendBatchPacket(Packet packet, int packetId, boolean isResponse) {
+		if (isResponse || packet.getResendBatchId() == 0) {
+			return;
+		}
+		resendBatchService.registerPacket(packet.getResendBatchId(), packetId, packet.getResendSourceId());
+		try {
+
+			applyRowFilters();
+		} catch (Exception e) {
+
+			errWithStackTrace(e);
+		}
+		table.repaint();
 	}
 
 	private int countAndTrackPacket(Packet packet) {
@@ -982,6 +1088,7 @@ public class GUIHistory implements PropertyChangeListener {
 		tableModel.setRowCount(0);
 		id_row.clear();
 		pairingService.clear();
+		resendBatchService.clear();
 
 		for (Packet packet : packetList) {
 
@@ -997,6 +1104,7 @@ public class GUIHistory implements PropertyChangeListener {
 				addNewRowWithGroupTracking(packet, packet.getId(), isResponse, groupId);
 			}
 		}
+		rebuildResendBatches(packetList);
 		update_packet_ids.clear();
 	}
 
@@ -1006,6 +1114,7 @@ public class GUIHistory implements PropertyChangeListener {
 		colorManager.clear();
 		id_row.clear();
 		pairingService.clear();
+		resendBatchService.clear();
 
 		for (Packet packet : packetList) {
 
@@ -1034,6 +1143,7 @@ public class GUIHistory implements PropertyChangeListener {
 				colorManager.add(id, packetColorYellow);
 			}
 		}
+		rebuildResendBatches(packetList);
 		update_packet_ids.clear();
 
 		new Thread(new Runnable() {
@@ -1214,14 +1324,9 @@ public class GUIHistory implements PropertyChangeListener {
 	}
 
 	private boolean sortByText(String text) {
-		if (text.isEmpty()) {
-
-			sorter.setRowFilter(null);
-			return true;
-		}
 		try {
 
-			sorter.setRowFilter(FilterTextParser.parse(text));
+			applyRowFilters();
 			return true;
 		} catch (ParseException e) {
 
@@ -1236,6 +1341,57 @@ public class GUIHistory implements PropertyChangeListener {
 			errWithStackTrace(e);
 		}
 		return false;
+	}
+
+	private RowFilter<OptionTableModel, Object> createResendBatchRowFilter() {
+		return new RowFilter<OptionTableModel, Object>() {
+
+			@Override
+			public boolean include(Entry<? extends OptionTableModel, ? extends Object> entry) {
+				int packetId = (Integer) entry.getValue(COL_ID);
+				return !resendBatchService.shouldHidePacket(packetId);
+			}
+		};
+	}
+
+	private void applyRowFilters() throws Exception {
+		String text = gui_filter == null ? "" : gui_filter.getText();
+		if (text.isEmpty()) {
+
+			sorter.setRowFilter(createResendBatchRowFilter());
+			return;
+		}
+		final RowFilter<Object, Object> textFilter = FilterTextParser.parse(text);
+		sorter.setRowFilter(new RowFilter<OptionTableModel, Object>() {
+
+			@Override
+			public boolean include(Entry<? extends OptionTableModel, ? extends Object> entry) {
+				int packetId = (Integer) entry.getValue(COL_ID);
+				return textFilter.include(entry) && !resendBatchService.shouldHidePacket(packetId);
+			}
+		});
+	}
+
+	private void rebuildResendBatches(List<Packet> packetList) {
+		List<Integer> ids = new ArrayList<Integer>();
+		List<Long> batchIds = new ArrayList<Long>();
+		List<Integer> sourceIds = new ArrayList<Integer>();
+		List<Packet.Direction> directions = new ArrayList<Packet.Direction>();
+		for (Packet packet : packetList) {
+
+			ids.add(packet.getId());
+			batchIds.add(packet.getResendBatchId());
+			sourceIds.add(packet.getResendSourceId());
+			directions.add(packet.getDirection());
+		}
+		resendBatchService.rebuildFromPackets(ids, batchIds, sourceIds, directions);
+		try {
+
+			applyRowFilters();
+		} catch (Exception e) {
+
+			errWithStackTrace(e);
+		}
 	}
 
 	public void resetCustomColoring() {
