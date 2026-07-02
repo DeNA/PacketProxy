@@ -17,6 +17,8 @@ package packetproxy.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -34,7 +36,7 @@ public class GUILog {
 	private Object thread_lock;
 
 	public GUILog() {
-		text = new JTextPane();
+		text = new PlainTextCopyTextPane();
 		text.setEditable(false);
 		scrollPane = new JScrollPane(text);
 		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
@@ -52,7 +54,7 @@ public class GUILog {
 
 			synchronized (thread_lock) {
 				StyledDocument doc = text.getStyledDocument();
-				doc.insertString(doc.getLength(), s + "\n\r", null);
+				doc.insertString(doc.getLength(), s + "\n", null);
 			}
 		} catch (BadLocationException ex) {
 
@@ -67,10 +69,28 @@ public class GUILog {
 				StyleConstants.setBackground(keyWord, new Color(240, 150, 150));
 				StyleConstants.setBold(keyWord, true);
 				StyledDocument doc = text.getStyledDocument();
-				doc.insertString(doc.getLength() - 1, s + "\n", keyWord);
+				doc.insertString(doc.getLength(), s + "\n", keyWord);
 			}
 		} catch (BadLocationException ex) {
 
+		}
+	}
+
+	private static class PlainTextCopyTextPane extends JTextPane {
+
+		private static final long serialVersionUID = -7625487841725414375L;
+
+		@Override
+		public void copy() {
+			var selected = getSelectedText();
+			if (selected == null || selected.isEmpty()) {
+				super.copy();
+				return;
+			}
+
+			var clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+			var selection = new StringSelection(selected);
+			clipboard.setContents(selection, selection);
 		}
 	}
 }
