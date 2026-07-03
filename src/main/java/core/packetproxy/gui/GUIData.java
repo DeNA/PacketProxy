@@ -73,7 +73,7 @@ public class GUIData {
 	private CharSetUtility charSetUtility = CharSetUtility.getInstance();
 	boolean isDiff = false;
 	boolean isOrigColorExists = false;
-	int origIndex;
+	int origPacketId;
 	Color origColor;
 	private JComboBox charSetCombo = new JComboBox(charSetUtility.getAvailableCharSetList().toArray());
 	private Supplier<byte[]> dataProvider = null;
@@ -376,10 +376,10 @@ public class GUIData {
 						if (isOrigColorExists) {
 
 							isOrigColorExists = false;
-							GUIHistory.getInstance().addCustomColoring(origIndex, new Color(0xb0, 0xb0, 0xb0)); // Gray
+							GUIHistory.getInstance().addCustomColoring(origPacketId, origColor);
 						} else {
 
-							GUIHistory.getInstance().addCustomColoring(origIndex, Color.WHITE);
+							GUIHistory.getInstance().removeCustomColoring(origPacketId);
 						}
 						isDiff = false;
 					}
@@ -432,10 +432,10 @@ public class GUIData {
 						if (isOrigColorExists) {
 
 							isOrigColorExists = false;
-							GUIHistory.getInstance().addCustomColoring(origIndex, origColor);
+							GUIHistory.getInstance().addCustomColoring(origPacketId, origColor);
 						} else {
 
-							GUIHistory.getInstance().addCustomColoring(origIndex, Color.WHITE);
+							GUIHistory.getInstance().removeCustomColoring(origPacketId);
 						}
 					}
 					isDiff = true;
@@ -447,7 +447,7 @@ public class GUIData {
 						origColor = GUIHistory.getInstance().getColor();
 						isOrigColorExists = true;
 					}
-					origIndex = GUIHistory.getInstance().getSelectedIndex();
+					origPacketId = GUIHistory.getInstance().getSelectedPacketId();
 					GUIHistory.getInstance().addCustomColoringToCursorPos(new Color(0xb0, 0xb0, 0xb0)); // Gray
 					log("Diff: original text was saved!");
 				} catch (Exception e1) {
