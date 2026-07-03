@@ -1248,6 +1248,11 @@ public class GUIHistory implements PropertyChangeListener {
 		table.repaint();
 	}
 
+	public void removeCustomColoring(int packetId) {
+		colorManager.clear(packetId);
+		table.repaint();
+	}
+
 	public void addCustomColoringToCursorPos(Color color) {
 		addCustomColoring(getSelectedPacketId(), color);
 	}
