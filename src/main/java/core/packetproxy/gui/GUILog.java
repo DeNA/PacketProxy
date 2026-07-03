@@ -34,7 +34,7 @@ public class GUILog {
 	private Object thread_lock;
 
 	public GUILog() {
-		text = new JTextPane();
+		text = new PlainTextCopyTextPane();
 		text.setEditable(false);
 		scrollPane = new JScrollPane(text);
 		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
