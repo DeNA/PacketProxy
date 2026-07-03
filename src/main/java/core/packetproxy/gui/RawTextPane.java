@@ -19,8 +19,6 @@ import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Color;
 import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -403,17 +401,8 @@ public class RawTextPane extends ExtendedTextPane {
 	}
 
 	@Override
-	public void copy() {
-		String selected = getSelectedText();
-		if (selected == null || selected.isEmpty()) {
-			super.copy();
-			return;
-		}
-
-		String sanitized = stripTrailingNewlines(selected);
-		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		StringSelection selection = new StringSelection(sanitized);
-		clipboard.setContents(selection, selection);
+	protected String prepareTextForCopy(String selected) {
+		return stripTrailingNewlines(selected);
 	}
 
 	@Override

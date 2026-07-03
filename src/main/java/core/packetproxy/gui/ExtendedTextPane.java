@@ -23,7 +23,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Arrays;
 import java.util.EventListener;
-import javax.swing.JTextPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.EventListenerList;
@@ -38,7 +37,7 @@ import packetproxy.common.Utils;
 import packetproxy.util.CharSetUtility;
 import packetproxy.util.PacketProxyUtility;
 
-abstract class ExtendedTextPane extends JTextPane {
+abstract class ExtendedTextPane extends PlainTextCopyTextPane {
 
 	private static final long serialVersionUID = 3879881178060039018L;
 	private static final int TEXT_TRIMMING_SIZE = 300000;
