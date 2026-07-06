@@ -39,6 +39,7 @@ import javax.swing.border.TitledBorder
 import javax.swing.event.ChangeListener
 import packetproxy.common.I18nString
 import packetproxy.model.Packet
+import packetproxy.model.Packets
 import packetproxy.util.Logging.errWithStackTrace
 
 /**
@@ -98,6 +99,9 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
   // Copy Body のデータ取得元（最後にクリックされたペイン）。null のときは requestPane を使う
   private var activePaneForBody: PacketDetailPane? = null
 
+  private val splitMarkedOriginalRowHighlight = MarkedOriginalRowHighlight()
+  private val singleMarkedOriginalRowHighlight = MarkedOriginalRowHighlight()
+
   @Throws(Exception::class)
   fun createPanel(): JComponent {
     cardLayout = CardLayout()
@@ -125,14 +129,8 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     // === 共有ボタンパネル（分割表示の対象外・下部に1つだけ表示）===
     buttonCardLayout = CardLayout()
     buttonPanel = JPanel(buttonCardLayout)
-    buttonPanel.add(requestPane.receivedPanel.createButtonPanel(), ViewType.SPLIT.name)
-    // ボタンが現在アクティブな外側タブ（Decoded/Modified等）のデータを読むようにサプライヤを注入する
-    requestPane.receivedPanel.setDataProvider { requestPane.getActiveData() }
-    buttonPanel.add(singlePane.receivedPanel.createButtonPanel(), ViewType.SINGLE.name)
-    singlePane.receivedPanel.setDataProvider { singlePane.getActiveData() }
-
-    requestPane.receivedPanel.setBodyDataProvider { getBodyData() }
-    requestPane.receivedPanel.setResponseDataProvider { responsePane.getActiveData() }
+    addButtonBar(ViewType.SPLIT, requestPane, splitMarkedOriginalRowHighlight, responsePane)
+    addButtonBar(ViewType.SINGLE, singlePane, singleMarkedOriginalRowHighlight)
 
     registerBodyFocusTracker()
 
@@ -143,6 +141,47 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
   }
 
   private fun getBodyData(): ByteArray = (activePaneForBody ?: requestPane).getActiveData()
+
+  private fun getContextPacket(): Packet? {
+    val id = GUIHistory.getInstance().selectedPacketId
+    return Packets.getInstance().query(id)
+  }
+
+  private fun createPacketDataButtonBar(
+    getActiveData: () -> ByteArray?,
+    getBodyData: () -> ByteArray?,
+    getResponseData: () -> ByteArray?,
+    markedOriginalRowHighlight: MarkedOriginalRowHighlight,
+  ): PacketDataButtonBar {
+    return PacketDataButtonBar(
+      owner = owner,
+      getActiveData = getActiveData,
+      getContextPacket = { getContextPacket() },
+      getBodyData = getBodyData,
+      getResponseData = getResponseData,
+      markedOriginalRowHighlight = markedOriginalRowHighlight,
+    )
+  }
+
+  private fun addButtonBar(
+    viewType: ViewType,
+    primaryPane: PacketDetailPane,
+    markedOriginalRowHighlight: MarkedOriginalRowHighlight,
+    responsePane: PacketDetailPane? = null,
+  ) {
+    buttonPanel.add(
+      createPacketDataButtonBar(
+          getActiveData = { primaryPane.getActiveData() },
+          getBodyData = {
+            if (responsePane != null) getBodyData() else primaryPane.getActiveData()
+          },
+          getResponseData = { responsePane?.getActiveData() },
+          markedOriginalRowHighlight = markedOriginalRowHighlight,
+        )
+        .createPanel(),
+      viewType.name,
+    )
+  }
 
   private fun registerBodyFocusTracker() {
     Toolkit.getDefaultToolkit()
@@ -170,9 +209,9 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     val panel: JPanel = JPanel()
     private val tabs = JTabbedPane()
     private val decodedTabs = TabSet(true, false)
-    val receivedPanel = GUIData(owner)
-    private val modifiedPanel = GUIData(owner)
-    private val sentPanel = GUIData(owner)
+    private val receivedTabs = TabSet(true, false)
+    private val modifiedTabs = TabSet(true, false)
+    private val sentTabs = TabSet(true, false)
     private lateinit var allReceived: RawTextPane
     private lateinit var allDecoded: RawTextPane
     private lateinit var allModified: RawTextPane
@@ -193,10 +232,10 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
         panel.minimumSize = Dimension(MIN_PANEL_SIZE, MIN_PANEL_SIZE)
       }
 
-      tabs.addTab("Received Packet", receivedPanel.createTabsPanel())
+      tabs.addTab("Received Packet", receivedTabs.tabPanel)
       tabs.addTab("Decoded", decodedTabs.tabPanel)
-      tabs.addTab("Modified", modifiedPanel.createTabsPanel())
-      tabs.addTab("Encoded (Sent Packet)", sentPanel.createTabsPanel())
+      tabs.addTab("Modified", modifiedTabs.tabPanel)
+      tabs.addTab("Encoded (Sent Packet)", sentTabs.tabPanel)
       tabs.addTab("All", createAllPanel())
       tabs.selectedIndex = TabType.DECODED.index
 
@@ -215,9 +254,9 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
       try {
         when (TabType.fromIndex(tabs.selectedIndex)) {
           TabType.DECODED -> decodedTabs.setData(resolveDecodedData(packet))
-          TabType.RECEIVED -> receivedPanel.setData(packet.getReceivedData())
-          TabType.MODIFIED -> modifiedPanel.setData(packet.getModifiedData())
-          TabType.ENCODED -> sentPanel.setData(packet.getSentData())
+          TabType.RECEIVED -> receivedTabs.setData(packet.getReceivedData())
+          TabType.MODIFIED -> modifiedTabs.setData(packet.getModifiedData())
+          TabType.ENCODED -> sentTabs.setData(packet.getSentData())
           TabType.ALL -> {
             allReceived.setData(packet.getReceivedData(), true)
             allReceived.caretPosition = 0
@@ -238,9 +277,9 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     fun clear() {
       try {
         decodedTabs.setData(EMPTY_DATA)
-        receivedPanel.setData(EMPTY_DATA)
-        modifiedPanel.setData(EMPTY_DATA)
-        sentPanel.setData(EMPTY_DATA)
+        receivedTabs.setData(EMPTY_DATA)
+        modifiedTabs.setData(EMPTY_DATA)
+        sentTabs.setData(EMPTY_DATA)
         allReceived.setData(EMPTY_DATA, true)
         allDecoded.setData(EMPTY_DATA, true)
         allModified.setData(EMPTY_DATA, true)
@@ -256,10 +295,10 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
 
     fun getActiveData(): ByteArray {
       return when (TabType.fromIndex(tabs.selectedIndex)) {
-        TabType.RECEIVED -> receivedPanel.getData()
+        TabType.RECEIVED -> receivedTabs.getData()
         TabType.DECODED -> decodedTabs.getData()
-        TabType.MODIFIED -> modifiedPanel.getData()
-        TabType.ENCODED -> sentPanel.getData()
+        TabType.MODIFIED -> modifiedTabs.getData()
+        TabType.ENCODED -> sentTabs.getData()
         TabType.ALL -> decodedTabs.getData()
         null -> EMPTY_DATA
       }
