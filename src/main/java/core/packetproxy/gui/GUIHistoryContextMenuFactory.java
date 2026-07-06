@@ -174,117 +174,19 @@ public class GUIHistoryContextMenuFactory {
 			}
 		});
 
-		JMenuItem saveAll = createMenuItem("save all data to file", -1, null, e -> {
-			WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "dat", "packet.dat");
-			filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
-				@Override
-				public void onApproved(File file, String extension) {
-					try {
-						byte[] data = gui_packet.getPacket().getReceivedData();
-						FileUtils.writeByteArrayToFile(file, data);
-						JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", file.getPath()));
-					} catch (Exception ex) {
-						errWithStackTrace(ex);
-						JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
-					}
-				}
+		JMenuItem saveAll = createSaveMenuItem(owner, "save all data to file", "packet.dat",
+				() -> gui_packet.getPacket().getReceivedData());
 
-				@Override
-				public void onCanceled() {
-				}
+		JMenuItem saveHttpBody = createSaveMenuItem(owner, "save HTTP body to file", "body.dat",
+				() -> Http.create(gui_packet.getPacket().getDecodedData()).getBody());
 
-				@Override
-				public void onError() {
-					JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
-				}
-			});
-			filechooser.showSaveDialog();
-		});
-
-		JMenuItem saveHttpBody = createMenuItem("save HTTP body to file", -1, null, e -> {
-			WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "dat", "body.dat");
-			filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
-				@Override
-				public void onApproved(File file, String extension) {
-					try {
-						Http http = Http.create(gui_packet.getPacket().getDecodedData());
-						byte[] data = http.getBody();
-						FileUtils.writeByteArrayToFile(file, data);
-						JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", file.getPath()));
-					} catch (Exception ex) {
-						errWithStackTrace(ex);
-						JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
-					}
-				}
-
-				@Override
-				public void onCanceled() {
-				}
-
-				@Override
-				public void onError() {
-					JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
-				}
-			});
-			filechooser.showSaveDialog();
-		});
-
-		JMenuItem addColorG = createMenuItem("add color (green)", -1, null, e -> {
-			try {
-				int[] selected_rows = table.getSelectedRows();
-				for (int i = 0; i < selected_rows.length; i++) {
-					Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
-					colorManager.add(id, packetColorGreen);
-					Packet packet = packets.query(id);
-					packet.setColor("green");
-					packets.update(packet);
-				}
-			} catch (Exception ex) {
-				errWithStackTrace(ex);
-			}
-		});
-
-		JMenuItem addColorB = createMenuItem("add color (brown)", -1, null, e -> {
-			try {
-				int[] selected_rows = table.getSelectedRows();
-				for (int i = 0; i < selected_rows.length; i++) {
-					Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
-					colorManager.add(id, packetColorBrown);
-					Packet packet = packets.query(id);
-					packet.setColor("brown");
-					packets.update(packet);
-				}
-			} catch (Exception ex) {
-				errWithStackTrace(ex);
-			}
-		});
-
-		JMenuItem addColorY = createMenuItem("add color (yellow)", -1, null, e -> {
-			try {
-				int[] selected_rows = table.getSelectedRows();
-				for (int i = 0; i < selected_rows.length; i++) {
-					Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
-					colorManager.add(id, packetColorYellow);
-					Packet packet = packets.query(id);
-					packet.setColor("yellow");
-					packets.update(packet);
-				}
-			} catch (Exception ex) {
-				errWithStackTrace(ex);
-			}
-		});
-
-		JMenuItem clearColor = createMenuItem("clear color", -1, null, e -> {
-			try {
-				int[] selected_rows = table.getSelectedRows();
-				for (int i = 0; i < selected_rows.length; i++) {
-					Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
-					colorManager.clear(id);
-				}
-			} catch (Exception ex) {
-				errWithStackTrace(ex);
-			}
-		});
+		JMenuItem addColorG = createColorMenuItem(table, packets, colorManager, packetColorGreen, "green",
+				"add color (green)");
+		JMenuItem addColorB = createColorMenuItem(table, packets, colorManager, packetColorBrown, "brown",
+				"add color (brown)");
+		JMenuItem addColorY = createColorMenuItem(table, packets, colorManager, packetColorYellow, "yellow",
+				"add color (yellow)");
+		JMenuItem clearColor = createClearColorMenuItem(table, colorManager);
 
 		JMenuItem delete_selected_items = createMenuItem("delete selected items", -1, null, e -> {
 			try {
@@ -381,5 +283,72 @@ public class GUIHistoryContextMenuFactory {
 		}
 		out.addActionListener(l);
 		return out;
+	}
+
+	@FunctionalInterface
+	private interface ByteArraySupplier {
+		byte[] get() throws Exception;
+	}
+
+	private static JMenuItem createSaveMenuItem(JFrame owner, String label, String defaultFileName,
+			ByteArraySupplier dataSupplier) {
+		return createMenuItem(label, -1, null, e -> {
+			WriteFileChooserWrapper filechooser = new WriteFileChooserWrapper(owner, "dat", defaultFileName);
+			filechooser.addFileChooserListener(new WriteFileChooserWrapper.FileChooserListener() {
+				@Override
+				public void onApproved(File file, String extension) {
+					try {
+						byte[] data = dataSupplier.get();
+						FileUtils.writeByteArrayToFile(file, data);
+						JOptionPane.showMessageDialog(owner, String.format("%sに保存しました！", file.getPath()));
+					} catch (Exception ex) {
+						errWithStackTrace(ex);
+						JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+					}
+				}
+
+				@Override
+				public void onCanceled() {
+				}
+
+				@Override
+				public void onError() {
+					JOptionPane.showMessageDialog(null, "データの保存に失敗しました。");
+				}
+			});
+			filechooser.showSaveDialog();
+		});
+	}
+
+	private static JMenuItem createColorMenuItem(JTable table, Packets packets, TableCustomColorManager colorManager,
+			Color awtColor, String dbColorName, String label) {
+		return createMenuItem(label, -1, null, e -> {
+			try {
+				int[] selected_rows = table.getSelectedRows();
+				for (int i = 0; i < selected_rows.length; i++) {
+					Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
+					colorManager.add(id, awtColor);
+					Packet packet = packets.query(id);
+					packet.setColor(dbColorName);
+					packets.update(packet);
+				}
+			} catch (Exception ex) {
+				errWithStackTrace(ex);
+			}
+		});
+	}
+
+	private static JMenuItem createClearColorMenuItem(JTable table, TableCustomColorManager colorManager) {
+		return createMenuItem("clear color", -1, null, e -> {
+			try {
+				int[] selected_rows = table.getSelectedRows();
+				for (int i = 0; i < selected_rows.length; i++) {
+					Integer id = (Integer) table.getValueAt(selected_rows[i], 0);
+					colorManager.clear(id);
+				}
+			} catch (Exception ex) {
+				errWithStackTrace(ex);
+			}
+		});
 	}
 }
