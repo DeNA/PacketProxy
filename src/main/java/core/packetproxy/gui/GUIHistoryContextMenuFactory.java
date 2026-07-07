@@ -15,6 +15,8 @@
  */
 package packetproxy.gui;
 
+import static packetproxy.gui.HttpPacketClipboardKt.copyMethodUrlBody;
+import static packetproxy.gui.HttpPacketClipboardKt.copyUrl;
 import static packetproxy.util.Logging.errWithStackTrace;
 
 import java.awt.Color;
@@ -39,7 +41,6 @@ import packetproxy.http.HeaderField;
 import packetproxy.http.Http;
 import packetproxy.model.Packet;
 import packetproxy.model.Packets;
-import packetproxy.util.CharSetUtility;
 
 /**
  * Extracted popup menu builder and action wiring for GUIHistory. Reduces the
@@ -130,17 +131,7 @@ public class GUIHistoryContextMenuFactory {
 				KeyStroke.getKeyStroke(KeyEvent.VK_M, mask_key), e -> {
 					try {
 						Packet packet = gui_packet.getPacket();
-						Http http = Http.create(packet.getDecodedData());
-						CharSetUtility charsetutil = CharSetUtility.getInstance();
-						if (charsetutil.isAuto()) {
-							charsetutil.setGuessedCharSet(http.getBody());
-						}
-						String copyData = http.getMethod() + "\t"
-								+ http.getURL(packet.getServerPort(), packet.getUseSSL()) + "\t"
-								+ new String(http.getBody(), charsetutil.getCharSet());
-						Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-						StringSelection selection = new StringSelection(copyData);
-						clipboard.setContents(selection, selection);
+						copyMethodUrlBody(packet.getDecodedData(), packet);
 					} catch (Exception ex) {
 						errWithStackTrace(ex);
 					}
@@ -151,11 +142,7 @@ public class GUIHistoryContextMenuFactory {
 					try {
 						int id = context.getSelectedPacketId();
 						Packet packet = packets.query(id);
-						Http http = Http.create(packet.getDecodedData());
-						String url = http.getURL(packet.getServerPort(), packet.getUseSSL());
-						Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-						StringSelection selection = new StringSelection(url);
-						clipboard.setContents(selection, selection);
+						copyUrl(packet.getDecodedData(), packet);
 					} catch (Exception ex) {
 						errWithStackTrace(ex);
 					}

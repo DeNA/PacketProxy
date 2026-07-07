@@ -17,8 +17,10 @@ package packetproxy.gui
 
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
+import java.nio.charset.Charset
 import packetproxy.http.Http
 import packetproxy.model.Packet
+import packetproxy.util.CharSetUtility
 
 fun copyMethodUrlBody(data: ByteArray, packet: Packet) {
   copyToClipboard(formatMethodUrlBody(data, packet))
@@ -26,7 +28,7 @@ fun copyMethodUrlBody(data: ByteArray, packet: Packet) {
 
 fun copyBody(data: ByteArray) {
   val http = Http.create(data)
-  copyToClipboard(String(http.body, Charsets.UTF_8))
+  copyToClipboard(decodeHttpBody(http.body))
 }
 
 fun copyUrl(data: ByteArray, packet: Packet) {
@@ -40,7 +42,15 @@ internal fun formatMethodUrlBody(data: ByteArray, packet: Packet): String {
     "\t" +
     http.getURL(packet.serverPort, packet.useSSL) +
     "\t" +
-    String(http.body, Charsets.UTF_8)
+    decodeHttpBody(http.body)
+}
+
+private fun decodeHttpBody(body: ByteArray): String {
+  val charsetUtility = CharSetUtility.getInstance()
+  if (charsetUtility.isAuto) {
+    charsetUtility.setGuessedCharSet(body)
+  }
+  return String(body, Charset.forName(charsetUtility.charSet))
 }
 
 private fun copyToClipboard(text: String) {
