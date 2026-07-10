@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 DeNA Co., Ltd.
+ * Copyright 2019,2026 DeNA Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,12 @@ public abstract class FramesBase {
 	protected FrameManager serverFrameManager = new FrameManager();
 	protected boolean alreadySentClientRequestPrologue = false;
 	protected boolean alreadySentClientRequestEpilogue = false;
+	private final StreamIdRemapper streamIdRemapper = new StreamIdRemapper();
 
 	public FramesBase() throws Exception {
 		clientFrameManager = new FrameManager();
 		serverFrameManager = new FrameManager();
+		serverFrameManager.setStreamIdRemapper(streamIdRemapper);
 	}
 
 	public String getName() {
@@ -49,7 +51,7 @@ public abstract class FramesBase {
 	}
 
 	public void serverResponseArrived(byte[] frames) throws Exception {
-		serverFrameManager.write(frames);
+		serverFrameManager.write(streamIdRemapper.rewriteResponseToClient(frames));
 	}
 
 	public byte[] passThroughClientRequest() throws Exception {
