@@ -42,6 +42,8 @@ import packetproxy.model.InterceptOptions;
 
 public class GUIOption {
 
+	private static final Color TITLE_FOREGROUND_COLOR = new Color(0, 238, 208);
+
 	private JFrame owner;
 
 	public GUIOption(JFrame owner) {
@@ -50,7 +52,7 @@ public class GUIOption {
 
 	private JComponent createTitle(String title) throws Exception {
 		JLabel label = new JLabel(title);
-		label.setForeground(Color.decode("61136"));
+		label.setForeground(TITLE_FOREGROUND_COLOR);
 		label.setBackground(Color.WHITE);
 		label.setFont(FontManager.getInstance().getUICaptionFont());
 		label.setMaximumSize(new Dimension(Short.MAX_VALUE, label.getMinimumSize().height));
