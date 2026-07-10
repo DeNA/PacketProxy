@@ -109,7 +109,7 @@ class EndpointOverviewExtension : Extension() {
     try {
       refreshSessionComboBox()
       sessionProfileListener = PropertyChangeListener { refreshSessionComboBox() }
-      SessionProfiles.getInstance().addPropertyChangeListener(sessionProfileListener)
+      SessionProfiles.getInstance().addPropertyChangeListener(sessionProfileListener!!)
     } catch (e: Exception) {
       errWithStackTrace(e)
     }
@@ -235,7 +235,7 @@ class EndpointOverviewExtension : Extension() {
     val entries = mutableListOf(SessionComboEntry(I18nString.get("(Original)"), null))
     try {
       SessionProfiles.getInstance().queryAll().forEach { profile ->
-        entries.add(SessionComboEntry(profile.name, profile))
+        entries.add(SessionComboEntry(profile.name ?: "", profile))
       }
     } catch (e: Exception) {
       errWithStackTrace(e)
