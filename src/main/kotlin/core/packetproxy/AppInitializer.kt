@@ -15,9 +15,9 @@ object AppInitializer {
   private var isGulp = false // Gulp modeか否か
   private var settingsPath = "" // 設定用JSONのファイルpath
 
-  private var isCoreNotReady = true
-  private var isGulpNotReady = true
-  private var isComponentsNotReady = true
+  private var coreInitialized = false
+  private var gulpInitialized = false
+  private var componentsInitialized = false
 
   @JvmStatic
   fun setArgs(isGulp: Boolean, settingsPath: String?) {
@@ -28,7 +28,7 @@ object AppInitializer {
   /** GUI / CLI(Gulp) に関連なく最初に実行するべき初期化を一度のみ実行する */
   @JvmStatic
   fun initCore() {
-    check(isCoreNotReady) { "initCore() has already been done !" }
+    check(!coreInitialized) { "initCore() has already been done !" }
 
     // ログ機能のエラーについては標準エラー出力への出力を行い終了する
     try {
@@ -43,19 +43,19 @@ object AppInitializer {
 
     Logging.log("Launching PacketProxy !")
 
-    isCoreNotReady = false
+    coreInitialized = true
   }
 
   /** CLI(Gulp) 専用の初期化を実行 GUI ではGUIMainなどで実行されている処理 */
   @JvmStatic
   fun initGulp() {
     check(isGulp) { "initGulp() is for gulp mode only !" }
-    check(isGulpNotReady) { "initGulp() has already been done !" }
+    check(!gulpInitialized) { "initGulp() has already been done !" }
 
     initDatabase()
     initPackets()
 
-    isGulpNotReady = false
+    gulpInitialized = true
   }
 
   private fun initDatabase() {
@@ -87,7 +87,7 @@ object AppInitializer {
    */
   @JvmStatic
   fun initComponents() {
-    check(isComponentsNotReady) { "initComponents() has already been done !" }
+    check(!componentsInitialized) { "initComponents() has already been done !" }
 
     // Database依存のコンポーネントを並列実行
     // 注意: Databaseは既に初期化済みであることを前提とする
@@ -134,7 +134,7 @@ object AppInitializer {
 
     loadSettingsFromJson()
 
-    isComponentsNotReady = false
+    componentsInitialized = true
   }
 
   private fun initClientKeyManager() {
