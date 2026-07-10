@@ -13,24 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package packetproxy.http;
+package packetproxy.http
 
-public class SessionProfileAuthorizationExtractor {
-
-	private SessionProfileAuthorizationExtractor() {
-	}
-
-	public static String extract(byte[] requestData) {
-		if (requestData == null || requestData.length == 0) {
-			return "";
-		}
-		if (!HttpHeader.isHTTPHeader(requestData)) {
-			return "";
-		}
-		try {
-			return Http.create(requestData).getFirstHeader("Authorization");
-		} catch (Exception e) {
-			return "";
-		}
-	}
+object SessionProfileAuthorizationExtractor {
+  @JvmStatic
+  fun extract(requestData: ByteArray?): String {
+    if (requestData == null || requestData.isEmpty()) {
+      return ""
+    }
+    if (!HttpHeader.isHTTPHeader(requestData)) {
+      return ""
+    }
+    try {
+      return Http.create(requestData).getFirstHeader("Authorization")
+    } catch (_: Exception) {
+      return ""
+    }
+  }
 }
