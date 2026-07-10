@@ -402,6 +402,13 @@ public class RawTextPane extends ExtendedTextPane {
 
 	@Override
 	protected String prepareTextForCopy(String selected) {
+		try {
+			if (selected.length() == getDocument().getLength()) {
+				return selected;
+			}
+		} catch (Exception e) {
+			errWithStackTrace(e);
+		}
 		return stripTrailingNewlines(selected);
 	}
 
@@ -425,10 +432,27 @@ public class RawTextPane extends ExtendedTextPane {
 		}
 		String charSetName = charSetUtility.getCharSet();
 		setText(new String(data, charSetName));
+		finishDocumentInitialization();
 		undo_manager.discardAllEdits();
 	}
 
 	public byte[] getData() {
+		var loadedData = getLoadedData();
+		if (loadedData != null) {
+			try {
+
+				var documentText = getDocument().getText(0, getDocument().getLength());
+				var charSetName = charSetUtility.getCharSet();
+				var loadedText = new String(loadedData, charSetName);
+				if (normalizeForComparison(documentText).equals(normalizeForComparison(loadedText))) {
+
+					return Arrays.copyOf(loadedData, loadedData.length);
+				}
+			} catch (Exception e) {
+
+				errWithStackTrace(e);
+			}
+		}
 		return raw_data.toByteArray();
 	}
 
@@ -447,11 +471,16 @@ public class RawTextPane extends ExtendedTextPane {
 			prev_text_panel = "";
 			raw_data.reset(text.getBytes());
 			super.setText(text);
+			finishDocumentInitialization();
 			undo_manager.discardAllEdits();
 		} catch (Exception e) {
 
 			errWithStackTrace(e);
 		}
+	}
+
+	private static String normalizeForComparison(String s) {
+		return stripTrailingNewlines(s.replace("\r\n", "\n").replace("\r", "\n"));
 	}
 
 	private static String stripTrailingNewlines(String s) {
