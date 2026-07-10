@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 DeNA Co., Ltd.
+ * Copyright 2019,2026 DeNA Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,14 @@ public class FrameManager {
 	private boolean flag_receive_peer_settings = false;
 	private boolean flag_send_settings = false;
 	private boolean flag_send_end_settings = false;
+	private StreamIdRemapper streamIdRemapper = null;
 
 	public FrameManager() throws Exception {
 		flowControlManager = new FlowControlManager();
+	}
+
+	public void setStreamIdRemapper(StreamIdRemapper streamIdRemapper) {
+		this.streamIdRemapper = streamIdRemapper;
 	}
 
 	public HpackDecoder getHpackDecoder() {
@@ -119,9 +124,13 @@ public class FrameManager {
 		} else if (frame instanceof PingFrame) {
 
 			PingFrame pingFrame = (PingFrame) frame;
-			controlFrames.add(pingFrame);
-			// Logging.log("Ping:" + pingFrame);
-			// System.out.flush();
+			if ((pingFrame.getFlags() & 0x1) == 0) {
+				// Logging.log("Ping:" + pingFrame);
+				// System.out.flush();
+				Frame ack = new Frame(Frame.Type.PING, 0x1, 0, pingFrame.getPayload());
+				flowControlManager.getOutputStream().write(ack.toByteArray());
+				flowControlManager.getOutputStream().flush();
+			}
 		} else {
 
 			controlFrames.add(frame);
@@ -168,6 +177,7 @@ public class FrameManager {
 			} else {
 
 				Frame f = new Frame(frame);
+				remapOutgoingStreamId(f);
 				flowControlManager.write(f);
 				if (f.getType() == Frame.Type.SETTINGS) {
 
@@ -180,6 +190,20 @@ public class FrameManager {
 					}
 				}
 			}
+		}
+	}
+
+	private void remapOutgoingStreamId(Frame f) {
+		if (streamIdRemapper == null || f.getStreamId() == 0) {
+
+			return;
+		}
+		if (f.getType() == Frame.Type.HEADERS) {
+
+			f.setStreamId(streamIdRemapper.mapClientToServer(f.getStreamId(), true));
+		} else if (f.getType() == Frame.Type.DATA) {
+
+			f.setStreamId(streamIdRemapper.mapClientToServer(f.getStreamId(), false));
 		}
 	}
 
