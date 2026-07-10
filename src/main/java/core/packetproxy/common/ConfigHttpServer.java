@@ -6,17 +6,20 @@ import fi.iki.elonen.NanoHTTPD;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.*;
-import packetproxy.gui.GUIMain;
 import packetproxy.model.*;
 
 public class ConfigHttpServer extends NanoHTTPD {
 
 	private final String allowedAccessToken;
+	private final ConfigHttpUiActions uiActions;
+	private final ConfigSettingsWriter settingsWriter;
 
-	public ConfigHttpServer(String hostname, int port, String allowedAccessToken) {
+	public ConfigHttpServer(String hostname, int port, String allowedAccessToken, ConfigHttpUiActions uiActions,
+			ConfigSettingsWriter settingsWriter) {
 		super(hostname, port);
 		this.allowedAccessToken = allowedAccessToken;
+		this.uiActions = uiActions;
+		this.settingsWriter = settingsWriter;
 	}
 
 	private void fixUpServerList(Map<Integer, Integer> serverMap, List<Server> serverList) {
@@ -117,18 +120,9 @@ public class ConfigHttpServer extends NanoHTTPD {
 
 			try {
 
-				GUIMain.getInstance().setAlwaysOnTop(true);
-				GUIMain.getInstance().setVisible(true);
+				uiActions.showOptionsTab();
 
-				GUIMain.getInstance().getTabbedPane().setSelectedIndex(GUIMain.Panes.OPTIONS.ordinal());
-
-				int option = JOptionPane.showConfirmDialog(GUIMain.getInstance(),
-						I18nString.get("Do you want to overwrite config?"), I18nString.get("Loading config"),
-						JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-
-				GUIMain.getInstance().setAlwaysOnTop(false);
-
-				if (option == JOptionPane.NO_OPTION) {
+				if (!uiActions.confirmOverwriteConfig()) {
 
 					return NanoHTTPD.newFixedLengthResponse(Response.Status.UNAUTHORIZED, MIME_HTML, null);
 				}
@@ -137,26 +131,7 @@ public class ConfigHttpServer extends NanoHTTPD {
 				session.parseBody(map);
 				String json = map.get("postData");
 
-				ConfigDaoHub daoHub = new Gson().fromJson(json, ConfigDaoHub.class);
-
-				Database.getInstance().dropConfigs();
-
-				for (ListenPort listenPort : daoHub.listenPortList) {
-
-					ListenPorts.getInstance().create(listenPort);
-				}
-				for (Server server : daoHub.serverList) {
-
-					Servers.getInstance().create(server);
-				}
-				for (Modification mod : daoHub.modificationList) {
-
-					Modifications.getInstance().create(mod);
-				}
-				for (SSLPassThrough passThrough : daoHub.sslPassThroughList) {
-
-					SSLPassThroughs.getInstance().create(passThrough);
-				}
+				settingsWriter.applyFromJson(json);
 
 				Response res = NanoHTTPD.newFixedLengthResponse(Response.Status.OK, "application/json",
 						"{\"status\": \"ok\"}");
