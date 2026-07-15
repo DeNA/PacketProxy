@@ -137,7 +137,7 @@ public class ListenPortManager implements PropertyChangeListener {
 			try {
 
 				synchronized (listen_map) {
-					restartAffectedForwarders();
+					restartAffectedListens();
 				}
 			} catch (Exception e) {
 
@@ -154,20 +154,17 @@ public class ListenPortManager implements PropertyChangeListener {
 		}
 	}
 
-	private void restartAffectedForwarders() throws Exception {
+	private void restartAffectedListens() throws Exception {
 		List<ListenPort> list = listenPorts.queryEnabled();
 		for (ListenPort listen_port : list) {
 
-			if (listen_port.getType().isForwarder()) {
+			Listen listen = listen_map.get(listen_port.getProtoPort());
+			if (listen != null) {
 
-				Listen listen = listen_map.get(listen_port.getProtoPort());
-				if (listen != null) {
-
-					log("## restarting forwarder due to server change: %s", listen_port.getProtoPort());
-					listen.close();
-					Listen new_listen = new Listen(listen_port);
-					listen_map.put(listen_port.getProtoPort(), new_listen);
-				}
+				log("## restarting listen due to server change: %s", listen_port.getProtoPort());
+				listen.close();
+				Listen new_listen = new Listen(listen_port);
+				listen_map.put(listen_port.getProtoPort(), new_listen);
 			}
 		}
 	}
