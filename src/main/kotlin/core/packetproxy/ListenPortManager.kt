@@ -68,7 +68,7 @@ class ListenPortManager private constructor() : PropertyChangeListener {
       }
     } else if (SERVERS.matches(evt)) {
       try {
-        synchronized(listenMap) { restartAffectedForwarders() }
+        synchronized(listenMap) { restartAffectedListens() }
       } catch (e: Exception) {
         errWithStackTrace(e)
       }
@@ -94,12 +94,11 @@ class ListenPortManager private constructor() : PropertyChangeListener {
   }
 
   @Throws(Exception::class)
-  private fun restartAffectedForwarders() {
+  private fun restartAffectedListens() {
     val list = listenPorts.queryEnabled()
     for (listenPort in list) {
-      if (!listenPort.type.isForwarder) continue
       val listen = listenMap[listenPort.protoPort] ?: continue
-      log("## restarting forwarder due to server change: %s", listenPort.protoPort)
+      log("## restarting listen due to server change: %s", listenPort.protoPort)
       listen.close()
       listenMap[listenPort.protoPort] = Listen(listenPort)
     }
