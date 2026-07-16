@@ -124,26 +124,31 @@ class ResendBatchService private constructor() {
     return batch.representativePacketId != packetId
   }
 
-  fun getSummaryPrefix(batchId: Long): String {
-    return if (isCollapsed(batchId)) "[+]" else "[-]"
+  fun getCompactCountLabel(batchId: Long): String {
+    val countLabel = getCountLabel(batchId) ?: return ""
+    return "×$countLabel"
   }
 
-  fun getSummaryLabel(batchId: Long): String {
+  fun getSummaryTooltip(batchId: Long): String {
     val batch = batches[batchId] ?: return ""
-    val receivedCount = batch.requestPacketIds.size
-    val countLabel =
-      if (batch.expectedCount > 0) {
-        "$receivedCount/${batch.expectedCount}"
-      } else {
-        "$receivedCount"
-      }
+    val countLabel = getCountLabel(batchId) ?: return ""
     val sourceLabel =
       if (batch.sourceId > 0) {
         " from #${batch.sourceId}"
       } else {
         ""
       }
-    return "${getSummaryPrefix(batchId)} Resent x$countLabel$sourceLabel"
+    return "Resent x$countLabel$sourceLabel"
+  }
+
+  private fun getCountLabel(batchId: Long): String? {
+    val batch = batches[batchId] ?: return null
+    val receivedCount = batch.requestPacketIds.size
+    return if (batch.expectedCount > 0) {
+      "$receivedCount/${batch.expectedCount}"
+    } else {
+      "$receivedCount"
+    }
   }
 
   fun rebuildFromPackets(

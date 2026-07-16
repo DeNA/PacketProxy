@@ -48,6 +48,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -64,6 +65,7 @@ import javax.swing.KeyStroke;
 import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -307,10 +309,13 @@ public class GUIHistory implements PropertyChangeListener {
 			}
 		});
 
-		JToggleButton expandResendBatches = new JToggleButton("Expand resent batches");
-		expandResendBatches.setPreferredSize(new Dimension(180, gui_filter.getMaximumSize().height));
-		expandResendBatches.setMaximumSize(new Dimension(180, gui_filter.getMaximumSize().height));
-		expandResendBatches.setMinimumSize(new Dimension(180, gui_filter.getMaximumSize().height));
+		Icon treeCollapsedIcon = UIManager.getIcon("Tree.collapsedIcon");
+		Icon treeExpandedIcon = UIManager.getIcon("Tree.expandedIcon");
+		JToggleButton expandResendBatches = new JToggleButton(treeCollapsedIcon);
+		expandResendBatches.setPreferredSize(new Dimension(buttonWidth, gui_filter.getMaximumSize().height));
+		expandResendBatches.setMaximumSize(new Dimension(buttonWidth, gui_filter.getMaximumSize().height));
+		expandResendBatches.setMinimumSize(new Dimension(buttonWidth, gui_filter.getMaximumSize().height));
+		expandResendBatches.setToolTipText("Expand resent batches");
 		expandResendBatches.addActionListener(new ActionListener() {
 
 			@Override
@@ -318,9 +323,13 @@ public class GUIHistory implements PropertyChangeListener {
 				if (expandResendBatches.isSelected()) {
 
 					resendBatchService.expandAll();
+					expandResendBatches.setIcon(treeExpandedIcon);
+					expandResendBatches.setToolTipText("Collapse resent batches");
 				} else {
 
 					resendBatchService.collapseAll();
+					expandResendBatches.setIcon(treeCollapsedIcon);
+					expandResendBatches.setToolTipText("Expand resent batches");
 				}
 				try {
 
@@ -481,19 +490,31 @@ public class GUIHistory implements PropertyChangeListener {
 		table.getColumnModel().getColumn(COL_CLIENT_REQUEST).setCellRenderer(new DefaultTableCellRenderer() {
 
 			private static final long serialVersionUID = 1L;
+			private final Icon collapsedIcon = UIManager.getIcon("Tree.collapsedIcon");
+			private final Icon expandedIcon = UIManager.getIcon("Tree.expandedIcon");
 
 			@Override
 			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
 					boolean hasFocus, int row, int column) {
 				Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
 						column);
+				setIcon(null);
+				setToolTipText(null);
 				int packetId = (Integer) table.getValueAt(row, COL_ID);
 				long batchId = resendBatchService.getBatchIdForPacket(packetId);
 				if (batchId != 0 && resendBatchService.isRepresentativePacket(packetId)) {
 
-					String label = resendBatchService.getSummaryLabel(batchId);
+					setIcon(resendBatchService.isCollapsed(batchId) ? collapsedIcon : expandedIcon);
+					setToolTipText(resendBatchService.getSummaryTooltip(batchId));
 					String original = value == null ? "" : value.toString();
-					setText(label + "  " + original);
+					String countLabel = resendBatchService.getCompactCountLabel(batchId);
+					if (countLabel.isEmpty()) {
+
+						setText(original);
+					} else {
+
+						setText(countLabel + "  " + original);
+					}
 				}
 				return component;
 			}

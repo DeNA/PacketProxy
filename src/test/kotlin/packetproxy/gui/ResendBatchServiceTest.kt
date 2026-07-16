@@ -21,7 +21,8 @@ class ResendBatchServiceTest {
 
     assertThat(service.isRepresentativePacket(201)).isTrue()
     assertThat(service.isCollapsed(100L)).isTrue()
-    assertThat(service.getSummaryLabel(100L)).isEqualTo("[+] Resent x1/20 from #10")
+    assertThat(service.getCompactCountLabel(100L)).isEqualTo("×1/20")
+    assertThat(service.getSummaryTooltip(100L)).isEqualTo("Resent x1/20 from #10")
   }
 
   @Test
@@ -44,7 +45,8 @@ class ResendBatchServiceTest {
 
     assertThat(service.isCollapsed(300L)).isFalse()
     assertThat(service.shouldHidePacket(402)).isFalse()
-    assertThat(service.getSummaryLabel(300L)).startsWith("[-]")
+    assertThat(service.getCompactCountLabel(300L)).isEqualTo("×2/20")
+    assertThat(service.getSummaryTooltip(300L)).isEqualTo("Resent x2/20 from #12")
   }
 
   @Test
