@@ -262,7 +262,7 @@ public class Packets implements PropertyChangeListener {
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		if (DATABASE_MESSAGE.toString().equals(evt.getPropertyName())) {
+		if (DATABASE_MESSAGE.matches(evt)) {
 
 			DatabaseMessage message = (DatabaseMessage) evt.getNewValue();
 			handleDatabaseMessage(message);
