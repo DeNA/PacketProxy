@@ -115,31 +115,29 @@ public class Extensions implements PropertyChangeListener {
 
 			File file = new File(path);
 			URL[] urls = {file.toURI().toURL()};
-			URLClassLoader urlClassLoader = new URLClassLoader(urls);
-			JarFile jar = new JarFile(file);
-			Extension extension = null;
-			for (Enumeration<JarEntry> entries = jar.entries(); entries.hasMoreElements();) {
+			try (URLClassLoader urlClassLoader = new URLClassLoader(urls); JarFile jar = new JarFile(file)) {
+				Extension extension = null;
+				for (Enumeration<JarEntry> entries = jar.entries(); entries.hasMoreElements();) {
 
-				JarEntry entry = entries.nextElement();
-				String entryName = entry.getName();
-				if (!entryName.endsWith(".class"))
-					continue;
-				String className = entryName.replace("/", ".").substring(0, entryName.length() - 6);
-				try {
-
-					Class clazz = urlClassLoader.loadClass(className);
-					if (!Extension.class.isAssignableFrom(clazz))
+					JarEntry entry = entries.nextElement();
+					String entryName = entry.getName();
+					if (!entryName.endsWith(".class"))
 						continue;
-					Constructor<Extension> constructor = clazz.getConstructor(String.class, String.class);
-					extension = (Extension) constructor.newInstance(name, path);
-				} catch (ClassNotFoundException e1) {
+					String className = entryName.replace("/", ".").substring(0, entryName.length() - 6);
+					try {
 
-					// errWithStackTrace(e1);
+						Class clazz = urlClassLoader.loadClass(className);
+						if (!Extension.class.isAssignableFrom(clazz))
+							continue;
+						Constructor<Extension> constructor = clazz.getConstructor(String.class, String.class);
+						extension = (Extension) constructor.newInstance(name, path);
+					} catch (ClassNotFoundException e1) {
+
+						// errWithStackTrace(e1);
+					}
 				}
+				return extension;
 			}
-			jar.close();
-			urlClassLoader.close();
-			return extension;
 		} catch (Exception e) {
 
 			errWithStackTrace(e);
