@@ -50,7 +50,9 @@ public enum PropertyChangeEventType {
 
 	EXTENSIONS("extensions"),
 
-	FORWARD_PORTS("forwardPorts");
+	FORWARD_PORTS("forwardPorts"),
+
+	SESSION_PROFILES("sessionProfiles");
 
 	private final String value;
 
