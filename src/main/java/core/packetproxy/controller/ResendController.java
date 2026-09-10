@@ -29,8 +29,10 @@ import packetproxy.DuplexFactory;
 import packetproxy.DuplexManager;
 import packetproxy.EncoderManager;
 import packetproxy.common.I18nString;
+import packetproxy.common.UniqueID;
 import packetproxy.encode.EncodeHTTPBase;
 import packetproxy.encode.Encoder;
+import packetproxy.gui.ResendBatchService;
 import packetproxy.http.Http;
 import packetproxy.model.OneShotPacket;
 import packetproxy.model.Packet;
@@ -113,11 +115,23 @@ public class ResendController {
 			try {
 
 				ArrayList<DataToBeSend> list = new ArrayList<DataToBeSend>();
+				long batchId = 0;
+				if (this.oneshot != null && this.count > 1) {
+
+					batchId = UniqueID.getInstance().createId();
+					ResendBatchService.getInstance().registerPendingBatch(batchId, this.oneshot.getId(), this.count);
+				}
 				if (this.oneshot != null && this.count > 0) {
 
 					for (int i = 0; i < this.count; i++) {
 
-						DataToBeSend sendData = new DataToBeSend(this.oneshot, result -> {
+						var sendOneshot = (OneShotPacket) this.oneshot.clone();
+						if (batchId != 0) {
+
+							sendOneshot.setResendBatchId(batchId);
+							sendOneshot.setResendSourceId(this.oneshot.getId());
+						}
+						DataToBeSend sendData = new DataToBeSend(sendOneshot, result -> {
 							publish(result);
 						});
 						list.add(sendData);
