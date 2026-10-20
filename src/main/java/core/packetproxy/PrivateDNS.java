@@ -114,7 +114,7 @@ public class PrivateDNS {
 
 					spoofAddrs.put(4, defaultAddr);
 				}
-				spoofAddrs.put(6, defaultAddr6.getHostAddress());
+				spoofAddrs.put(6, hostAddress(defaultAddr6));
 			} else {
 
 				if (ifscopes.containsKey(((Inet6Address) addr).getScopeId())) {
@@ -122,11 +122,26 @@ public class PrivateDNS {
 					spoofAddrs.put(6, ifscopes.get(((Inet6Address) addr).getScopeId()).getHostAddress());
 				} else {
 
-					spoofAddrs.put(6, defaultAddr6.getHostAddress());
+					spoofAddrs.put(6, hostAddress(defaultAddr6));
 				}
 				spoofAddrs.put(4, defaultAddr);
 			}
 			return spoofAddrs;
+		}
+
+		/*
+		 * 起動時のフィルタリングで IPv6 アドレスが 1 つも残らなかった場合、
+		 * defaultAddr6 は null のままになる。ループバックの ::1 は通常は残るため
+		 * 既定の設定では起きないが、-Djava.net.preferIPv4Stack=true を付けた場合や
+		 * OS 側で IPv6 を無効化した場合には起きる。
+		 *
+		 * ここで null を参照すると、NullPointerException が run() の汎用 catch まで
+		 * 伝播して finish() が呼ばれ、最初の 1 問い合わせで DNS サーバーが停止する。
+		 * 戻り値の null は書き換え先が無いことを表し、
+		 * PrivateDnsResponseBuilder が回答レコードを足さずに応答を組み立てる。
+		 */
+		private String hostAddress(InetAddress addr) {
+			return addr == null ? null : addr.getHostAddress();
 		}
 	}
 
@@ -437,6 +452,11 @@ public class PrivateDNS {
 
 							if (queryRecType == Type.AAAA) {
 
+								/*
+								 * IPv6 の書き換え先が無い場合は null になる。
+								 * PrivateDnsResponseBuilder は回答レコードを足さず、
+								 * NOERROR で回答なしの応答を返す。
+								 */
 								// ToDo GUIにIPv6有効チェックを追加し、無効のときはスキップするようにする。
 								ip = spoofingIp6Str;
 								log("Replaced to %s", ip);
