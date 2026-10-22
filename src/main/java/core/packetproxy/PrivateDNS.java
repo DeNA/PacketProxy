@@ -20,17 +20,21 @@ import static packetproxy.util.Logging.errWithStackTrace;
 import static packetproxy.util.Logging.log;
 
 import java.io.IOException;
-import java.net.BindException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
+import java.net.ProtocolFamily;
 import java.net.SocketException;
+import java.net.StandardProtocolFamily;
 import java.net.UnknownHostException;
+import java.nio.channels.DatagramChannel;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.commons.net.util.SubnetUtils.SubnetInfo;
 import org.xbill.DNS.*;
@@ -44,7 +48,6 @@ public class PrivateDNS {
 
 	static int BUFSIZE = 1024;
 	static int DEFAULT_PORT = 53;
-	static String dnsServer = "8.8.8.8";
 	private static PrivateDNS instance;
 	private ConfigBoolean state;
 	private PrivateDNSImp dns;
@@ -114,7 +117,7 @@ public class PrivateDNS {
 
 					spoofAddrs.put(4, defaultAddr);
 				}
-				spoofAddrs.put(6, defaultAddr6.getHostAddress());
+				spoofAddrs.put(6, hostAddress(defaultAddr6));
 			} else {
 
 				if (ifscopes.containsKey(((Inet6Address) addr).getScopeId())) {
@@ -122,11 +125,26 @@ public class PrivateDNS {
 					spoofAddrs.put(6, ifscopes.get(((Inet6Address) addr).getScopeId()).getHostAddress());
 				} else {
 
-					spoofAddrs.put(6, defaultAddr6.getHostAddress());
+					spoofAddrs.put(6, hostAddress(defaultAddr6));
 				}
 				spoofAddrs.put(4, defaultAddr);
 			}
 			return spoofAddrs;
+		}
+
+		/*
+		 * 起動時のフィルタリングで IPv6 アドレスが 1 つも残らなかった場合、
+		 * defaultAddr6 は null のままになる。ループバックの ::1 は通常は残るため
+		 * 既定の設定では起きないが、-Djava.net.preferIPv4Stack=true を付けた場合や
+		 * OS 側で IPv6 を無効化した場合には起きる。
+		 *
+		 * ここで null を参照すると、NullPointerException が run() の汎用 catch まで
+		 * 伝播して finish() が呼ばれ、最初の 1 問い合わせで DNS サーバーが停止する。
+		 * 戻り値の null は書き換え先が無いことを表し、
+		 * PrivateDnsResponseBuilder が回答レコードを足さずに応答を組み立てる。
+		 */
+		private String hostAddress(InetAddress addr) {
+			return addr == null ? null : addr.getHostAddress();
 		}
 	}
 
@@ -284,61 +302,129 @@ public class PrivateDNS {
 		private DNSSpoofingIPGetter spoofingIp;
 		private final int listenPort;
 
-		private InetAddress cAddr;
-		private int cPort;
-		private byte[] buf = new byte[BUFSIZE];
-		DatagramSocket soc;
-		DatagramPacket recvPacket;
-		DatagramPacket sendPacket;
-		DatagramSocket s_soc;
-		DatagramPacket s_recvPacket;
-		DatagramPacket s_sendPacket;
-		InetAddress s_sAddr;
+		private List<DatagramSocket> sockets = List.of();
+		private final AtomicBoolean closed = new AtomicBoolean();
 
 		public PrivateDNSImp(DNSSpoofingIPGetter dnsSpoofingIPGetter) throws Exception {
 			this.spoofingIp = dnsSpoofingIPGetter;
 			listenPort = getListenPort();
+
+			InetAddress bindAddr = InetAddress.getByName(spoofingIp.getInt());
 			try {
 
-				soc = new DatagramSocket(listenPort, InetAddress.getByName(spoofingIp.getInt()));
-				recvPacket = new DatagramPacket(buf, BUFSIZE);
-				sendPacket = null;
-			} catch (BindException e) {
+				if (bindAddr.isAnyLocalAddress()) {
+
+					sockets = listenOnWildcard();
+				} else if (bindAddr instanceof Inet4Address) {
+
+					sockets = List.of(open(StandardProtocolFamily.INET, new InetSocketAddress(bindAddr, listenPort)));
+				} else {
+
+					sockets = List.of(open(StandardProtocolFamily.INET6, new InetSocketAddress(bindAddr, listenPort)));
+				}
+			} catch (Exception e) {
 
 				err("cannot boot private DNS server (permission issue or already listened): addr=%s port=%d",
 						spoofingIp.getInt(), listenPort);
-				return;
 			}
+		}
 
-			s_sAddr = InetAddress.getByName(dnsServer);
-			s_soc = new DatagramSocket();
-			s_recvPacket = new DatagramPacket(buf, BUFSIZE);
-			s_sendPacket = null;
+		/*
+		 * ワイルドカードで待ち受ける場合は、IPv4 と IPv6 でソケットを分けたい。
+		 * デュアルスタックの 1 本で待ち受けると、IPv4 クライアントへ送った応答が
+		 * OS に落とされる環境があるため (macOS で確認。送信はエラーにならない)。
+		 *
+		 * ただし DatagramChannel.open(INET6) は IPV6_V6ONLY を立てないため、
+		 * 同一ポートを IPv4 と共有できるかはプラットフォーム依存になる。
+		 * 分けられない環境では従来どおり 1 本のデュアルスタックソケットに戻す。
+		 */
+		private List<DatagramSocket> listenOnWildcard() throws Exception {
+			DatagramSocket v4 = open(StandardProtocolFamily.INET, new InetSocketAddress("0.0.0.0", listenPort));
+			try {
+
+				DatagramSocket v6 = open(StandardProtocolFamily.INET6, new InetSocketAddress("::", listenPort));
+				return List.of(v4, v6);
+			} catch (UnsupportedOperationException e) {
+
+				/* IPv6 が無効な JVM や OS では IPv4 だけで待ち受ける */
+				log("private DNS server listens on IPv4 only (%s)", e.getMessage());
+				return List.of(v4);
+			} catch (Exception e) {
+
+				/* ファミリ間でポートを共有できないので、1 本のデュアルスタックに戻す */
+				log("private DNS server listens on a single dual-stack socket (%s)", e.getMessage());
+				v4.close();
+			}
+			return List.of(open(StandardProtocolFamily.INET6, new InetSocketAddress("::", listenPort)));
+		}
+
+		/* bind に失敗した channel は呼び出し元に渡らないので、ここで閉じる */
+		private DatagramSocket open(ProtocolFamily family, InetSocketAddress addr) throws Exception {
+			DatagramChannel channel = DatagramChannel.open(family);
+			try {
+
+				channel.bind(addr);
+			} catch (Exception e) {
+
+				channel.close();
+				throw e;
+			}
+			return channel.socket();
 		}
 
 		public boolean isRunning() {
-			return soc != null;
+			return !sockets.isEmpty() && !closed.get();
 		}
 
-		public void finish() {
-			if (isRunning()) {
+		/*
+		 * 停止側とワーカーの双方から呼ばれるので、一覧は変更せず一度だけ閉じる。
+		 * 後続の呼び出しが close の完了を待たずに戻ると、restart() が旧ソケットと
+		 * ポートを争うため synchronized にしている。
+		 */
+		public synchronized void finish() {
+			if (closed.compareAndSet(false, true)) {
 
-				s_soc.close();
-				soc.close();
-				s_soc = null;
-				soc = null;
+				for (DatagramSocket soc : sockets) {
+
+					soc.close();
+				}
 			}
 		}
 
 		public void run() {
 			log("Private DNS Server started. (addr=%s port=%d)", spoofingIp.getInt(), listenPort);
+			List<Thread> workers = new ArrayList<>();
+			for (DatagramSocket soc : sockets) {
+
+				Thread worker = new Thread(() -> serve(soc));
+				worker.setDaemon(true);
+				worker.start();
+				workers.add(worker);
+			}
+			for (Thread worker : workers) {
+
+				try {
+
+					worker.join();
+				} catch (InterruptedException e) {
+
+					return;
+				}
+			}
+		}
+
+		private void serve(DatagramSocket soc) {
+			byte[] buf = new byte[BUFSIZE];
+			DatagramPacket recvPacket = new DatagramPacket(buf, BUFSIZE);
 			while (true) {
 
 				try {
 
+					/* getLength() は直前の受信サイズに縮むので、受信上限を明示しておく */
+					recvPacket.setLength(BUFSIZE);
 					soc.receive(recvPacket);
-					cAddr = recvPacket.getAddress();
-					cPort = recvPacket.getPort();
+					InetAddress cAddr = recvPacket.getAddress();
+					int cPort = recvPacket.getPort();
 
 					Map<Integer, String> spoofingIpStrs = new HashMap<>();
 					String spoofingIpStr = "";
@@ -410,8 +496,7 @@ public class PrivateDNS {
 								jn = new PrivateDnsResponseBuilder(records);
 							}
 							res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
-							sendPacket = new DatagramPacket(res, res.length, cAddr, cPort);
-							soc.send(sendPacket);
+							soc.send(new DatagramPacket(res, res.length, cAddr, cPort));
 							continue;
 						} else {
 
@@ -437,6 +522,11 @@ public class PrivateDNS {
 
 							if (queryRecType == Type.AAAA) {
 
+								/*
+								 * IPv6 の書き換え先が無い場合は null になる。
+								 * PrivateDnsResponseBuilder は回答レコードを足さず、
+								 * NOERROR で回答なしの応答を返す。
+								 */
 								// ToDo GUIにIPv6有効チェックを追加し、無効のときはスキップするようにする。
 								ip = spoofingIp6Str;
 								log("Replaced to %s", ip);
@@ -463,11 +553,10 @@ public class PrivateDNS {
 						PrivateDnsResponseBuilder jn = new PrivateDnsResponseBuilder();
 						res = jn.generateReply(smsg, smsgBA, smsgBA.length, null);
 					}
-					sendPacket = new DatagramPacket(res, res.length, cAddr, cPort);
-					soc.send(sendPacket);
+					soc.send(new DatagramPacket(res, res.length, cAddr, cPort));
 				} catch (SocketException e) {
-					if (soc == null || soc.isClosed()) {
-						finish();
+					if (closed.get() || soc.isClosed()) {
+
 						return;
 					}
 					errWithStackTrace(e);
