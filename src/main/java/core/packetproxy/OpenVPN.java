@@ -53,19 +53,10 @@ import packetproxy.model.OpenVPNForwardPorts;
 
 public class OpenVPN {
 
-	private static OpenVPN instance = null;
 	private static final String imageName = "alekslitvinenk/openvpn";
 	private static final String containerName = "packetproxy_ovpn";
 	private static final String volumeName = "packetproxy_ovpn_volume";
 	private boolean pulling = false;
-
-	public static OpenVPN getInstance() throws Exception {
-		if (instance == null) {
-
-			instance = new OpenVPN();
-		}
-		return instance;
-	}
 
 	private DockerClient getClient() {
 		DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();

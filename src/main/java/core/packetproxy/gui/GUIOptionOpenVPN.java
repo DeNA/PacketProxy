@@ -64,7 +64,7 @@ public class GUIOptionOpenVPN extends GUIOptionComponentBase<OpenVPNForwardPort>
 
 	public GUIOptionOpenVPN(JFrame owner) throws Exception {
 		super(owner);
-		this.openVPN = OpenVPN.getInstance();
+		this.openVPN = new OpenVPN();
 		this.openVPNForwardPorts = OpenVPNForwardPorts.getInstance();
 		this.openVPNForwardPorts.addPropertyChangeListener(this);
 		this.table_ext_list = new ArrayList<OpenVPNForwardPort>();
