@@ -15,7 +15,10 @@
  */
 package packetproxy.http2.frames;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import org.apache.commons.codec.binary.Hex;
 import org.eclipse.jetty.http.MetaData;
 import org.eclipse.jetty.http2.hpack.HpackDecoder;
@@ -109,5 +112,23 @@ public class HeadersFrameTest {
 		HpackDecoder decoder = new HpackDecoder(65535, 65535);
 		HeadersFrame headerFrame = new HeadersFrame(frameData, decoder);
 		Logging.log(new String(headerFrame.getExtra()));
+	}
+
+	@Test
+	public void encodeFromHttpSetsContentLengthForPatchWithBody() throws Exception {
+		String body = "{\"name\":\"patched\"}";
+		Http http = Http
+				.create(("PATCH /resource HTTP/1.1\r\n" + "Host: example.com\r\n" + "Content-Type: application/json\r\n"
+						+ "X-PacketProxy-HTTP2-Scheme: https\r\n" + "X-PacketProxy-HTTP2-Host: example.com\r\n"
+						+ "X-PacketProxy-HTTP2-Stream-Id: 1\r\n" + "\r\n" + body).getBytes());
+		HeadersFrame headersFrame = new HeadersFrame(http);
+		byte[] encoded = headersFrame.toByteArrayWithoutExtra(encoder);
+
+		int length = ((encoded[0] & 0xff) << 16) | ((encoded[1] & 0xff) << 8) | (encoded[2] & 0xff);
+		byte[] payload = Arrays.copyOfRange(encoded, 9, 9 + length);
+		MetaData.Request meta = (MetaData.Request) decoder.decode(ByteBuffer.wrap(payload));
+
+		assertEquals(body.getBytes().length, meta.getContentLength());
+		assertEquals(String.valueOf(body.getBytes().length), meta.getFields().get("content-length"));
 	}
 }

@@ -161,7 +161,8 @@ public class HeadersFrame extends Frame {
 				if (method.equals("GET") || method.equals("HEAD")) {
 
 					contentLength = (http.getBody().length == 0 ? Long.MIN_VALUE : http.getBody().length);
-				} else if (method.equals("POST") || method.equals("PUT")) {
+				} else {
+					/* POST/PUT だけでなく PATCH/DELETE など本文を持つ全メソッドで content-length を付与する */
 
 					contentLength = http.getBody().length;
 					mutableFields.add("content-length", String.valueOf(contentLength));
