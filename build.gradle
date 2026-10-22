@@ -97,6 +97,16 @@ licenseReport {
   configurations = ['runtimeClasspath']
 }
 
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(21)
+  }
+}
+
+kotlin {
+  jvmToolchain(21)
+}
+
 tasks.withType(JavaCompile) {
   options.encoding = "UTF-8"
 }
@@ -149,7 +159,8 @@ spotless {
     target spotlessTarget('**/*.java')
 
     cleanthat()
-    googleJavaFormat()
+    // Spotless runs on the Gradle daemon JVM; pin GJF so JDK 25's javac API works
+    googleJavaFormat('1.28.0')
 
     eclipse().configFile('eclipse-format-settings.xml')
 
