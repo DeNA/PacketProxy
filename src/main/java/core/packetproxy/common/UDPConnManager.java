@@ -35,18 +35,29 @@ public class UDPConnManager {
 	}
 
 	public Endpoint accept() throws Exception {
-		InetSocketAddress addr = acceptedQueue.take();
-		return connList.get(addr).getEndpoint();
+		while (true) {
+			InetSocketAddress addr = acceptedQueue.take();
+			synchronized (this) {
+				UDPConn conn = connList.get(addr);
+				if (conn != null) {
+
+					return conn.getEndpoint();
+				}
+			}
+		}
 	}
 
 	public void put(DatagramPacket packet) throws Exception {
 		InetSocketAddress addr = new InetSocketAddress(packet.getAddress(), packet.getPort());
-		UDPConn conn = this.query(addr);
-		if (conn == null) {
+		UDPConn conn;
+		synchronized (this) {
+			conn = this.query(addr);
+			if (conn == null) {
 
-			conn = this.create(addr);
-			conn.getAutomatically(recvQueue);
-			acceptedQueue.put(addr);
+				conn = this.create(addr);
+				conn.getAutomatically(recvQueue);
+				acceptedQueue.put(addr);
+			}
 		}
 		conn.put(packet.getData(), 0, packet.getLength());
 	}
@@ -63,5 +74,21 @@ public class UDPConnManager {
 		UDPConn conn = new UDPConn(key);
 		connList.put(key, conn);
 		return conn;
+	}
+
+	public synchronized void remove(InetSocketAddress key) throws Exception {
+		UDPConn conn = connList.remove(key);
+		if (conn != null) {
+
+			conn.close();
+		}
+	}
+
+	public synchronized void closeAll() throws Exception {
+		for (UDPConn conn : connList.values()) {
+
+			conn.close();
+		}
+		connList.clear();
 	}
 }

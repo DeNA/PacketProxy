@@ -17,6 +17,7 @@ package packetproxy.common;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,10 +35,15 @@ public class UDPServerSocket {
 
 	public void close() throws Exception {
 		socket.close();
+		connManager.closeAll();
 	}
 
 	public Endpoint accept() throws Exception {
 		return connManager.accept();
+	}
+
+	public void removeConnection(InetSocketAddress addr) throws Exception {
+		connManager.remove(addr);
 	}
 
 	private void createRecvLoop() throws Exception {
