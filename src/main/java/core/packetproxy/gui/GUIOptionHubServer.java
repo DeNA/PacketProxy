@@ -11,6 +11,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import packetproxy.common.ConfigHttpServer;
+import packetproxy.common.ConfigSettingsWriter;
 import packetproxy.common.I18nString;
 import packetproxy.model.ConfigBoolean;
 import packetproxy.model.ConfigString;
@@ -104,7 +105,8 @@ public class GUIOptionHubServer implements PropertyChangeListener {
 
 	private void startServer() throws Exception {
 		String accessToken = new ConfigString("SharingConfigsAccessToken").getString();
-		this.server = new ConfigHttpServer("localhost", 32349, accessToken);
+		this.server = new ConfigHttpServer("localhost", 32349, accessToken, new SwingConfigHttpUiActions(),
+				new ConfigSettingsWriter());
 		this.server.start();
 	}
 
