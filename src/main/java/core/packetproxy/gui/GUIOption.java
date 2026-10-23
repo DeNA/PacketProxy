@@ -161,6 +161,13 @@ public class GUIOption {
 
 		panel.add(createSeparator());
 
+		panel.add(createElement(I18nString.get("Session Profiles"),
+				I18nString.get("Set Authorization header profiles for resending requests with different sessions.")));
+		GUIOptionSessionProfile sessionProfiles = new GUIOptionSessionProfile(owner);
+		panel.add(sessionProfiles.createPanel());
+
+		panel.add(createSeparator());
+
 		panel.add(createElement("SSL PassThrough", I18nString.get(
 				"Set HTTPS server that packets are forwarded to without analyzing. These settings are enabled only if 'HTTP_PROXY' type is used.")));
 		GUIOptionSSLPassThrough ssl = new GUIOptionSSLPassThrough(owner);
