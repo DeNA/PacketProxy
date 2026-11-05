@@ -128,7 +128,7 @@ public class ConfigHttpServer extends NanoHTTPD {
 
 				GUIMain.getInstance().setAlwaysOnTop(false);
 
-				if (option == JOptionPane.NO_OPTION) {
+				if (option != JOptionPane.YES_OPTION) {
 
 					return NanoHTTPD.newFixedLengthResponse(Response.Status.UNAUTHORIZED, MIME_HTML, null);
 				}
