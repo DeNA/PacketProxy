@@ -38,8 +38,13 @@ import javax.swing.SwingUtilities
 import javax.swing.border.TitledBorder
 import javax.swing.event.ChangeListener
 import packetproxy.common.I18nString
+import packetproxy.controller.ResendController
+import packetproxy.controller.ResendController.ResendWorker
+import packetproxy.http.SessionRequestModifier
+import packetproxy.model.OneShotPacket
 import packetproxy.model.Packet
 import packetproxy.model.Packets
+import packetproxy.model.SessionProfile
 import packetproxy.util.Logging.errWithStackTrace
 
 /**
@@ -98,6 +103,11 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
 
   // Copy Body のデータ取得元（最後にクリックされたペイン）。null のときは requestPane を使う
   private var activePaneForBody: PacketDetailPane? = null
+  private var sessionProfileProvider: (() -> SessionProfile?)? = null
+
+  fun setSessionProfileProvider(provider: () -> SessionProfile?) {
+    sessionProfileProvider = provider
+  }
 
   private val splitMarkedOriginalRowHighlight = MarkedOriginalRowHighlight()
   private val singleMarkedOriginalRowHighlight = MarkedOriginalRowHighlight()
@@ -129,8 +139,20 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     // === 共有ボタンパネル（分割表示の対象外・下部に1つだけ表示）===
     buttonCardLayout = CardLayout()
     buttonPanel = JPanel(buttonCardLayout)
-    addButtonBar(ViewType.SPLIT, requestPane, splitMarkedOriginalRowHighlight, responsePane)
-    addButtonBar(ViewType.SINGLE, singlePane, singleMarkedOriginalRowHighlight)
+    addButtonBar(
+      ViewType.SPLIT,
+      requestPane,
+      splitMarkedOriginalRowHighlight,
+      responsePane,
+      getContextPacketOverride = { showingRequestPacket },
+      resendDelegate = { resendActiveRequest() },
+    )
+    addButtonBar(
+      ViewType.SINGLE,
+      singlePane,
+      singleMarkedOriginalRowHighlight,
+      getContextPacketOverride = { showingSinglePacket },
+    )
 
     registerBodyFocusTracker()
 
@@ -142,24 +164,27 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
 
   private fun getBodyData(): ByteArray = (activePaneForBody ?: requestPane).getActiveData()
 
-  private fun getContextPacket(): Packet? {
+  private fun getHistoryContextPacket(): Packet? {
     val id = GUIHistory.getInstance().selectedPacketId
     return Packets.getInstance().query(id)
   }
 
   private fun createPacketDataButtonBar(
     getActiveData: () -> ByteArray?,
+    getContextPacket: () -> Packet?,
     getBodyData: () -> ByteArray?,
     getResponseData: () -> ByteArray?,
     markedOriginalRowHighlight: MarkedOriginalRowHighlight,
+    resendDelegate: (() -> Unit)? = null,
   ): PacketDataButtonBar {
     return PacketDataButtonBar(
       owner = owner,
       getActiveData = getActiveData,
-      getContextPacket = { getContextPacket() },
+      getContextPacket = getContextPacket,
       getBodyData = getBodyData,
       getResponseData = getResponseData,
       markedOriginalRowHighlight = markedOriginalRowHighlight,
+      resendDelegate = resendDelegate,
     )
   }
 
@@ -168,15 +193,19 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     primaryPane: PacketDetailPane,
     markedOriginalRowHighlight: MarkedOriginalRowHighlight,
     responsePane: PacketDetailPane? = null,
+    getContextPacketOverride: (() -> Packet?)? = null,
+    resendDelegate: (() -> Unit)? = null,
   ) {
     buttonPanel.add(
       createPacketDataButtonBar(
           getActiveData = { primaryPane.getActiveData() },
+          getContextPacket = { getContextPacketOverride?.invoke() ?: getHistoryContextPacket() },
           getBodyData = {
             if (responsePane != null) getBodyData() else primaryPane.getActiveData()
           },
           getResponseData = { responsePane?.getActiveData() },
           markedOriginalRowHighlight = markedOriginalRowHighlight,
+          resendDelegate = resendDelegate,
         )
         .createPanel(),
       viewType.name,
@@ -404,6 +433,44 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     if (showingRequestPacket == null) return EMPTY_DATA
     // Decodedタブからデータを取得
     return requestPane.getDecodedData()
+  }
+
+  fun getActiveRequestData(): ByteArray {
+    if (showingRequestPacket == null || currentView != ViewType.SPLIT) {
+      return EMPTY_DATA
+    }
+    return requestPane.getActiveData()
+  }
+
+  fun resendActiveRequest() {
+    val packet = showingRequestPacket ?: return
+    val requestBytes = getActiveRequestData()
+    val baseBytes = if (requestBytes.isNotEmpty()) requestBytes else packet.decodedData
+    if (baseBytes.isEmpty()) return
+    try {
+      val modifiedBytes = SessionRequestModifier.apply(baseBytes, sessionProfileProvider?.invoke())
+      val sendPacket = packet.getOneShotPacket(modifiedBytes)
+      val sentRequestPacket = sendPacket.toPacket()
+      ResendController.getInstance()
+        .resend(
+          object : ResendWorker(sendPacket, 1) {
+            override fun process(chunks: MutableList<OneShotPacket>) {
+              if (chunks.isEmpty()) {
+                return
+              }
+              SwingUtilities.invokeLater {
+                try {
+                  setPackets(sentRequestPacket, chunks[0].toPacket())
+                } catch (e: Exception) {
+                  errWithStackTrace(e)
+                }
+              }
+            }
+          }
+        )
+    } catch (e: Exception) {
+      errWithStackTrace(e)
+    }
   }
 
   fun getResponseData(): ByteArray {

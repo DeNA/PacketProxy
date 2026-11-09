@@ -9,6 +9,7 @@ import packetproxy.common.ConfigIO
 import packetproxy.common.Utils
 import packetproxy.model.Database
 import packetproxy.model.Packets
+import packetproxy.model.SessionProfiles
 import packetproxy.util.Logging
 
 object AppInitializer {
@@ -95,6 +96,8 @@ object AppInitializer {
 
     val dbDependentFuture2 = CompletableFuture.runAsync { initListenPortManager() }
 
+    val dbDependentFuture3 = CompletableFuture.runAsync { initSessionProfiles() }
+
     // Database非依存のコンポーネントを並列実行
     val independentFuture1 =
       CompletableFuture.runAsync {
@@ -109,6 +112,7 @@ object AppInitializer {
       CompletableFuture.allOf(
           dbDependentFuture1,
           dbDependentFuture2,
+          dbDependentFuture3,
           independentFuture1,
           independentFuture2,
         )
@@ -145,6 +149,11 @@ object AppInitializer {
   private fun initListenPortManager() {
     ListenPortManager.getInstance()
     Logging.log("ListenPortManagerを初期化しました")
+  }
+
+  private fun initSessionProfiles() {
+    SessionProfiles.getInstance()
+    Logging.log("SessionProfilesを初期化しました")
   }
 
   private fun initEncoderManager() {
