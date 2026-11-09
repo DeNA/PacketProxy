@@ -109,6 +109,8 @@ kotlin {
 
 tasks.withType(JavaCompile) {
   options.encoding = "UTF-8"
+  options.fork = true
+  options.forkOptions.memoryMaximumSize = "2g"
 }
 
 tasks.withType(Test) {
