@@ -59,6 +59,10 @@ public class DuplexManager {
 		return duplex_list.get(hash);
 	}
 
+	public void removeDuplex(int hash) {
+		duplex_list.remove(hash);
+	}
+
 	public boolean has(int hash) {
 		return (duplex_list.get(hash) == null) ? false : true;
 	}
