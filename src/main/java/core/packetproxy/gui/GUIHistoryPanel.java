@@ -17,12 +17,12 @@ package packetproxy.gui;
 
 import java.util.EventListener;
 import javax.swing.JButton;
-import javax.swing.JTextPane;
 import javax.swing.event.EventListenerList;
+import javax.swing.text.JTextComponent;
 
 abstract class GUIHistoryPanel {
 
-	public abstract JTextPane getTextPane();
+	public abstract JTextComponent getTextPane();
 
 	protected EventListenerList listenerList = new EventListenerList();
 

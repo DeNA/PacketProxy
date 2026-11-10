@@ -19,31 +19,27 @@ import java.awt.BorderLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
-import packetproxy.common.JsonSyntaxHighlighter;
+import javax.swing.text.JTextComponent;
+import org.fife.ui.rtextarea.RTextScrollPane;
 
 public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataChangedListener {
 
 	private RawTextPane raw_text;
-	private JsonSyntaxHighlighter jsonHighlighter;
 
 	@Override
-	public JTextPane getTextPane() {
+	public JTextComponent getTextPane() {
 		return raw_text;
 	}
 
 	private JComponent panel;
-	private JScrollPane text_panel;
+	private RTextScrollPane text_panel;
 	private TabSet parentTabs = null;
 
 	public GUIHistoryRaw() throws Exception {
 		raw_text = new RawTextPane();
 		raw_text.addDataChangedListener(this);
 
-		jsonHighlighter = new JsonSyntaxHighlighter(raw_text.getStyledDocument());
-
-		text_panel = new JScrollPane(raw_text);
+		text_panel = new RTextScrollPane(raw_text, false);
 		panel = new JPanel(new BorderLayout());
 		panel.add(text_panel, BorderLayout.CENTER);
 	}
@@ -53,11 +49,8 @@ public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataCh
 	}
 
 	public void appendData(byte[] data) throws Exception {
-		javax.swing.text.StyledDocument document = raw_text.getStyledDocument();
+		javax.swing.text.Document document = raw_text.getDocument();
 		document.insertString(document.getLength(), new String(data), null);
-		javax.swing.SwingUtilities.invokeLater(() -> {
-			jsonHighlighter.applyHighlightingIfJson();
-		});
 	}
 
 	@Override
@@ -67,9 +60,6 @@ public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataCh
 
 	private void setData(byte[] data, boolean trimming) throws Exception {
 		raw_text.setData(data, trimming);
-		javax.swing.SwingUtilities.invokeLater(() -> {
-			jsonHighlighter.applyHighlightingIfJson();
-		});
 	}
 
 	@Override
@@ -90,8 +80,5 @@ public class GUIHistoryRaw extends GUIHistoryPanel implements RawTextPane.DataCh
 	@Override
 	public void dataChanged(byte[] data) {
 		callDataChanged(data);
-		javax.swing.SwingUtilities.invokeLater(() -> {
-			jsonHighlighter.applyHighlightingIfJson();
-		});
 	}
 }
