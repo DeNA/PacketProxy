@@ -26,7 +26,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.swing.*;
-import javax.swing.text.StyledDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Highlighter;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.StyleConstants;
 import packetproxy.model.DiffSet;
 
 abstract class GUIDiffBase {
@@ -38,8 +43,6 @@ abstract class GUIDiffBase {
 	protected JPanel main_panel;
 	protected RawTextPane textOrig;
 	protected RawTextPane textTarg;
-	protected StyledDocument docOrig;
-	protected StyledDocument docTarg;
 	protected JScrollPane scrollOrig;
 	protected JScrollPane scrollTarg;
 	protected javax.swing.text.MutableAttributeSet delAttr;
@@ -131,4 +134,29 @@ abstract class GUIDiffBase {
 	protected abstract DiffSet sortUniq(DiffSet ds);
 
 	protected abstract void update() throws Exception;
+
+	/** 差分の色付けに使うペインタ。選択範囲など他のハイライトと区別するための型 */
+	private static class DiffPainter extends DefaultHighlighter.DefaultHighlightPainter {
+		DiffPainter(java.awt.Color color) {
+			super(color);
+		}
+	}
+
+	/** 文字属性ではなく Highlighter で塗る。描画時に見える範囲だけが塗られるので大きなデータでも固まらない */
+	protected void markDiff(JTextComponent text, int pos, int length, AttributeSet attr) {
+		try {
+			text.getHighlighter().addHighlight(pos, pos + length, new DiffPainter(StyleConstants.getBackground(attr)));
+		} catch (BadLocationException e) {
+			// 範囲外は無視
+		}
+	}
+
+	protected void clearDiff(JTextComponent text) {
+		Highlighter highlighter = text.getHighlighter();
+		for (Highlighter.Highlight h : highlighter.getHighlights()) {
+			if (h.getPainter() instanceof DiffPainter) {
+				highlighter.removeHighlight(h);
+			}
+		}
+	}
 }

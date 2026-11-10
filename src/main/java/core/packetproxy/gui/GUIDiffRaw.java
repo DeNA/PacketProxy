@@ -68,31 +68,28 @@ public class GUIDiffRaw extends GUIDiffBase {
 		textOrig.setData(ds.getOriginal(), false);
 		textTarg.setData(ds.getTarget(), false);
 
-		docOrig = textOrig.getStyledDocument();
-		docTarg = textTarg.getStyledDocument();
-
-		docOrig.setCharacterAttributes(0, docOrig.getLength(), defaultAttr, false);
-		docTarg.setCharacterAttributes(0, docTarg.getLength(), defaultAttr, false);
+		clearDiff(textOrig);
+		clearDiff(textTarg);
 
 		DiffEventAdapter eventFordocOrig = new DiffEventAdapter() {
 
 			public void foundDelDelta(int pos, int length) throws Exception {
-				docOrig.setCharacterAttributes(pos, length, delAttr, false);
+				markDiff(textOrig, pos, length, delAttr);
 			}
 
 			public void foundChgDelta(int pos, int length) throws Exception {
-				docOrig.setCharacterAttributes(pos, length, chgAttr, false);
+				markDiff(textOrig, pos, length, chgAttr);
 			}
 		};
 
 		DiffEventAdapter eventForTarget = new DiffEventAdapter() {
 
 			public void foundInsDelta(int pos, int length) throws Exception {
-				docTarg.setCharacterAttributes(pos, length, insAttr, false);
+				markDiff(textTarg, pos, length, insAttr);
 			}
 
 			public void foundChgDelta(int pos, int length) throws Exception {
-				docTarg.setCharacterAttributes(pos, length, chgAttr, false);
+				markDiff(textTarg, pos, length, chgAttr);
 			}
 		};
 		if (jcCh.isSelected()) { // Character based
