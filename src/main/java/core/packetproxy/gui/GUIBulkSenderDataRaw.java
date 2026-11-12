@@ -48,7 +48,7 @@ public class GUIBulkSenderDataRaw implements RawTextPane.DataChangedListener {
 	}
 
 	public void appendData(byte[] data) throws Exception {
-		javax.swing.text.StyledDocument document = raw_text.getStyledDocument();
+		javax.swing.text.Document document = raw_text.getDocument();
 		document.insertString(document.getLength(), new String(data), null);
 	}
 
