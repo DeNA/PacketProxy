@@ -42,6 +42,8 @@ public class OneShotPacket implements PacketInfo, Cloneable {
 	private boolean auto_modified;
 	private int conn;
 	private long group;
+	private long resend_batch_id;
+	private int resend_source_id;
 
 	public OneShotPacket() {
 	}
@@ -173,6 +175,22 @@ public class OneShotPacket implements PacketInfo, Cloneable {
 
 	public long getGroup() {
 		return this.group;
+	}
+
+	public long getResendBatchId() {
+		return this.resend_batch_id;
+	}
+
+	public void setResendBatchId(long resend_batch_id) {
+		this.resend_batch_id = resend_batch_id;
+	}
+
+	public int getResendSourceId() {
+		return this.resend_source_id;
+	}
+
+	public void setResendSourceId(int resend_source_id) {
+		this.resend_source_id = resend_source_id;
 	}
 
 	public void encode() {

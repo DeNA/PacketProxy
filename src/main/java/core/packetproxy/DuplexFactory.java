@@ -28,6 +28,15 @@ import packetproxy.model.*;
 
 public class DuplexFactory {
 	// 1MB以上のパケットは最後のタイミングだけHistoryに記録する、それ未満はパケットが更新されるたびにHistoryを更新する
+
+	private static void applyResendBatchFromOneshot(OneShotPacket oneshot, Packet packet) {
+		if (oneshot.getResendBatchId() == 0) {
+			return;
+		}
+		packet.setResendBatchId(oneshot.getResendBatchId());
+		packet.setResendSourceId(oneshot.getResendSourceId());
+	}
+
 	static final int SKIP_LENGTH = 1 * 1024 * 1024;
 	// 10MB以上のパケットはHistoryには記録しない
 	static final int TOO_LARGE_LENGTH = 10 * 1024 * 1024;
@@ -412,6 +421,7 @@ public class DuplexFactory {
 				client_packet = new Packet(0, oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(),
 						oneshot.getUseSSL(), oneshot.getEncoder(), oneshot.getAlpn(), Packet.Direction.CLIENT,
 						duplex.hashCode(), UniqueID.getInstance().createId());
+				applyResendBatchFromOneshot(oneshot, client_packet);
 				client_packet.setModified();
 				client_packet.setReceivedData(data);
 				client_packet.setDecodedData(data);
@@ -559,6 +569,7 @@ public class DuplexFactory {
 				client_packet = new Packet(0, oneshot.getClient(), oneshot.getServer(), oneshot.getServerName(),
 						oneshot.getUseSSL(), oneshot.getEncoder(), oneshot.getAlpn(), Packet.Direction.CLIENT,
 						duplex.hashCode(), packetproxy.common.UniqueID.getInstance().createId());
+				applyResendBatchFromOneshot(oneshot, client_packet);
 				client_packet.setDecodedData(oneshot.getData());
 				client_packet.setModifiedData(oneshot.getData());
 				client_packet.setResend();
