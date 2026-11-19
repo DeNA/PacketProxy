@@ -46,7 +46,6 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
-import packetproxy.CertCacheManager;
 import packetproxy.common.Utils;
 
 public class PacketProxyCAPerUser extends CA {
@@ -85,7 +84,7 @@ public class PacketProxyCAPerUser extends CA {
 		new File(ksPath).delete();
 		generateKeyStore(ksPath);
 		super.load(ksPath);
-		CertCacheManager.clearCache();
+		clearCertCache();
 	}
 
 	private void generateKeyStore(String ksPath) throws Exception {
@@ -164,7 +163,7 @@ public class PacketProxyCAPerUser extends CA {
 		KeyFactory kf = KeyFactory.getInstance("RSA");
 		registerCertificateAndPrivateKeyToKeyStore(certificate, kf.generatePrivate(keySpec));
 		super.load(ksPath);
-		CertCacheManager.clearCache();
+		clearCertCache();
 	}
 
 	public void importDER(String certificatePath, String privateKeyPath) throws Exception {
@@ -177,7 +176,7 @@ public class PacketProxyCAPerUser extends CA {
 		KeyFactory kf = KeyFactory.getInstance("RSA");
 		registerCertificateAndPrivateKeyToKeyStore(certificate, kf.generatePrivate(keySpec));
 		super.load(ksPath);
-		CertCacheManager.clearCache();
+		clearCertCache();
 	}
 
 	public void importP12(String p12Path, char[] password) throws Exception {
@@ -189,7 +188,7 @@ public class PacketProxyCAPerUser extends CA {
 		PrivateKey privateKey = (PrivateKey) ks.getKey(alias, password);
 		registerCertificateAndPrivateKeyToKeyStore(certificate, privateKey);
 		super.load(ksPath);
-		CertCacheManager.clearCache();
+		clearCertCache();
 	}
 
 	@Override
