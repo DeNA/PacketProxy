@@ -43,9 +43,11 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
+import packetproxy.CertCacheManager;
 
 public abstract class CA {
 
+	private final CertCacheManager certCacheManager = new CertCacheManager();
 	private KeyPair keyPair;
 	private String keyStoreCAPath;
 	private KeyStore keyStoreCA;
@@ -112,6 +114,14 @@ public abstract class CA {
 		templateFrom = from;
 		templateTo = to;
 		templatePubKey = SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded());
+	}
+
+	public KeyStore getCachedKeyStore(String commonName, String[] domainNames) throws Exception {
+		return certCacheManager.getKeyStore(commonName, domainNames, this);
+	}
+
+	protected void clearCertCache() {
+		certCacheManager.clearCache();
 	}
 
 	public KeyStore createKeyStore(String commonName, String[] domainNames) throws Exception {

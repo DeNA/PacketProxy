@@ -37,7 +37,6 @@ import net.luminis.tls.extension.ApplicationLayerProtocolNegotiationExtension;
 import net.luminis.tls.extension.Extension;
 import net.luminis.tls.extension.ServerNameExtension;
 import net.luminis.tls.handshake.*;
-import packetproxy.CertCacheManager;
 import packetproxy.model.CAs.CA;
 import packetproxy.quic.service.connection.Connection;
 import packetproxy.quic.service.frame.Frames;
@@ -65,7 +64,7 @@ public class ServerHandshake implements Handshake {
 	}
 
 	public void startHandshake(String sniName) throws Exception {
-		KeyStore ks = CertCacheManager.getInstance().getKeyStore(sniName, new String[]{sniName}, this.ca);
+		KeyStore ks = this.ca.getCachedKeyStore(sniName, new String[]{sniName});
 		RSAPrivateKey key = (RSAPrivateKey) ks.getKey("newalias", "testtest".toCharArray());
 		List<X509Certificate> certs = Arrays.stream(ks.getCertificateChain("newalias"))
 				.map(cert -> (X509Certificate) cert).collect(Collectors.toList());
