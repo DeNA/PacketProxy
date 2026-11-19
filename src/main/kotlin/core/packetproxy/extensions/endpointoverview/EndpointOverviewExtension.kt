@@ -108,8 +108,12 @@ class EndpointOverviewExtension : Extension() {
 
     try {
       refreshSessionComboBox()
-      sessionProfileListener = PropertyChangeListener { refreshSessionComboBox() }
-      SessionProfiles.getInstance().addPropertyChangeListener(sessionProfileListener!!)
+      val profiles = SessionProfiles.getInstance()
+      // createPanel が呼び直されたときにリスナーが重ならないよう、前のものを外してから登録する
+      sessionProfileListener?.let { profiles.removePropertyChangeListener(it) }
+      val listener = PropertyChangeListener { refreshSessionComboBox() }
+      profiles.addPropertyChangeListener(listener)
+      sessionProfileListener = listener
     } catch (e: Exception) {
       errWithStackTrace(e)
     }

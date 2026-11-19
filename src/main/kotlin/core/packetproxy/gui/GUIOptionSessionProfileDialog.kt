@@ -180,16 +180,27 @@ class GUIOptionSessionProfileDialog(
         }
         existing.authorization = authorization
         profiles.update(existing)
-        if (editingId != null && editingId != existing.id) {
-          profiles.delete(profiles.query(editingId!!)!!)
+        val editing = editingId?.let { profiles.query(it) }
+        if (editing != null && editing.id != existing.id) {
+          profiles.delete(editing)
         }
         profile = existing
         dispose()
         return
       }
 
-      if (editingId != null) {
-        val current = profiles.query(editingId!!)!!
+      val editId = editingId
+      if (editId != null) {
+        val current = profiles.query(editId)
+        if (current == null) {
+          JOptionPane.showMessageDialog(
+            frameOwner,
+            I18nString.get("The session profile being edited no longer exists."),
+            I18nString.get("Message"),
+            JOptionPane.INFORMATION_MESSAGE,
+          )
+          return
+        }
         current.name = name
         current.authorization = authorization
         profiles.update(current)

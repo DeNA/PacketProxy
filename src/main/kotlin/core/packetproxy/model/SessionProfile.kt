@@ -26,8 +26,6 @@ class SessionProfile {
 
   @field:DatabaseField var authorization: String? = null
 
-  @field:DatabaseField var cookie: String? = null
-
   constructor()
 
   constructor(name: String, authorization: String) {
