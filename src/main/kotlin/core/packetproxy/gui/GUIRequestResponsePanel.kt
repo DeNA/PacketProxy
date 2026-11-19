@@ -144,14 +144,26 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
       requestPane,
       splitMarkedOriginalRowHighlight,
       responsePane,
-      getContextPacketOverride = { showingRequestPacket },
-      resendDelegate = { resendActiveRequest() },
+      // 履歴タブ（プロファイル未設定）では従来どおり GUIHistory の選択と既存の再送経路を使う
+      getContextPacketOverride = {
+        if (sessionProfileProvider != null) showingRequestPacket else null
+      },
+      resendDelegate = {
+        if (sessionProfileProvider != null) {
+          resendActiveRequest()
+          true
+        } else {
+          false
+        }
+      },
     )
     addButtonBar(
       ViewType.SINGLE,
       singlePane,
       singleMarkedOriginalRowHighlight,
-      getContextPacketOverride = { showingSinglePacket },
+      getContextPacketOverride = {
+        if (sessionProfileProvider != null) showingSinglePacket else null
+      },
     )
 
     registerBodyFocusTracker()
@@ -175,7 +187,7 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     getBodyData: () -> ByteArray?,
     getResponseData: () -> ByteArray?,
     markedOriginalRowHighlight: MarkedOriginalRowHighlight,
-    resendDelegate: (() -> Unit)? = null,
+    resendDelegate: (() -> Boolean)? = null,
   ): PacketDataButtonBar {
     return PacketDataButtonBar(
       owner = owner,
@@ -194,7 +206,7 @@ class GUIRequestResponsePanel(private val owner: JFrame) {
     markedOriginalRowHighlight: MarkedOriginalRowHighlight,
     responsePane: PacketDetailPane? = null,
     getContextPacketOverride: (() -> Packet?)? = null,
-    resendDelegate: (() -> Unit)? = null,
+    resendDelegate: (() -> Boolean)? = null,
   ) {
     buttonPanel.add(
       createPacketDataButtonBar(

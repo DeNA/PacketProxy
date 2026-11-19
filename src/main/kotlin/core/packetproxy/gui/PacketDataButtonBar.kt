@@ -43,7 +43,8 @@ class PacketDataButtonBar(
   private val getBodyData: () -> ByteArray?,
   private val getResponseData: () -> ByteArray?,
   private val markedOriginalRowHighlight: MarkedOriginalRowHighlight,
-  private val resendDelegate: (() -> Unit)? = null,
+  // 再送を肩代わりしたら true を返す。false なら既存の再送経路を使う
+  private val resendDelegate: (() -> Boolean)? = null,
 ) {
   private val charSetUtility = CharSetUtility.getInstance()
 
@@ -116,9 +117,7 @@ class PacketDataButtonBar(
       alignmentX = 0.5f
       addActionListener {
         runCatching {
-            val delegate = resendDelegate
-            if (delegate != null) {
-              delegate()
+            if (resendDelegate?.invoke() == true) {
               return@addActionListener
             }
             withActivePacket { data, packet, packetId ->
