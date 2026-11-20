@@ -19,6 +19,8 @@ import packetproxy.util.CharSetUtility
 
 class RawTextPaneTest {
   companion object {
+    private const val CRLF_REQUEST = "GET / HTTP/1.1\r\nHost: example\r\n\r\n"
+
     /** RawTextPane は FontManager 経由で設定 DB を読むので、一時ディレクトリに DB を開いておく */
     @JvmStatic
     @BeforeAll
@@ -228,16 +230,57 @@ class RawTextPaneTest {
   }
 
   @Test
-  fun copyStripsTrailingNewlines() {
+  fun copyOfPartialSelectionStripsTrailingNewlines() {
     // システムのクリップボードを使うので、画面のない環境 (CI) では動かない
     assumeFalse(GraphicsEnvironment.isHeadless())
     onEdt {
       val pane = RawTextPane()
-      pane.setData("abc\r\n\r\n".toByteArray(), false)
-      pane.selectAll()
+      pane.setData("abc\r\ndef\r\n".toByteArray(), false)
+      pane.select(0, 5)
       pane.copy()
       val clipboard = java.awt.Toolkit.getDefaultToolkit().systemClipboard
       assertThat(clipboard.getData(java.awt.datatransfer.DataFlavor.stringFlavor)).isEqualTo("abc")
+    }
+  }
+
+  @Test
+  fun copyOfWholeDocumentKeepsTrailingNewlines() {
+    assumeFalse(GraphicsEnvironment.isHeadless())
+    onEdt {
+      val pane = RawTextPane()
+      pane.setData(CRLF_REQUEST.toByteArray(), false)
+      pane.selectAll()
+      pane.copy()
+      val clipboard = java.awt.Toolkit.getDefaultToolkit().systemClipboard
+      assertThat(clipboard.getData(java.awt.datatransfer.DataFlavor.stringFlavor))
+        .isEqualTo(CRLF_REQUEST)
+    }
+  }
+
+  @Test
+  fun pasteKeepsCrlf() {
+    onEdt {
+      val pane = RawTextPane()
+      pane.setData(CRLF_REQUEST.toByteArray(), false)
+      pane.selectAll()
+      pane.replaceSelection("")
+      pane.transferHandler.importData(pane, java.awt.datatransfer.StringSelection(CRLF_REQUEST))
+      assertThat(pane.getData()).isEqualTo(CRLF_REQUEST.toByteArray())
+    }
+  }
+
+  @Test
+  fun copyDeleteAndPasteWholeRequestKeepsData() {
+    // Resender で全選択してコピーし、消してから貼り直す操作をそのまま再現する
+    assumeFalse(GraphicsEnvironment.isHeadless())
+    onEdt {
+      val pane = RawTextPane()
+      pane.setData(CRLF_REQUEST.toByteArray(), false)
+      pane.selectAll()
+      pane.copy()
+      pane.replaceSelection("")
+      pane.paste()
+      assertThat(pane.getData()).isEqualTo(CRLF_REQUEST.toByteArray())
     }
   }
 
