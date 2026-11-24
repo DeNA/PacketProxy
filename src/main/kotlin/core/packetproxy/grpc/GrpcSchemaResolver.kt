@@ -86,7 +86,8 @@ class GrpcSchemaResolver {
       pos += 1
       val messageLength = ByteBuffer.wrap(raw, pos, 4).int
       pos += 4
-      val grpcMsg = GrpcCompression.decompress(flag, raw.copyOfRange(pos, pos + messageLength), encoding)
+      val grpcMsg =
+        GrpcCompression.decompress(flag, raw.copyOfRange(pos, pos + messageLength), encoding)
       pos += messageLength
       if (body.size() > 0) {
         body.write('\n'.code)

@@ -36,8 +36,9 @@ public final class GrpcCompression {
 	}
 
 	/**
-	 * flag が 0 ならそのまま返し、1 なら encoding に従って展開する（encoding が null なら gzip のマジックバイトがある場合のみ展開）。 展開後は非圧縮 (flag=0) として再エンコードされる。gRPC
-	 * の仕様上、grpc-encoding ヘッダがあっても flag=0 のメッセージは許容される。
+	 * flag が 0 ならそのまま返し、1 なら encoding に従って展開する（encoding が null なら gzip
+	 * のマジックバイトがある場合のみ展開）。 展開後は非圧縮 (flag=0) として再エンコードされる。gRPC の仕様上、grpc-encoding
+	 * ヘッダがあっても flag=0 のメッセージは許容される。
 	 */
 	public static byte[] decompress(byte flag, byte[] msg, String encoding) throws Exception {
 		if (flag == 0) {
@@ -51,13 +52,13 @@ public final class GrpcCompression {
 			throw new Exception("gRPC: compressed flag is set but grpc-encoding header is missing");
 		}
 		switch (encoding) {
-			case "gzip":
+			case "gzip" :
 				return gunzip(msg);
-			case "deflate":
+			case "deflate" :
 				return readAll(new InflaterInputStream(new ByteArrayInputStream(msg)));
-			case "identity":
+			case "identity" :
 				throw new Exception("gRPC: compressed flag is set but grpc-encoding is identity");
-			default:
+			default :
 				throw new Exception("gRPC: unsupported grpc-encoding: " + encoding);
 		}
 	}
