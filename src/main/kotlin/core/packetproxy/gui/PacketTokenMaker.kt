@@ -45,6 +45,19 @@ abstract class PacketTokenMaker : TokenMaker {
     internal const val STATE_HEADER = -1
     internal const val STATE_BODY = -2
 
+    /**
+     * 1 つのトークンの最大の長さ。
+     *
+     * 折り返し表示で文字の位置を求めると、その文字を含むトークンの先頭から測り直す。
+     *
+     * そのため、base64 のような長いトークンでは 1 回の計算に 0.1 秒以上かかり、検索の色付けやクリックが極端に遅くなる。
+     *
+     * 折り返しはトークンの境目でも起きるので、行の右端が最大で 7 文字ぶん空く。
+     */
+    internal const val MAX_TOKEN_LENGTH = 8
+
+    private const val ZWJ = '\u200D'
+
     private var registered = false
 
     @JvmStatic
@@ -195,7 +208,11 @@ abstract class PacketTokenMaker : TokenMaker {
     return firstToken!!
   }
 
-  /** [from, to) を tokenType のトークンとして追加する */
+  /**
+   * [from, to) を tokenType のトークンとして追加する。長ければ MAX_TOKEN_LENGTH ごとに分ける。
+   *
+   * トークンごとに描かれるので、1 つの文字として見えるまとまりの途中では分けない。
+   */
   private fun add(
     array: CharArray,
     from: Int,
@@ -204,8 +221,33 @@ abstract class PacketTokenMaker : TokenMaker {
     text: Segment,
     startOffset: Int,
   ) {
-    if (to <= from) return
-    addToken(array, from, to - 1, tokenType, startOffset + (from - text.offset))
+    var f = from
+    while (f < to) {
+      var t = if (to - f > MAX_TOKEN_LENGTH) f + MAX_TOKEN_LENGTH else to
+      while (t < to && joinsPrevious(array, t)) t++
+      addToken(array, f, t - 1, tokenType, startOffset + (f - text.offset))
+      f = t
+    }
+  }
+
+  /**
+   * array[i] が、直前の文字と 1 つの文字として表示されるか。
+   *
+   * サロゲートペア、結合文字 (濁点 U+3099 など)、異体字セレクタ、ZWJ でつないだ絵文字、肌の色の修飾を見る。厳密な書記素の区切りではない。
+   */
+  private fun joinsPrevious(array: CharArray, i: Int): Boolean {
+    val prev = array[i - 1]
+    val c = array[i]
+    if (Character.isHighSurrogate(prev) && Character.isLowSurrogate(c)) return true
+    if (prev == ZWJ || c == ZWJ) return true
+    val cp = Character.codePointAt(array, i)
+    if (cp in 0xFE00..0xFE0F || cp in 0x1F3FB..0x1F3FF) return true
+    return when (Character.getType(cp).toByte()) {
+      Character.NON_SPACING_MARK,
+      Character.ENCLOSING_MARK,
+      Character.COMBINING_SPACING_MARK -> true
+      else -> false
+    }
   }
 
   /**

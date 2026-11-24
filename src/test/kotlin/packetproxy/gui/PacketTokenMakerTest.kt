@@ -177,9 +177,70 @@ class PacketTokenMakerTest {
   }
 
   @Test
+  fun longRunsAreSplitIntoShortTokens() {
+    // 102 文字目から絵文字が並ぶので、8 文字ごとの境目がサロゲートペアの間に来る
+    val line = "A".repeat(101) + "😀".repeat(20)
+    val tokens = tokenize(PacketTokenMaker.Http(), line)[0]
+    assertThat(tokens.joinToString("") { it.text }).isEqualTo(line)
+    assertThat(tokens).allSatisfy {
+      assertThat(it.text.length).isLessThanOrEqualTo(PacketTokenMaker.MAX_TOKEN_LENGTH + 1)
+      // サロゲートペアの片方だけのトークンを作らない
+      assertThat(Character.isHighSurrogate(it.text.last())).isFalse()
+    }
+  }
+
+  @Test
   fun tokensCoverWholeLine() {
     val line = "{\"a\": [1, \"x\"], é: ?}"
     val joined = tokenize(PacketTokenMaker.Json(), line)[0].joinToString("") { it.text }
     assertThat(joined).isEqualTo(line)
+  }
+
+  @Test
+  fun splittingKeepsCharactersThatAreShownAsOne() {
+    // 8 文字ごとの境目に、濁点の結合文字、異体字セレクタ、ZWJ でつないだ絵文字、肌の色の修飾が来る
+    val samples =
+      listOf(
+        "A".repeat(7) + "か\u3099" + "B".repeat(10),
+        "A".repeat(7) + "\u2764\uFE0F" + "B".repeat(10),
+        "A".repeat(6) + "\uD83D\uDC68\u200D\uD83D\uDC69" + "B".repeat(10),
+        "A".repeat(6) + "\uD83D\uDC4D\uD83C\uDFFD" + "B".repeat(10),
+      )
+    for (line in samples) {
+      val tokens = tokenize(PacketTokenMaker.Http(), line)[0]
+      assertThat(tokens.joinToString("") { it.text }).describedAs(line).isEqualTo(line)
+      assertThat(tokens.drop(1)).describedAs(line).allSatisfy {
+        val first = it.text.codePointAt(0)
+        assertThat(Character.isLowSurrogate(it.text[0])).isFalse()
+        assertThat(first).isNotIn(0x3099, 0xFE0F, 0x200D, 0x1F3FD)
+        assertThat(it.text.length).isGreaterThan(0)
+      }
+      assertThat(tokens).describedAs(line).allSatisfy {
+        assertThat(it.text.last()).isNotEqualTo('\u200D')
+      }
+    }
+  }
+
+  @Test
+  fun runOfExactlyMaxLengthIsOneToken() {
+    val line = "A".repeat(PacketTokenMaker.MAX_TOKEN_LENGTH)
+    assertThat(tokenize(PacketTokenMaker.Http(), line)[0])
+      .containsExactly(Tok(line, Token.IDENTIFIER))
+  }
+
+  @Test
+  fun loneHighSurrogateAtLineEndIsKept() {
+    val line = "A".repeat(8) + "\uD83D"
+    val tokens = tokenize(PacketTokenMaker.Http(), line)[0]
+    assertThat(tokens.joinToString("") { it.text }).isEqualTo(line)
+  }
+
+  @Test
+  fun longJsonStringIsSplitWithSameType() {
+    val value = "\"" + "x".repeat(40) + "\""
+    val tokens = tokenize(PacketTokenMaker.Json(), "{\"k\": $value}")[0]
+    val strings = tokens.filter { it.type == Token.LITERAL_STRING_DOUBLE_QUOTE }
+    assertThat(strings).hasSizeGreaterThan(1)
+    assertThat(strings.joinToString("") { it.text }).isEqualTo(value)
   }
 }
