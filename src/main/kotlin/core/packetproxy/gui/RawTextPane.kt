@@ -25,6 +25,7 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.io.Reader
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.Charset
@@ -42,6 +43,7 @@ import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.event.EventListenerList
 import javax.swing.text.DefaultEditorKit
+import javax.swing.text.JTextComponent
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.StringEscapeUtils
 import org.apache.commons.lang3.StringUtils
@@ -50,6 +52,7 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaEditorKit
 import org.fife.ui.rsyntaxtextarea.Style
 import org.fife.ui.rsyntaxtextarea.SyntaxScheme
 import org.fife.ui.rsyntaxtextarea.Token
+import org.fife.ui.rtextarea.RTATextTransferHandler
 import org.fife.ui.rtextarea.RTextArea
 import org.fife.ui.rtextarea.RTextAreaEditorKit
 import packetproxy.VulCheckerManager
@@ -114,6 +117,20 @@ class RawTextPane @Throws(Exception::class) constructor() : RSyntaxTextArea() {
       }
   }
 
+  /** RSyntaxTextArea の既定のハンドラは貼り付ける文字列の CRLF・CR を LF に直すが、パケットのバイト列が変わるので、そのまま挿入する */
+  private class RawTransferHandler : RTATextTransferHandler() {
+    override fun handleReaderImport(input: Reader, c: JTextComponent) {
+      val text = input.readText()
+      val area = c as? RTextArea
+      area?.beginAtomicEdit()
+      try {
+        c.replaceSelection(text)
+      } finally {
+        area?.endAtomicEdit()
+      }
+    }
+  }
+
   fun interface DataChangedListener : EventListener {
     fun dataChanged(data: ByteArray)
   }
@@ -133,6 +150,7 @@ class RawTextPane @Throws(Exception::class) constructor() : RSyntaxTextArea() {
 
   init {
     configureEditor()
+    transferHandler = RawTransferHandler()
     installRawDataSync()
     popupMenu = buildPopupMenu()
   }
@@ -524,7 +542,10 @@ class RawTextPane @Throws(Exception::class) constructor() : RSyntaxTextArea() {
       super.copy()
       return
     }
-    val selection = StringSelection(selected.trimEnd('\n', '\r'))
+    // 一部の行を別のツールへ貼るときは末尾の改行が邪魔になるので除く。全体を選んだときは、ヘッダーの終わりの空行もリクエストの一部なので残す
+    val wholeDocument = selectionStart == 0 && selectionEnd == document.length
+    val text = if (wholeDocument) selected else selected.trimEnd('\n', '\r')
+    val selection = StringSelection(text)
     Toolkit.getDefaultToolkit().systemClipboard.setContents(selection, selection)
   }
 
