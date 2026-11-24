@@ -77,17 +77,16 @@ class GrpcSchemaResolver {
   }
 
   @Throws(Exception::class)
-  fun decodeSchemaAwareBody(raw: ByteArray, type: Descriptor): ByteArray {
+  @JvmOverloads
+  fun decodeSchemaAwareBody(raw: ByteArray, type: Descriptor, encoding: String? = null): ByteArray {
     val body = ByteArrayOutputStream()
     var pos = 0
     while (pos < raw.size) {
-      if (raw[pos] != 0.toByte()) {
-        throw Exception("gRPC: compressed flag in gRPC message is not supported yet")
-      }
+      val flag = raw[pos]
       pos += 1
       val messageLength = ByteBuffer.wrap(raw, pos, 4).int
       pos += 4
-      val grpcMsg = raw.copyOfRange(pos, pos + messageLength)
+      val grpcMsg = GrpcCompression.decompress(flag, raw.copyOfRange(pos, pos + messageLength), encoding)
       pos += messageLength
       if (body.size() > 0) {
         body.write('\n'.code)

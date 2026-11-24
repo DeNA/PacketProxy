@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import packetproxy.common.Protobuf3;
 import packetproxy.common.Utils;
+import packetproxy.grpc.GrpcCompression;
 import packetproxy.grpc.GrpcSchemaResolver;
 import packetproxy.grpc.GrpcServiceRegistry;
 import packetproxy.http.Http;
@@ -97,7 +98,8 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 		GrpcServiceRegistry reg = schemaResolver.resolveRegistryForRequest(inputHttp);
 		Descriptor type = reg != null ? reg.getInputType(lastGrpcPath) : null;
 		if (type != null) {
-			inputHttp.setBody(schemaResolver.decodeSchemaAwareBody(inputHttp.getBody(), type));
+			inputHttp.setBody(schemaResolver.decodeSchemaAwareBody(inputHttp.getBody(), type,
+					GrpcCompression.encodingOf(inputHttp)));
 			return inputHttp;
 		}
 		byte[] raw = inputHttp.getBody();
@@ -106,15 +108,12 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 		while (pos < raw.length) {
 
 			compressedFlag = raw[pos];
-			if (compressedFlag != 0) {
-
-				throw new Exception("gRPC: compressed flag in gRPC message is not supported yet");
-			}
 			pos += 1;
 			int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, pos, pos + 4)).getInt();
 			pos += 4;
 			byte[] grpcMsg = Arrays.copyOfRange(raw, pos, pos + messageLength);
-			byte[] decodedMsg = decodeGrpcClientPayload(grpcMsg);
+			byte[] decodedMsg = decodeGrpcClientPayload(
+					GrpcCompression.decompress(compressedFlag, grpcMsg, GrpcCompression.encodingOf(inputHttp)));
 			if (body.size() > 0) {
 
 				body.write("\n".getBytes());
@@ -174,7 +173,7 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 		GrpcServiceRegistry reg = schemaResolver.effectiveRegistry(inputHttp);
 		Descriptor type = reg != null ? reg.getOutputType(lastGrpcPath) : null;
 		if (type != null) {
-			inputHttp.setBody(schemaResolver.decodeSchemaAwareBody(raw, type));
+			inputHttp.setBody(schemaResolver.decodeSchemaAwareBody(raw, type, GrpcCompression.encodingOf(inputHttp)));
 			return inputHttp;
 		}
 		ByteArrayOutputStream body = new ByteArrayOutputStream();
@@ -182,15 +181,12 @@ public class EncodeGRPCStreaming extends EncodeHTTPBase {
 		while (pos < raw.length) {
 
 			compressedFlag = raw[pos];
-			if (compressedFlag != 0) {
-
-				throw new Exception("gRPC: compressed flag in gRPC message is not supported yet");
-			}
 			pos += 1;
 			int messageLength = ByteBuffer.wrap(Arrays.copyOfRange(raw, pos, pos + 4)).getInt();
 			pos += 4;
 			byte[] grpcMsg = Arrays.copyOfRange(raw, pos, pos + messageLength);
-			byte[] decodedMsg = decodeGrpcServerPayload(grpcMsg);
+			byte[] decodedMsg = decodeGrpcServerPayload(
+					GrpcCompression.decompress(compressedFlag, grpcMsg, GrpcCompression.encodingOf(inputHttp)));
 			if (body.size() > 0) {
 
 				body.write("\n".getBytes());
