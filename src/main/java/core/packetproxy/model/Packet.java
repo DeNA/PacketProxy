@@ -84,6 +84,10 @@ public class Packet implements PacketInfo {
 	private long group;
 	@DatabaseField
 	private String color;
+	@DatabaseField
+	private long resend_batch_id;
+	@DatabaseField
+	private int resend_source_id;
 
 	public Packet() {
 		// ORMLite needs a no-arg constructor
@@ -135,8 +139,11 @@ public class Packet implements PacketInfo {
 	}
 
 	public OneShotPacket getOneShotPacket(byte[] data) {
-		return new OneShotPacket(getId(), getListenPort(), getClient(), getServer(), getServerName(), getUseSSL(), data,
-				getEncoder(), getAlpn(), getDirection(), getConn(), getGroup());
+		var oneshot = new OneShotPacket(getId(), getListenPort(), getClient(), getServer(), getServerName(),
+				getUseSSL(), data, getEncoder(), getAlpn(), getDirection(), getConn(), getGroup());
+		oneshot.setResendBatchId(getResendBatchId());
+		oneshot.setResendSourceId(getResendSourceId());
+		return oneshot;
 	}
 
 	public void setModifiedData(byte[] data) {
@@ -276,6 +283,22 @@ public class Packet implements PacketInfo {
 
 	public void setColor(String color) {
 		this.color = color;
+	}
+
+	public long getResendBatchId() {
+		return this.resend_batch_id;
+	}
+
+	public void setResendBatchId(long resend_batch_id) {
+		this.resend_batch_id = resend_batch_id;
+	}
+
+	public int getResendSourceId() {
+		return this.resend_source_id;
+	}
+
+	public void setResendSourceId(int resend_source_id) {
+		this.resend_source_id = resend_source_id;
 	}
 
 	public String getSummarizedRequest() throws Exception {

@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 import packetproxy.DuplexFactory;
 import packetproxy.DuplexSync;
 import packetproxy.EncoderManager;
+import packetproxy.common.UniqueID;
+import packetproxy.gui.ResendBatchService;
 import packetproxy.http2.frames.DataFrame;
 import packetproxy.http2.frames.Frame;
 import packetproxy.http2.frames.FrameUtils;
@@ -34,6 +36,7 @@ import packetproxy.model.OneShotPacket;
 import packetproxy.model.Packet;
 
 public class SinglePacketAttackController {
+	private final OneShotPacket oneshot;
 	private final AttackFrames baseAttackFrames;
 	private final DuplexSync attackConnection;
 	private final int sleepTimeMs;
@@ -60,6 +63,7 @@ public class SinglePacketAttackController {
 					"GET requests are not supported by Single Packet Attack because they cannot have DATA frames in HTTP/2.");
 		}
 
+		this.oneshot = oneshot;
 		this.attackConnection = DuplexFactory.createDuplexSyncForSinglePacketAttack(oneshot);
 		this.baseAttackFrames = generateAttackFrames(oneshot);
 		this.sleepTimeMs = sleepTimeMs;
@@ -68,6 +72,13 @@ public class SinglePacketAttackController {
 	public void attack(final int count) throws Exception {
 		if (count <= 0) {
 			return;
+		}
+
+		if (count > 1) {
+			var batchId = UniqueID.getInstance().createId();
+			oneshot.setResendBatchId(batchId);
+			oneshot.setResendSourceId(oneshot.getId());
+			ResendBatchService.getInstance().registerPendingBatch(batchId, oneshot.getId(), count);
 		}
 
 		sendConnectionPreface();

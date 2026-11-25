@@ -150,8 +150,8 @@ public class Packets implements PropertyChangeListener {
 	}
 
 	public List<Packet> queryAllIdsAndColors() throws Exception {
-		return dao.queryBuilder().selectColumns("id", "color", "direction", "group", "encoder_name").orderBy("id", true)
-				.query();
+		return dao.queryBuilder().selectColumns("id", "color", "direction", "group", "encoder_name", "resend_batch_id",
+				"resend_source_id").orderBy("id", true).query();
 	}
 
 	public List<Packet> queryRange(long offset, long limit) throws Exception {
@@ -228,6 +228,16 @@ public class Packets implements PropertyChangeListener {
 
 						dao.executeRaw("ALTER TABLE `packets` ADD COLUMN color VARCHAR");
 					}
+					result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='packets'").getFirstResult()[0];
+					if (!result.contains("`resend_batch_id` BIGINT")) {
+
+						dao.executeRaw("ALTER TABLE `packets` ADD COLUMN resend_batch_id BIGINT DEFAULT 0");
+					}
+					result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='packets'").getFirstResult()[0];
+					if (!result.contains("`resend_source_id` INTEGER")) {
+
+						dao.executeRaw("ALTER TABLE `packets` ADD COLUMN resend_source_id INTEGER DEFAULT 0");
+					}
 					firePropertyChange(message);
 					break;
 				case RECREATE :
@@ -247,7 +257,7 @@ public class Packets implements PropertyChangeListener {
 		String result = dao.queryRaw("SELECT sql FROM sqlite_master WHERE name='packets'").getFirstResult()[0];
 		// Logging.log(result);
 		return result.equals(
-				"CREATE TABLE `packets` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `direction` VARCHAR , `decoded_data` BLOB , `modified_data` BLOB , `sent_data` BLOB , `received_data` BLOB , `listen_port` INTEGER , `client_ip` VARCHAR , `client_port` INTEGER , `server_ip` VARCHAR , `server_name` VARCHAR , `server_port` INTEGER , `use_ssl` BOOLEAN , `content_type` VARCHAR , `encoder_name` VARCHAR , `alpn` VARCHAR , `modified` BOOLEAN , `resend` BOOLEAN , `date` BIGINT , `conn` INTEGER , `group` BIGINT , `color` VARCHAR )");
+				"CREATE TABLE `packets` (`id` INTEGER PRIMARY KEY AUTOINCREMENT , `direction` VARCHAR , `decoded_data` BLOB , `modified_data` BLOB , `sent_data` BLOB , `received_data` BLOB , `listen_port` INTEGER , `client_ip` VARCHAR , `client_port` INTEGER , `server_ip` VARCHAR , `server_name` VARCHAR , `server_port` INTEGER , `use_ssl` BOOLEAN , `content_type` VARCHAR , `encoder_name` VARCHAR , `alpn` VARCHAR , `modified` BOOLEAN , `resend` BOOLEAN , `date` BIGINT , `conn` INTEGER , `group` BIGINT , `color` VARCHAR , `resend_batch_id` BIGINT , `resend_source_id` INTEGER )");
 	}
 
 	private void RecreateTable() throws Exception {
