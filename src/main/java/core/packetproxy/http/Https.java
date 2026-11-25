@@ -45,7 +45,6 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
-import packetproxy.CertCacheManager;
 import packetproxy.common.ClientKeyManager;
 import packetproxy.common.Utils;
 import packetproxy.model.CAs.CA;
@@ -61,7 +60,7 @@ public class Https {
 		SSLContext sslContext = SSLContext.getInstance("TLS");
 		String[] domainNames = Servers.getInstance().queryResolvedByDNS().stream().map(a -> a.getIp())
 				.sorted(String::compareTo).toArray(String[]::new);
-		KeyStore ks = CertCacheManager.getInstance().getKeyStore(commonName, domainNames, ca);
+		KeyStore ks = ca.getCachedKeyStore(commonName, domainNames);
 		KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 		kmf.init(ks, KS_PASS);
 		sslContext.init(kmf.getKeyManagers(), null, null);
